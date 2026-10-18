@@ -9,7 +9,7 @@
     vika:      { l: "Vikumarkmið", d: "Hringur með klst. vikunnar", s: "s" },
     idag:      { l: "Í dag", d: "Fundir, skil og klukka dagsins", s: "s" },
     naest:     { l: "Næst á eftir", d: "Næsta atriði á dagskrá", s: "s" },
-    spjold:    { l: "Spjöld", d: "Til að ganga frá, framundan, verkefni, póstur", s: "l" },
+    spjold:    { l: "Lykiltölur", d: "Spjöld með tölum sem skipta máli – veldu þau undir Lykiltölur", s: "l" },
     flyti:     { l: "Flýtileiðir", d: "Hnappar sem þú velur sjálf(ur)", s: "l" },
     ch_vikur:  { l: "Myndrit: tímar 8 vikur", d: "Súlurit yfir vikurnar", s: "m" },
     ch_verk:   { l: "Myndrit: tímar á verkefni", d: "Yfirstandandi tímabil", s: "m" },
@@ -41,6 +41,18 @@
     skjol:   ["Skjöl", "tab:skjol", "doc"]
   };
   const SC_DEF = ["tima", "klukka", "verk", "spjall"];
+  // Lykiltölur (spjöld): [heiti, lýsing, aðeins fjármál]
+  const TL = {
+    timar_dag: ["Klst. í dag", "Það sem þú hefur skráð í dag, með klukku í gangi"],
+    fram7: ["Framundan 7 daga", "Fundir, skil og gjalddagar næstu viku"],
+    verk: ["Verkefni í gangi", "Fjöldi verkefna og hve mörg eru fram yfir skiladag"],
+    oinn: ["Óinnheimt", "Óreikningsfært og ógreitt í krónum", 1],
+    olesid: ["Ólesið", "Ólesin skilaboð í spjalli og óflokkaður póstur"],
+    seint: ["Komið fram yfir", "Skil og fundir sem eru komin fram yfir"],
+    frag: ["Til að ganga frá", "Fram yfir, óreikningsfært, ógreitt o.fl."],
+    nyl: ["Óflokkaður póstur", "Þræðir í AERA-möppunni sem á eftir að tengja"]
+  };
+  const TL_DEF = () => fj() ? ["timar_dag", "fram7", "verk", "oinn"] : ["timar_dag", "fram7", "verk", "olesid"];
   const PIC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>`; // mappa = verkefni
   let PREF = null, DBREF = null, saving = null;
   const LSK = "aera-heim";
@@ -51,7 +63,7 @@
   const cur = () => {
     const p = PREF || load() || {};
     const w = (p.w || DEF.map(id => ({ id }))).filter(x => avail(x.id));
-    return { w, sc: p.sc || SC_DEF.slice(), pin: p.pin || [] };
+    return { w, sc: p.sc || SC_DEF.slice(), pin: p.pin || [], tl: (p.tl || TL_DEF()).filter(k => TL[k] && (!TL[k][2] || fj())) };
   };
   function save(p) {
     PREF = p; try { localStorage.setItem(LSK, JSON.stringify(p)); } catch (e) {}
@@ -76,8 +88,9 @@
   }
 
   window.heimGrid = function (pieces) {
-    pieces = { ...pieces, flyti: flyti(), spjall: spjall() };
     const c = cur();
+    pieces = { ...pieces, flyti: flyti(), spjall: spjall() };
+    if (pieces._tiles) pieces.spjold = c.tl.length ? `<div class="htiles">${c.tl.map(k => pieces._tiles[k] || "").join("")}</div>` : "";
     const cells = c.w.map(x => { const html = pieces[x.id] || "", size = x.s || W[x.id].s; return html ? `<section class="hw hw-${size}" data-w="${esc(x.id)}">${html}</section>` : ""; }).join("");
     return `<div class="hgrid">${cells}</div><div class="hcust"><button type="button" class="btn" data-act="hw:edit">${IC_EDIT} Sérsníða Heim</button></div>`;
   };
@@ -97,8 +110,12 @@
         ${active ? `<span class="hsz" role="group" aria-label="Stærð">${["s", "m", "l"].map(k => `<button type="button" data-act="hw:sz:${i}:${k}" aria-pressed="${size === k}">${SZL[k]}</button>`).join("")}</span>
         <span class="hmv"><button type="button" data-act="hw:up:${i}" aria-label="Færa upp" ${i ? "" : "disabled"}>↑</button><button type="button" data-act="hw:down:${i}" aria-label="Færa niður" ${i < on.length - 1 ? "" : "disabled"}>↓</button></span>` : ""}
         <label class="hsw"><input type="checkbox" data-hw="${esc(id)}" ${active ? "checked" : ""} aria-label="Sýna ${esc(W[id].l)}"><i></i></label></li>`; };
-    const tabs = [["einingar", "Einingar"], ["flyti", "Flýtileiðir"]];
-    const body = TAB === "einingar"
+    const tabs = [["einingar", "Einingar"], ["tl", "Lykiltölur"], ["flyti", "Flýtileiðir"]];
+    const body = TAB === "tl"
+      ? `<p class="hint" style="margin:0 0 10px">Veldu tölurnar sem birtast í einingunni Lykiltölur (best er að velja fjórar). Röðin fylgir valinu.</p>
+        <div class="hscp">${Object.keys(TL).filter(k => !TL[k][2] || fj()).map(k => { const n = c.tl.indexOf(k); return `<button type="button" class="hscpk" data-act="hw:tl:${k}" aria-pressed="${n >= 0}"><span class="hscm"><b>${esc(TL[k][0])}</b><small>${esc(TL[k][1])}</small></span><i aria-hidden="true">${n >= 0 ? n + 1 : "+"}</i></button>`; }).join("")}</div>
+        ${!c.w.some(x => x.id === "spjold") ? `<p class="hint" style="margin-top:10px">Einingin Lykiltölur er falin – kveiktu á henni undir Einingar.</p>` : ""}`
+      : TAB === "einingar"
       ? `<p class="hint" style="margin:0 0 10px">Kveiktu á því sem þú vilt sjá. Dragðu línurnar (eða notaðu ↑ ↓) til að raða og veldu stærð. Breytingarnar sjást strax á Heim.</p>
         <ul class="hedl" id="hedl">${on.map((x, i) => row(x.id, i, true)).join("")}</ul>
         ${off.length ? `<div class="kind" style="margin:16px 0 8px">Fleiri einingar</div><ul class="hedl">${off.map(id => row(id, -1, false)).join("")}</ul>` : ""}`
@@ -139,16 +156,17 @@
     if (op === "edit") { TAB = "einingar"; openEditor(); return; }
     if (op === "done") { const sh = document.getElementById("sheet"); sh?.closest(".sheet")?.classList.remove("hedsheet"); if (typeof closeSheet === "function") closeSheet(); return; }
     if (op === "tab") { TAB = a; openEditor(); return; }
-    if (op === "reset") { if (confirm("Setja Heim aftur í sjálfgefið útlit?")) save({ w: DEF.map(id => ({ id })), sc: SC_DEF.slice(), pin: [] }); return; }
+    if (op === "reset") { if (confirm("Setja Heim aftur í sjálfgefið útlit?")) save({ w: DEF.map(id => ({ id })), sc: SC_DEF.slice(), pin: [], tl: TL_DEF() }); return; }
     if (op === "sz") { const [, , k] = r; w[i].s = k; }
     if (op === "up" && i > 0) [w[i - 1], w[i]] = [w[i], w[i - 1]];
     if (op === "down" && i < w.length - 1) [w[i + 1], w[i]] = [w[i], w[i + 1]];
     if (op === "size") { const s = w[i].s || W[w[i].id].s; w[i].s = { s: "m", m: "l", l: "s" }[s]; }
     if (op === "del") w.splice(i, 1);
     if (op === "add" && W[a]) w.push({ id: a });
-    let sc = c.sc.slice(), pin = c.pin.slice();
+    let sc = c.sc.slice(), pin = c.pin.slice(), tl = c.tl.slice();
+    if (op === "tl") tl = tl.includes(a) ? tl.filter(x => x !== a) : tl.concat(a);
     if (op === "sc") sc = sc.includes(a) ? sc.filter(x => x !== a) : sc.concat(a);
     if (op === "pin") pin = pin.includes(a) ? pin.filter(x => x !== a) : pin.concat(a);
-    save({ w, sc, pin });
+    save({ w, sc, pin, tl });
   };
 })();

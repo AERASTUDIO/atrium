@@ -336,3 +336,4 @@ body.onchat #fab{display:none!important}
 .hscp .hscm b{font-size:13px}
 @media (max-width:560px){.hsps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .hscpp{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}@media (max-width:560px){.hscpp{grid-template-columns:1fr}}
+.htile .hl.ok{background:var(--bar0);color:var(--ink)}

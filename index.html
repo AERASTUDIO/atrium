@@ -596,7 +596,7 @@ const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.6.3"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.6.4"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
@@ -752,7 +752,20 @@ function vYfirlit(sub="heim"){
   const P_fram7=`  <div class="viewtitle">Framundan · næstu 7 dagar</div>${(()=>{const w=up.filter(i=>{const n=daysTo(i.when);return n>=0&&n<=7;}); return w.length?llist(w.map(i=>lrow(i.open,{lead:(()=>{const x=d(i.when); return x?`<b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small>`:"–";})(),title:esc(i.title),sub:esc([i.kind,hhmm(i.when)?"kl. "+hhmm(i.when):"",i.nr].filter(Boolean).join(" · ")),right:relPill(daysTo(i.when))}))):`<div class="empty">Ekkert á dagskrá næstu viku.</div>`;})()}`;
   const P_feed=`  ${feed.length?`<div class="viewtitle">Nýlegt</div><div class="feed">${llist(feed.map(f=>f.h))}</div>`:""}`;
   const nFrag=late.length+TODO_N+waiting.length, w7=up.filter(i=>{const n=daysTo(i.when);return n>=0&&n<=7;}).length;
-  const tile=(t,n,l,extra)=>`<button type="button" class="htile" data-act="tab:${t}"><span class="hx"><b>${n}</b>${extra||""}</span><span>${l}</span></button>`;
+  const tile=(t,n,l,extra,attr)=>`<button type="button" class="htile" ${attr||`data-act="tab:${t}"`}><span class="hx"><b>${n}</b>${extra||""}</span><span>${l}</span></button>`;
+  // Spjöld sem notandinn velur á milli (heim.js › Sérsníða Heim › Spjöld). Hvert spjald er ein lykiltala sem opnar sína síðu.
+  const kk0=klukka(), dagH=sumT(faerslur().filter(e=>String(e.date||"").slice(0,10)===isoDay(today)&&(e.starfsmadur||ME())===ME()))+(kk0?Math.max(0,(Date.now()-Math.max(new Date(kk0.start),new Date(isoDay(today)+"T00:00:00")))/36e5):0);
+  const lateP=active().filter(p=>p.skiladagur&&daysTo(p.skiladagur)<0).length, spU=window.spUnread?spUnread():0, oin=window.can&&can("fjarmal")&&window.rkOinnheimt?rkOinnheimt():null;
+  const krS=n=>n>=1e6?num(Math.round(n/1e5)/10)+" m.kr.":n>=1e3?num(Math.round(n/1e3))+" þ.kr.":kr(n);
+  const TILES={
+    timar_dag:tile("timar",num(Math.round(dagH*10)/10),"Klst. skráðar í dag",kk0?`<span class="hl ok">klukka í gangi</span>`:dagH?"":`<span class="hl">ekkert skráð</span>`,dagH||kk0?"":`data-act="add:tima"`),
+    fram7:tile("hfram",w7,"Framundan næstu 7 daga"),
+    verk:tile("verk",act.length,"Verkefni í gangi",lateP?`<span class="hl">${lateP} fram yfir skiladag</span>`:""),
+    oinn:oin?tile("trk",krS(oin.tot),"Óinnheimt",oin.late.length?`<span class="hl">${oin.late.length} fram yfir gjalddaga</span>`:""):"",
+    olesid:tile("spjall",spU+unass.length,"Ólesið í spjalli og pósti",spU?`<span class="hl ok">${spU} í spjalli</span>`:""),
+    seint:tile("hfrag",late.length,"Komið fram yfir",late.length?`<span class="hl">þarf athygli</span>`:""),
+    frag:tile("hfrag",nFrag,"Til að ganga frá",late.length?`<span class="hl">${late.length} fram yfir</span>`:""),
+    nyl:tile("hnyl",unass.length,unass.length===1?"Óflokkaður póstur":"Óflokkaðir póstar · nýlegt")};
   if(sub==="frag") return (P_late+P_todo+P_wait)||'<div class="empty">Ekkert sem bíður. Vel gert.</div>';
   if(sub==="fram") return framundan(up);
   if(sub==="nyl") return (P_unass+P_feed)||'<div class="empty">Ekkert nýlegt.</div>';
@@ -760,7 +773,7 @@ function vYfirlit(sub="heim"){
   const tiles=`<div class="htiles">${tile("hfrag",nFrag,"Til að ganga frá",late.length?`<span class="hl">${late.length} fram yfir</span>`:"")}${tile("hfram",w7,"Framundan næstu 7 daga")}${tile("verk",act.length,"Verkefni í gangi")}${tile("hnyl",unass.length,unass.length===1?"Óflokkaður póstur":"Óflokkaðir póstar · nýlegt")}</div>`;
   const hello=`<h2 class="hello">${greet}${first?", "+esc(first):""}</h2><p class="sub">${late.length?`<b style="color:var(--ink)">${late.length} ${late.length===1?"atriði komið":"atriði komin"} fram yfir</b> · `:""}${active().length} verkefni í gangi · ${openSubs.length} opin undirverk</p>`;
   if(!window.heimGrid) return P_hello+tiles;
-  const pieces={oinnheimt:window.can&&can("fjarmal")&&window.rkOinnheimtCard?rkOinnheimtCard():"",kvedja:hello,vika:ring,idag:agenda,naest:nextCard,spjold:tiles,frag:(P_late+P_todo+P_wait).trim(),framundan:P_fram7,verkefni:P_act.trim(),nylegt:P_feed.trim(),postur:P_unass.trim(),...homeChartParts()};
+  const pieces={_tiles:TILES,oinnheimt:window.can&&can("fjarmal")&&window.rkOinnheimtCard?rkOinnheimtCard():"",kvedja:hello,vika:ring,idag:agenda,naest:nextCard,spjold:tiles,frag:(P_late+P_todo+P_wait).trim(),framundan:P_fram7,verkefni:P_act.trim(),nylegt:P_feed.trim(),postur:P_unass.trim(),...homeChartParts()};
   return klukkaBanner()+heimGrid(pieces);
 }
 /* ---------- Myndrit á Heim (1.4.0) ----------
