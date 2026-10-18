@@ -41,6 +41,7 @@
     skjol:   ["Skjöl", "tab:skjol", "doc"]
   };
   const SC_DEF = ["tima", "klukka", "verk", "spjall"];
+  const PIC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>`; // mappa = verkefni
   let PREF = null, DBREF = null, saving = null;
   const LSK = "aera-heim";
   const me = () => window.USER?.email || "";
@@ -62,9 +63,11 @@
 
   function flyti() {
     const c = cur(), ic = k => (typeof EI !== "undefined" && EI[k]) || "";
-    const btns = c.sc.filter(k => SC[k]).map(k => `<button type="button" class="hsc" data-act="${esc(SC[k][1])}">${ic(SC[k][2])}<span>${esc(SC[k][0])}</span></button>`)
-      .concat(c.pin.map(id => findProj(id)).filter(Boolean).map(p => `<button type="button" class="hsc" data-open="verk:${esc(p.id)}"><span class="nr">${esc(p.nr)}</span><span>${esc(p.stutt || p.nafn)}</span></button>`));
-    return btns.length ? `<div class="hscs">${btns.join("")}</div>` : `<div class="empty">Engar flýtileiðir valdar. Ýttu á Sérsníða Heim.</div>`;
+    const acts = c.sc.filter(k => SC[k]).map(k => `<button type="button" class="hsc" data-act="${esc(SC[k][1])}">${ic(SC[k][2])}<span>${esc(SC[k][0])}</span></button>`);
+    // Fest verkefni í eigin röð með breiðari reitum: heiti efst, verknúmer undir
+    const pins = c.pin.map(id => findProj(id)).filter(Boolean).map(p => `<button type="button" class="hsc hsp" data-open="verk:${esc(p.id)}">${PIC}<span class="hscm"><b>${esc(p.stutt || p.nafn)}</b><small>${esc(p.nr)}</small></span></button>`);
+    if (!acts.length && !pins.length) return `<div class="empty">Engar flýtileiðir valdar. Ýttu á Sérsníða Heim.</div>`;
+    return (acts.length ? `<div class="hscs">${acts.join("")}</div>` : "") + (pins.length ? `<div class="hscs hsps"${acts.length ? ' style="margin-top:10px"' : ""}>${pins.join("")}</div>` : "");
   }
   function spjall() {
     const xs = window.spRecent ? spRecent(4) : [];
@@ -102,7 +105,7 @@
       : `<p class="hint" style="margin:0 0 10px">Veldu hnappana sem birtast í einingunni Flýtileiðir.</p>
         <div class="hscp">${Object.keys(SC).map(k => `<button type="button" class="hscpk" data-act="hw:sc:${k}" aria-pressed="${c.sc.includes(k)}">${(typeof EI !== "undefined" && EI[SC[k][2]]) || ""}<span>${esc(SC[k][0])}</span><i aria-hidden="true">${c.sc.includes(k) ? "✓" : "+"}</i></button>`).join("")}</div>
         <div class="kind" style="margin:16px 0 8px">Festa verkefni</div>
-        <div class="hscp">${active().map(p => `<button type="button" class="hscpk" data-act="hw:pin:${esc(p.id)}" aria-pressed="${c.pin.includes(p.id)}"><span class="nr">${esc(p.nr)}</span><span>${esc(p.stutt || "")}</span><i aria-hidden="true">${c.pin.includes(p.id) ? "✓" : "+"}</i></button>`).join("") || '<span class="hint">Engin verkefni í gangi.</span>'}</div>
+        <div class="hscp hscpp">${active().map(p => `<button type="button" class="hscpk" data-act="hw:pin:${esc(p.id)}" aria-pressed="${c.pin.includes(p.id)}">${PIC}<span class="hscm"><b>${esc(p.stutt || p.nafn)}</b><small>${esc(p.nr)}</small></span><i aria-hidden="true">${c.pin.includes(p.id) ? "✓" : "+"}</i></button>`).join("") || '<span class="hint">Engin verkefni í gangi.</span>'}</div>
         ${c.sc.length + c.pin.length && !c.w.some(x => x.id === "flyti") ? `<p class="hint" style="margin-top:10px">Einingin Flýtileiðir er falin – kveiktu á henni undir Einingar.</p>` : ""}`;
     return `<div class="hedh"><h3 id="sheet-h">Sérsníða Heim</h3></div>
       <nav class="seg hedtabs" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" aria-selected="${TAB === k}" data-act="hw:tab:${k}">${l}</button>`).join("")}</nav>
