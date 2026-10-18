@@ -343,3 +343,14 @@ body.onchat #fab{display:none!important}
 .stag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;margin-left:2px}
 .pstag{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 2px}.pstag .stag{margin:0}
 .ptaxti{background:var(--bar0)!important;color:var(--ink)!important}
+
+/* ---------- Skjöl og prófílhnappur (1.8.0) ---------- */
+.avbtn{appearance:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--bar0);color:var(--ink);font:inherit;font-size:12.5px;font-weight:500;letter-spacing:.02em;cursor:pointer;display:grid;place-items:center;flex:none}
+.avbtn[aria-current="page"]{background:var(--hi);color:var(--on-hi);border-color:var(--hi)}
+@media (min-width:1024px){.avbtn{display:none!important}}
+.odbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px;flex-wrap:wrap}
+.odbtns{display:flex;align-items:center;gap:12px}
+.crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:2px;min-width:0}
+.crumb{appearance:none;border:0;background:none;font:inherit;font-size:14px;color:var(--muted);padding:4px 6px;border-radius:8px;cursor:pointer}
+.crumb:hover{background:var(--bar0);color:var(--ink)}.crumb[aria-current="true"]{color:var(--ink);font-weight:500}
+.crs{color:var(--muted);font-size:13px}

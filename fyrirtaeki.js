@@ -22,7 +22,8 @@ window.ORG = {
     stofa: "AERA/Stofa",
     reikningar: "AERA/Stofa/Reikningar",
     snidmat: "AERA/Stofa/Sniðmát",
-    oflokkad: "Óflokkað"
+    oflokkad: "Óflokkað",
+    mitt: "AERA app"          // „Mín skjöl“ – mappa í OneDrive hvers notanda (tímaskýrslur o.fl.)
   },
   // Samstillt OneDrive-mappa á Windows-tölvum starfsmanna (Explorer skilur %UserProfile%)
   odLocal: "%UserProfile%\\OneDrive - AERA Studio ehf",

@@ -84,6 +84,7 @@
     document.getElementById("od-web").onclick = async () => { done(); try { const it = await MS.g(`/me/drive/root:/${encP(rel)}?$select=webUrl`); window.open(it.webUrl, "_blank", "noopener"); } catch (e) { toast(e.message); } };
   }
   window.odCopyLocal = copyLocal;
+  window.odIsLocal = () => odMode() === "tolva";
   document.addEventListener("change", e => { if (e.target.id === "od-rot") { LS("aera-od-rot", e.target.value.trim()); toast("OneDrive-mappa vistuð á þessu tæki"); } });
 
   const typeOf = n => { const e = (n.split(".").pop() || "").toLowerCase(); return ODTYPE[e] || e.toUpperCase(); };
