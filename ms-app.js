@@ -24,6 +24,10 @@
   // Eins og MS.g, en „/me/drive…“ vísar á drif fyrirtækisins þegar það er stillt
   async function G(path, opt) { return MS.g(path.startsWith("/me/drive") ? (await base()) + path.slice(9) : path, opt); }
   window.odBase = base; window.odG = G;
+  // Má þessi notandi skrifa í möppur fyrirtækisins? Já ef SharePoint-síðan er stillt, annars aðeins admin (möppurnar eru í hans OneDrive).
+  // Annars fara kvittanir og fundargerðir í Mín skjöl notandans og möppur nýrra verkefna bíða eftir admin (1.9.4).
+  const company = () => !!ORG.sp || (window.USER?.email || "").toLowerCase() === String(ORG.admin.email).toLowerCase() || !!window.AERA_DEMO;
+  window.odCompany = company;
 
   async function all(path) {
     let j = await G(path), out = j.value || [];
@@ -260,6 +264,8 @@
     return { url: it.webUrl, id: it.id };
   };
   window.msKvittun = async function (file, p, date, desc) {
+    if (!company()) { const ext0 = (file.name.match(/\.[a-z0-9]{1,5}$/i) || [""])[0].toLowerCase();
+      const it0 = await odSaveMine("Kvittanir", safe(`${date} ${p ? p.nr + " " : ""}${desc}`).slice(0, 120) + ext0, file, file.type); return { url: it0.webUrl, id: it0.id }; }
     const base = await projSub(p, "02", "02 Vinnuskjöl");
     await mkFolder(base, "Kvittanir");
     const ext = (file.name.match(/\.[a-z0-9]{1,5}$/i) || [""])[0].toLowerCase();
@@ -271,13 +277,14 @@
   async function fundargerd(fid, quiet) {
     const f = (S?.fundir || []).find(x => x.id === fid); if (!f) return;
     const p = typeof fundProj === "function" ? fundProj(f) : findProj(f.projectId);
-    const dir = await projSub(p, "08", FUNDAMAPPA);
+    const mine = !company(), dir = mine ? null : await projSub(p, "08", FUNDAMAPPA);
     const fname = safe(`${String(f.date || "").slice(0, 10)} Fundargerð - ${f.name}`) + ".docx";
     const D = fundDoc(f, p), bytes = window.DOK ? await DOK.docx(D.blocks, D.opts) : makeDocx(D.blocks);
-    const it = await upload(dir + "/" + fname, bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    const it = mine ? await odSaveMine("Fundargerðir", fname, new Blob([bytes]), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+      : await upload(dir + "/" + fname, bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     await saveSnapshot(s => { const q = (s.fundir || []).find(x => x.id === fid); if (q) { q.fundargerd = it.webUrl; q.fgId = it.id; } });
     Object.keys(TREE).forEach(k => delete TREE[k]);
-    if (!quiet) toast("Fundargerð stofnuð í OneDrive");
+    if (!quiet) toast(mine ? "Fundargerð stofnuð í Mín skjöl › Fundargerðir" : "Fundargerð stofnuð í OneDrive");
     return it;
   }
   window.msFundargerd = (fid) => fundargerd(fid, false).catch(e => toast("Fundargerð: " + e.message));
@@ -326,7 +333,7 @@
   window.msTick = async function () {
     if (!isOn() || ticking || !S) return; ticking = true;
     try {
-      const bid = (S.odBidrod || []).slice();
+      const bid = company() ? (S.odBidrod || []).slice() : [];
       for (const b of bid) {
         if (noFolder(findProj(b.verkefniId))) { await saveSnapshot(s => { s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== b.verkefniId); }); continue; }
         try {
@@ -363,7 +370,7 @@
     if (!isOn()) { toast("Tengdu Microsoft fyrst (Stillingar)."); return; }
     if (k === "msprev") { preview(r.join(":")); return; }
     if (k === "msref") { const key = r.join(":"); VKerr = null; if (key && TREE[key]) delete TREE[key]; else VK = null; render(); return; }
-    if (k === "msmk") { const p = findProj(r[0]); if (!p) return; toast("Stofna möppu…"); mkProj(p.nafn).then(it => saveSnapshot(s => { const q = sFindP(s, p.id); if (q && !q.mappa) q.mappa = it.webUrl; s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== p.id); })).then(() => { VK = null; toast("Mappa stofnuð"); render(); }).catch(e => toast(e.message)); return; }
+    if (k === "msmk") { const p = findProj(r[0]); if (!p) return; if (!company()) return toast("Möppur verkefna eru stofnaðar af admin þar til SharePoint-síða fyrirtækisins er komin."); toast("Stofna möppu…"); mkProj(p.nafn).then(it => saveSnapshot(s => { const q = sFindP(s, p.id); if (q && !q.mappa) q.mappa = it.webUrl; s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== p.id); })).then(() => { VK = null; toast("Mappa stofnuð"); render(); }).catch(e => toast(e.message)); return; }
     if (k === "msfg") { toast("Bý til fundargerð…"); msFundargerd(r[0]); return; }
     if (k === "msmail") { postar(true).catch(e => toast(e.message)); return; }
     if (k === "mstick") { lastMail = Date.now(); msTick().then(() => toast("Möppur stofnaðar")); return; }
