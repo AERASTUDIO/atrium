@@ -357,3 +357,6 @@ body.onchat #fab{display:none!important}
 /* 1.8.1 – yfirferð */
 .viewtitle .plink{text-transform:none;letter-spacing:0;white-space:nowrap;font-size:13.5px}
 @media (max-width:640px){.lrow .lr:has(.pill + .pill){flex-direction:column;align-items:flex-end;gap:4px}}
+/* Jöfn hæð spjalda í sömu röð á Heim (1.9.0) */
+.hgrid{align-items:stretch}
+.hw>.card:only-child,.hw>.ring:only-child,.hw>.agenda:only-child{height:100%;box-sizing:border-box}
