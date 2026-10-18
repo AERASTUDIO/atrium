@@ -1,5 +1,5 @@
 /* Reikningar: reikningsfæra tímavinnu og útlagðan kostnað (eitt eða fleiri verkefni á sama reikning),
-   forskoða, búa til PDF (pdf.js) og Excel, vista PDF í OneDrive: AERA/Stofa/Reikningar/<ár>/.
+   forskoða, búa til PDF (skjalagerd.js) og Excel, vista PDF í OneDrive: AERA/Stofa/Reikningar/<ár>/.
    Gögn: S.reikningar[], S.stillingar.reikn{}, verkefni.timagjald, færsla.reikningur / kostnaður.reikningur = id reiknings. */
 (function () {
   const NONE = "_"; // lykill fyrir tíma/kostnað án verkefnis

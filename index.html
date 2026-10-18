@@ -575,7 +575,9 @@ const TABS=SECTIONS.flatMap(x=>x.tabs.map(t=>t[0]));
 const secOf=t=>SECTIONS.find(x=>x.tabs.some(y=>y[0]===t))||SECTIONS[0];
 const tabTitle=t=>secOf(t).tabs.find(y=>y[0]===t)?.[1]||"";
 const DTYPES=["Draft","Spec","PRD","RFC","Design Review","Decision","Strategy","Guideline","Runbook","Postmortem","OKRs"], DSTAT=["Not started","In progress","Done"];
-const VERKKAUPAR=["SFHR","Verkhönnun","Sky Lagoon","Múlakaffi"];
+// Tegundir skjala eru vistaðar á ensku (eldri gögn) en birtar á íslensku
+const DTL={"Draft":"Drög","Spec":"Lýsing","PRD":"Kröfulýsing","RFC":"Tillaga","Design Review":"Hönnunarrýni","Decision":"Ákvörðun","Strategy":"Stefna","Guideline":"Leiðbeiningar","Runbook":"Verklag","Postmortem":"Eftirá-greining","OKRs":"Markmið"};
+const VERKKAUPAR=[]; // verkkaupi lagður niður (1.6) – haldið tómu vegna eldri kóða
 /* ---------- Stillingar appsins (S.stillingar) ---------- */
 const DEF_STODUR=[{n:"Beiðni",c:"slate"},{n:"Tilboð",c:"violet"},{n:"Í vinnslu",c:"blue"},{n:"Í bið",c:"amber"},{n:"Í yfirferð",c:"teal"},{n:"Afhent",c:"green",lokid:true},{n:"Reikningsfært",c:"gray",lokid:true}];
 const noFolder=p=>{const t=(p?.thjonusta||[]); return t.length>0&&t.every(x=>x==="Almennt");};
@@ -598,7 +600,7 @@ const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.8.0"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.8.1"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
@@ -700,7 +702,7 @@ function vskFromRow(r){return {id:nid(r.url),name:r.Name||"",hlutverk:J(r.Hlutve
 function loadLive(){}
 const findSkjal=id=>skjol().find(x=>String(x.id)===id);
 const skjalProj=x=>(x?.projectId&&findProj(x.projectId))||null;
-const typePill=t=>t?`<span class="pill">${esc(t)}</span>`:"";
+const typePill=t=>t?`<span class="pill">${esc(DTL[t]||t)}</span>`:"";
 const skjalCard=(x,opts={})=>{const p=opts.noProj?null:skjalProj(x); const ed=x.breytt||x.stofnad;
   return `<div class="card tap" ${tapAttr("skjal",x.id)}><div class="row"><div class="grow"><div class="t">${esc(x.name||"Án titils")}</div>
   <div class="meta">${statusPill(x.stada||"Not started")}${typePill(x.tegund)}${p?`<span class="nr">${esc(p.nr)}</span><span>${esc(p.stutt)}</span>`:""}${ed?`<span>${esc(fmtDate(ed))}</span>`:""}</div></div>${CHEV}</div></div>`;};
@@ -1359,7 +1361,7 @@ function dSkjal(x){
   <p class="sub">${p?"Skjal í "+projLink(p):"Skjal í "+esc(ORG.nafn)}</p>
   ${statRow("skjal",x.id,DSTAT,x.stada||"Not started",STL)}
   <div class="viewtitle">Upplýsingar</div><div class="card"><dl class="kv" style="margin:0">${kvRows([
-    ["Staða",esc(STL[x.stada]||x.stada||"Ekki hafið")],["Tegund",esc(x.tegund||"")],["Verkefni",p?projLink(p):""],
+    ["Staða",esc(STL[x.stada]||x.stada||"Ekki hafið")],["Tegund",esc(DTL[x.tegund]||x.tegund||"")],["Verkefni",p?projLink(p):""],
     ["Stofnað",x.stofnad?fmtDate(x.stofnad):""],["Síðast breytt",x.breytt?fmtDate(x.breytt):""]])}</dl>
     ${linkBtns({id:x.id,mappa:x.mappa},{edit:"skjal"})}</div>
   ${textCard("Efni skjalsins",x.lysing)}`;
@@ -1775,7 +1777,7 @@ function drawForm(){
     ${STARFS().length>1&&can("fjarmal")?`<label>Starfsmaður<select id="f-starf">${STARFS().map(x=>`<option value="${esc(x.sk)}"${x.sk===ME()?" selected":""}>${esc(x.nafn)}</option>`).join("")}</select></label>`:""}
     ${window.MS&&MS.on()?`<label>Kvittun (mynd eða PDF)<input id="f-file" type="file" accept="image/*,application/pdf"></label><p class="hint" style="margin-top:-6px">Vistast í OneDrive: verkefni › 02 Vinnuskjöl › Kvittanir.</p>`:`<p class="hint">Tengdu Microsoft í Stillingum til að geta hengt kvittun við.</p>`}`;
   if(kind==="skjal") f=`<label>Heiti skjals<input id="f-name" required placeholder="T.d. Ljósahönnun – forsendur"></label>
-    <div class="two"><label>Tegund<select id="f-type"><option value="">Engin</option>${DTYPES.map(t=>opt(t,t,"")).join("")}</select></label>
+    <div class="two"><label>Tegund<select id="f-type"><option value="">Engin</option>${DTYPES.map(t=>opt(t,DTL[t]||t,"")).join("")}</select></label>
     <label>Staða<select id="f-status">${DSTAT.map(s=>opt(s,STL[s],"Not started")).join("")}</select></label></div>
     <label>Verkefni<select id="f-proj"><option value="">Ekkert</option>${projOpts(true)}</select></label>
     <label>Efni<textarea id="f-note" placeholder="Valfrjálst"></textarea></label>`;
@@ -2113,7 +2115,7 @@ function openEdit(type,id){
     <label>Lýsing<textarea id="e-lys">${esc(fd.lysing||"")}</textarea></label>`;}
   if(type==="skjal"){const x=findSkjal(id); if(!x) return; title="Breyta skjali";
     f=`<label>Heiti skjals<input id="e-name" value="${esc(x.name||"")}" required></label>
-    <div class="two"><label>Tegund<select id="e-type"><option value="">Engin</option>${DTYPES.map(t=>opt(t,t,x.tegund)).join("")}</select></label>
+    <div class="two"><label>Tegund<select id="e-type"><option value="">Engin</option>${DTYPES.map(t=>opt(t,DTL[t]||t,x.tegund)).join("")}</select></label>
     <label>Staða<select id="e-status">${DSTAT.map(s=>opt(s,STL[s],x.stada||"Not started")).join("")}</select></label></div>
     <label>Verkefni<select id="e-proj"><option value="">Ekkert</option>${allProjOpts(x.projectId)}</select></label>
     <label>Efni<textarea id="e-lys">${esc(x.lysing||"")}</textarea></label>`;}
@@ -2281,7 +2283,6 @@ window.aeraStart=function(db){
 document.getElementById("fab").hidden=true;
 </script>
 <script src="ms-app.js"></script>
-<script src="pdf.js"></script>
 <script src="verdskra.js"></script>
 <script src="reikn.js"></script>
 <script src="skjol.js"></script>

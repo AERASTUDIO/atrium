@@ -245,7 +245,7 @@ body.onchat #fab{display:none!important}
 .spwrap{grid-template-columns:minmax(0,1fr)}.spconv,.spchans{min-width:0}
 @media (min-width:1024px){.spwrap{grid-template-columns:260px minmax(0,1fr)}}
 @media (max-width:1023px){.spconv{height:calc(100dvh - 400px)}}
-@media (max-width:640px){.tmrow{flex-wrap:wrap}.tmrow .lr{width:100%;justify-content:flex-start;padding-left:44px}}
+@media (max-width:640px){.tmrow{flex-wrap:wrap}.tmrow .lr{width:100%;box-sizing:border-box;justify-content:flex-start;padding-left:44px}}
 
 /* ---------- Sérsniðinn Heim (1.5.0) ---------- */
 .hgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;margin-top:6px;align-items:start}
@@ -354,3 +354,6 @@ body.onchat #fab{display:none!important}
 .crumb{appearance:none;border:0;background:none;font:inherit;font-size:14px;color:var(--muted);padding:4px 6px;border-radius:8px;cursor:pointer}
 .crumb:hover{background:var(--bar0);color:var(--ink)}.crumb[aria-current="true"]{color:var(--ink);font-weight:500}
 .crs{color:var(--muted);font-size:13px}
+/* 1.8.1 – yfirferð */
+.viewtitle .plink{text-transform:none;letter-spacing:0;white-space:nowrap;font-size:13.5px}
+@media (max-width:640px){.lrow .lr:has(.pill + .pill){flex-direction:column;align-items:flex-end;gap:4px}}
