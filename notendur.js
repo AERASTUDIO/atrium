@@ -11,7 +11,7 @@
   };
   let NU = null; // app/notendur
   window.USER = null; // innskráður notandi {email, nafn, sk, hlutverk, varaleid}
-  window.can = perm => !!(ROLES[USER?.hlutverk || "starfsmadur"] || {})[perm];
+  window.can = perm => !!(ROLES[window.VIEWAS?.hlutverk || USER?.hlutverk || "starfsmadur"] || {})[perm]; // VIEWAS = „Skoða sem“ (adgangur.js)
   window.nuUsers = () => Object.entries(NU?.notendur || {}).map(([email, u]) => ({ email, ...u }))
     .sort((a, b) => (b.virkur - a.virkur) || (a.hlutverk === "admin" ? -1 : b.hlutverk === "admin" ? 1 : 0) || String(a.nafn).localeCompare(b.nafn, "is"));
   window.nuSet = d => { NU = d; };

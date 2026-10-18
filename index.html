@@ -589,12 +589,14 @@ const STODUR=()=>CFG().stodur?.length?CFG().stodur:DEF_STODUR;
 const THJ=()=>CFG().thjonusta?.length?CFG().thjonusta:DEF_THJ;
 const STARFS=()=>CFG().starfsmenn?.length?CFG().starfsmenn:DEF_STARF;
 // Innskráður notandi skráir á sig (skammstöfun úr notendaskrá); annars sá sem merktur er „ég“ í Starfsmönnum.
-const ME=()=>window.USER?.sk||(STARFS().find(x=>x.eg)||STARFS()[0]).sk;
+const ME=()=>window.VIEWAS?.sk||window.USER?.sk||(STARFS().find(x=>x.eg)||STARFS()[0]).sk;
+// „Skoða sem“ (admin): sýnir aðeins það sem viðkomandi hlutverk sæi af tímum og kostnaði
+const viewFilter=xs=>{const V=window.VIEWAS; if(!V||ROLES[V.hlutverk]?.fjarmal) return xs; return xs.filter(x=>x.eigandi?String(x.eigandi).toLowerCase()===V.email.toLowerCase():(x.starfsmadur||x.sk)===V.sk);};
 const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.4.1"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.5.0"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
@@ -652,10 +654,10 @@ function verkefni(){const base=S?.verkefni||[]; if(_vc.k===base&&_vc.v===LIVE.v)
 const meetBtn=o=>{const h=(o.fundargerd?`<a class="btn" href="${esc(o.fundargerd)}" target="_blank" rel="noopener">Fundargerð</a>`:"")+(o.fundarhlekkur?`<a class="btn primary" href="${esc(o.fundarhlekkur)}" target="_blank" rel="noopener">Fjarfundur</a>`:""); return h?`<div class="links">${h}</div>`:"";};
 // Tímafærslur – geymt í minni þar til gögnin breytast (kallað oft í hverri teikningu)
 let _fc={k:null,v:null,r:[]};
-function faerslur(){const T=S?.timar||{}, L=T.faerslur||T.nyjast||[], vk=verkefni(); if(_fc.k===L&&_fc.v===vk) return _fc.r;
-  const r=L.map(e=>({...e,verkefniId:e.verkefniId||projByNr(e.nr)?.id||null})); _fc={k:L,v:vk,r}; return r;}
+function faerslur(){const T=S?.timar||{}, L=T.faerslur||T.nyjast||[], vk=verkefni(); if(_fc.k===L&&_fc.v===vk) return window.VIEWAS?viewFilter(_fc.r):_fc.r;
+  const r=L.map(e=>({...e,verkefniId:e.verkefniId||projByNr(e.nr)?.id||null})); _fc={k:L,v:vk,r}; return window.VIEWAS?viewFilter(r):r;}
 const findTime=id=>faerslur().find(e=>String(e.id)===id);
-const kostn=()=>(S?.kostnadur||[]);
+const kostn=()=>viewFilter(S?.kostnadur||[]);
 const findKostn=id=>kostn().find(k=>String(k.id)===id);
 const kr=n=>String(Math.round(+n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" kr.";
 const sumK=ks=>ks.reduce((a,k)=>a+(+k.upphaed||0),0);
@@ -754,7 +756,12 @@ function vYfirlit(sub="heim"){
   if(sub==="frag") return (P_late+P_todo+P_wait)||'<div class="empty">Ekkert sem bíður. Vel gert.</div>';
   if(sub==="fram") return framundan(up);
   if(sub==="nyl") return (P_unass+P_feed)||'<div class="empty">Ekkert nýlegt.</div>';
-  return P_hello+`<div class="htiles">${tile("hfrag",nFrag,"Til að ganga frá",late.length?`<span class="hl">${late.length} fram yfir</span>`:"")}${tile("hfram",w7,"Framundan næstu 7 daga")}${tile("verk",act.length,"Verkefni í gangi")}${tile("hnyl",unass.length,unass.length===1?"Óflokkaður póstur":"Óflokkaðir póstar · nýlegt")}</div>`+homeCharts();
+  // Heim er samsett úr einingum sem notandinn velur, raðar og stækkar (heim.js)
+  const tiles=`<div class="htiles">${tile("hfrag",nFrag,"Til að ganga frá",late.length?`<span class="hl">${late.length} fram yfir</span>`:"")}${tile("hfram",w7,"Framundan næstu 7 daga")}${tile("verk",act.length,"Verkefni í gangi")}${tile("hnyl",unass.length,unass.length===1?"Óflokkaður póstur":"Óflokkaðir póstar · nýlegt")}</div>`;
+  const hello=`<h2 class="hello">${greet}${first?", "+esc(first):""}</h2><p class="sub">${late.length?`<b style="color:var(--ink)">${late.length} ${late.length===1?"atriði komið":"atriði komin"} fram yfir</b> · `:""}${active().length} verkefni í gangi · ${openSubs.length} opin undirverk</p>`;
+  if(!window.heimGrid) return P_hello+tiles;
+  const pieces={kvedja:hello,vika:ring,idag:agenda,naest:nextCard,spjold:tiles,frag:(P_late+P_todo+P_wait).trim(),framundan:P_fram7,verkefni:P_act.trim(),nylegt:P_feed.trim(),postur:P_unass.trim(),...homeChartParts()};
+  return klukkaBanner()+heimGrid(pieces);
 }
 /* ---------- Myndrit á Heim (1.4.0) ----------
    Einföld SVG-rit í litum merkjahandbókar. Hver notandi sér rit úr þeim gögnum sem hann hefur aðgang að
@@ -768,29 +775,30 @@ function barsV(vals,labels,{goal=0,hi=-1,fmt=v=>num(Math.round(v*10)/10),acts=[]
 function barsH(rows){ // rows: [{l, v, txt, act}]
   const mx=Math.max(...rows.map(r=>r.v),1);
   return `<div class="chh">${rows.map((r,i)=>`<${r.act?`a class="chr tap" data-act="${esc(r.act)}"`:`div class="chr"`}><span class="chrl">${r.l}</span><span class="chrb"><i style="width:${Math.max(2,Math.round(r.v/mx*100))}%;animation-delay:${i*50}ms"></i></span><span class="chrv">${esc(r.txt)}</span></${r.act?"a":"div"}>`).join("")}</div>`;}
-function homeCharts(){
-  if(!S) return "";
-  const fj=window.can&&can("fjarmal"), mine=!fj&&STARFS().length>1?ME():null, out=[];
+function homeChartParts(){
+  if(!S) return {};
+  const fj=window.can&&can("fjarmal"), mine=!fj&&STARFS().length>1?ME():null, out=[], P={};
   // 1. Tímar síðustu 8 vikna
   const wks=[...Array(8)].map((_,i)=>i-7), wv=wks.map(o=>weekSum(o,STARFS().length>1&&!fj?ME():(fj?null:ME()))), mon=o=>{const a=mondayOf(today); a.setDate(a.getDate()+7*o); return a;};
   const kk=klukka(); if(kk) wv[7]+=liveWeekH(kk.start);
-  out.push(`<div class="chart"><div class="chh4"><b>${fj&&STARFS().length>1?"Tímar teymisins":"Þínir tímar"}</b><span>síðustu 8 vikur</span></div>${barsV(wv,wks.map(o=>"v"+isoWeek(mon(o))),{goal:fj&&STARFS().length>1?0:(+CFG().vikumark||40),hi:7,acts:wks.map(()=>"tab:timar")})}</div>`);
+  P.ch_vikur=(`<div class="chart"><div class="chh4"><b>${fj&&STARFS().length>1?"Tímar teymisins":"Þínir tímar"}</b><span>síðustu 8 vikur</span></div>${barsV(wv,wks.map(o=>"v"+isoWeek(mon(o))),{goal:fj&&STARFS().length>1?0:(+CFG().vikumark||40),hi:7,acts:wks.map(()=>"tab:timar")})}</div>`);
   // 2. Tímar á verkefni á yfirstandandi tímabili
   const per=curPeriod(), byP=new Map(); faerslur().filter(e=>(e.timabil||timabilOf(e.date))===per&&(!mine||(e.starfsmadur||ME())===mine)).forEach(e=>{const k=e.verkefniId||"_"; byP.set(k,(byP.get(k)||0)+(+e.timar||0));});
   const pr=[...byP.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>{const p=findProj(k); return {l:p?`<span class="nr">${esc(p.nr)}</span> ${esc(p.stutt||"")}`:"Almennt",v,txt:num(Math.round(v*10)/10)+" klst.",act:p?"verk:"+p.id:"tab:tfaer"};});
-  out.push(`<div class="chart"><div class="chh4"><b>Tímar á verkefni</b><span>tímabil ${esc(per)}</span></div>${pr.length?barsH(pr):`<div class="empty" style="margin:8px 0">Engir tímar á tímabilinu ennþá.</div>`}</div>`);
+  P.ch_verk=(`<div class="chart"><div class="chh4"><b>Tímar á verkefni</b><span>tímabil ${esc(per)}</span></div>${pr.length?barsH(pr):`<div class="empty" style="margin:8px 0">Engir tímar á tímabilinu ennþá.</div>`}</div>`);
   // 3. Verkefni eftir stöðu
   const st=STODUR().filter(x=>!x.lokid).map(x=>({x,n:verkefni().filter(p=>p.stada===x.n).length})).filter(r=>r.n), tot=st.reduce((a,r)=>a+r.n,0);
-  if(tot) out.push(`<div class="chart"><div class="chh4"><b>Verkefni í gangi</b><span>${tot} eftir stöðu</span></div><div class="chstack">${st.map((r,i)=>`<i class="sh${i%5}" style="flex:${r.n}" title="${esc(r.x.n)}: ${r.n}"></i>`).join("")}</div>
+  P.ch_stada=(`<div class="chart"><div class="chh4"><b>Verkefni í gangi</b><span>${tot} eftir stöðu</span></div><div class="chstack">${st.map((r,i)=>`<i class="sh${i%5}" style="flex:${r.n}" title="${esc(r.x.n)}: ${r.n}"></i>`).join("")}</div>
     <div class="chleg">${st.map((r,i)=>`<a class="tap" data-act="tab:verk"><i class="sh${i%5}"></i>${esc(r.x.n)} <b>${r.n}</b></a>`).join("")}</div></div>`);
   // 4. Reikningar (fjármál)
   if(fj){const R=S.reikningar||[], m6=[...Array(6)].map((_,i)=>{const x=new Date(today.getFullYear(),today.getMonth()-5+i,1); return x;}), MN=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"];
     const mv=m6.map(x=>R.filter(r=>String(r.dags||"").slice(0,7)===x.getFullYear()+"-"+pad(x.getMonth()+1)).reduce((a,r)=>a+(+r.tot||0),0));
     const og=R.filter(r=>r.stada!=="Greitt"), late=og.filter(r=>r.gjalddagi&&daysTo(r.gjalddagi)<0), sumR=xs=>xs.reduce((a,r)=>a+(+r.tot||0),0);
     const unb=faerslur().filter(e=>!e.reikningur&&e.verkefniId).reduce((a,e)=>a+(+e.timar||0),0);
-    out.push(`<div class="chart"><div class="chh4"><b>Reikningsfært</b><span>síðustu 6 mánuðir · m.kr.</span></div>${barsV(mv.map(v=>v/1e6),m6.map(x=>MN[x.getMonth()]),{hi:5,fmt:v=>v?num(Math.round(v*100)/100):"",acts:m6.map(()=>"tab:trk")})}
+    P.ch_reikn=(`<div class="chart"><div class="chh4"><b>Reikningsfært</b><span>síðustu 6 mánuðir · m.kr.</span></div>${barsV(mv.map(v=>v/1e6),m6.map(x=>MN[x.getMonth()]),{hi:5,fmt:v=>v?num(Math.round(v*100)/100):"",acts:m6.map(()=>"tab:trk")})}
       <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(sumR(og)))}</b><span>ógreitt · ${og.length}</span></a>${late.length?`<a class="tap late" data-act="tab:trk"><b>${esc(kr(sumR(late)))}</b><span>fram yfir gjalddaga</span></a>`:""}<a class="tap" data-act="tab:trk"><b>${num(Math.round(unb*10)/10)}</b><span>klst. óreikningsfærðar</span></a></div></div>`);}
-  return `<div class="viewtitle">Yfirsýn</div><div class="charts">${out.join("")}</div>`;
+  if(!tot) P.ch_stada="";
+  return P;
 }
 const isoWeek=x=>{const t=new Date(Date.UTC(x.getFullYear(),x.getMonth(),x.getDate())); const dn=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-dn+3); const f=new Date(Date.UTC(t.getUTCFullYear(),0,4)); return 1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7);};
 /* Framundan (áður sér flipi, nú hluti af Yfirliti) */
@@ -1324,6 +1332,8 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k.startsWith("ms")&&window.msAct){msAct(k,r,el); return;}
   if(k.startsWith("rk")&&window.rkAct){rkAct(k,r,el); return;}
   if(k.startsWith("sp")&&window.spAct&&spAct(k,r)) return;
+  if(k==="hw"&&window.heimAct){heimAct(r); return;}
+  if(k==="viewas"&&window.viewAsAct){viewAsAct(r); return;}
   if(k.startsWith("sk")&&window.skAct){skAct(k,r,el); return;}
   if(k.startsWith("po")&&window.poAct){poAct(k,r,el); return;}
   if(k.startsWith("nu")&&window.nuAct){nuAct(k,r,el); return;}
@@ -1381,7 +1391,7 @@ function render(){
   const det=DETAIL?detailHTML():null; if(DETAIL&&!det) DETAIL=null;
   document.body.classList.toggle("haspnew",!det&&!!NEWBTN[tab]&&!!MCP);
   document.body.classList.toggle("onchat",!det&&tab==="spjall");
-  v.innerHTML=det||pageHead()+({yfirlit:()=>vYfirlit("heim"),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolNy?vSkjolNy():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||(()=>vYfirlit("heim")))(); drawSync();
+  v.innerHTML=(window.viewAsBanner?viewAsBanner():"")+(det||pageHead()+({yfirlit:()=>vYfirlit("heim"),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolNy?vSkjolNy():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||(()=>vYfirlit("heim")))()); drawSync();
   // Hreyfing aðeins þegar skipt er um síðu – ekki þegar gögn uppfærast
   const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==render._k){const dv=!!DETAIL&&!String(render._k||"").includes("|"+DETAIL+"|"); render._k=key; v.classList.remove("anim","slide"); void v.offsetWidth; v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide"); clearTimeout(render._a); render._a=setTimeout(()=>v.classList.remove("anim","slide"),900);}
   document.getElementById("foot").textContent=S.uppfaert?"Síðast breytt "+fmtDate(S.uppfaert)+(hhmm(S.uppfaert)?" kl. "+hhmm(S.uppfaert):""):"";
@@ -1433,15 +1443,16 @@ async function enableNotifs(){if(!("Notification" in window)) return alert("Þet
 window.STSUB=null;
 const STPAGES={utlit:{l:"Útlit",s:["Útlit"]},ms:{l:"Microsoft 365",s:["Microsoft 365"]},sig:{l:"Undirskrift í pósti",s:["Undirskrift í pósti"]},amin:{l:"Áminningar",s:["Áminningar"]},
   folk:{l:"Fólk",d:"Notendur, hlutverk og starfsmenn",s:["Notendur","Starfsmenn"],adm:1},fyrir:{l:"Reikningar og fyrirtæki",d:"Seljandi, tímagjald, VSK og vinnuvika",s:["Reikningar","Vinnuvika"],adm:1},
+  adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
   vstill:{l:"Verkefnastillingar",d:"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna","Þjónusta","Sniðmát undirverka"],adm:1}};
 function stChunks(){const h=vStillingarAll(), parts=h.split('<div class="viewtitle">'), m={};
   parts.slice(1).forEach(x=>{const t=x.slice(0,x.indexOf("</div>")).replace(/<[^>]+>/g,"").trim(); m[t]=(m[t]||"")+'<div class="viewtitle">'+x;}); return m;}
 const mrow=(act,label,opts={})=>`<button type="button" class="mrow" ${act.startsWith("js:")?`onclick="${act.slice(3)}"`:`data-act="${act}"`}>${opts.ic||""}<span class="mt">${esc(label)}${opts.d?`<small>${esc(opts.d)}</small>`:""}</span>${opts.v?`<span class="mv">${esc(opts.v)}</span>`:""}${opts.noch?"":`<svg class="mc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`}</button>`;
 function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB]; 
-  if(sub&&(!sub.adm||can("stillingar"))){const m=stChunks(); return sub.s.map(t=>m[t]||"").join("")||'<div class="empty">Ekkert hér.</div>';}
+  if(sub&&(!sub.adm||can("stillingar"))){if(sub.fn) return sub.fn(); const m=stChunks(); return sub.s.map(t=>m[t]||"").join("")||'<div class="empty">Ekkert hér.</div>';}
   const msOn=window.MS&&MS.on?MS.on():false;
   const me=["utlit","ms","sig","amin"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
-  const co=can("stillingar")?["folk","fyrir","vstill"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
+  const co=can("stillingar")?["adgangur","folk","fyrir","vstill"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn</div><div class="mlist">${mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins",noch:1})}</div>`;}
 function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
@@ -1843,6 +1854,7 @@ const skEmail=sk=>sk?(window.nuUsers?nuUsers():[]).find(u=>u.sk===sk)?.email||nu
 const ownerOf=x=>(window.can&&can("fjarmal")?skEmail(x.starfsmadur||x.sk):null)||USER?.email||"";
 async function saveSnapshot(mut){
   if(!DB) throw {message:"Ekki tengt gagnagrunni."};
+  if(window.VIEWAS){toast("Skoðunarhamur – ekkert er vistað. Ýttu á Hætta efst til að vista aftur."); throw {code:"form",message:"Skoðunarhamur: vistun er óvirk."};}
   if(window.SPLIT) return saveSplit(mut);
   const prev=S, cur=structuredClone(S||{}); const ids=[]; ID_REC=ids; try{ mut(cur); } finally { ID_REC=null; } cur.uppfaert=new Date().toISOString();
   const clean=fsClean(cur); S=clean; render();
@@ -2163,7 +2175,7 @@ window.aeraStart=function(db){
   const showErr=e=>{document.getElementById("view").innerHTML=`<h2 class="big">Gögn ekki aðgengileg</h2><div class="empty">${esc(e?.code==="permission-denied"?"Þessi aðgangur hefur ekki leyfi til að lesa gögnin.":(e?.message||"Óþekkt villa"))}</div>`;};
   const rebuild=()=>{ if(P.ready.size<GOGN.COLS.length+2) return; const nd=GOGN.join(P); PENDING=Object.values(P.pend).some(Boolean);
     if(JSON.stringify(nd)!==JSON.stringify(S)){S=nd; render(); openFromHash();} else drawSync(); };
-  const startSplit=()=>{ if(mode==="split") return; mode="split"; window.SPLIT=true; const fj=window.can&&can("fjarmal"); if(window.spStart) spStart(db);
+  const startSplit=()=>{ if(mode==="split") return; mode="split"; window.SPLIT=true; const fj=window.can&&can("fjarmal"); if(window.spStart) spStart(db); if(window.heimStart) heimStart(db);
     for(const c of GOGN.COLS) db.watchCol(c.k, c.eigandi&&!fj?["eigandi",USER.email]:null,
       r=>{P.cols[c.k]=r.docs; P.pend[c.k]=r.pending; P.ready.add(c.k); rebuild(); if(!r.fromCache&&window.msTick) msTick();},
       e=>{console.warn("Safn "+c.k,e); P.cols[c.k]=P.cols[c.k]||[]; P.ready.add(c.k); rebuild();});
@@ -2190,6 +2202,8 @@ document.getElementById("fab").hidden=true;
 <script src="skjol.js"></script>
 <script src="postur.js"></script>
 <script src="spjall.js"></script>
+<script src="heim.js"></script>
+<script src="adgangur.js"></script>
 <script src="notendur.js"></script>
 
 </body></html>

@@ -1,3 +1,5 @@
 *.json
 !package.json
+# Stillingaskrá Firebase (engin gögn eða lyklar – aðeins slóð á reglurnar)
+!firebase.json
 .DS_Store

@@ -18,6 +18,8 @@
   const all = () => ALM.concat(DM);
   const msgs = r => all().filter(m => m.ras === r).sort((a, b) => String(a.t).localeCompare(String(b.t)));
   const unreadIn = r => { const l = lesid()[r] || ""; return all().filter(m => m.ras === r && m.af !== me() && String(m.t) > l).length; };
+  // Nýjustu skilaboð (fyrir eininguna Spjall á Heim)
+  window.spRecent = n => all().slice().sort((a, b) => String(b.t).localeCompare(String(a.t))).slice(0, n);
   window.spUnread = () => [...new Set(all().map(m => m.ras))].reduce((a, r) => a + unreadIn(r), 0);
   const when = iso => { const x = new Date(iso), t = new Date(); return x.toDateString() === t.toDateString() ? x.toTimeString().slice(0, 5) : fmtDate(iso) + " " + x.toTimeString().slice(0, 5); };
   const onPage = () => typeof tab !== "undefined" && tab === "spjall" && !DETAIL;
@@ -86,6 +88,7 @@
   window.spAct = function (k, r) {
     if (k === "spras") { ras = r.join(":"); render(); return true; }
     if (k === "spto") { ras = dmKey(r.join(":")); doAct("tab:spjall"); return true; }
+    if (k === "spopen") { ras = r.join(":"); doAct("tab:spjall"); return true; }
     if (k === "spdel") { const id = r.join(":"); if (confirm("Eyða skilaboðunum?")) DB.commit([{ path: "spjall/" + id, del: true }]).catch(e => toast(e?.code || e?.message)); return true; }
     return false;
   };
