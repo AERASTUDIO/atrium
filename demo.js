@@ -109,6 +109,11 @@ const user = { email, ...notendur.notendur[email] };
 // Sýnigögnin byrja í gamla sniðinu (allt í app/state) svo flutningurinn yfir í söfn keyrir líka í sýniútgáfunni (hjá admin).
 // Sýniútgáfan líkir eftir aðgangsreglum: starfsmaður sér aðeins sína tíma og sinn kostnað.
 const store = { "app/state": sampleState(), "app/notendur": notendur };
+// Spjall í sýniútgáfu
+[["s1", "almennt", [], "gunnar@aera.example", "Gunnar Gunnarsson", "Er einhver með lykilinn að sýnishornaskápnum?", -1],
+ ["s2", "almennt", [], "jona@aera.example", "Jóna Jónsdóttir", "Hann er á skrifborðinu mínu 👍", -1],
+ ["s3", "dm:gunnar@aera.example|jona@aera.example", ["gunnar@aera.example", "jona@aera.example"], "gunnar@aera.example", "Gunnar Gunnarsson", "Geturðu kíkt á loftaplanið fyrir 21 áður en það fer til hótelsins?", 0]
+].forEach(([id, ras, adilar, af, nafn, texti, off]) => { store["spjall/" + id] = { id, ras, adilar, af, nafn, texti, t: new Date(Date.now() + off * 864e5 - 36e5).toISOString() }; });
 const watchers = {}, colw = {};
 const snap = path => ({ exists: store[path] != null, data: () => structuredClone(store[path]), pending: false, fromCache: false });
 const notify = path => { (watchers[path] || []).forEach(cb => cb(snap(path))); const seg = path.split("/"); if (seg.length === 2 && seg[0] !== "app") (colw[seg[0]] || []).forEach(f => f()); };
@@ -123,7 +128,7 @@ const db = {
   watchCol(name, filter, cb, onErr) {
     const fj = ["admin", "bokari"].includes(user.hlutverk), own = name === "timar" || name === "kostnadur";
     const f = () => { if (own && !fj && !(filter && filter[0] === "eigandi" && filter[1] === email)) return onErr && onErr({ code: "permission-denied" });
-      cb({ docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])).filter(d => !filter || d[filter[0]] === filter[1]), pending: false, fromCache: false }); };
+      cb({ docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])).filter(d => !filter || (filter[2] === "array-contains" ? (d[filter[0]] || []).includes(filter[1]) : d[filter[0]] === filter[1])), pending: false, fromCache: false }); };
     (colw[name] = colw[name] || []).push(f); setTimeout(f, 0); return () => {};
   }
 };

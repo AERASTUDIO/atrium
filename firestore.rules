@@ -67,6 +67,16 @@ service cloud.firestore {
     match /timar/{id}     { allow read: if ownRead(); allow write: if ownWrite(); }
     match /kostnadur/{id} { allow read: if ownRead(); allow write: if ownWrite(); }
 
+    // Spjall (frá 1.4.0): rásin "almennt" sjá allir virkir; bein skilaboð (ras "dm:…") aðeins aðilarnir tveir.
+    // Notandi sendir aðeins í eigin nafni og getur aðeins eytt eigin skilaboðum.
+    match /spjall/{id} {
+      allow read: if active() && (resource.data.ras == "almennt" || em() in resource.data.adilar);
+      allow create: if active() && request.resource.data.af == em()
+        && (request.resource.data.ras == "almennt" || (em() in request.resource.data.adilar && request.resource.data.adilar.size() == 2));
+      allow update: if false;
+      allow delete: if active() && resource.data.af == em();
+    }
+
     // Skeiðklukka: eitt skjal á hvern notanda (netfang), aðeins hann sjálfur.
     match /klukka/{email} { allow read, write: if active() && email == em(); }
   }

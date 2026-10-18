@@ -114,9 +114,9 @@ onAuthStateChanged(auth, async user => {
         await b.commit();
       }
     },
-    // Fylgist með heilu safni (t.d. "verkefni"), mögulega síuðu: filter = [reitur, gildi] (t.d. ["eigandi", netfang]).
+    // Fylgist með heilu safni (t.d. "verkefni"), mögulega síuðu: filter = [reitur, gildi, aðgerð?] (t.d. ["eigandi", netfang] eða ["adilar", netfang, "array-contains"]).
     watchCol(name, filter, cb, onErr) {
-      const q = filter ? query(collection(fs, name), where(filter[0], "==", filter[1])) : collection(fs, name);
+      const q = filter ? query(collection(fs, name), where(filter[0], filter[2] || "==", filter[1])) : collection(fs, name);
       return onSnapshot(q, { includeMetadataChanges: true },
         s => cb({ docs: s.docs.map(d => d.data()), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);
     },

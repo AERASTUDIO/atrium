@@ -9,7 +9,7 @@
   const pidsOf = R => R.verkefniIds || (R.verkefniId ? [R.verkefniId] : []);
   const rate = p => +(p?.timagjald || RK().timagjald || 0);
   const addDays = (iso, n) => { const x = d(iso); x.setDate(x.getDate() + n); return isoDay(x); };
-  const kaupandi = p => findVsk(p?.vkId) || findVsk(p?.vskId) || null;
+  const kaupandi = p => findVsk(p?.vskId) || findVsk(p?.vkId) || null; // greiðandi = viðskiptavinur (verkkaupi aflagður 1.4.0)
   const fx = n => String(n).replace(".", ",");
   const keyOf = x => x.verkefniId || NONE;
   const obilled = pid => ({ es: faerslur().filter(e => keyOf(e) === (pid || NONE) && !e.reikningur && e.id && !isTmp(e.id)), ks: kostn().filter(k => keyOf(k) === (pid || NONE) && !k.reikningur) });
