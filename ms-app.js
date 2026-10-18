@@ -270,7 +270,7 @@
   window.msStillingarHTML = function () {
     const u = MS.user(), on = isOn(), nb = (S?.odBidrod || []).length;
     if (!on) return `<div class="viewtitle">Microsoft 365</div>
-      <p class="hint" style="margin:0 0 8px">${MS.hadLogin() ? "Tengingin við Microsoft er runnin út á þessu tæki (hún gildir í sólarhring í senn)." : "Tengdu Sonik-aðganginn til að sjá skrár úr OneDrive, forskoða þær, stofna möppur og fundargerðir sjálfkrafa og sækja pósta úr Outlook-möppunni „AERA“."}</p>
+      <p class="hint" style="margin:0 0 8px">${MS.hadLogin() ? "Tengingin við Microsoft er runnin út á þessu tæki (hún gildir í sólarhring í senn)." : "Tengdu Microsoft-aðganginn þinn (@aerastudio.is) til að sjá skrár úr OneDrive, forskoða þær, stofna möppur og fundargerðir sjálfkrafa og sækja pósta úr Outlook-möppunni „AERA“."}</p>
       ${MS.lastError ? `<div class="msg err" style="margin-bottom:8px">${esc(MS.lastError)}</div>` : ""}
       <div class="links"><button type="button" class="btn primary" data-act="mslogin">${MS.hadLogin() ? "Tengjast aftur" : "Tengjast Microsoft"}</button></div>`;
     return `<div class="viewtitle">Microsoft 365</div>

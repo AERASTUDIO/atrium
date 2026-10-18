@@ -518,7 +518,7 @@ body.hasdock .fab{bottom:calc(132px + env(safe-area-inset-bottom,0px))}
 <div id="sheetwrap" hidden><div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-h"><div class="grab"></div><button type="button" class="sheetmin" id="sheetmin" aria-label="Lágmarka – halda áfram síðar" title="Lágmarka (halda áfram síðar)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 17h12"/></svg></button><div id="sheet"></div></div></div>
 <div id="dock" aria-label="Opin verk" hidden></div>
 <div id="login" hidden><div class="login-in"><span class="logo" role="img" aria-label="AERA Studio"></span>
-<p>Skráðu þig inn til að opna verkefnin.</p><button type="button" class="btn primary" id="login-btn">Skrá inn með Google</button><div id="login-msg" role="alert"></div></div></div>
+<p>Skráðu þig inn með aðgangi þínum hjá AERA Studio.</p><button type="button" class="btn primary" id="login-ms">Skrá inn með Microsoft</button><button type="button" class="btn" id="login-btn" style="margin-top:10px">Varaleið: Google</button><div id="login-msg" role="alert"></div></div></div>
 <div class="toast" id="toast" hidden></div>
 
 <script src="xlsx.js"></script>
@@ -569,12 +569,12 @@ const budgetPill=p=>{const b=budgetOf(p); return b&&b.cls?`<span class="pill ${b
 const STODUR=()=>CFG().stodur?.length?CFG().stodur:DEF_STODUR;
 const THJ=()=>CFG().thjonusta?.length?CFG().thjonusta:DEF_THJ;
 const STARFS=()=>CFG().starfsmenn?.length?CFG().starfsmenn:DEF_STARF;
-const ME=()=>(STARFS().find(x=>x.eg)||STARFS()[0]).sk;
+const ME=()=>(window.USER?.sk&&STARFS().some(x=>x.sk===USER.sk))?USER.sk:(STARFS().find(x=>x.eg)||STARFS()[0]).sk;
 const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.1.41"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.1.42"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
@@ -1242,6 +1242,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k.startsWith("rk")&&window.rkAct){rkAct(k,r,el); return;}
   if(k.startsWith("sk")&&window.skAct){skAct(k,r,el); return;}
   if(k.startsWith("po")&&window.poAct){poAct(k,r,el); return;}
+  if(k.startsWith("nu")&&window.nuAct){nuAct(k,r,el); return;}
   if(k==="later"){showLater=true; render(); return;}
   if(k==="fabnew"){openFab(); return;}
   if(k==="vskf"){vskFilter=r.join(":"); render(); return;}
@@ -1339,19 +1340,21 @@ async function enableNotifs(){if(!("Notification" in window)) return alert("Þet
 function vStillingar(){
   const used=n=>verkefni().filter(p=>p.stada===n).length, usedT=n=>verkefni().filter(p=>(p.thjonusta||[]).includes(n)).length, usedS=sk=>faerslur().filter(e=>(e.starfsmadur||ME())===sk).length;
   const mini=(act,l,aria)=>`<button type="button" class="mini" data-act="${act}" aria-label="${esc(aria||l)}">${l}</button>`;
+  const adm=can("stillingar");
   return `<h2 class="big">Stillingar</h2>
+  ${window.nuAccountHTML?nuAccountHTML():""}
   <div class="viewtitle">Útlit</div><div class="stat-row">${[["auto","Sjálfvirkt"],["light","Ljóst"],["dark","Dökkt"]].map(([k,l])=>`<button type="button" class="chipbtn" data-act="theme:${k}" aria-pressed="${THEME===k}">${l}</button>`).join("")}</div>
   <p class="hint">Sjálfvirkt: ljóst á tölvu, dökkt í síma. Líka hægt að skipta með hnappinum efst til hægri.</p>
   ${["light","dark"].map(k=>`<div class="kind" style="margin:12px 0 6px">${k==="light"?"Ljóst þema":"Dökkt þema"}</div><div class="stat-row">${VARIANTS[k].map(([v,l,a,b])=>`<button type="button" class="chipbtn swatch" data-act="variant:${k}:${v}" aria-pressed="${(k==="light"?LVAR:DVAR)===v}"><i style="--a:${a};--b:${b}"></i>${l}</button>`).join("")}</div>`).join("")}
   ${window.msStillingarHTML?msStillingarHTML():""}
   ${window.poSigSettingsHTML?poSigSettingsHTML():""}
-  ${window.rkStillingarHTML?rkStillingarHTML():""}
-  <div class="viewtitle">Vinnuvika</div>
-  <div class="two" style="align-items:end"><label>Markmið klst. á viku<input id="cfg-vikumark" type="text" inputmode="decimal" value="${esc(num(CFG().vikumark||40))}"></label><button type="button" class="btn" data-act="cfg:vikumark:0" style="min-height:46px">Vista</button></div>
+  ${adm&&window.rkStillingarHTML?rkStillingarHTML():""}
+  ${adm?`<div class="viewtitle">Vinnuvika</div>
+  <div class="two" style="align-items:end"><label>Markmið klst. á viku<input id="cfg-vikumark" type="text" inputmode="decimal" value="${esc(num(CFG().vikumark||40))}"></label><button type="button" class="btn" data-act="cfg:vikumark:0" style="min-height:46px">Vista</button></div>`:""}
   <div class="viewtitle">Áminningar</div>
   <p class="hint" style="margin:0 0 8px">Áreiðanlegast er að setja fundi og skil í dagatal símans, sem lætur þig vita. Tilkynningar appsins virka á meðan það er opið eða nýlega opnað.</p>
   <div class="links"><button type="button" class="btn primary" data-act="ics:all">Setja fundi og skil í dagatalið mitt (.ics)</button><button type="button" class="btn" data-act="notif:on">${("Notification" in window)&&Notification.permission==="granted"?"✓ Tilkynningar virkar":"Virkja tilkynningar"}</button></div>
-  <div class="viewtitle">Sniðmát undirverka</div>
+  ${adm?`<div class="viewtitle">Sniðmát undirverka</div>
   <p class="hint" style="margin:0 0 8px">Undirverk sem stofnast sjálfkrafa á nýju verkefni eftir þjónustu. Eitt undirverk í línu.</p>
   ${THJ().map((t,i)=>`<label style="margin-top:8px">${esc(t)}<textarea id="snid-${i}" rows="3">${esc((SNID()[t]||[]).join("\n"))}</textarea></label><button type="button" class="btn" style="margin-top:6px" data-act="cfg:snid:${i}">Vista sniðmát fyrir ${esc(t)}</button>`).join("")}
   <div class="viewtitle">Staða verkefna</div>
@@ -1364,12 +1367,14 @@ function vStillingar(){
   ${THJ().map((x,i)=>`<div class="cfgrow"><div class="grow">${esc(x)}<div class="ls" style="font-size:12.5px;color:var(--muted)">${usedT(x)} verkefni</div></div><div class="ctl">${mini("cfg:thup:"+i,"↑","Færa ofar")}${mini("cfg:thren:"+i,"✎","Endurnefna")}${mini("cfg:thdel:"+i,"✕","Eyða")}</div></div>`).join("")}
   <button type="button" class="btn" style="margin-top:10px" data-act="cfg:thadd">+ Ný þjónusta</button>
   <div class="viewtitle">Starfsmenn</div>
-  ${STARFS().map((x,i)=>`<div class="cfgrow"><div class="grow">${esc(x.nafn)} <span class="nr">${esc(x.sk)}</span> ${x.eg?'<span class="tag">Ég</span>':""}<div class="ls" style="font-size:12.5px;color:var(--muted)">${usedS(x.sk)} tímaskráningar</div></div><div class="ctl">${x.eg?"":mini("cfg:sfeg:"+i,"Ég","Merkja sem mig")}${mini("cfg:sfren:"+i,"✎","Endurnefna")}${mini("cfg:sfdel:"+i,"✕","Eyða")}</div></div>`).join("")}
+  ${STARFS().map((x,i)=>`<div class="cfgrow"><div class="grow">${esc(x.nafn)} <span class="nr">${esc(x.sk)}</span> ${x.sk===ME()?'<span class="tag">Ég</span>':""}<div class="ls" style="font-size:12.5px;color:var(--muted)">${usedS(x.sk)} tímaskráningar</div></div><div class="ctl">${x.sk===ME()||window.USER?"":mini("cfg:sfeg:"+i,"Ég","Merkja sem mig")}${mini("cfg:sfren:"+i,"✎","Endurnefna")}${mini("cfg:sfdel:"+i,"✕","Eyða")}</div></div>`).join("")}
   <button type="button" class="btn" style="margin-top:10px" data-act="cfg:sfadd">+ Nýr starfsmaður</button>
-  <div class="viewtitle">Gögn</div><div class="links"><button type="button" class="btn" onclick="syncNow()">Sækja afrit af gögnum</button><button type="button" class="btn" onclick="aeraSignOut()">Skrá út</button></div>`;
+  <p class="hint" style="margin-top:6px">Starfsmenn birtast í tímaskráningu og á verkefnum. Notandi sem bætt er við undir Notendur verður sjálfkrafa starfsmaður.</p>
+  ${window.nuStillingarHTML?nuStillingarHTML():""}`:""}
+  <div class="viewtitle">Gögn</div><div class="links"><button type="button" class="btn" onclick="syncNow()">Sækja afrit af gögnum</button>${window.USER?"":'<button type="button" class="btn" onclick="aeraSignOut()">Skrá út</button>'}</div>`;
 }
 const cfgSave=mut=>saveSnapshot(s=>{s.stillingar=s.stillingar||{}; const c=s.stillingar; if(!c.stodur?.length) c.stodur=structuredClone(DEF_STODUR); if(!c.thjonusta?.length) c.thjonusta=DEF_THJ.slice(); if(!c.starfsmenn?.length) c.starfsmenn=structuredClone(DEF_STARF); mut(c,s);});
-function cfgAct(a,i){i=+i; const ask=(q,d)=>{const v=prompt(q,d||""); return v==null?null:v.trim();};
+function cfgAct(a,i){if(!can("stillingar")) return toast("Aðeins admin getur breytt stillingum fyrirtækisins."); i=+i; const ask=(q,d)=>{const v=prompt(q,d||""); return v==null?null:v.trim();};
   if(a==="stadd"){const n=ask("Heiti nýrrar stöðu:"); if(n&&!STODUR().some(x=>x.n===n)) cfgSave(c=>c.stodur.splice(c.stodur.findIndex(x=>x.lokid)<0?c.stodur.length:c.stodur.findIndex(x=>x.lokid),0,{n,c:"blue"}));}
   if(a==="stren"){const o=STODUR()[i]; const n=ask("Nýtt heiti á stöðunni „"+o.n+"“:",o.n); if(n&&n!==o.n&&!STODUR().some(x=>x.n===n)) cfgSave((c,s)=>{c.stodur[i].n=n; s.verkefni.forEach(p=>{if(p.stada===o.n) p.stada=n;});});}
   if(a==="stdel"){const o=STODUR()[i], u=verkefni().filter(p=>p.stada===o.n).length; if(u) return alert(`${u} verkefni eru með stöðuna „${o.n}“. Færðu þau í aðra stöðu fyrst.`); if(STODUR().length<2) return; if(confirm(`Eyða stöðunni „${o.n}“?`)) cfgSave(c=>c.stodur.splice(i,1));}
@@ -1381,12 +1386,12 @@ function cfgAct(a,i){i=+i; const ask=(q,d)=>{const v=prompt(q,d||""); return v==
   if(a==="thup"&&i>0) cfgSave(c=>{const [x]=c.thjonusta.splice(i,1); c.thjonusta.splice(i-1,0,x);});
   if(a==="sfadd"){const n=ask("Nafn starfsmanns:"); if(!n) return; const sk0=n.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,3); const sk=ask("Skammstöfun (birtist í tímaskráningum):",sk0); if(sk&&!STARFS().some(x=>x.sk===sk)) cfgSave(c=>c.starfsmenn.push({sk,nafn:n}));}
   if(a==="sfren"){const o=STARFS()[i]; const n=ask("Nafn:",o.nafn); if(n) cfgSave(c=>{c.starfsmenn[i].nafn=n;});}
-  if(a==="sfdel"){const o=STARFS()[i], u=faerslur().filter(e=>(e.starfsmadur||ME())===o.sk).length; if(o.eg) return alert("Ekki er hægt að eyða sjálfum þér."); if(u) return alert(`${o.nafn} er með ${u} tímaskráningar og verður ekki eytt.`); if(confirm(`Eyða ${o.nafn}?`)) cfgSave(c=>c.starfsmenn.splice(i,1));}
+  if(a==="sfdel"){const o=STARFS()[i], u=faerslur().filter(e=>(e.starfsmadur||ME())===o.sk).length; if(o.sk===ME()) return alert("Ekki er hægt að eyða sjálfum þér."); if(window.nuUsers&&nuUsers().some(u=>u.sk===o.sk&&u.virkur)) return alert(`${o.nafn} er virkur notandi. Gerðu notandann óvirkan undir Notendur fyrst.`); if(u) return alert(`${o.nafn} er með ${u} tímaskráningar og verður ekki eytt.`); if(confirm(`Eyða ${o.nafn}?`)) cfgSave(c=>c.starfsmenn.splice(i,1));}
   if(a==="sfeg") cfgSave(c=>c.starfsmenn.forEach((x,k)=>x.eg=k===i));
   if(a==="vikumark"){const v=parseFloat(String(document.getElementById("cfg-vikumark").value).replace(",",".")); if(v>0&&v<120) cfgSave(c=>{c.vikumark=v;}).then(()=>toast("Vikumarkmið vistað"));}
   if(a==="snid"){const t=THJ()[i], lines=document.getElementById("snid-"+i).value.split("\n").map(x=>x.trim()).filter(Boolean); cfgSave(c=>{c.snidmat=c.snidmat||structuredClone(DEF_SNID); c.snidmat[t]=lines;}).then(()=>toast("Sniðmát vistað"));}
 }
-document.addEventListener("change",e=>{const i=e.target.dataset?.cfgcolor; if(i!=null) cfgSave(c=>{c.stodur[+i].c=e.target.value;});});
+document.addEventListener("change",e=>{const i=e.target.dataset?.cfgcolor; if(i!=null&&can("stillingar")) cfgSave(c=>{c.stodur[+i].c=e.target.value;});});
 /* ---------- Leit ---------- */
 let leitQ="";
 const fold=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ð/g,"d").replace(/þ/g,"th").replace(/æ/g,"ae").replace(/ö/g,"o");
@@ -1715,7 +1720,10 @@ document.addEventListener("input",e=>{const el=e.target; if(!el.matches?.("[data
 document.addEventListener("focusout",e=>{const el=e.target; if(!el.matches?.("[data-t24]")) return; const t=normTime(el.value); if(t) el.value=t;});
 function msg(t,cls){const el=document.getElementById("f-msg"); if(el) el.innerHTML=t?`<div class="msg ${cls}">${t}</div>`:"";}
 function errText(e){return "Vistun mistókst: "+(e?.message||e?.code||"óþekkt villa");}
-const newId=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(16)+Math.random().toString(16).slice(2)).replace(/-/g,"");
+const genId=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(16)+Math.random().toString(16).slice(2)).replace(/-/g,"");
+// Í vistun keyrir breytingin fyrst á skjánum og svo aftur á nýjustu gögnum netþjóns – auðkenni sem verða til í henni eru endurnýtt svo þau haldist eins.
+let ID_REC=null, ID_PLAY=null;
+const newId=()=>{if(ID_PLAY&&ID_PLAY.length) return ID_PLAY.shift(); const x=genId(); if(ID_REC) ID_REC.push(x); return x;};
 async function createPage(){return newId();}
 async function updatePage(){}
 let saveErr=null;
@@ -1724,11 +1732,18 @@ function fsClean(v){if(Array.isArray(v)) return v.map(x=>x===undefined?null:fsCl
   if(v&&typeof v==="object"&&Object.getPrototypeOf(v)===Object.prototype){const o={}; for(const k in v){if(v[k]!==undefined) o[k]=fsClean(v[k]);} return o;} return v;}
 async function saveSnapshot(mut){
   if(!DB) throw {message:"Ekki tengt gagnagrunni."};
-  const prev=S, cur=structuredClone(S||{}); mut(cur); cur.uppfaert=new Date().toISOString();
+  const prev=S, cur=structuredClone(S||{}); const ids=[]; ID_REC=ids; try{ mut(cur); } finally { ID_REC=null; } cur.uppfaert=new Date().toISOString();
   const clean=fsClean(cur); S=clean; render();
   // Firestore tekur ekki við „undefined“; hreinsað hér að ofan. Ef vistun mistekst samt er skjárinn færður til baka svo ekkert sýnist vistað sem er það ekki.
   const fail=e=>{saveErr=e; if(S===clean){S=prev; render();} toast("Vistun mistókst – breytingin fór ekki upp. ("+(e?.code||e?.message||"villa")+")");};
-  try{ DB.set("app/state",clean).catch(fail); }catch(e){ fail(e); throw e; }
+  const viaSet=()=>DB.set("app/state",clean).catch(fail);
+  // Margir notendur: breytingin er keyrð aftur á nýjustu útgáfu gagnanna á netþjóni (færsla/transaction), svo breytingar annarra glatist ekki.
+  // Án nets er vistað beint eins og áður og samstillt þegar netið kemur.
+  if(DB.tx&&navigator.onLine!==false){
+    try{ DB.tx("app/state",fresh=>{const c=structuredClone(fresh||{}); ID_PLAY=ids.slice(); try{ mut(c); } finally { ID_PLAY=null; } c.uppfaert=new Date().toISOString(); return fsClean(c);})
+      .catch(e=>{ if(["unavailable","deadline-exceeded"].includes(e?.code)||navigator.onLine===false) viaSet(); else fail(e); }); }
+    catch(e){ fail(e); throw e; }
+  } else { try{ viaSet(); }catch(e){ fail(e); throw e; } }
 }
 const sFindP=(s,id)=>(s.verkefni||[]).find(v=>v.id===id);
 const sFindU=(s,id)=>{for(const p of s.verkefni||[]){const u=(p.undirverk||[]).find(u=>u.id===id); if(u) return [p,u];} return [null,null];};
@@ -1998,7 +2013,10 @@ function skrarHTML(p){
   <div class="llist">${rows}</div><p class="hint" style="margin-top:8px">Listi síðast uppfærður ${esc(fmtDate(SK.uppfaert))}. ${window.msMissing?"Tengdu Microsoft til að sjá nýjustu skrárnar og forskoða þær.":"Biddu Claude að „uppfæra skráalistann“ til að fá nýjar skrár."}</p>${window.msMissing?msMissing():""}`;
 }
 window.aeraStart=function(db){
-  DB=db; MCP={local:true}; document.getElementById("syncbtn").hidden=false; document.getElementById("logoutbtn").hidden=false; document.getElementById("fab").hidden=false;
+  DB=db; MCP={local:true}; window.USER=db.user||null;
+  db.watch("app/notendur",s=>{const nd=s.exists?s.data():null; if(window.nuSet) nuSet(nd);
+    const me=nd?.notendur?.[USER?.email]; if(me&&USER&&!USER.varaleid){ if(me.virkur===false){toast("Aðgangur þinn hefur verið gerður óvirkur."); setTimeout(()=>aeraSignOut(),1500); return;} Object.assign(USER,{nafn:me.nafn||USER.nafn,sk:me.sk||USER.sk,hlutverk:me.hlutverk||USER.hlutverk}); }
+    if(S) render();},()=>{}); document.getElementById("syncbtn").hidden=false; document.getElementById("logoutbtn").hidden=false; document.getElementById("fab").hidden=false;
   db.watch("app/skrar",s=>{SK=s.exists?s.data():null; if(S) render();},()=>{});
   db.watch("app/state",s=>{PENDING=!!s.pending; if(s.exists){const nd=s.data(); if(JSON.stringify(nd)!==JSON.stringify(S)){S=nd; render(); openFromHash();} else drawSync(); if(!s.fromCache&&window.msTick) msTick();} else if(!s.fromCache) importView();},
     e=>{document.getElementById("view").innerHTML=`<h2 class="big">Gögn ekki aðgengileg</h2><div class="empty">${esc(e?.code==="permission-denied"?"Þessi aðgangur hefur ekki leyfi til að lesa gögnin.":(e?.message||"Óþekkt villa"))}</div>`;});
@@ -2010,5 +2028,6 @@ document.getElementById("fab").hidden=true;
 <script src="reikn.js"></script>
 <script src="skjol.js"></script>
 <script src="postur.js"></script>
+<script src="notendur.js"></script>
 
 </body></html>

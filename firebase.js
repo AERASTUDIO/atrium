@@ -1,11 +1,11 @@
-// Tenging appsins við Firebase: innskráning (Google) og gagnagrunnur (Firestore).
-// Appið sjálft (index.html) veit ekkert um Firebase; það fær hlut `db` með get/set/watch.
+// Tenging appsins við Firebase: innskráning (Microsoft @aerastudio.is, Google sem varaleið) og gagnagrunnur (Firestore).
+// Appið sjálft (index.html) veit ekkert um Firebase; það fær hlut `db` með get/set/tx/watch og `db.user` (innskráður notandi).
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut }
+import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, onSnapshot }
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-import { firebaseConfig, ALLOWED_EMAILS } from "./firebase-config.js";
+import { firebaseConfig, MS_TENANT, MS_DOMAIN, ADMIN, LEGACY_EMAILS } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -16,10 +16,9 @@ const ref = path => doc(fs, ...path.split("/"));
 const login = document.getElementById("login");
 const loginMsg = document.getElementById("login-msg");
 const showLogin = (msg = "") => { login.hidden = false; loginMsg.textContent = msg; };
+const lc = s => String(s || "").trim().toLowerCase();
 
-document.getElementById("login-btn").addEventListener("click", async () => {
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
+async function signIn(provider) {
   loginMsg.textContent = "";
   try { await signInWithPopup(auth, provider); }
   catch (e) {
@@ -30,27 +29,79 @@ document.getElementById("login-btn").addEventListener("click", async () => {
       showLogin("Innskráning tókst ekki: " + (e.code || e.message));
     }
   }
+}
+document.getElementById("login-ms").addEventListener("click", () => {
+  const p = new OAuthProvider("microsoft.com");
+  p.setCustomParameters({ tenant: MS_TENANT, prompt: "select_account", domain_hint: MS_DOMAIN });
+  signIn(p);
+});
+document.getElementById("login-btn").addEventListener("click", () => {
+  const p = new GoogleAuthProvider();
+  p.setCustomParameters({ prompt: "select_account" });
+  signIn(p);
 });
 getRedirectResult(auth).catch(e => showLogin("Innskráning tókst ekki: " + (e.code || e.message)));
 
 window.aeraSignOut = () => signOut(auth).then(() => location.reload());
 
+// Les notendaskrána (app/notendur). Skilar null ef aðgangur fæst ekki.
+async function readUsers() {
+  try { const s = await getDocFromServer(ref("app/notendur")); return { ok: true, exists: s.exists(), data: s.exists() ? s.data() : null }; }
+  catch (e) {
+    if (e.code === "permission-denied") return { ok: false, denied: true };
+    try { const s = await getDoc(ref("app/notendur")); return { ok: true, exists: s.exists(), data: s.exists() ? s.data() : null, cached: true }; }
+    catch (e2) { return { ok: false, error: e2 }; }
+  }
+}
+
 let started = false;
 onAuthStateChanged(auth, async user => {
   if (!user) { showLogin(); return; }
-  const email = (user.email || "").toLowerCase();
-  if (!ALLOWED_EMAILS.map(x => x.toLowerCase()).includes(email)) {
-    await signOut(auth);
-    showLogin(`${user.email} hefur ekki aðgang að appinu.`);
-    return;
+  const prov = user.providerData?.[0]?.providerId || "";
+  const email = lc(user.email || user.providerData?.[0]?.email);
+  const legacy = prov === "google.com" && LEGACY_EMAILS.map(lc).includes(email);
+  const ms = prov === "microsoft.com" && email.endsWith("@" + MS_DOMAIN);
+  const deny = async m => { await signOut(auth); showLogin(m); };
+  if (!legacy && !ms) return deny(`${email || "Þessi aðgangur"} hefur ekki aðgang að appinu. Skráðu þig inn með Microsoft-aðgangi @${MS_DOMAIN}.`);
+
+  let r = await readUsers();
+  // Fyrsta skipti: notendaskráin er ekki til – gamli admin-aðgangurinn stofnar hana með fyrsta admin.
+  if (legacy && r.ok && !r.exists) {
+    const now = new Date().toISOString();
+    const data = { notendur: { [lc(ADMIN.email)]: { nafn: ADMIN.nafn, sk: ADMIN.sk, hlutverk: "admin", virkur: true, stofnad: now, breytt: now } }, uppfaert: now };
+    try { await setDoc(ref("app/notendur"), data); r = { ok: true, exists: true, data }; } catch (e) { console.warn("Gat ekki stofnað notendaskrá", e); }
   }
+  if (!r.ok && !legacy) {
+    return deny(r.denied ? `${email} hefur ekki aðgang að appinu. Biddu admin um að bæta þér við í Stillingum › Notendur.` : "Gat ekki athugað aðgang (ekkert net?). Reyndu aftur.");
+  }
+  const users = r.data?.notendur || {};
+  let me = users[email];
+  if (ms && !(me && me.virkur)) return deny(me ? `Aðgangur ${email} hefur verið gerður óvirkur.` : `${email} hefur ekki aðgang að appinu. Biddu admin um að bæta þér við í Stillingum › Notendur.`);
+  if (legacy) me = { ...(users[lc(ADMIN.email)] || { nafn: ADMIN.nafn, sk: ADMIN.sk }), hlutverk: "admin", virkur: true, varaleid: true };
+
   login.hidden = true;
   if (started) return; started = true;
+  const U = { email, nafn: me.nafn || user.displayName || email, sk: me.sk || "", hlutverk: me.hlutverk || "starfsmadur", varaleid: !!me.varaleid, provider: prov };
+
+  // Skrá síðustu innskráningu (hljóðlaust; mistekst ef reglur leyfa ekki).
+  if (ms) runTransaction(fs, async t => {
+    const s = await t.get(ref("app/notendur")); if (!s.exists()) return;
+    const d = s.data(); if (!d.notendur?.[email]) return;
+    d.notendur[email].sidast = new Date().toISOString(); t.set(ref("app/notendur"), d);
+  }).catch(() => {});
+
   window.aeraStart({
-    email,
+    email, user: U,
     async get(path) { const s = await getDoc(ref(path)); return { exists: s.exists(), data: () => s.data() }; },
     // Ekki beðið eftir svari netþjóns: skrifin geymast staðbundið strax og fara upp þegar netið er til staðar.
     set(path, data) { return setDoc(ref(path), data); },
+    // Breyting á nýjustu útgáfu skjalsins á netþjóni – svo breytingar tveggja notenda á sama tíma skrifi ekki yfir hvor aðra.
+    tx(path, fn) {
+      return runTransaction(fs, async t => {
+        const s = await t.get(ref(path)); const out = fn(s.exists() ? s.data() : {});
+        t.set(ref(path), out); return out;
+      });
+    },
     watch(path, cb, onErr) {
       return onSnapshot(ref(path), { includeMetadataChanges: true },
         s => cb({ exists: s.exists(), data: () => s.data(), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);

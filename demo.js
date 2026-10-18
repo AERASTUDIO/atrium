@@ -80,7 +80,7 @@ function sampleState() {
     timar: { faerslur },
     netfangaskra: [],
     stillingar: {
-      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }],
+      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }],
       vikumark: 40,
       reikn: { nafn: "AERA Studio (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@aera.example", simi: "", banki: "", timagjald: 14900, vsk: 24, frestur: 14, nastaNr: 1003 },
       undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@aera.example" }
@@ -88,14 +88,27 @@ function sampleState() {
   };
 }
 
-// Gagnagrunnur í minni: sama viðmót og firebase.js lætur appið fá (get / set / watch).
-const store = { "app/state": sampleState() };
+// Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar).
+const now = new Date().toISOString();
+const notendur = { notendur: {
+  "jona@aera.example": { nafn: "Jóna Jónsdóttir", sk: "JJ", hlutverk: "admin", virkur: true, stofnad: iso(-30), breytt: iso(-30), sidast: now },
+  "gunnar@aera.example": { nafn: "Gunnar Gunnarsson", sk: "GG", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-20), breytt: iso(-20), sidast: iso(-1) },
+  "helga@aera.example": { nafn: "Helga Sigurðardóttir", sk: "HS", hlutverk: "starfsmadur", virkur: false, stofnad: iso(-60), breytt: iso(-5), sidast: iso(-9) }
+} };
+const asStaff = new URLSearchParams(location.search).get("demo") === "starfsmadur";
+const email = asStaff ? "gunnar@aera.example" : "jona@aera.example";
+const user = { email, ...notendur.notendur[email] };
+
+// Gagnagrunnur í minni: sama viðmót og firebase.js lætur appið fá (get / set / tx / watch).
+const store = { "app/state": sampleState(), "app/notendur": notendur };
 const watchers = {};
 const snap = path => ({ exists: store[path] != null, data: () => structuredClone(store[path]), pending: false, fromCache: false });
 const db = {
-  email: "demo",
+  email,
   async get(path) { return snap(path); },
+  user,
   async set(path, data) { store[path] = structuredClone(data); (watchers[path] || []).forEach(cb => cb(snap(path))); },
+  async tx(path, fn) { const out = fn(structuredClone(store[path] || {})); await this.set(path, out); return out; },
   watch(path, cb) { (watchers[path] = watchers[path] || []).push(cb); setTimeout(() => cb(snap(path)), 0); return () => {}; }
 };
 

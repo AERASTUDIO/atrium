@@ -190,8 +190,16 @@
     return { flush: () => { if (inp.value.trim()) add(inp.value); } };
   }
 
-  /* Undirskrift (íslenska og enska) – stillingar.undirskrift */
-  const SIG = () => ({ kvedja: "Kveðja / Best regards", nafn: MS.user()?.name || "Dagur Fannar Möller", titillIS: "Eigandi", titillEN: "Owner", fyrirtaeki: "AERA Studio", netfang: "aerastudioice@gmail.com", simi: "", vefur: "", ...(CFG().undirskrift || {}) });
+  /* Undirskrift (íslenska og enska) – ein á hvern notanda: stillingar.undirskriftir[netfang].
+     stillingar.undirskrift (eldri, sameiginleg) gildir áfram fyrir fyrsta admin þar til hann vistar sína eigin. */
+  const SIGKEY = () => window.USER?.email || "";
+  const SIG = () => {
+    const own = (CFG().undirskriftir || {})[SIGKEY()];
+    const first = !window.USER || window.USER.varaleid || window.USER.email === "dagur@aerastudio.is";
+    const base = first ? { nafn: "Dagur Fannar Möller", titillIS: "Eigandi", titillEN: "Owner", netfang: "aerastudioice@gmail.com", ...(CFG().undirskrift || {}) }
+                       : { nafn: window.USER?.nafn || MS.user()?.name || "", titillIS: "", titillEN: "", netfang: window.USER?.email || "" };
+    return { kvedja: "Kveðja / Best regards", fyrirtaeki: "AERA Studio", simi: "", vefur: "", ...base, ...(own || {}) };
+  };
   const LOGO_URL = "https://aerastudio.github.io/aera-app/icons/sig-logo.png", LOGO_CID = "aeralogo@aerastudio";
   window.poSigHTML = (logo, o) => { const g = { ...SIG(), ...(o || {}) }, E = x => esc(x || ""), web = String(g.vefur || "").replace(/^https?:\/\//, "");
     return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Calibri,Arial,Helvetica,sans-serif;color:#1c2126">
@@ -295,7 +303,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#1f4e79;text-decora
   }
 
   window.poAct = function (k, r) {
-    if (k === "posigsave") { const o = sgRead(); saveSnapshot(st => { st.stillingar = st.stillingar || {}; st.stillingar.undirskrift = o; }).then(() => toast("Undirskrift vistuð")); return; }
+    if (k === "posigsave") { const o = sgRead(); saveSnapshot(st => { st.stillingar = st.stillingar || {}; if (SIGKEY()) { st.stillingar.undirskriftir = st.stillingar.undirskriftir || {}; st.stillingar.undirskriftir[SIGKEY()] = o; } else st.stillingar.undirskrift = o; }).then(() => toast("Undirskrift vistuð")); return; }
     if (k === "posigcopy") { poSigCopy(); return; }
     if (k === "ponew") { poCompose({ pid: r[0] || null, subject: r[0] && findProj(r[0]) ? findProj(r[0]).nr + " " + findProj(r[0]).stutt + " – " : "" }); return; }
     if (k === "poreply") { poCompose({ mode: r[0], mid: r.slice(1).join(":") }); return; }

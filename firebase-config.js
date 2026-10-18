@@ -9,5 +9,13 @@ export const firebaseConfig = {
   appId: "1:476747764052:web:396030a039ee790aeb78c1"
 };
 
-// Eina netfangið sem fær aðgang að appinu.
-export const ALLOWED_EMAILS = ["aerastudioice@gmail.com"];
+// Microsoft (Entra) – AERA Studio ehf (aerastudio.is). Starfsmenn skrá sig inn með @aerastudio.is.
+export const MS_TENANT = "ed06b359-9189-4e32-aeaa-7454e6be768f";
+export const MS_DOMAIN = "aerastudio.is";
+
+// Fyrsti admin – skráður sjálfkrafa í notendaskrána (app/notendur) ef hún er ekki til.
+export const ADMIN = { email: "dagur@aerastudio.is", nafn: "Dagur Fannar Möller", sk: "DFM" };
+
+// Varaleið á meðan skipt er yfir í Microsoft: gamli Google-aðgangurinn, jafngildir admin.
+// Fjarlægja héðan og úr firestore.rules þegar Microsoft-innskráning hefur verið prófuð.
+export const LEGACY_EMAILS = ["aerastudioice@gmail.com"];

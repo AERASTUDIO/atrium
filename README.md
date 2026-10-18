@@ -5,15 +5,16 @@ Símaapp og tölvuapp AERA Studio fyrir verkefni, undirverk, fundi, tímaskráni
 - **Slóð:** https://aerastudio.github.io/aera-app
 - **Hýsing:** GitHub Pages (útgáfa birtist sjálfkrafa við hverja breytingu á `main`)
 - **Gögn:** Firebase Firestore, verkefnið `aera-app-cfdb3`, skjalið `app/state`
-- **Innskráning:** Google, aðeins aerastudioice@gmail.com (sjá `firebase-config.js` og `firestore.rules`)
+- **Innskráning:** Microsoft-aðgangur @aerastudio.is (Firebase Auth). Notendur og hlutverk í `app/notendur`, stýrt af admin í Stillingum › Notendur. Google (aerastudioice@gmail.com) er tímabundin varaleið. Sjá `firebase-config.js` og `firestore.rules`.
 - **Sýniútgáfa:** https://aerastudio.github.io/aera-app/?demo – opin öllum, tilbúin gögn úr `demo.js`, engin tenging við Firestore eða Microsoft
 
 ## Skrár
 | Skrá | Hlutverk |
 |---|---|
 | `index.html` | Appið sjálft: útlit, skjámyndir og öll virkni |
-| `firebase.js` | Innskráning og tenging við Firestore |
-| `firebase-config.js` | Opinber auðkenni Firebase-verkefnisins og leyfð netföng |
+| `firebase.js` | Innskráning (Microsoft / Google-varaleið), athugun á notendaskrá og tenging við Firestore |
+| `notendur.js` | Notendur, hlutverk og réttindi (Stillingar › Notendur) |
+| `firebase-config.js` | Opinber auðkenni Firebase-verkefnisins, Microsoft-tenant og fyrsti admin |
 | `firestore.rules` | Aðgangsreglur gagnagrunnsins (afrit; virku reglurnar eru í Firebase Console) |
 | `demo.js` | Sýniútgáfa (`?demo`): uppspunnin sýnigögn í minni vafrans, breytingar vistast ekki |
 | `sw.js` | Geymir appið á tækinu svo það virki án nets – hækka `VERSION` við breytingar |

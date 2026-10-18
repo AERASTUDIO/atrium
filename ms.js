@@ -2,8 +2,8 @@
 // Innskráning: OAuth 2.0 með PKCE (engin leyndarmál í kóðanum). Lyklar geymast aðeins á þessu tæki.
 (function () {
   const CFG = {
-    clientId: "771b0263-4629-4c0d-baef-f95688c59aca",
-    tenant: "1ed6735b-fd33-4b11-ad13-3f1a6e11c0f9",
+    clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", // „AERA app“ í Entra hjá aerastudio.is
+    tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f",  // AERA Studio ehf
     scopes: "openid profile offline_access User.Read Files.ReadWrite Mail.Read Mail.Send",
     base: "openid profile offline_access User.Read Files.ReadWrite Mail.Read"
   };
@@ -25,7 +25,8 @@
     return;
   }
 
-  let tok = ls.get(KEY); // {access, exp, refresh, rexp, name, email}
+  let tok = ls.get(KEY); // {access, exp, refresh, rexp, name, email, cid}
+  if (tok && tok.cid !== CFG.clientId) { tok = null; ls.set(KEY, null); } // lyklar frá eldri Entra-skráningu (Sonik) gilda ekki lengur
   const fire = () => window.dispatchEvent(new Event("ms-change"));
   const b64u = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   const rnd = n => b64u(crypto.getRandomValues(new Uint8Array(n)));
@@ -43,6 +44,7 @@
             rexp: j.refresh_token ? now + 23.5 * 3600 * 1000 : prev.rexp, // SPA-lyklar gilda í 24 klst.
             name: id.name || prev.name, email: id.preferred_username || prev.email,
             granted: j.scope ? "openid profile offline_access " + j.scope.split(" ").map(x => x.replace(/^https:\/\/graph\.microsoft\.com\//i, "")).join(" ") : prev.granted };
+    tok.cid = CFG.clientId;
     ls.set(KEY, tok); fire(); return tok;
   }
 
@@ -66,7 +68,7 @@
     ls.set(PK, { verifier, state, mode, back: location.hash || "" }); ls.set(RES, null);
     const url = AUTH + "/authorize?" + new URLSearchParams({ client_id: CFG.clientId, response_type: "code", redirect_uri: REDIRECT,
       scope: CFG.scopes, state, code_challenge: challenge, code_challenge_method: "S256", response_mode: "query",
-      prompt: "select_account", login_hint: tok?.email || "dagur@sonik.is" });
+      prompt: "select_account", login_hint: tok?.email || window.USER?.email || "" });
     if (mode === "redirect") { location.href = url; return new Promise(() => {}); }
     w.location.href = url;
     return new Promise((resolve, reject) => {

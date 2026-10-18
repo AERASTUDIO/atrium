@@ -1,11 +1,38 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Aðeins AERA Studio aðgangurinn má lesa og skrifa. Allir aðrir fá synjun.
-    match /{document=**} {
-      allow read, write: if request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email == "aerastudioice@gmail.com";
+    // AERA app – aðgangsreglur (afrit; virku reglurnar eru í Firebase Console › Firestore › Rules).
+    // Notendaskráin er í app/notendur: { notendur: { "<netfang>": { nafn, sk, hlutverk: "admin"|"starfsmadur", virkur } } }
+
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
+    function em() { return request.auth.token.email.lower(); }
+    function provider() { return request.auth.token.firebase.sign_in_provider; }
+
+    // Starfsmenn: Microsoft-aðgangur @aerastudio.is.
+    function msUser() { return signedIn() && provider() == "microsoft.com" && em().matches(".*@aerastudio[.]is"); }
+    // Varaleið á meðan skipt er yfir: gamli Google-aðgangurinn (jafngildir admin). Fjarlægja þegar Microsoft hefur verið prófað.
+    function legacy() { return signedIn() && provider() == "google.com" && request.auth.token.email_verified == true && em() == "aerastudioice@gmail.com"; }
+
+    function usersDoc() { return /databases/$(database)/documents/app/notendur; }
+    function users() { return get(usersDoc()).data.notendur; }
+    function active() { return legacy() || (msUser() && exists(usersDoc()) && em() in users() && users()[em()].virkur == true); }
+    function admin() { return legacy() || (active() && users()[em()].hlutverk == "admin"); }
+
+    // Notendaskrá: virkir notendur lesa; aðeins admin breytir.
+    // Undantekning: notandi má skrá síðustu innskráningu sína (sidast) og ekkert annað.
+    match /app/notendur {
+      allow read: if active();
+      allow create: if admin();
+      allow update: if admin() || (active()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["notendur"])
+        && request.resource.data.notendur.diff(resource.data.notendur).affectedKeys().hasOnly([em()])
+        && request.resource.data.notendur[em()].diff(resource.data.notendur[em()]).affectedKeys().hasOnly(["sidast"]));
+      allow delete: if false;
+    }
+
+    // Öll önnur gögn appsins (app/state, app/skrar): allir virkir notendur.
+    match /app/{docId} {
+      allow read, write: if docId != "notendur" && active();
     }
   }
 }
