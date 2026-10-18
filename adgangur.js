@@ -70,7 +70,7 @@
       [legacy === 0, legacy ? `Google-varaleiðin er enn opin (${esc(ORG.legacyEmails.join(", "))}). Lokaðu henni þegar Microsoft hefur verið prófað.` : "Google-varaleiðin er lokuð."],
       [never === 0, never ? `${never} virkir notendur hafa aldrei skráð sig inn – athugaðu að þeir séu líka skráðir í Entra (Enterprise apps › ${esc(ORG.nafn)} app › Users and groups).` : "Allir virkir notendur hafa skráð sig inn."],
       [us.filter(u => u.virkur && u.hlutverk === "admin").length >= 1, `${us.filter(u => u.virkur && u.hlutverk === "admin").length} virkur admin.`],
-      [true, "Aðgangsreglur eru í firestore.rules og birtast sjálfkrafa þegar þeim er breytt í GitHub."]
+      [true, "Aðgangsreglur eru í firestore.rules og eru birtar handvirkt í Firebase Console (Firestore › Rules)."]
     ];
 
     return `<div class="kpis">${stat(act.length, "virkir notendur")}${roles.map(r => stat(act.filter(u => u.hlutverk === r).length, roleName(r).toLowerCase())).join("")}${stat(us.length - act.length, "óvirkir")}</div>
