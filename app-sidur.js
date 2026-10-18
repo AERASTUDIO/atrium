@@ -2,6 +2,10 @@
    Hluti af aðalkóða appsins (klofinn úr index.html í 1.9.0). Venjulegt (ekki module) script: allar skrárnar deila
    sömu víðværu breytum og hlaðast í þeirri röð sem index.html telur þær upp. */
 /* ---------- Yfirlitssíður ---------- */
+// Hæð hauss → CSS-breytan --hdr svo „Til baka“-röðin festist beint undir honum; lína birtist þegar röðin er föst
+(()=>{const h=document.querySelector("header"); if(!h) return; const set=()=>document.documentElement.style.setProperty("--hdr",h.getBoundingClientRect().height+"px");
+  if(window.ResizeObserver) new ResizeObserver(set).observe(h); set();
+  addEventListener("scroll",()=>{const b=document.querySelector(".backrow"); if(b) document.documentElement.style.setProperty("--bk",b.offsetHeight+"px"); if(b) b.classList.toggle("stuck",b.getBoundingClientRect().top<=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hdr"))+1&&scrollY>20);},{passive:true});})();
 const backBar=()=>`<div class="backrow"><button class="back" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>Til baka</button><button type="button" class="newwin" onclick="openNewWin()" title="Opna í nýjum glugga – vinna í appinu á meðan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="7.5" width="13" height="13" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/></svg>Nýr gluggi</button></div>`;
 const projLink=p=>p?`<a class="plink" ${tapAttr("verk",p.id)}><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt)}</a>`:"";
 const timeList=(match,title="Tímaskráning")=>{const es=faerslur().filter(match).sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
@@ -49,6 +53,8 @@ function dVerk(p){
     ${MCP?`<div class="viewtitle" style="margin-top:14px">Staða verkefnis</div><div class="stat-row pstada" role="group" aria-label="Staða verkefnis">${STODUR().map(x=>`<button type="button" class="chipbtn" data-act="status:verk:${esc(p.id)}:${esc(x.n)}" aria-pressed="${x.n===p.stada}">${esc(x.n)}</button>`).join("")}</div>`:""}
     <div class="kpis" style="margin-top:16px"><div class="card"><b>${num(Math.round(((+p.timar||0)+liveProjH(p.id))*10)/10)}</b><span>klst. skráðar${liveProjH(p.id)?" · klukka í gangi":""}</span></div><div class="card"><b>${openS.length}</b><span>opin undirverk</span></div>${can("fjarmal")&&window.rkUnbilled&&window.rateOf?(()=>{const v=window.rkUnbilledKr?rkUnbilledKr(p.id):0; return v?`<div class="card tap" data-act="tab:trk"><b>${esc(kr(v))}</b><span>óreikningsfært · ${esc(num(rateOf(p)))} kr./klst.</span></div>`:"";})():""}</div>
     ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button><button type="button" class="btn" data-act="add:undir">+ Undirverk</button><button type="button" class="btn" data-act="add:fund">+ Fundur</button></div>`:""}
+    <div class="viewtitle" style="display:flex;align-items:center;gap:8px">Starfsfólk á verkefni · ${projStaff(p).length}${MCP?`<a class="plink" data-act="pstaff:${esc(p.id)}" style="margin-left:auto">+ Skrá starfsmann</a>`:""}</div>
+    <div class="staffrow">${projStaff(p).map(sk=>`<span class="staff">${staffAv(sk)}<span>${esc(starfName(sk))}${sk===ME()?" (þú)":""}</span></span>`).join("")}</div>
     ${(()=>{const b=budgetOf(p); return b?`<div class="budget"><div class="bt"><span>Áætlun</span><b>${num(Math.round(((+p.timar||0)+liveProjH(p.id))*10)/10)} af ${num(b.a)} klst. · ${Math.round(b.pct*100)}%</b></div><div class="pbar ${b.cls}"><i style="width:${Math.min(100,Math.round(b.pct*100))}%"></i></div>${b.cls?`<p class="hint" style="margin:8px 0 0">${b.cls==="over"?"Komið fram yfir áætlaða tíma.":"Yfir 80% af áætluðum tímum notað."}</p>`:""}${p.tilbod?`<p class="hint" style="margin:6px 0 0">Tilboð: ${esc(Number(p.tilbod).toLocaleString("is-IS"))} kr.</p>`:""}</div>`:"";})()}
     ${p.yfirlit||p.naest||p.athuga?`<div class="viewtitle">Staðan</div><div class="card" style="font-size:14.5px">${esc(p.yfirlit||"")}${p.naest?`<div style="margin-top:8px"><b>Næst:</b> ${esc(p.naest)}</div>`:""}${p.athuga?`<div style="margin-top:8px"><b>Athuga:</b> ${esc(p.athuga)}</div>`:""}</div>`:""}
     ${soon.length?`<div class="viewtitle">Framundan í verkefninu</div>${llist(soon.map(x=>x.h))}`:""}
@@ -224,6 +230,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="tstarf"){timStarf=r[0]||""; wDay=null; render(); return;}
   if(k==="prep"){const p=findProj(r[0]); if(p) openReport(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr),{bil:"Allt tímabil verkefnis",verkefni:p.nafn,starf:"",flokka:(p.undirverk||[]).length>0}); return;}
   if(k==="srep"){const x=findSub(r[0]); if(x) openReport(e=>e.undirverkId===x.u.id||(!e.undirverkId&&e.nr===x.u.nr),{bil:"Allt tímabil",verkefni:x.p.nafn+" › "+x.u.nr+" "+subName(x.u),starf:"",flokka:true}); return;}
+  if(k==="pstaff"){staffSheet(r[0]); return;}
   if(k==="pstarf"){const [pid,sk]=r; saveSnapshot(s=>{const p=sFindP(s,pid); if(!p) return; const cur=p.starfsmenn?.length?p.starfsmenn:[ME()]; p.starfsmenn=cur.includes(sk)?cur.filter(x=>x!==sk):cur.concat(sk); if(!p.starfsmenn.length) p.starfsmenn=[ME()];}); return;}
   if(k==="week"){weekOff=Math.min(0,weekOff+(+r[0])); wDay=null; render(); return;}
   if(k==="wday"){wDay=wDay===r[0]?null:r[0]; render(); return;}

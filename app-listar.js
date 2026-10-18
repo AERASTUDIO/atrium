@@ -134,7 +134,7 @@ const VSORT=[["stada","Stöðu"],["thjonusta","Þjónustu"],["verkkaupi","Viðsk
 function vVerk(){
   const ps=verkefni().slice().sort((a,b)=>b.nr.localeCompare(a.nr));
   const row=p=>lrow("verk:"+p.id,{title:`<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt)}`,
-    sub:esc([vkName(p)||vsName(p),(p.thjonusta||[]).join(", "),p.timar?hrs(p.timar):""].filter(Boolean).join(" · ")),
+    sub:esc([vkName(p)||vsName(p),(p.thjonusta||[]).join(", "),p.timar?hrs(p.timar):""].filter(Boolean).join(" · "))+(STARFS().length>1?` <span class="savs">${projStaff(p).map(staffAv).join("")}</span>`:""),
     right:(isDone(p)?"":budgetPill(p))+(vSort!=="stada"?statusPill(p.stada):"")+(!isDone(p)&&p.skiladagur&&daysTo(p.skiladagur)<=14?relPill(daysTo(p.skiladagur)):"")});
   const act=ps.filter(p=>!isDone(p)), done=ps.filter(isDone);
   const grp=(t,xs,closed)=>xs.length?(closed?`<details class="grp"><summary class="viewtitle">${esc(t)} · ${xs.length}</summary>${llist(xs.map(row))}</details>`:`<div class="viewtitle">${esc(t)} · ${xs.length}</div>${llist(xs.map(row))}`):"";

@@ -67,6 +67,9 @@ const ME=()=>window.VIEWAS?.sk||window.USER?.sk||(STARFS().find(x=>x.eg)||STARFS
 // „Skoða sem“ (admin): sýnir aðeins það sem viðkomandi hlutverk sæi af tímum og kostnaði
 const viewFilter=xs=>{const V=window.VIEWAS; if(!V||ROLES[V.hlutverk]?.fjarmal) return xs; return xs.filter(x=>x.eigandi?String(x.eigandi).toLowerCase()===V.email.toLowerCase():(x.starfsmadur||x.sk)===V.sk);};
 const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
+// Starfsfólk skráð á verkefni (p.starfsmenn = skammstafanir; tómt = sá sem stofnaði/ME eins og áður)
+const projStaff=p=>p?.starfsmenn?.length?p.starfsmenn:[ME()];
+const staffAv=sk=>`<span class="sav" title="${esc(starfName(sk))}">${esc(sk)}</span>`;
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];

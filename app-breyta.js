@@ -199,3 +199,13 @@ window.aeraStart=function(db){
   }, showErr);
 };
 document.getElementById("fab").hidden=true;
+
+/* Skrá starfsfólk á verkefni (1.9.3) */
+function staffSheet(pid){const p=findProj(pid); if(!p) return; const cur=projStaff(p);
+  sheet.innerHTML=`<h3 id="sheet-h">Starfsfólk á ${esc(p.nr)}</h3><p class="hint" style="margin:0 0 10px">Hakaðu við þá sem vinna á verkefninu. Þeir sjá það undir sínum verkefnum og geta skráð tíma á það.</p>
+    <div class="llist">${STARFS().map(x=>`<label class="lrow" style="cursor:pointer"><div class="ll">${staffAv(x.sk)}</div><div class="lm"><div class="lt">${esc(x.nafn)}${x.sk===ME()?" (þú)":""}</div></div><input type="checkbox" class="stf" value="${esc(x.sk)}" ${cur.includes(x.sk)?"checked":""} style="width:22px;height:22px;min-height:0"></label>`).join("")}</div>
+    <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="st-cancel">Hætta við</button><button type="button" class="btn primary" id="st-save">Vista</button></div>`;
+  sheetwrap.hidden=false; document.getElementById("st-cancel").onclick=closeSheet;
+  document.getElementById("st-save").onclick=async()=>{const sel=[...sheet.querySelectorAll(".stf:checked")].map(i=>i.value);
+    if(!sel.length) return msg("Veldu að minnsta kosti einn starfsmann.","err");
+    try{await saveSnapshot(s=>{const q=sFindP(s,pid); if(q) q.starfsmenn=sel;}); toast("Starfsfólk vistað"); closeSheet();}catch(e){msg(esc(errText(e)),"err");}};}

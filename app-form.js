@@ -142,6 +142,7 @@ function drawForm(){
     ${projFields("f",null)}
     <div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${THJ().map(t=>`<label><input type="checkbox" name="thj" value="${t}">${t}</label>`).join("")}</div></div>
     <label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="f-snid" style="width:auto">Stofna undirverk eftir sniðmáti þjónustu</label>
+    ${STARFS().length>1?`<div class="kind" style="margin-top:6px">Starfsfólk á verkefni</div><div class="chks">${STARFS().map(x=>`<label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" name="fstf" value="${esc(x.sk)}" ${x.sk===ME()?"checked":""} style="width:auto">${esc(x.nafn)}</label>`).join("")}</div>`:""}
     <div class="two"><label>Áætlaðir tímar<input id="f-aklst" inputmode="decimal" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="f-tilbod" inputmode="numeric" placeholder="t.d. 450000"></label></div>
     <p class="hint">Fær verknúmerið <b class="nr">${nextProjNr()}</b>.</p>`;
   if(kind==="vsk") f=vskFormHTML("f",null);
@@ -371,7 +372,7 @@ async function save(ev){
       const snidOn=document.getElementById("f-snid")?.checked, subN=snidOn?[...new Set(thj.flatMap(t=>SNID()[t]||[]))]:[];
       const undir=subN.map((n,k)=>{const snr=nr+"-"+pad(k+1); return {id:newId(),nr:snr,heiti:snr+" "+n,stada:"Not started",skiladagur:null,timar:0,serMappa:null,mappa:null,lysing:null};});
       const aklst=parseFloat(String(val("f-aklst")).replace(",","."))||null, tilbod=parseInt(String(val("f-tilbod")).replace(/\D/g,""))||null;
-      await saveSnapshot(s=>{s.verkefni.push({id,nr,stutt:name,nafn,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,timar:0,yfirlit:null,mappa:null,undirverk:undir,starfsmenn:[ME()],aklst,tilbod,...extra}); if(!noFolder({thjonusta:thj})) (s.odBidrod=s.odBidrod||[]).push({verkefniId:id,nafn,stofnad:new Date().toISOString()});});
+      await saveSnapshot(s=>{s.verkefni.push({id,nr,stutt:name,nafn,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,timar:0,yfirlit:null,mappa:null,undirverk:undir,starfsmenn:(()=>{const v=[...document.querySelectorAll('input[name="fstf"]:checked')].map(i=>i.value); return v.length?v:[ME()];})(),aklst,tilbod,...extra}); if(!noFolder({thjonusta:thj})) (s.odBidrod=s.odBidrod||[]).push({verkefniId:id,nafn,stofnad:new Date().toISOString()});});
       toast(`${nafn} vistað`);
     }
     if(kind==="vsk"){

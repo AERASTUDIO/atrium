@@ -363,3 +363,16 @@ body.onchat #fab{display:none!important}
 /* Forskoðun PDF (1.9.2) */
 .bppdf{max-height:72vh;overflow:auto;background:var(--raise);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .bppdf canvas{display:block;background:#fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.12);max-width:100%;height:auto}
+/* „Til baka“ og „Nýr gluggi“ fylgja skrolli undir hausnum (1.9.3) */
+.backrow{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,57px));z-index:4;background:var(--bg);margin-inline:-16px;padding:6px 16px 4px;border-bottom:1px solid transparent;transition:border-color .15s}
+.backrow .back{margin-top:0}
+.backrow.stuck{border-bottom-color:var(--line)}
+@media (min-width:1024px){.backrow{margin-inline:-40px;padding-inline:40px}}
+/* Starfsfólk á verkefni (1.9.3) */
+.sav{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:99px;background:var(--raise);color:var(--ink);font:500 10.5px var(--f-label);letter-spacing:.02em;flex:none}
+.staffrow{display:flex;flex-wrap:wrap;gap:8px}
+.staff{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:99px;border:1px solid var(--line);font-size:14px}
+.savs{display:inline-flex;margin-left:4px;vertical-align:middle}.savs .sav{width:20px;height:20px;font-size:9px;margin-left:-4px;box-shadow:0 0 0 2px var(--bg)}
+.chks{display:flex;flex-wrap:wrap;gap:4px 16px}
+.dtabs{top:calc(env(safe-area-inset-top,0px) + var(--hdr,57px) + var(--bk,54px))}
+.backrow.stuck:has(+ *){border-bottom-color:transparent}
