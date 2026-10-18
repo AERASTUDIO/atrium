@@ -1,7 +1,7 @@
 <!doctype html><html lang="is"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><meta name="theme-color" id="themecolor" content="#121416">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="AERA">
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest?v=2"><link rel="icon" type="image/svg+xml" href="icons/favicon-v2.svg"><link rel="icon" type="image/png" href="icons/icon-192-v2.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon-v2.png">
 <title>AERA Studio</title>
 <script>/* Sýniútgáfa (?demo): tilbúin gögn, engin innskráning; staðbundnar stillingar fara í sessionStorage svo raunverulega appið á sama tæki verði ekki fyrir áhrifum. */
 window.AERA_DEMO=new URLSearchParams(location.search).has("demo");
@@ -594,7 +594,7 @@ const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.3.0"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.3.1"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
