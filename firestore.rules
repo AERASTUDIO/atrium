@@ -10,8 +10,10 @@ service cloud.firestore {
 
     // Starfsmenn: Microsoft-aðgangur @aerastudio.is.
     function msUser() { return signedIn() && provider() == "microsoft.com" && em().matches(".*@aerastudio[.]is"); }
-    // Varaleið á meðan skipt er yfir: gamli Google-aðgangurinn (jafngildir admin). Fjarlægja þegar Microsoft hefur verið prófað.
-    function legacy() { return signedIn() && provider() == "google.com" && request.auth.token.email_verified == true && em() == "aerastudioice@gmail.com"; }
+    // Google-varaleiðin var lögð niður 18.10.2026 (1.6.1). Aðeins Microsoft-aðgangar fyrirtækisins komast inn.
+    function legacy() { return false; }
+    // Fyrsti admin (fyrirtaeki.js) má stofna notendaskrána ef hún er ekki til – aðeins við nýja uppsetningu.
+    function firstAdmin() { return msUser() && em() == "dagur@aerastudio.is"; }
 
     function usersDoc() { return /databases/$(database)/documents/app/notendur; }
     function users() { return get(usersDoc()).data.notendur; }
@@ -22,7 +24,7 @@ service cloud.firestore {
     // Undantekning: notandi má skrá síðustu innskráningu sína (sidast) og ekkert annað.
     match /app/notendur {
       allow read: if active();
-      allow create: if admin();
+      allow create: if admin() || (firstAdmin() && !exists(usersDoc()));
       allow update: if admin() || (active()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["notendur"])
         && request.resource.data.notendur.diff(resource.data.notendur).affectedKeys().hasOnly([em()])

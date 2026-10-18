@@ -1,7 +1,7 @@
-// Tenging appsins við Firebase: innskráning (Microsoft @aerastudio.is, Google sem varaleið) og gagnagrunnur (Firestore).
+// Tenging appsins við Firebase: innskráning (eingöngu Microsoft-aðgangar fyrirtækisins, frá 1.6.1) og gagnagrunnur (Firestore).
 // Appið sjálft (index.html) veit ekkert um Firebase; það fær hlut `db` með get/set/tx/watch og `db.user` (innskráður notandi).
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence }
+import { getAuth, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
@@ -39,11 +39,6 @@ document.getElementById("login-ms").addEventListener("click", () => {
   p.setCustomParameters({ tenant: MS_TENANT, prompt: "login", domain_hint: MS_DOMAIN });
   signIn(p);
 });
-document.getElementById("login-btn").addEventListener("click", () => {
-  const p = new GoogleAuthProvider();
-  p.setCustomParameters({ prompt: "select_account" });
-  signIn(p);
-});
 getRedirectResult(auth).catch(e => showLogin("Innskráning tókst ekki: " + (e.code || e.message)));
 
 window.aeraSignOut = () => signOut(auth).then(() => location.reload());
@@ -63,14 +58,15 @@ onAuthStateChanged(auth, async user => {
   if (!user) { showLogin(); return; }
   const prov = user.providerData?.[0]?.providerId || "";
   const email = lc(user.email || user.providerData?.[0]?.email);
-  const legacy = prov === "google.com" && LEGACY_EMAILS.map(lc).includes(email);
+  const legacy = false; // Google-varaleiðin var lögð niður í 1.6.1
   const ms = prov === "microsoft.com" && email.endsWith("@" + MS_DOMAIN);
   const deny = async m => { await signOut(auth); showLogin(m); };
   if (!legacy && !ms) return deny(`${email || "Þessi aðgangur"} hefur ekki aðgang að appinu. Skráðu þig inn með Microsoft-aðgangi @${MS_DOMAIN}.`);
 
   let r = await readUsers();
-  // Fyrsta skipti: notendaskráin er ekki til – gamli admin-aðgangurinn stofnar hana með fyrsta admin.
-  if (legacy && r.ok && !r.exists) {
+  // Fyrsta skipti (ný uppsetning): notendaskráin er ekki til – fyrsti admin (fyrirtaeki.js) stofnar hana við fyrstu innskráningu.
+  // Reglurnar leyfa það aðeins því netfangi og aðeins ef skráin er ekki til.
+  if (ms && email === lc(ADMIN.email) && ((r.ok && !r.exists) || r.denied)) {
     const now = new Date().toISOString();
     const data = { notendur: { [lc(ADMIN.email)]: { nafn: ADMIN.nafn, sk: ADMIN.sk, hlutverk: "admin", virkur: true, stofnad: now, breytt: now } }, uppfaert: now };
     try { await setDoc(ref("app/notendur"), data); r = { ok: true, exists: true, data }; } catch (e) { console.warn("Gat ekki stofnað notendaskrá", e); }

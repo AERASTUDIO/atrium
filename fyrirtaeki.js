@@ -13,8 +13,8 @@ window.ORG = {
 
   // Fyrsti admin – skráður sjálfkrafa í notendaskrána ef hún er ekki til
   admin: { email: "dagur@aerastudio.is", nafn: "Dagur Fannar Möller", sk: "DFM", titillIS: "Eigandi", titillEN: "Owner" },
-  // Tímabundin varaleið (Google). Tómt = engin varaleið.
-  legacyEmails: ["aerastudioice@gmail.com"],
+  // Google-varaleið var lögð niður 18.10.2026 (1.6.1). Tómt = engin varaleið.
+  legacyEmails: [],
 
   // Möppur í OneDrive/SharePoint (slóð frá rót drifsins)
   od: {
