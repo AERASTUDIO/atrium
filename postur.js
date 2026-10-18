@@ -3,9 +3,16 @@
    Nýir póstar í tengdum þræði birtast sjálfkrafa á síðu verkefnisins því þráðurinn er sóttur beint úr pósthólfinu. */
 (function () {
   const SEL = "$select=id,subject,from,receivedDateTime,bodyPreview,webLink,isRead,hasAttachments,conversationId";
-  const FOLD = [["inbox", "Innhólf"], ["aera", ORG.postmappa], ["sentitems", "Sent"], ["tengilidir", "Tengiliðir"]];
+  const FOLD = [["inbox", "Innhólf"], ["aera", ORG.postholf ? "Verkefnapóstur" : ORG.postmappa], ["sentitems", "Sent"], ["tengilidir", "Tengiliðir"]];
   let fold = "inbox", q = "", list = null, next = null, loading = false, err = null, aeraId = null, target = null; // target = verkefni sem verið er að finna pósta fyrir
   const MSG = {}, ATT = {};
+  /* Sameiginlegt pósthólf (frá 1.9.5): ORG.postholf, t.d. aera@ – verkefnapóstur sem allir með aðgang sjá í heild.
+     Hver póstur er lesinn úr því pósthólfi sem hann kom úr (BOX: póst-id → "/users/…"; annars "/me"). */
+  const SH = String(ORG.postholf || "").trim().toLowerCase(), SHB = SH ? `/users/${encodeURIComponent(SH)}` : null;
+  const BOX = {}, mb = id => BOX[id] || "/me";
+  const noteBox = (xs, b) => { if (b && b !== "/me") (xs || []).forEach(m => { if (m && m.id) BOX[m.id] = b; }); };
+  window.poBox = (xs, b) => noteBox(xs, b);
+  let curBox = "/me";
   const msOn = () => !!(window.MS && MS.on());
   const CONV = {}; // póst-id → conversationId
   const THR = () => S?.thraedir || [];
@@ -23,8 +30,11 @@
   function thread(conv) {
     const c = TC[conv]; if (c && (c.busy || Date.now() - c.at < 120000)) return c;
     TC[conv] = { at: Date.now(), busy: true, msgs: c?.msgs || null, err: null };
-    MS.g(`/me/messages?$filter=${encodeURIComponent(`conversationId eq '${conv.replace(/'/g, "''")}'`)}&$top=50&${SEL}`)
-      .then(j => { const xs = (j.value || []).sort((a, b) => String(b.receivedDateTime).localeCompare(String(a.receivedDateTime))); noteConv(xs); TC[conv] = { at: Date.now(), msgs: xs }; })
+    const qs = `/messages?$filter=${encodeURIComponent(`conversationId eq '${conv.replace(/'/g, "''")}'`)}&$top=50&${SEL}`;
+    Promise.all([SHB ? MS.g(SHB + qs).then(j => (noteBox(j.value, SHB), j.value || [])).catch(() => []) : [], MS.g("/me" + qs).then(j => j.value || [])])
+      .then(([a, b]) => { const key = m => (m.receivedDateTime || "") + "|" + (m.subject || "") + "|" + (m.from?.emailAddress?.address || "");
+        const seen = new Set(a.map(key)), xs = a.concat(b.filter(m => !seen.has(key(m)))).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime)));
+        noteConv(xs); TC[conv] = { at: Date.now(), msgs: xs }; })
       .catch(e => { TC[conv] = { at: Date.now(), msgs: c?.msgs || [], err: e.message }; }).finally(() => render());
     return TC[conv];
   }
@@ -33,6 +43,7 @@
 
   async function folderPath() {
     if (fold !== "aera") return `/me/mailFolders/${fold}/messages`;
+    if (SHB) return `${SHB}/mailFolders/inbox/messages`;
     if (!aeraId) { const f = encodeURIComponent(`displayName eq '${ORG.postmappa.replace(/'/g, "''")}'`); let xs = (await MS.g(`/me/mailFolders?$filter=${f}&$select=id`)).value; if (!xs.length) xs = (await MS.g(`/me/mailFolders/inbox/childFolders?$filter=${f}&$select=id`)).value; if (!xs.length) throw new Error("Engin póstmappa sem heitir ${ORG.postmappa}."); aeraId = xs[0].id; }
     return `/me/mailFolders/${aeraId}/messages`;
   }
@@ -40,11 +51,12 @@
     if (loading) return; loading = true; err = null;
     try {
       let j;
+      if (!(more && next)) curBox = fold === "aera" && SHB ? SHB : "/me";
       if (more && next) j = await MS.g(next);
-      else if (q) j = await MS.g(`/me/messages?$search=${encodeURIComponent('"' + q.replace(/"/g, "") + '"')}&$top=30&${SEL}`);
+      else if (q) j = await MS.g(`${curBox}/messages?$search=${encodeURIComponent('"' + q.replace(/"/g, "") + '"')}&$top=30&${SEL}`);
       else j = await MS.g(`${await folderPath()}?$top=30&$orderby=receivedDateTime%20desc&${SEL}`);
-      noteConv(j.value); list = more ? (list || []).concat(j.value || []) : (j.value || []); next = j["@odata.nextLink"] || null;
-    } catch (e) { err = e.message; if (!more) list = []; }
+      noteConv(j.value); noteBox(j.value, curBox); list = more ? (list || []).concat(j.value || []) : (j.value || []); next = j["@odata.nextLink"] || null;
+    } catch (e) { err = curBox !== "/me" && (e.status === 403 || e.status === 404 || /denied|scope/i.test(e.message)) ? `Þú hefur ekki aðgang að ${SH} enn. Admin veitir aðgang í Exchange (Full Access) og appið þarf heimildina Mail.Read.Shared – tengstu Microsoft aftur eftir það.` : e.message; if (!more) list = []; }
     loading = false; render();
   }
   const reset = () => { list = null; next = null; };
@@ -82,16 +94,16 @@
   /* ---------- Einn póstur ---------- */
   async function loadMsg(id) {
     try {
-      MSG[id] = await MS.g(`/me/messages/${encodeURIComponent(id)}?$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,body,webLink,hasAttachments,bodyPreview,conversationId`);
+      MSG[id] = await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}?$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,body,webLink,hasAttachments,bodyPreview,conversationId`);
       noteConv([MSG[id]]); const m = MSG[id], html = m.body?.contentType === "html" ? m.body.content || "" : "", hasCid = /src\s*=\s*["']?cid:/i.test(html);
       if (m.hasAttachments || hasCid) {
         // contentId er aðeins til á fileAttachment, svo það er ekki valið í listanum (annars villa frá Graph)
-        const all = (await MS.g(`/me/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline`)).value || [];
+        const all = (await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline`)).value || [];
         const used = new Set();
         if (hasCid) {
           let body = html;
           for (const a of all.filter(a => /^image\//i.test(a.contentType || "") && a.size < 8 * 1024 * 1024 && (a.isInline || all.length < 15))) {
-            try { const f = await MS.g(`/me/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(a.id)}`);
+            try { const f = await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(a.id)}`);
               const cid = String(f.contentId || "").replace(/^<|>$/g, "");
               if (f.contentBytes && cid && body.includes("cid:" + cid)) { body = body.split("cid:" + cid).join(`data:${a.contentType};base64,${f.contentBytes}`); used.add(a.id); } } catch (e) {} }
           m.body = { ...m.body, content: body };
@@ -125,7 +137,7 @@
 
   async function link(gid, pid) {
     let conv = convOf(gid), m = MSG[gid] || (list || []).concat(window.MS_OFL || []).find(x => x.id === gid);
-    try { if (!conv) { m = await MS.g(`/me/messages/${encodeURIComponent(gid)}?$select=id,subject,conversationId`); noteConv([m]); conv = m.conversationId; } } catch (e) { return toast(e.message); }
+    try { if (!conv) { m = await MS.g(`${mb(gid)}/messages/${encodeURIComponent(gid)}?$select=id,subject,conversationId`); noteConv([m]); conv = m.conversationId; } } catch (e) { return toast(e.message); }
     if (!conv) return toast("Fann ekki þráð póstsins.");
     await poLinkConv(conv, pid, m?.subject);
     if (window.MS_OFL) window.MS_OFL = MS_OFL.filter(x => x.conversationId !== conv);
@@ -133,7 +145,7 @@
     toast(pid ? "Þráður tengdur við " + (findProj(pid)?.nr || "verkefni") : "Þráður aftengdur");
   }
   async function attBlob(mid, aid) {
-    const a = await MS.g(`/me/messages/${encodeURIComponent(mid)}/attachments/${encodeURIComponent(aid)}`);
+    const a = await MS.g(`${mb(mid)}/messages/${encodeURIComponent(mid)}/attachments/${encodeURIComponent(aid)}`);
     if (!a.contentBytes) throw new Error("Þessa tegund viðhengis er ekki hægt að sækja hér. Opnaðu póstinn í Outlook.");
     const bin = atob(a.contentBytes), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
     return { blob: new Blob([u], { type: a.contentType || "application/octet-stream" }), name: a.name };
@@ -268,6 +280,8 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
       ${mode === "reply" || mode === "replyAll" ? `<p class="hint" style="margin:0">Til: ${esc(mode === "reply" ? fromName(src) : [fromName(src), people(src.toRecipients), people(src.ccRecipients)].filter(Boolean).join(", "))}</p>` :
         `<div class="rfield"><span class="lbl">Til <span class="req">*</span></span><div class="rbox" id="po-to-box"><input autocomplete="off" inputmode="email" aria-label="Viðtakendur" placeholder="Nafn eða netfang"></div><div class="rsugs" id="po-to-sug" hidden></div><input type="hidden" id="po-to"></div>
          <div class="rfield"><span class="lbl">Afrit (cc)</span><div class="rbox" id="po-cc-box"><input autocomplete="off" inputmode="email" aria-label="Afrit"></div><div class="rsugs" id="po-cc-sug" hidden></div><input type="hidden" id="po-cc"></div>`}
+      ${SHB && mode === "new" ? `<label>Frá<select id="po-from"><option value="sh"${o.pid || (o.mid && BOX[o.mid]) ? " selected" : ""}>${esc(SH)} (verkefnapóstur)</option><option value="me"${o.pid ? "" : " selected"}>${esc(MS.user()?.email || "Mitt netfang")}</option></select></label>` : ""}
+      ${SHB && mode !== "new" && BOX[o.mid] ? `<p class="hint" style="margin:0">Sent frá ${esc(SH)}</p>` : ""}
       ${mode === "new" ? `<label><span class="lbl">Efni <span class="req">*</span></span><input id="po-subj" value="${esc(subj)}" autocomplete="off"></label>` : `<p class="hint" style="margin:0">Efni: ${esc(subj)}</p>`}
       <label>Texti<textarea id="po-body" rows="8">${esc(o.body != null ? o.body : sig())}</textarea></label>
       <label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="po-sig" checked style="width:auto">Undirskrift</label>
@@ -299,28 +313,31 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
         const withSig = document.getElementById("po-sig")?.checked, sigH = withSig ? "<br>" + poSigHTML("cid:" + LOGO_CID) : "";
         if (withSig) fa.push(await logoAtt());
         if (mode === "new") {
-          await MS.g("/me/sendMail", { method: "POST", body: { message: { subject, body: { contentType: "HTML", content: toHtml(text) + sigH }, toRecipients: addrs(to), ccRecipients: addrs(cc), attachments: fa }, saveToSentItems: true } });
+          var sbox = SHB && val("po-from") === "sh" ? SHB : "/me";
+          await MS.g(sbox + "/sendMail", { method: "POST", body: { message: { subject, body: { contentType: "HTML", content: toHtml(text) + sigH }, toRecipients: addrs(to), ccRecipients: addrs(cc), attachments: fa }, saveToSentItems: true } });
         } else {
           const fn = { reply: "createReply", replyAll: "createReplyAll", forward: "createForward" }[mode];
-          const dr = await MS.g(`/me/messages/${encodeURIComponent(o.mid)}/${fn}`, { method: "POST", body: {} });
+          const box = mb(o.mid);
+          const dr = await MS.g(`${box}/messages/${encodeURIComponent(o.mid)}/${fn}`, { method: "POST", body: {} });
           const patch = { body: { contentType: "HTML", content: toHtml(text) + sigH + "<br>" + (dr.body?.content || "") } };
           if (mode === "forward") { patch.toRecipients = addrs(to); if (cc) patch.ccRecipients = addrs(cc); }
-          await MS.g(`/me/messages/${encodeURIComponent(dr.id)}`, { method: "PATCH", body: patch });
-          for (const a of fa) await MS.g(`/me/messages/${encodeURIComponent(dr.id)}/attachments`, { method: "POST", body: a });
-          await MS.g(`/me/messages/${encodeURIComponent(dr.id)}/send`, { method: "POST", body: {} });
+          await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}`, { method: "PATCH", body: patch });
+          for (const a of fa) await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}/attachments`, { method: "POST", body: a });
+          await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}/send`, { method: "POST", body: {} });
         }
         toast("Póstur sendur"); closeSheet();
         const rc = mode === "reply" ? [{ a: src.from?.emailAddress?.address, n: src.from?.emailAddress?.name }] : mode === "replyAll" ? [src.from, ...(src.toRecipients || []), ...(src.ccRecipients || [])].map(x => ({ a: x?.emailAddress?.address, n: x?.emailAddress?.name })) : [...addrs(to), ...addrs(cc)].map(x => ({ a: x.emailAddress.address, n: (contacts().find(c => c.a.toLowerCase() === x.emailAddress.address.toLowerCase()) || {}).n || "" }));
         remember(rc, true).catch(() => {});
         if (o.onSent) try { await o.onSent(); } catch (e) {}
-        if (pid) setTimeout(() => linkSent(subject, pid), 3000);
-      } catch (e) { btn.disabled = false; btn.textContent = "Senda"; msg(esc(/403|denied|scope/i.test(e.message) ? "Appið hefur ekki leyfi til að senda. Tengstu Microsoft aftur og samþykktu heimildina." : e.message), "err"); }
+        if (pid) setTimeout(() => linkSent(subject, pid, typeof sbox !== "undefined" ? sbox : "/me"), 3000);
+      } catch (e) { btn.disabled = false; btn.textContent = "Senda"; msg(esc(/403|denied|scope|SendAs|ErrorSendAsDenied/i.test(e.message) || e.status === 403 ? (SHB ? `Appið hefur ekki leyfi til að senda${val("po-from") === "sh" || BOX[o.mid] ? " frá " + SH + " (vantar Send as í Exchange eða Mail.Send.Shared)" : ""}. Tengstu Microsoft aftur og samþykktu heimildina.` : "Appið hefur ekki leyfi til að senda. Tengstu Microsoft aftur og samþykktu heimildina.") : e.message), "err"); }
     };
   };
   // Eftir sendingu: finna sendan póst og tengja hann við verkefnið
-  async function linkSent(subject, pid) {
-    try { const xs = (await MS.g(`/me/mailFolders/sentitems/messages?$top=10&$orderby=sentDateTime%20desc&$select=id,subject,sentDateTime,conversationId`)).value;
-      const m = xs.find(x => (x.subject || "") === subject); if (!m || !m.conversationId) return; noteConv([m]);
+  async function linkSent(subject, pid, box) {
+    box = box || "/me";
+    try { const xs = (await MS.g(`${box}/mailFolders/sentitems/messages?$top=10&$orderby=sentDateTime%20desc&$select=id,subject,sentDateTime,conversationId`)).value;
+      const m = xs.find(x => (x.subject || "") === subject); if (!m || !m.conversationId) return; noteConv([m]); noteBox([m], box);
       const t = THR().find(x => x.conv === m.conversationId); if (t && t.verkefniId === pid) { delete TC[m.conversationId]; return render(); }
       await poLinkConv(m.conversationId, pid, m.subject);
     } catch (e) {}

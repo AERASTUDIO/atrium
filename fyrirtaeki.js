@@ -32,8 +32,11 @@ window.ORG = {
   // Krefst heimildarinnar Files.ReadWrite.All (Delegated, admin consent) í Entra-forritinu.
   sp: "",
   spLocal: "",                         // samstillt mappa síðunnar á Windows, t.d. "%UserProfile%\\AERA Studio ehf\\AERA - Documents"
-  // Outlook-mappa sem appið flokkar póst úr
+  // Outlook-mappa sem appið flokkar póst úr (ef ekkert sameiginlegt pósthólf)
   postmappa: "AERA",
+  // Sameiginlegt pósthólf fyrir verkefnapóst (frá 1.9.5): allir með Full Access í Exchange sjá tengda þræði í heild og
+  // geta sent frá því (Send as). Krefst Mail.Read.Shared og Mail.Send.Shared í Entra. Tómt = aðeins eigið pósthólf.
+  postholf: "aera@aerastudio.is",
   // Undirskrift í tölvupósti
   sigLogo: "icons/sig-logo.png"
 };

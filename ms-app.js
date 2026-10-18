@@ -314,8 +314,12 @@
   // AERA-póstmappan: þræðir sem passa við verkefni eru tengdir sjálfkrafa (tilvísun, ekki afrit);
   // aðrir þræðir birtast sem óflokkaðir (window.MS_OFL) þar til þeir eru tengdir.
   async function postar(manual) {
-    const fid = await mailFolder();
-    const ms = (await MS.g(`/me/mailFolders/${fid}/messages?$top=50&$orderby=receivedDateTime%20desc&$select=id,subject,from,receivedDateTime,bodyPreview,webLink,conversationId`)).value || [];
+    // Sameiginlegt pósthólf (ORG.postholf) ef stillt og aðgangur er að því, annars Outlook-mappan „AERA“ hjá notandanum
+    const QS = `?$top=50&$orderby=receivedDateTime%20desc&$select=id,subject,from,receivedDateTime,bodyPreview,webLink,conversationId`;
+    let ms = null;
+    if (ORG.postholf) { const b = `/users/${encodeURIComponent(String(ORG.postholf).trim().toLowerCase())}`;
+      try { ms = (await MS.g(`${b}/mailFolders/inbox/messages${QS}`)).value || []; if (window.poBox) poBox(ms, b); } catch (e) { ms = null; } }
+    if (!ms) { const fid = await mailFolder(); ms = (await MS.g(`/me/mailFolders/${fid}/messages${QS}`)).value || []; }
     lastMail = Date.now();
     const tengt = new Set((S?.thraedir || []).map(t => t.conv)), seen = new Set(), ofl = [], auto = [];
     for (const m of ms) { const c = m.conversationId; if (!c || tengt.has(c) || seen.has(c)) continue; seen.add(c);
