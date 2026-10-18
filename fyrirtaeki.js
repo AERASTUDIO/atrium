@@ -24,6 +24,8 @@ window.ORG = {
     snidmat: "AERA/Stofa/Sniðmát",
     oflokkad: "Óflokkað"
   },
+  // Samstillt OneDrive-mappa á Windows-tölvum starfsmanna (Explorer skilur %UserProfile%)
+  odLocal: "%UserProfile%\\OneDrive - AERA Studio ehf",
   // Outlook-mappa sem appið flokkar póst úr
   postmappa: "AERA",
   // Undirskrift í tölvupósti

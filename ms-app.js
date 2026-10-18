@@ -6,7 +6,7 @@
   const STD = ["01 Móttekið", "02 Vinnuskjöl", "03 Módel", "04 Teikningar", "05 Lýsing", "06 3D Render", "07 Útgefin Gögn", "08 Samskipti og fundir"];
   const encP = s => s.split("/").map(encodeURIComponent).join("/");
   const safe = s => String(s || "").replace(/["*:<>?/\\|]/g, "-").replace(/\s+/g, " ").trim().replace(/[. ]+$/, "");
-  const SEL = "$select=id,name,size,folder,file,webUrl,lastModifiedDateTime";
+  const SEL = "$select=id,name,size,folder,file,webUrl,webDavUrl,parentReference,lastModifiedDateTime";
   const isOn = () => MS.on();
 
   async function all(path) {
@@ -51,10 +51,45 @@
 
   const ICON = { folder: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
     ext: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>' };
+  /* ---------- Opna í tölvunni (frá 1.6.5) ----------
+     Vafri má ekki opna möppu í Windows Explorer beint. Í staðinn: möppur → slóðin í samstilltu OneDrive-möppunni
+     er afrituð og leiðbeint hvernig hún er límd í Explorer; Office-skjöl opnast í Word/Excel/PowerPoint á tölvunni. */
+  const LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+  const isWin = /Windows/i.test(navigator.userAgent), isMob = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  const odMode = () => LS("aera-od-opna") || (isWin && !isMob ? "tolva" : "vefur");
+  const odRoot = () => LS("aera-od-rot") || ORG.odLocal || ("%UserProfile%\\OneDrive - " + ORG.nafn + " ehf");
+  const relOf = it => { const pp = String(it?.parentReference?.path || "").replace(/^\/drive(s\/[^/]+)?\/root:?\/?/, ""); return decodeURIComponent((pp ? pp + "/" : "") + (it?.name || "")); };
+  const localPath = rel => odRoot().replace(/[\\/]+$/, "") + "\\" + String(rel || "").split("/").filter(Boolean).join("\\");
+  const OFF = { docx: "ms-word", doc: "ms-word", xlsx: "ms-excel", xls: "ms-excel", pptx: "ms-powerpoint", ppt: "ms-powerpoint" };
+  const offApp = n => OFF[(String(n).split(".").pop() || "").toLowerCase()];
+  // Eigindi á tengil fyrir möppu/skrá: á vefnum = venjulegur tengill; í tölvu = aðgerð sem afritar slóð eða opnar í Office
+  window.odLink = (it, rel) => {
+    if (odMode() !== "tolva") return `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`;
+    if (!it.folder && offApp(it.name) && (it.webDavUrl || it.webUrl)) return `href="${esc(offApp(it.name) + ":ofe|u|" + (it.webDavUrl || it.webUrl))}"`;
+    return `href="#" data-act="odlocal:${esc(encodeURIComponent(rel || relOf(it)))}"`;
+  };
+  async function copyLocal(rel) {
+    const path = localPath(rel);
+    try { await navigator.clipboard.writeText(path); } catch (e) {}
+    if (LS("aera-od-vist") === "1") { toast("Slóð afrituð – límdu hana í Explorer (Win+E, Ctrl+L, Ctrl+V)"); return; }
+    sheet.innerHTML = `<h3 id="sheet-h">Opna möppu í tölvunni</h3>
+      <p class="hint" style="margin:0 0 10px">Vafrinn má ekki opna möppur í tölvunni beint, svo slóðin hefur verið afrituð:</p>
+      <div class="card" style="font-family:ui-monospace,Consolas,monospace;font-size:12.5px;word-break:break-all">${esc(path)}</div>
+      <ol class="hint" style="margin:12px 0 0 18px;line-height:1.7"><li>Ýttu á <b>Win + E</b> (opnar File Explorer)</li><li>Ýttu á <b>Ctrl + L</b> (slóðastikan)</li><li>Ýttu á <b>Ctrl + V</b> og <b>Enter</b></li></ol>
+      <label class="chk" style="flex-direction:row;align-items:center;gap:8px;margin-top:12px;color:var(--ink)"><input type="checkbox" id="od-vist" style="width:auto;min-height:0"> Ekki sýna þetta aftur – aðeins afrita</label>
+      <div class="actions"><button type="button" class="btn" id="od-web">Opna á netinu í staðinn</button><button type="button" class="btn primary" id="od-ok">Í lagi</button></div>`;
+    sheetwrap.hidden = false;
+    const done = () => { if (document.getElementById("od-vist")?.checked) LS("aera-od-vist", "1"); closeSheet(); };
+    document.getElementById("od-ok").onclick = done;
+    document.getElementById("od-web").onclick = async () => { done(); try { const it = await MS.g(`/me/drive/root:/${encP(rel)}?$select=webUrl`); window.open(it.webUrl, "_blank", "noopener"); } catch (e) { toast(e.message); } };
+  }
+  window.odCopyLocal = copyLocal;
+  document.addEventListener("change", e => { if (e.target.id === "od-rot") { LS("aera-od-rot", e.target.value.trim()); toast("OneDrive-mappa vistuð á þessu tæki"); } });
+
   const typeOf = n => { const e = (n.split(".").pop() || "").toLowerCase(); return ODTYPE[e] || e.toUpperCase(); };
   function fileRow(it) {
-    if (it.folder) return `<a class="lrow fl" href="${esc(it.webUrl)}" target="_blank" rel="noopener"><div class="lm"><div class="lt">📁 ${esc(it.name)}</div><div class="ls">${esc(["Mappa", kb(it.size), it.folder.childCount ? it.folder.childCount + " atriði" : ""].filter(Boolean).join(" · "))}</div></div><div class="lr">${ICON.ext}</div></a>`;
-    return `<div class="lrow fl tap" data-act="msprev:${esc(it.id)}" role="button" tabindex="0"><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typeOf(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr" href="${esc(it.webUrl)}" target="_blank" rel="noopener" aria-label="Opna í OneDrive" onclick="event.stopPropagation()">${ICON.ext}</a></div>`;
+    if (it.folder) return `<a class="lrow fl" ${odLink(it)}><div class="lm"><div class="lt">📁 ${esc(it.name)}</div><div class="ls">${esc(["Mappa", kb(it.size), it.folder.childCount ? it.folder.childCount + " atriði" : ""].filter(Boolean).join(" · "))}</div></div><div class="lr">${ICON.ext}</div></a>`;
+    return `<div class="lrow fl tap" data-act="msprev:${esc(it.id)}" role="button" tabindex="0"><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typeOf(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr" ${odLink(it)} aria-label="${odMode() === "tolva" ? "Opna í tölvunni" : "Opna í OneDrive"}" onclick="event.stopPropagation()">${ICON.ext}</a></div>`;
   }
 
   window.msSkrar = function (p) {
@@ -70,7 +105,7 @@
       return head() + `<div class="empty">${pending ? "Verið er að stofna möppu fyrir verkefnið í OneDrive…" : noFolder(p) ? "Almenn verkefni fá ekki eigin möppu í OneDrive. Fundargerðir og kvittanir þeirra fara í Óflokkað." : `Engin mappa fannst fyrir ${esc(p.nafn)} undir AERA/Verkefni.`}${pending ? "" : `<br><button type="button" class="btn primary" style="margin-top:10px" data-act="msmk:${esc(p.id)}">Stofna möppu með 01–08</button>`}</div>`;
     }
     const tr = TREE[k];
-    const extra = `<a class="plink" data-act="msref:${esc(k)}">↻ Uppfæra</a><a class="plink" href="${esc(VK[k].webUrl)}" target="_blank" rel="noopener">Opna möppu</a>`;
+    const extra = `<a class="plink" data-act="msref:${esc(k)}">↻ Uppfæra</a><a class="plink" ${odLink({ ...VK[k], folder: {} }, ORG.od.verkefni + "/" + (VK[k].name || k))}>Opna möppu</a>`;
     if (!tr) { loadTree(k); return head(extra) + `<div class="empty">Sæki skrár…</div>`; }
     if (tr.st === "load") return head(extra) + `<div class="empty">Sæki skrár…</div>`;
     if (tr.st === "err") return head(extra) + `<div class="empty">Gat ekki sótt skrárnar: ${esc(tr.err)}</div>`;
@@ -78,7 +113,7 @@
       if (!d.folder) return fileRow(d);
       const has = d.size > 0 || (d.kids && d.kids.length);
       return `<details class="fold"${has && /^0[478]/.test(d.name) ? " open" : ""}><summary class="lrow"><div class="lm"><div class="lt"${has ? "" : ' style="color:var(--muted)"'}>${esc(d.name)}</div><div class="ls">${esc(has ? kb(d.size) + (d.kids ? ` · ${d.kids.length} atriði` : "") : "Tóm mappa")}</div></div>
-        <a class="plink" href="${esc(d.webUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Opna</a></summary>
+        <a class="plink" ${odLink(d)} onclick="event.stopPropagation()">Opna</a></summary>
         ${d.kids && d.kids.length ? `<div class="fitems">${d.kids.map(fileRow).join("")}</div>` : ""}</details>`;
     }).join("");
     return head(extra) + `<div class="llist">${rows || '<div class="empty">Mappan er tóm.</div>'}</div><p class="hint" style="margin-top:8px">Beint úr OneDrive · sótt kl. ${esc(new Date(tr.t).toTimeString().slice(0, 5))}. Ýttu á skrá til að forskoða hana.</p>`;
@@ -90,12 +125,12 @@
     sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden = false;
     let it = null;
     try {
-      it = await MS.g(`/me/drive/items/${id}?$select=id,name,webUrl,size,file`);
+      it = await MS.g(`/me/drive/items/${id}?$select=id,name,webUrl,webDavUrl,size,file`);
       const pv = await MS.g(`/me/drive/items/${id}/preview`, { method: "POST", body: {} });
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px;word-break:break-word">${esc(it.name)}</h3>
         <iframe src="${esc(pv.getUrl)}" title="${esc(it.name)}" style="width:100%;height:min(72vh,900px);border:0;border-radius:10px;background:#fff"></iframe>
-        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button><a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a></div>`;
+        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button>${odMode() === "tolva" && offApp(it.name) ? `<a class="btn primary" ${odLink(it)}>Opna í forriti</a><a class="btn" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Á netinu</a>` : `<a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>`}</div>`;
     } catch (e) {
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px">${esc(it?.name || "Skrá")}</h3><div class="empty">Ekki hægt að forskoða þessa skrá í appinu${it ? "" : ": " + esc(e.message)}.</div>
@@ -280,11 +315,15 @@
     return `<div class="viewtitle">Microsoft 365</div>
       <div class="cfgrow"><span class="cdot pc-green"></span><div class="grow">Tengt sem ${esc(u?.name || "")}<div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(u?.email || "")}</div></div></div>
       <p class="hint" style="margin:6px 0 8px">Skrár koma beint úr OneDrive. Ný verkefni fá möppu með 01–08, nýir fundir fá fundargerð í „08 Samskipti og fundir“ (eða Óflokkað) og póstar úr Outlook-möppunni „AERA“ sækjast á 15 mínútna fresti meðan appið er opið.</p>
+      <div class="kind" style="margin-top:12px">Opna möppur og skjöl (á þessu tæki)</div>
+      <div class="stat-row" style="margin-top:6px"><button type="button" class="chipbtn" data-act="odmode:tolva" aria-pressed="${odMode() === "tolva"}">Í tölvunni</button><button type="button" class="chipbtn" data-act="odmode:vefur" aria-pressed="${odMode() === "vefur"}">Á netinu (OneDrive)</button></div>
+      ${odMode() === "tolva" ? `<label style="margin-top:8px">OneDrive-mappa í tölvunni<input id="od-rot" value="${esc(odRoot())}" placeholder="%UserProfile%\\OneDrive - …"></label><p class="hint" style="margin:4px 0 8px">Möppur: slóðin er afrituð til að líma í File Explorer. Word, Excel og PowerPoint opnast beint í forritunum. Annað opnast á netinu.</p>` : ""}
       <div class="links"><button type="button" class="btn" data-act="msmail">Sækja pósta núna</button>${nb ? `<button type="button" class="btn" data-act="mstick">Stofna möppur sem bíða (${nb})</button>` : ""}<button type="button" class="btn" data-act="mslogout">Aftengja</button></div>`;
   };
   window.msMissing = () => `<div class="links" style="margin-top:8px"><button type="button" class="btn" data-act="mslogin">${MS.hadLogin() ? "Tengjast Microsoft aftur" : "Tengjast Microsoft"}</button></div>`;
 
   window.msAct = function (k, r) {
+    if (k === "odmode") { LS("aera-od-opna", r[0]); render(); return; }
     if (k === "mslogin") { MS.lastError = null; MS.login().then(() => { toast("Tengt við Microsoft"); render(); msTick(); }).catch(e => { MS.lastError = e.message; toast(e.message); render(); }); return; }
     if (k === "mslogout") { if (confirm("Aftengja Microsoft á þessu tæki?")) { MS.logout(); render(); } return; }
     if (!isOn()) { toast("Tengdu Microsoft fyrst (Stillingar)."); return; }
