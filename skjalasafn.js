@@ -32,9 +32,10 @@
   // Eftir vistun: gluggi með staðsetningu og „Opna“
   window.odSavedSheet = function (it, where) {
     sheet.innerHTML = `<h3 id="sheet-h">Vistað í OneDrive</h3><div class="card" style="display:flex;gap:12px;align-items:center">${ICD}<div class="grow" style="min-width:0"><b style="font-weight:500;word-break:break-word">${esc(it.name)}</b><div class="ls" style="color:var(--muted);font-size:12.5px">${esc(where)}</div></div></div>
-      <div class="actions"><button type="button" class="btn" id="ods-close">Loka</button><a class="btn primary" ${window.odLink ? odLink(it, where.replace(/ › /g, "/") + "/" + it.name) : `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`} id="ods-open">Opna</a></div>`;
+      <div class="actions three-a"><button type="button" class="btn" id="ods-close">Loka</button><button type="button" class="btn" id="ods-prev">Forskoða</button><a class="btn primary" ${window.odLink ? odLink(it, where.replace(/ › /g, "/") + "/" + it.name) : `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`} id="ods-open">Opna</a></div>`;
     sheetwrap.hidden = false;
     document.getElementById("ods-close").onclick = closeSheet;
+    document.getElementById("ods-prev").onclick = () => doAct(window.msPrevAct ? msPrevAct(it) : "msprev:" + it.id);
     const o = document.getElementById("ods-open"); o.addEventListener("click", e => { const a = o.dataset.act; if (a && a.startsWith("odlocal:")) { e.preventDefault(); closeSheet(); odCopyLocal(decodeURIComponent(a.slice(8))); } else setTimeout(closeSheet, 300); });
   };
 
@@ -58,7 +59,7 @@
     const rel = n => s.path.concat(n).join("/");
     const rows = (s.items || []).map(it => it.folder
       ? `<div class="lrow tap" data-act="odin:${key}:${esc(encodeURIComponent(it.name))}" role="button" tabindex="0"><div class="ll">${ICF}</div><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([it.folder.childCount != null ? it.folder.childCount + " atriði" : "", it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><div class="lr">${CHEV}</div></div>`
-      : `<div class="lrow tap" data-act="msprev:${esc(it.id)}" role="button" tabindex="0"><div class="ll">${ICD}</div><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typ(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr plink" ${window.odLink ? odLink(it, rel(it.name), s.sp) : `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`} onclick="event.stopPropagation()">Opna</a></div>`).join("");
+      : `<div class="lrow tap" data-act="${esc(window.msPrevAct ? msPrevAct(it) : "msprev:" + it.id)}" role="button" tabindex="0"><div class="ll">${ICD}</div><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typ(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr plink" ${window.odLink ? odLink(it, rel(it.name), s.sp) : `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`} onclick="event.stopPropagation()">Opna</a></div>`).join("");
     return `<div class="odbar"><nav class="crumbs" aria-label="Slóð">${crumbs}</nav><span class="odbtns"><button type="button" class="mini" data-act="odref:${key}" aria-label="Uppfæra">↻</button>${window.odIsLocal && odIsLocal() ? `<a class="plink" ${odLink({ folder: {}, webUrl: "" }, s.path.join("/"), s.sp)}>Opna í tölvunni</a>` : ""}</span></div>
       ${hint ? `<p class="hint" style="margin:0 0 8px">${hint}</p>` : ""}
       ${s.err ? `<div class="msg err">${esc(s.err)}</div>` : ""}
@@ -87,7 +88,7 @@
     return `<div class="odbar"><span class="hint" style="margin:0">Skrár sem þú opnaðir eða breyttir síðast í OneDrive og Office</span><button type="button" class="mini" data-act="odrec" aria-label="Uppfæra">↻</button></div>` +
       (xs.length ? llist(xs.map(it => { const ri = it.remoteItem || {}, path = String(ri.parentReference?.path || it.parentReference?.path || "").replace(/^\/drives?\/[^:]*root:?\/?/, "").replace(/^\/drive\/root:\/?/, ""), when = it.lastModifiedDateTime || ri.lastModifiedDateTime;
         const o = { ...it, webUrl: it.webUrl || ri.webUrl, webDavUrl: it.webDavUrl || ri.webDavUrl, name: it.name || ri.name };
-        return `<div class="lrow"><div class="ll">${ICD}</div><div class="lm"><div class="lt">${esc(o.name)}</div><div class="ls">${esc([typ(o.name), decodeURIComponent(path).replace(/\//g, " › "), when ? fmtDate(when) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr plink" ${window.odLink ? odLink(o, (path ? decodeURIComponent(path) + "/" : "") + o.name) : `href="${esc(o.webUrl)}" target="_blank" rel="noopener"`}>Opna</a></div>`; })) : `<div class="empty">Engin nýleg skjöl.</div>`);
+        return `<div class="lrow tap" data-act="${esc(window.msPrevAct ? msPrevAct(it) : "")}" role="button" tabindex="0"><div class="ll">${ICD}</div><div class="lm"><div class="lt">${esc(o.name)}</div><div class="ls">${esc([typ(o.name), decodeURIComponent(path).replace(/\//g, " › "), when ? fmtDate(when) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr plink" ${window.odLink ? odLink(o, (path ? decodeURIComponent(path) + "/" : "") + o.name) : `href="${esc(o.webUrl)}" target="_blank" rel="noopener"`} onclick="event.stopPropagation()">Opna</a></div>`; })) : `<div class="empty">Engin nýleg skjöl.</div>`);
   };
   window.odRecReset = () => { REC = null; };
 })();

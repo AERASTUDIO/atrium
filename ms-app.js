@@ -141,14 +141,29 @@
   };
 
   /* ---------- Forskoðun skráa ---------- */
+  /* Forskoðun (1.9.2): tekur við auðkenni skráar á drifi fyrirtækisins/notandans, „d:<drif>~<auðkenni>“ (skrá á hvaða drifi sem er)
+     eða „u:<slóð>“ (OneDrive/SharePoint-slóð – flett upp með /shares). */
+  const SELI = "?$select=id,name,webUrl,webDavUrl,size,file,folder,parentReference";
+  const b64u = s => btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/=+$/, "").replace(/\//g, "_").replace(/\+/g, "-");
+  async function resolveItem(arg) {
+    if (arg.startsWith("u:")) { const it = await MS.g(`/shares/u!${b64u(decodeURIComponent(arg.slice(2)))}/driveItem${SELI}`); return { it, p: `/drives/${it.parentReference.driveId}/items/${it.id}` }; }
+    if (arg.startsWith("d:")) { const [dr, i] = arg.slice(2).split("~"), p = `/drives/${dr}/items/${i}`; return { it: await MS.g(p + SELI), p }; }
+    try { const it = await G(`/me/drive/items/${arg}${SELI}`); return { it, p: (await base()) + `/items/${arg}` }; }
+    catch (e) { if (!ORG.sp || e.status !== 404) throw e; return { it: await MS.g(`/me/drive/items/${arg}${SELI}`), p: `/me/drive/items/${arg}` }; }
+  }
+  // Aðgerð fyrir forskoðun skráar úr Graph (driveItem) eða slóðar
+  window.msPrevAct = it => { const r = it?.remoteItem || it, dr = r?.parentReference?.driveId; return dr ? `msprev:d:${dr}~${r.id}` : `msprev:${r?.id}`; };
+  window.msPrevUrl = url => "msprev:u:" + encodeURIComponent(url);
+  window.msCanPrevUrl = url => /^https:\/\/[^/]*(sharepoint\.com|1drv\.ms|onedrive\.live\.com)\//i.test(String(url || ""));
+
   async function preview(id) {
     sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px">Opna skrá…</h3><div class="empty">Sæki forskoðun…</div>`;
     sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden = false;
     let it = null;
     try {
-      let g = G; try { it = await G(`/me/drive/items/${id}?$select=id,name,webUrl,webDavUrl,size,file`); }
-      catch (e) { if (!ORG.sp || e.status !== 404) throw e; g = MS.g; it = await MS.g(`/me/drive/items/${id}?$select=id,name,webUrl,webDavUrl,size,file`); }
-      const pv = await g(`/me/drive/items/${id}/preview`, { method: "POST", body: {} });
+      const r = await resolveItem(id); it = r.it;
+      if (it.folder) { closeSheet(); window.open(it.webUrl, "_blank", "noopener"); return; }
+      const pv = await MS.g(r.p + "/preview", { method: "POST", body: {} });
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px;word-break:break-word">${esc(it.name)}</h3>
         <iframe src="${esc(pv.getUrl)}" title="${esc(it.name)}" style="width:100%;height:min(72vh,900px);border:0;border-radius:10px;background:#fff"></iframe>

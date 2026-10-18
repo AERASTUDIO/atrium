@@ -1,6 +1,6 @@
 // Þjónustuskrifta (service worker): geymir appið á tækinu svo það opnist hratt og virki án nets.
 // Hækkaðu VERSION þegar eitthvað breytist, þá sækja tækin nýju útgáfuna.
-const VERSION = "aera-1.9.1"; // sama og APP_VERSION í index.html
+const VERSION = "aera-1.9.2"; // sama og APP_VERSION í index.html
 const SHELL = ["./", "index.html", "app.css", "app-grunnur.js", "app-listar.js", "app-skyrslur.js", "app-sidur.js", "app-stillingar.js", "app-form.js", "app-breyta.js", "firebase.js", "firebase-config.js", "xlsx.js", "skjalagerd.js", "icons/doc-logo.png", "ms.js", "ms-app.js", "verdskra.js", "reikn.js", "skjol.js", "postur.js", "spjall.js", "heim.js", "skjalasafn.js", "adgangur.js", "notendur.js", "gogn.js", "fyrirtaeki.js", "demo.js", "manifest.webmanifest?v=2",
   "icons/icon-192-v2.png", "icons/icon-512-v2.png", "icons/icon-maskable-512-v2.png", "icons/apple-touch-icon-v2.png", "icons/sig-logo.png",
   "brand.css", "icons/logo-ljos.svg", "icons/logo-dokk.svg", "icons/ordmerki-dokk.svg", "icons/favicon-v2.svg"];

@@ -107,7 +107,7 @@ function dFund(f){
     ["Tími",(x?DAY[x.getDay()]+" "+fmtDate(f.date):"–")+(hhmm(f.date)?" · kl. "+hhmm(f.date)+(hhmm(f.dateEnd)?"–"+hhmm(f.dateEnd):""):"")],
     ["Staður",esc(f.stadsetning||"")],["Verkefni",p?projLink(p):(f.verknr?`<span class="nr">${esc(f.verknr)}</span>`:"")],
     ["Fundarmenn",f.attendees?.length?f.attendees.map(esc).join(", "):""],
-    ["Fundargerð",f.fundargerd?`<a class="plink" href="${esc(f.fundargerd)}" target="_blank" rel="noopener">${esc(FGLABEL(f))}</a>`:""],
+    ["Fundargerð",f.fundargerd?`<a class="plink" href="${esc(f.fundargerd)}" target="_blank" rel="noopener">${esc(FGLABEL(f))}</a>${window.MS&&MS.on()&&(f.fgId||window.msCanPrevUrl?.(f.fundargerd))?` · <a class="plink" data-act="${esc(f.fgId?"msprev:"+f.fgId:msPrevUrl(f.fundargerd))}">Forskoða</a>`:""}`:""],
     ["Fundarhlekkur",f.fundarhlekkur?`<a class="plink" href="${esc(f.fundarhlekkur)}" target="_blank" rel="noopener">Tengjast fundi</a>`:""]])}</dl>
     ${MCP?`<div class="links"><button type="button" class="btn primary" data-act="fundtime:${esc(f.id)}">Skrá tíma fyrir fundinn</button><button type="button" class="btn" data-act="ics:${esc(f.id)}">Setja í dagatalið mitt</button>${!f.fundargerd&&window.MS&&MS.on()?`<button type="button" class="btn" data-act="msfg:${esc(f.id)}">Búa til fundargerð</button>`:""}</div>`:""}
     ${linkBtns({...f,mappa:f.mappa||p?.mappa},{edit:"fund"})}</div>
@@ -134,7 +134,7 @@ function dKostn(k){
     ["Upphæð",`<b>${esc(kr(k.upphaed))}</b>`],["Dagur",fmtDate(k.date)],["Verkefni",p?projLink(p):""],
     ["Undirverk",r?`<a class="plink" ${tapAttr("sub",r.u.id)}><span class="nr">${esc(r.u.nr)}</span> ${esc(subName(r.u))}</a>`:""],
     ["Starfsmaður",esc(starfName(k.starfsmadur||ME()))],["Tímabil",esc(timabilOf(k.date))],
-    ["Kvittun",k.kvittun?`${k.kvittunId&&window.MS&&MS.on()?`<a class="plink" data-act="msprev:${esc(k.kvittunId)}">Skoða kvittun</a> · `:""}<a class="plink" href="${esc(k.kvittun)}" target="_blank" rel="noopener">Opna í OneDrive</a>`:""]])}</dl>
+    ["Kvittun",k.kvittun?`${window.MS&&MS.on()&&(k.kvittunId||window.msCanPrevUrl?.(k.kvittun))?`<a class="plink" data-act="${esc(k.kvittunId?"msprev:"+k.kvittunId:msPrevUrl(k.kvittun))}">Forskoða kvittun</a> · `:""}<a class="plink" href="${esc(k.kvittun)}" target="_blank" rel="noopener">Opna í OneDrive</a>`:""]])}</dl>
     ${linkBtns({id:k.id},{edit:"kostn"})}</div>`;
 }
 function dSkjal(x){
