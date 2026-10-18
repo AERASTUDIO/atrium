@@ -202,14 +202,14 @@
   };
   const LOGO_URL = "https://aerastudio.github.io/aera-app/icons/sig-logo.png", LOGO_CID = "aeralogo@aerastudio";
   window.poSigHTML = (logo, o) => { const g = { ...SIG(), ...(o || {}) }, E = x => esc(x || ""), web = String(g.vefur || "").replace(/^https?:\/\//, "");
-    return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Calibri,Arial,Helvetica,sans-serif;color:#1c2126">
-${g.kvedja ? `<tr><td colspan="2" style="padding:0 0 14px 0;font-size:10.5pt;color:#1c2126">${E(g.kvedja)},</td></tr>` : ""}
-<tr><td style="padding:0 16px 0 0;vertical-align:middle"><img src="${logo}" width="140" height="49" alt="AERA Studio" style="display:block;border:0;width:140px;height:49px"></td>
-<td style="border-left:2px solid #1f4e79;padding:2px 0 2px 16px;vertical-align:middle;font-size:10pt;line-height:15pt">
-<span style="font-size:11.5pt;font-weight:bold;color:#0b1e33">${E(g.nafn)}</span><br>
-<span style="color:#5b7fa6">${[g.titillIS, g.titillEN].filter(Boolean).map(E).join(" &middot; ")}</span><br>
-<span style="color:#1c2126">${E(g.fyrirtaeki)}</span><br>
-${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#1f4e79;text-decoration:none">${E(g.netfang)}</a>` : ""}${g.simi ? `<br><span style="color:#1c2126">S. / Tel. ${E(g.simi)}</span>` : ""}${web ? `<br><a href="https://${E(web)}" style="color:#1f4e79;text-decoration:none">${E(web)}</a>` : ""}
+    return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Poppins,Calibri,Arial,Helvetica,sans-serif;color:#121416">
+${g.kvedja ? `<tr><td colspan="2" style="padding:0 0 14px 0;font-size:10.5pt;color:#121416">${E(g.kvedja)},</td></tr>` : ""}
+<tr><td style="padding:0 16px 0 0;vertical-align:middle"><img src="${logo}" width="140" height="44" alt="AERA Studio" style="display:block;border:0;width:140px;height:44px"></td>
+<td style="border-left:2px solid #2F3742;padding:2px 0 2px 16px;vertical-align:middle;font-size:10pt;line-height:15pt">
+<span style="font-size:11.5pt;font-weight:bold;color:#121416">${E(g.nafn)}</span><br>
+<span style="color:#7C8896">${[g.titillIS, g.titillEN].filter(Boolean).map(E).join(" &middot; ")}</span><br>
+<span style="color:#121416">${E(g.fyrirtaeki)}</span><br>
+${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decoration:none">${E(g.netfang)}</a>` : ""}${g.simi ? `<br><span style="color:#121416">S. / Tel. ${E(g.simi)}</span>` : ""}${web ? `<br><a href="https://${E(web)}" style="color:#2F3742;text-decoration:none">${E(web)}</a>` : ""}
 </td></tr></table>`; };
   let logoB64 = null;
   const logoAtt = async () => { if (!logoB64) logoB64 = await b64(await (await fetch("icons/sig-logo.png")).blob());

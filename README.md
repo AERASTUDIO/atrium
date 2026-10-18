@@ -11,13 +11,14 @@ Símaapp og tölvuapp AERA Studio fyrir verkefni, undirverk, fundi, tímaskráni
 ## Skrár
 | Skrá | Hlutverk |
 |---|---|
-| `index.html` | Appið sjálft: útlit, skjámyndir og öll virkni |
+| `index.html` | Appið sjálft: skjámyndir og öll virkni (5 hlutar: Heim, Verkefni, Dagatal, Tímar, Meira) |
+| `brand.css` | Útlit eftir merkjahandbók AERA (Poppins, Nótt/Grafít/Stál/Þoka/Pappír) og hreyfingar |
 | `firebase.js` | Innskráning (Microsoft / Google-varaleið), athugun á notendaskrá og tenging við Firestore |
 | `notendur.js` | Notendur, hlutverk og réttindi (Stillingar › Notendur) |
 | `firebase-config.js` | Opinber auðkenni Firebase-verkefnisins, Microsoft-tenant og fyrsti admin |
 | `firestore.rules` | Aðgangsreglur gagnagrunnsins (afrit; virku reglurnar eru í Firebase Console) |
 | `demo.js` | Sýniútgáfa (`?demo`): uppspunnin sýnigögn í minni vafrans, breytingar vistast ekki |
 | `sw.js` | Geymir appið á tækinu svo það virki án nets – hækka `VERSION` við breytingar |
-| `manifest.webmanifest`, `icons/` | Nafn og tákn þegar appið er sett á heimaskjá |
+| `manifest.webmanifest`, `icons/` | Nafn, app-tákn, lógó (ljóst/dökkt), orðmerki og undirskriftarlógó úr lógópakka AERA |
 
 Gögnin sjálf eru **aldrei** í þessari geymslu. Afrit fæst með „Sækja afrit af gögnum“ neðst í appinu.
