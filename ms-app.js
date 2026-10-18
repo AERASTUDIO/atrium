@@ -164,18 +164,14 @@
   }
   window.msMakeDocx = makeDocx;
 
-  function fundBlocks(f, p) {
-    const x = d(f.date), when = x ? `${DAY[x.getDay()]} ${fmtDate(f.date)}${hhmm(f.date) ? " kl. " + hhmm(f.date) + (hhmm(f.dateEnd) ? "–" + hhmm(f.dateEnd) : "") : ""}` : "";
-    const B = [{ s: "Title", t: "Fundargerð" }, { s: "Subtitle", t: f.name }];
-    if (p) B.push({ k: "Verkefni", t: p.nafn });
-    B.push({ k: "Tími", t: when });
-    if (f.stadsetning) B.push({ k: "Staður", t: f.stadsetning });
-    if (f.fundarhlekkur) B.push({ k: "Fjarfundur", t: f.fundarhlekkur });
-    B.push({ k: "Fundarmenn", t: (f.attendees || []).join(", ") }, { k: "Ritari", t: starfName(ME()) || "" });
-    ["Dagskrá", "Umræður", "Ákvarðanir", "Verkefni og ábyrgð", "Næsti fundur"].forEach(h => { B.push({ s: "Heading1", t: h }, { t: "" }); });
-    return B;
+  // Fundargerð (frá 1.7.0): haus með merki og „FUNDARGERÐ“, Poppins, upplýsingatafla og kaflar (skjalagerd.js)
+  function fundDoc(f, p) {
+    const x = d(f.date), when = x ? `${DAY[x.getDay()]} ${fmtDate(f.date)}` : "", kl = hhmm(f.date) ? hhmm(f.date) + (hhmm(f.dateEnd) ? "–" + hhmm(f.dateEnd) : "") : "";
+    const blocks = [{ s: "Title", t: f.name }, { s: "Subtitle", t: p ? p.nafn : ORG.nafn }];
+    ["Dagskrá", "Umræður", "Ákvarðanir", "Verkefni og ábyrgð", "Næsti fundur"].forEach(h => { blocks.push({ s: "Heading1", t: h }, { t: "" }); });
+    const table = [["Dagsetning", when], ["Tími", kl], ["Staður", f.stadsetning || ""], ["Fjarfundur", f.fundarhlekkur || ""], ["Verkefni", p ? p.nafn : ""], ["Fundarmenn", (f.attendees || []).join(", ")], ["Ritari", starfName(ME()) || ""]];
+    return { blocks, opts: { label: "Fundargerð", titill: "Fundargerð – " + f.name, table } };
   }
-
   // Mappa verkefnis (stofnuð ef hún er ekki til) og undirmappa sem byrjar á `prefix`, t.d. "08".
   async function projSub(p, prefix, fallbackName) {
     if (!p) { await mkFolder(ROOT, OFLOKKAD); return ROOT + "/" + OFLOKKAD; }
@@ -240,7 +236,8 @@
     const p = typeof fundProj === "function" ? fundProj(f) : findProj(f.projectId);
     const dir = await projSub(p, "08", FUNDAMAPPA);
     const fname = safe(`${String(f.date || "").slice(0, 10)} Fundargerð - ${f.name}`) + ".docx";
-    const it = await upload(dir + "/" + fname, makeDocx(fundBlocks(f, p)), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    const D = fundDoc(f, p), bytes = window.DOK ? await DOK.docx(D.blocks, D.opts) : makeDocx(D.blocks);
+    const it = await upload(dir + "/" + fname, bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     await saveSnapshot(s => { const q = (s.fundir || []).find(x => x.id === fid); if (q) { q.fundargerd = it.webUrl; q.fgId = it.id; } });
     Object.keys(TREE).forEach(k => delete TREE[k]);
     if (!quiet) toast("Fundargerð stofnuð í OneDrive");

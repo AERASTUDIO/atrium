@@ -1,7 +1,7 @@
 // Tenging appsins við Firebase: innskráning (eingöngu Microsoft-aðgangar fyrirtækisins, frá 1.6.1) og gagnagrunnur (Firestore).
 // Appið sjálft (index.html) veit ekkert um Firebase; það fær hlut `db` með get/set/tx/watch og `db.user` (innskráður notandi).
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAuth, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence }
+import { getAuth, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
@@ -9,8 +9,8 @@ import { firebaseConfig, MS_TENANT, MS_DOMAIN, ADMIN, LEGACY_EMAILS } from "./fi
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-// Innskráning gildir aðeins á meðan appið (glugginn/flipinn) er opið – þegar því er lokað þarf að skrá sig inn aftur.
-const persistReady = setPersistence(auth, browserSessionPersistence).catch(e => console.warn("setPersistence", e));
+// Innskráning helst þótt appinu sé lokað (frá 1.7.0) – notandinn skráir sig út með „Skrá út“ eða er gerður óvirkur af admin.
+const persistReady = setPersistence(auth, browserLocalPersistence).catch(e => console.warn("setPersistence", e));
 // Staðbundið afrit í símanum/tölvunni: appið virkar án nets og samstillir þegar netið kemur aftur.
 const fs = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), ignoreUndefinedProperties: true });
 
@@ -35,8 +35,8 @@ async function signIn(provider) {
 }
 document.getElementById("login-ms").addEventListener("click", () => {
   const p = new OAuthProvider("microsoft.com");
-  // prompt=login: Microsoft biður alltaf um lykilorð (og Authenticator eftir þörfum), líka þótt notandinn sé þegar innskráður í Microsoft í vafranum.
-  p.setCustomParameters({ tenant: MS_TENANT, prompt: "login", domain_hint: MS_DOMAIN });
+  // select_account: Microsoft spyr um aðgang en notar innskráningu sem er þegar til staðar í vafranum (MFA samkvæmt reglum Entra).
+  p.setCustomParameters({ tenant: MS_TENANT, prompt: "select_account", domain_hint: MS_DOMAIN });
   signIn(p);
 });
 getRedirectResult(auth).catch(e => showLogin("Innskráning tókst ekki: " + (e.code || e.message)));

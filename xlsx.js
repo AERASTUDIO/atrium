@@ -28,9 +28,9 @@
   const STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <numFmts count="3"><numFmt numFmtId="164" formatCode="dd\\.mm\\.yyyy"/><numFmt numFmtId="165" formatCode="#,##0.00"/><numFmt numFmtId="166" formatCode="#,##0"/></numFmts>
-<fonts count="6"><font><sz val="11"/><color rgb="FF2B3034"/><name val="Calibri"/></font><font><b/><sz val="18"/><color rgb="FF0F3460"/><name val="Calibri"/></font><font><sz val="10"/><color rgb="FF6B7378"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF2B3034"/><name val="Calibri"/></font><font><b/><sz val="12"/><color rgb="FF0F3460"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>
-<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1F5A94"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE6EEF7"/><bgColor indexed="64"/></patternFill></fill></fills>
-<borders count="4"><border/><border><bottom style="thin"><color rgb="FFDDE1E4"/></bottom></border><border><top style="thin"><color rgb="FF9AA3A8"/></top></border><border><top style="medium"><color rgb="FF0F3460"/></top><bottom style="double"><color rgb="FF0F3460"/></bottom></border></borders>
+<fonts count="6"><font><sz val="10"/><color rgb="FF121416"/><name val="Poppins"/></font><font><sz val="18"/><color rgb="FF2F3742"/><name val="Poppins"/></font><font><sz val="10"/><color rgb="FF7C8896"/><name val="Poppins"/></font><font><b/><sz val="10"/><color rgb="FF121416"/><name val="Poppins"/></font><font><b/><sz val="12"/><color rgb="FF2F3742"/><name val="Poppins"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Poppins"/></font></fonts>
+<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF2F3742"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEEF1F4"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="4"><border/><border><bottom style="thin"><color rgb="FFE3E8EC"/></bottom></border><border><top style="thin"><color rgb="FFC9D1D9"/></top></border><border><top style="medium"><color rgb="FF2F3742"/></top><bottom style="double"><color rgb="FF2F3742"/></bottom></border></borders>
 <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
 <cellXfs count="18">
 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
@@ -55,7 +55,14 @@
 <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
 </styleSheet>`;
   window.makeZip = zip;
-  window.makeXlsx = function ({ sheet = "Tímaskýrsla", cols = [], rows = [], merges = [], freezeRow = 0, heights = {} }) {
+  // logo: {bytes, w, h} (DOK.logo()) → merki efst til vinstri (lína bætt við efst); footer: texti í fót útprentunar ásamt síðunúmerum
+  window.makeXlsx = function ({ sheet = "Tímaskýrsla", cols = [], rows = [], merges = [], freezeRow = 0, heights = {}, logo = null, footer = "" }) {
+    let LP = null;
+    if (logo && window.DOK) {
+      LP = DOK.xlsxLogoParts(logo, 190);
+      rows = [[]].concat(rows); const h2 = { 0: LP.heightPt }; Object.keys(heights).forEach(k => h2[+k + 1] = heights[k]); heights = h2;
+      merges = merges.map(m => m.replace(/([A-Z]+)(\d+)/g, (_, c, n) => c + (+n + 1))); if (freezeRow) freezeRow += 1;
+    }
     const sd = rows.map((r, ri) => {
       const cells = r.map((c, ci) => {
         if (c == null || c === "") return "";
@@ -70,14 +77,15 @@
     }).join("");
     const pane = freezeRow ? `<sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="${freezeRow}" topLeftCell="A${freezeRow + 1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>` : `<sheetViews><sheetView workbookViewId="0" showGridLines="0"/></sheetViews>`;
     const ws = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${pane}<sheetFormatPr defaultRowHeight="16"/>${cols.length ? `<cols>${cols.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` : ""}<sheetData>${sd}</sheetData>${merges.length ? `<mergeCells count="${merges.length}">${merges.map(m => `<mergeCell ref="${m}"/>`).join("")}</mergeCells>` : ""}<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>${pane}<sheetFormatPr defaultRowHeight="16"/>${cols.length ? `<cols>${cols.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` : ""}<sheetData>${sd}</sheetData>${merges.length ? `<mergeCells count="${merges.length}">${merges.map(m => `<mergeCell ref="${m}"/>`).join("")}</mergeCells>` : ""}<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.7" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;L&amp;"Poppins,Regular"&amp;8${x(footer || "")}&amp;R&amp;"Poppins,Regular"&amp;8Bls. &amp;P af &amp;N</oddFooter></headerFooter>${LP ? '<drawing r:id="rId1"/>' : ""}</worksheet>`;
     return zip([
-      ["[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+      ["[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${LP ? '<Default Extension="png" ContentType="image/png"/><Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>' : ""}</Types>`],
       ["_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
       ["xl/workbook.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${x(sheet).slice(0, 31)}" sheetId="1" r:id="rId1"/></sheets></workbook>`],
       ["xl/_rels/workbook.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
       ["xl/styles.xml", STYLES],
       ["xl/worksheets/sheet1.xml", ws]
-    ]);
+    ].concat(LP ? [["xl/worksheets/_rels/sheet1.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>`],
+      ["xl/drawings/drawing1.xml", LP.drawing], ["xl/drawings/_rels/drawing1.xml.rels", LP.rels], ["xl/media/merki.png", logo.bytes]] : []));
   };
 })();

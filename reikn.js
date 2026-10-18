@@ -145,7 +145,7 @@
   function invoiceHTML(R) {
     const s = R.seljandi || {}, b = R.kaupandi || {}, pn = projNames(R), es = entriesOf(R), multi = new Set(es.map(e => e.verkefniId || "")).size > 1;
     return `<div class="inv">
-      <div class="inv-h"><div><div class="inv-s">${esc(s.nafn || "")}</div><div class="inv-m">${[s.kt && "Kt. " + s.kt, s.vsknr && "VSK-nr. " + s.vsknr].filter(Boolean).map(esc).join(" · ")}<br>${esc(s.heimilisfang || "")}<br>${[s.netfang, s.simi].filter(Boolean).map(esc).join(" · ")}</div></div>
+      <div class="inv-h"><div><img class="inv-logo" src="icons/doc-logo.png" alt="${esc(ORG.nafn)}"><div class="inv-s">${esc(s.nafn || "")}</div><div class="inv-m">${[s.kt && "Kt. " + s.kt, s.vsknr && "VSK-nr. " + s.vsknr].filter(Boolean).map(esc).join(" · ")}<br>${esc(s.heimilisfang || "")}<br>${[s.netfang, s.simi].filter(Boolean).map(esc).join(" · ")}</div></div>
         <div style="text-align:right"><div class="inv-t">Reikningur</div><div class="inv-m">Nr. <b>${esc(String(R.nr))}</b><br>Dags. ${esc(dIS(R.dags))}<br>Gjalddagi ${esc(dIS(R.gjalddagi))}</div></div></div>
       <div class="inv-b"><div class="inv-k">Greiðandi</div><b>${esc(b.name || "")}</b><br>${b.kennitala ? "Kt. " + esc(b.kennitala) + "<br>" : ""}${esc(b.heimilisfang || "")}${b.postnumer || b.stadur ? "<br>" + esc([b.postnumer, b.stadur].filter(Boolean).join(" ")) : ""}</div>
       ${pn.length ? `<div class="inv-m" style="margin:10px 0 0">${pn.length > 1 ? "Verkefni" : "Verkefni"}: <b>${pn.map(esc).join(", ")}</b></div>` : ""}
@@ -160,74 +160,66 @@
     </div>`;
   }
 
-  /* ---------- PDF ---------- */
-  function invoicePdf(R) {
-    const doc = PDFDoc(), s = R.seljandi || {}, b = R.kaupandi || {}, BL = [31, 78, 121], MU = [85, 96, 107], LN = [227, 232, 238], X0 = 50, X1 = 545;
-    let y = 0;
-    const newPage = () => { doc.page(); y = 56; };
-    const need = h => { if (y + h > 800) { newPage(); return true; } return false; };
-    newPage();
-    doc.text(X0, y, s.nafn || "", { size: 18, bold: true, color: BL });
-    doc.text(X1, y, "Reikningur", { size: 20, bold: true, color: BL, align: "right" });
-    let yl = y + 18, yr = y + 18;
-    [[s.kt && "Kt. " + s.kt, s.vsknr && "VSK-nr. " + s.vsknr].filter(Boolean).join(" · "), s.heimilisfang, [s.netfang, s.simi].filter(Boolean).join(" · ")].filter(Boolean).forEach(t => { doc.text(X0, yl, t, { size: 9, color: MU }); yl += 12; });
-    ["Nr. " + R.nr, "Dags. " + dIS(R.dags), "Gjalddagi " + dIS(R.gjalddagi)].forEach((t, i) => { doc.text(X1, yr, t, { size: 9, color: i ? MU : [11, 30, 51], bold: !i, align: "right" }); yr += 12; });
-    y = Math.max(yl, yr) + 14;
-    const bl = [b.name, b.kennitala && "Kt. " + b.kennitala, b.heimilisfang, [b.postnumer, b.stadur].filter(Boolean).join(" ")].filter(Boolean);
-    const bh = 26 + bl.length * 13;
-    doc.rect(X0, y, X1 - X0, bh, [242, 246, 250]);
-    doc.text(X0 + 12, y + 16, "GREIÐANDI", { size: 7.5, color: [91, 127, 166] });
-    bl.forEach((t, i) => doc.text(X0 + 12, y + 30 + i * 13, t, { size: 10, bold: !i, color: [20, 24, 28] }));
-    y += bh + 16;
-    const pn = projNames(R);
-    if (pn.length) { doc.wrap("Verkefni: " + pn.join(", "), X1 - X0, 9).forEach(t => { doc.text(X0, y, t, { size: 9, color: MU }); y += 12; }); y += 4; }
-    // Línutafla
-    const C = { d: X0 + 6, m: 360, e: 368, v: 465, u: X1 - 6 };
-    const head = () => { doc.rect(X0, y, X1 - X0, 20, BL); [["Lýsing", C.d], ["Magn", C.m, "right"], ["Ein.", C.e], ["Einingaverð", C.v, "right"], ["Upphæð", C.u, "right"]].forEach(([t, x, a]) => doc.text(x, y + 13.5, t, { size: 8.5, bold: true, color: [255, 255, 255], align: a })); y += 20; };
+  /* ---------- PDF (frá 1.7.0: skjalagerd.js – merki, Poppins, haus og fótur) ---------- */
+  async function invoicePdf(R) {
+    const P = await DOK.pdf(), { C, M, X1 } = P, s = R.seljandi || {}, b = R.kaupandi || {}, label = "Reikningur nr. " + R.nr;
+    let y = P.head("Reikningur", [["Reikningur nr.", String(R.nr)], ["Dagsetning", dIS(R.dags)], ["Gjalddagi", dIS(R.gjalddagi)]]);
+    const need = h => { if (y + h > P.H - 60) { P.doc.addPage(); y = P.contHead(label); return true; } return false; };
+    // Seljandi og greiðandi hlið við hlið
+    const col2 = M + (X1 - M) / 2 + 10, sl = [s.nafn, [s.kt && "kt. " + s.kt, s.vsknr && "VSK-nr. " + s.vsknr].filter(Boolean).join(" · "), s.heimilisfang, [s.netfang, s.simi].filter(Boolean).join(" · ")].filter(Boolean);
+    const bl = [b.name, b.kennitala && "kt. " + b.kennitala, b.heimilisfang, [b.postnumer, b.stadur].filter(Boolean).join(" ")].filter(Boolean);
+    P.text("SELJANDI", M, y, { size: 7.5, color: C.stal, space: 1.2 }); P.text("GREIÐANDI", col2, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 15;
+    const rows = Math.max(sl.length, bl.length);
+    for (let i = 0; i < rows; i++) { if (sl[i]) P.text(sl[i], M, y + i * 13, { w: i ? "regular" : "medium", size: i ? 9 : 10 }); if (bl[i]) P.text(bl[i], col2, y + i * 13, { w: i ? "regular" : "medium", size: i ? 9 : 10 }); }
+    y += rows * 13 + 8;
+    const pn = projNames(R); if (pn.length) { P.wrap("Verkefni: " + pn.join(", "), X1 - M, 9).forEach(t => { P.text(t, M, y, { size: 9, color: C.grafit }); y += 12; }); }
+    y += 10;
+    // Línur
+    const X = { d: M + 8, m: 360, e: 368, v: 460, u: X1 - 8 };
+    const head = () => { P.rect(M, y, X1 - M, 22, C.grafit); [["Lýsing", X.d], ["Magn", X.m, "right"], ["Ein.", X.e], ["Einingaverð", X.v, "right"], ["Upphæð", X.u, "right"]].forEach(([t, x, a]) => P.text(t, x, y + 14.5, { w: "medium", size: 8.5, color: C.hvitt, align: a })); y += 22; };
     head();
-    R.linur.forEach(l => {
-      const ls = doc.wrap(l.lysing, C.m - 40 - C.d, 9.5), h = 8 + ls.length * 12;
-      if (need(h)) head();
-      ls.forEach((t, i) => doc.text(C.d, y + 13 + i * 12, t, { size: 9.5 }));
-      doc.text(C.m, y + 13, fx(l.magn), { size: 9.5, align: "right" }); doc.text(C.e, y + 13, l.eining, { size: 9.5 });
-      doc.text(C.v, y + 13, kr(l.verd), { size: 9.5, align: "right" }); doc.text(C.u, y + 13, kr(Math.round(l.magn * l.verd)), { size: 9.5, align: "right" });
-      y += h; doc.line(X0, y, X1, y, 0.5, LN);
-    });
-    need(80); y += 18;
-    const tx = 340;
-    doc.text(tx, y, "Samtals án VSK", { size: 10 }); doc.text(X1, y, kr(R.net), { size: 10, bold: true, align: "right" }); y += 16;
-    doc.text(tx, y, "VSK " + R.vskP + "%", { size: 10 }); doc.text(X1, y, kr(R.vsk), { size: 10, bold: true, align: "right" }); y += 9;
-    doc.line(tx, y, X1, y, 1.5, BL); y += 16;
-    doc.text(tx, y, "Samtals til greiðslu", { size: 11.5, bold: true }); doc.text(X1, y, kr(R.tot), { size: 11.5, bold: true, align: "right" }); y += 26;
-    if (s.banki) { need(40); doc.wrap(`Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}, í síðasta lagi ${dIS(R.gjalddagi)}. Vinsamlegast merkið greiðslu með reikningsnúmeri ${R.nr}.`, X1 - X0, 9).forEach(t => { doc.text(X0, y, t, { size: 9, color: [58, 68, 78] }); y += 12; }); }
+    R.linur.forEach((l, i) => { const ls = P.wrap(l.lysing, X.m - 46 - X.d, 9), h = 10 + ls.length * 12; if (need(h)) head();
+      if (i % 2) P.rect(M, y, X1 - M, h, C.pappir);
+      ls.forEach((t, j) => P.text(t, X.d, y + 14 + j * 12, { size: 9 }));
+      P.text(fx(l.magn), X.m, y + 14, { size: 9, align: "right" }); P.text(l.eining, X.e, y + 14, { size: 9 });
+      P.text(kr(l.verd), X.v, y + 14, { size: 9, align: "right" }); P.text(kr(Math.round(l.magn * l.verd)), X.u, y + 14, { size: 9, w: "medium", align: "right" });
+      y += h; P.line(M, y, X1, y); });
+    need(90); y += 20; const tx = 330;
+    P.text("Samtals án VSK", tx, y, { size: 9.5, color: C.grafit }); P.text(kr(R.net), X1 - 8, y, { size: 9.5, align: "right" }); y += 16;
+    P.text("VSK " + R.vskP + "%" + (+R.vskP ? "" : " (félagið er ekki á VSK-skrá)"), tx, y, { size: 9.5, color: C.grafit }); P.text(kr(R.vsk), X1 - 8, y, { size: 9.5, align: "right" }); y += 10;
+    P.rect(tx - 8, y, X1 - tx + 8, 30, C.nott); P.text("Samtals til greiðslu", tx, y + 19.5, { w: "medium", size: 10.5, color: C.hvitt }); P.text(kr(R.tot), X1 - 8, y + 19.5, { w: "medium", size: 11.5, color: C.hvitt, align: "right" }); y += 50;
+    if (s.banki) { need(50); P.text("GREIÐSLUUPPLÝSINGAR", M, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 14;
+      P.wrap(`Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}, í síðasta lagi ${dIS(R.gjalddagi)}. Vinsamlegast merkið greiðslu með reikningsnúmeri ${R.nr}.`, X1 - M, 9).forEach(t => { P.text(t, M, y, { size: 9 }); y += 12.5; }); }
     // Sundurliðun tíma á nýrri síðu
     const es = entriesOf(R);
     if (es.length) {
       const multi = new Set(es.map(e => e.verkefniId || "")).size > 1;
-      newPage();
-      doc.text(X0, y, "Sundurliðun tíma · reikningur nr. " + R.nr, { size: 12, bold: true, color: BL }); y += 18;
-      const D = { d: X0 + 6, p: X0 + 70, l: multi ? X0 + 122 : X0 + 70, t: 430, k: X1 - 6 };
-      const h2 = () => { doc.rect(X0, y, X1 - X0, 18, BL); [["Dags.", D.d], ...(multi ? [["Verk", D.p]] : []), ["Lýsing", D.l], ["Tími", D.t], ["Klst.", D.k, "right"]].forEach(([t, x, a]) => doc.text(x, y + 12.5, t, { size: 8.5, bold: true, color: [255, 255, 255], align: a })); y += 18; };
+      P.doc.addPage(); y = P.contHead(label);
+      P.text("Sundurliðun tíma", M, y, { w: "light", size: 16, color: C.grafit }); y += 20;
+      const D = { d: M + 8, p: M + 72, l: multi ? M + 122 : M + 72, t: 432, k: X1 - 8 };
+      const h2 = () => { P.rect(M, y, X1 - M, 20, C.grafit); [["Dags.", D.d], ...(multi ? [["Verk", D.p]] : []), ["Lýsing", D.l], ["Tími", D.t], ["Klst.", D.k, "right"]].forEach(([t, x, a]) => P.text(t, x, y + 13.5, { w: "medium", size: 8.5, color: C.hvitt, align: a })); y += 20; };
       h2();
-      es.forEach(e => { const ls = doc.wrap(cleanLys(e.lysing), D.t - D.l - 10, 9), h = 7 + ls.length * 11.5; if (need(h)) h2();
-        doc.text(D.d, y + 12, dIS(String(e.date).slice(0, 10)), { size: 9 }); if (multi) doc.text(D.p, y + 12, findProj(e.verkefniId)?.nr || "–", { size: 9 });
-        ls.forEach((t, i) => doc.text(D.l, y + 12 + i * 11.5, t, { size: 9 }));
-        doc.text(D.t, y + 12, e.fra ? e.fra + (e.til ? "–" + e.til : "") : "", { size: 9 }); doc.text(D.k, y + 12, fx(Math.round((+e.timar || 0) * 100) / 100), { size: 9, align: "right" });
-        y += h; doc.line(X0, y, X1, y, 0.5, LN); });
-      need(20); y += 14; doc.text(D.d, y, "Samtals", { size: 9.5, bold: true }); doc.text(D.k, y, fx(Math.round(sumT(es) * 100) / 100), { size: 9.5, bold: true, align: "right" });
+      es.forEach((e, i) => { const ls = P.wrap(cleanLys(e.lysing) + (e.taxti && window.lidOf && lidOf(e.taxti) ? " (" + lidOf(e.taxti).heiti + ")" : ""), D.t - D.l - 10, 8.5), h = 8 + ls.length * 11.5; if (need(h)) h2();
+        if (i % 2) P.rect(M, y, X1 - M, h, C.pappir);
+        P.text(dIS(String(e.date).slice(0, 10)), D.d, y + 12.5, { size: 8.5 }); if (multi) P.text(findProj(e.verkefniId)?.nr || "–", D.p, y + 12.5, { size: 8.5 });
+        ls.forEach((t, j) => P.text(t, D.l, y + 12.5 + j * 11.5, { size: 8.5 }));
+        P.text(e.fra ? e.fra + (e.til ? "–" + e.til : "") : "", D.t, y + 12.5, { size: 8.5 }); P.text(fx(Math.round((+e.timar || 0) * 100) / 100), D.k, y + 12.5, { size: 8.5, align: "right" });
+        y += h; P.line(M, y, X1, y); });
+      need(24); y += 16; P.text("Samtals", D.d, y, { w: "medium", size: 9 }); P.text(fx(Math.round(sumT(es) * 100) / 100) + " klst.", D.k, y, { w: "medium", size: 9, align: "right" });
     }
-    return doc.bytes();
+    return P.finish(label);
   }
   const fileBase = R => `Reikningur ${R.nr} ${R.kaupandi?.name || ""}`.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
-  function downloadPdf(R) {
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([invoicePdf(R)], { type: "application/pdf" }));
+  async function downloadPdf(R) {
+    toast("Bý til PDF…"); let bytes; try { bytes = await invoicePdf(R); } catch (e) { return toast("PDF tókst ekki: " + (e?.message || e)); }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
     a.download = fileBase(R) + (R._drog ? " (drög)" : "") + ".pdf"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast("PDF sótt");
   }
   async function saveToOneDrive(id, quiet) {
     const R = findR(id); if (!R) return;
     if (!(window.MS && MS.on())) { toast("Tengdu Microsoft í Stillingum til að vista í OneDrive."); return; }
     try {
-      const it = await msSaveFile(ORG.od.reikningar + "/" + String(R.dags || "").slice(0, 4), fileBase(R) + ".pdf", new Blob([invoicePdf(R)], { type: "application/pdf" }), "application/pdf", !!R.pdfId);
+      const it = await msSaveFile(ORG.od.reikningar + "/" + String(R.dags || "").slice(0, 4), fileBase(R) + ".pdf", new Blob([await invoicePdf(R)], { type: "application/pdf" }), "application/pdf", !!R.pdfId);
       await saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.pdfUrl = it.webUrl; q.pdfId = it.id; } });
       toast(quiet ? "Reikningurinn vistaður í OneDrive (Stofa › Reikningar)" : "Vistað í OneDrive");
     } catch (e) { toast("Vistun í OneDrive tókst ekki: " + (e?.message || "villa")); }
@@ -244,7 +236,8 @@
     setTimeout(() => { window.print(); setTimeout(done, 1500); }, 50);
   }
 
-  function invXlsx(R) {
+  async function invXlsx(R) {
+    const logo = window.DOK ? await DOK.logo().catch(() => null) : null;
     const S_ = (v, s) => ({ v, s }), rows = [], s = R.seljandi || {}, b = R.kaupandi || {}, pn = projNames(R);
     rows.push([S_("Reikningur nr. " + R.nr, 1)]);
     rows.push([S_([s.nafn, s.kt && "kt. " + s.kt, s.heimilisfang].filter(Boolean).join("   ·   "), 2)]);
@@ -263,7 +256,7 @@
       rows.push([S_("Dags. og lýsing", 3), S_("Frá", 3), S_("Til", 3), S_("Verk", 3), S_("Klst.", 13)]);
       es.forEach(e => rows.push([S_(dIS(String(e.date).slice(0, 10)) + "   " + cleanLys(e.lysing), 12), S_(e.fra || "", 4), S_(e.til || "", 4), S_(findProj(e.verkefniId)?.nr || "", 4), S_(Math.round((+e.timar || 0) * 100) / 100, 6)]));
       rows.push([S_("Samtals", 8), S_("", 8), S_("", 8), S_("", 8), S_(Math.round(sumT(es) * 100) / 100, 9)]); }
-    const bytes = makeXlsx({ sheet: "Reikningur " + R.nr, cols: [46, 9, 7, 14, 15], rows, merges: ["A1:E1"], freezeRow: 0, heights: { 0: 30 } });
+    const bytes = makeXlsx({ sheet: "Reikningur " + R.nr, cols: [46, 9, 7, 14, 15], rows, merges: ["A1:E1"], freezeRow: 0, heights: { 0: 30 }, logo, footer: (window.DOK ? DOK.coLine() + "   ·   " : "") + "Reikningur nr. " + R.nr });
     const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
     a.download = fileBase(R) + ".xlsx"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast("Reikningur sóttur sem Excel");
   }
@@ -320,14 +313,14 @@
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpdf") { const R = findR(id); if (R) downloadPdf(R); return; }
     if (k === "rkod") { toast("Vista í OneDrive…"); saveToOneDrive(id, false); return; }
-    if (k === "rksend") { const R = findR(id); if (!R || !window.poCompose) return; const bytes = invoicePdf(R), s = R.seljandi || {};
+    if (k === "rksend") { const R = findR(id); if (!R || !window.poCompose) return; toast("Bý til PDF…"); invoicePdf(R).then(bytes => { const s = R.seljandi || {};
       poCompose({ to: R.kaupandi?.netfang || "", subject: `Reikningur nr. ${R.nr} frá ${s.nafn || ORG.nafn}`, pid: pidsOf(R)[0] || null,
         body: `Góðan dag,
 
 Meðfylgjandi er reikningur nr. ${R.nr} að upphæð ${kr(R.tot)} með gjalddaga ${dIS(R.gjalddagi)}.${s.banki ? `
 Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
         atts: [{ name: fileBase(R) + ".pdf", type: "application/pdf", size: bytes.length, data: bytes }],
-        onSent: () => saveSnapshot(st => { const q = (st.reikningar || []).find(x => x.id === id); if (q) q.sent = isoDay(new Date()); }) }); return; }
+        onSent: () => saveSnapshot(st => { const q = (st.reikningar || []).find(x => x.id === id); if (q) q.sent = isoDay(new Date()); }) }); }).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (k === "rkprint") { const R = findR(id); if (R) printInv(R); return; }
     if (k === "rkxlsx") { const R = findR(id); if (R) invXlsx(R); return; }
     if (k === "rkpaid") { saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = q.stada === "Greitt" ? "Ógreitt" : "Greitt"; q.greitt = q.stada === "Greitt" ? isoDay(new Date()) : null; } }).then(() => toast("Staða reiknings uppfærð")); return; }

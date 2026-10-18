@@ -337,3 +337,9 @@ body.onchat #fab{display:none!important}
 @media (max-width:560px){.hsps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .hscpp{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}@media (max-width:560px){.hscpp{grid-template-columns:1fr}}
 .htile .hl.ok{background:var(--bar0);color:var(--ink)}
+
+/* ---------- Skjöl appsins (1.7.0) ---------- */
+.inv{font-family:Poppins,sans-serif}.inv-logo{height:40px;width:auto;display:block;margin:0 0 10px}
+.stag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;margin-left:2px}
+.pstag{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 2px}.pstag .stag{margin:0}
+.ptaxti{background:var(--bar0)!important;color:var(--ink)!important}
