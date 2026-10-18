@@ -129,9 +129,9 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 @keyframes aIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes aSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
 @keyframes aRiss{0%{stroke-dashoffset:260;fill-opacity:0}55%{stroke-dashoffset:0;fill-opacity:0}100%{stroke-dashoffset:0;fill-opacity:1}}
-@keyframes aRing{from{stroke-dashoffset:var(--c0)}}
+@keyframes aRing{from{stroke-dashoffset:276.5}} /* 2πr, r=44 */
 @keyframes aBar{from{transform:scaleX(0)}}
-@keyframes aSheet{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes aSheet{from{translate:0 40px;opacity:.4}to{translate:0 0;opacity:1}} /* translate (ekki transform) svo miðjun gluggans í tölvu haldist */
 @keyframes aFade{from{opacity:0}}
 @media (prefers-reduced-motion: no-preference){
   #view.anim>*{animation:aIn .38s var(--ease) both}
@@ -145,7 +145,7 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
   #view.anim .llist>*:nth-child(n+5),#view.anim .list>*:nth-child(n+5),#view.anim .pcards>*:nth-child(n+5),#view.anim .mlist>*:nth-child(n+5){animation-delay:.22s}
   #view.anim .ring circle:last-of-type{animation:aRing 1.1s cubic-bezier(.3,.6,.2,1) .25s both}
   #view.anim .pbar i,#view.anim .bar i{transform-origin:left;animation:aBar .9s var(--ease) .3s both}
-  .sheet{animation:aSheet .34s var(--ease) both}
+  .sheet{animation:aSheet .34s var(--ease)}
   #sheetwrap .scrim{animation:aFade .3s ease-out both}
   .lmark polygon{stroke:#93A0AD;stroke-width:.6;stroke-dasharray:260;animation:aRiss 2.2s cubic-bezier(.6,.05,.25,1) both}
   .lmark polygon:nth-child(3n+2){animation-delay:.2s}.lmark polygon:nth-child(3n){animation-delay:.4s}
