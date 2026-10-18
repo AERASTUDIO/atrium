@@ -15,6 +15,7 @@
     ch_verk:   { l: "Myndrit: tímar á verkefni", d: "Yfirstandandi tímabil", s: "m" },
     ch_stada:  { l: "Myndrit: staða verkefna", d: "Verkefni í gangi eftir stöðu", s: "m" },
     ch_reikn:  { l: "Myndrit: reikningsfært", d: "Reikningar, ógreitt, óreikningsfært", s: "m", fj: 1 },
+    oinnheimt: { l: "Óinnheimt", d: "Óreikningsfært og ógreitt í krónum", s: "m", fj: 1 },
     verkefni:  { l: "Verkefni í gangi", d: "Spjöld verkefna með framvindu", s: "l" },
     framundan: { l: "Framundan 7 dagar", d: "Fundir, skil og gjalddagar", s: "m" },
     frag:      { l: "Til að ganga frá", d: "Fram yfir, óreikningsfært, ógreitt", s: "m" },
@@ -22,7 +23,7 @@
     postur:    { l: "Óflokkaður póstur", d: "Þræðir í AERA-möppunni", s: "m" },
     spjall:    { l: "Spjall", d: "Nýjustu skilaboðin", s: "m" }
   };
-  const DEF = ["kvedja", "vika", "idag", "naest", "flyti", "spjold", "ch_vikur", "ch_verk", "ch_stada", "ch_reikn"];
+  const DEF = ["kvedja", "vika", "idag", "naest", "flyti", "spjold", "oinnheimt", "ch_vikur", "ch_verk", "ch_stada", "ch_reikn"];
   // Flýtileiðir: [heiti, aðgerð, tákn-lykill]
   const SC = {
     tima:    ["Skrá tíma", "add:tima", "time"],

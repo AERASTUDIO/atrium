@@ -3,11 +3,11 @@
    Gögn: S.reikningar[], S.stillingar.reikn{}, verkefni.timagjald, færsla.reikningur / kostnaður.reikningur = id reiknings. */
 (function () {
   const NONE = "_"; // lykill fyrir tíma/kostnað án verkefnis
-  const RK = () => ({ nafn: ORG.nafn, kt: "", heimilisfang: "", vsknr: "", banki: "", netfang: "", simi: "", vsk: 24, frestur: 14, nastaNr: 1001, timagjald: 0, ...(CFG().reikn || {}) });
+  const RK = () => ({ nafn: ORG.nafn, kt: "", heimilisfang: "", vsknr: "", banki: "", netfang: "", simi: "", vsk: window.VERD && !VERD().vskSkra ? 0 : 24, frestur: 14, nastaNr: 1001, timagjald: 0, ...(CFG().reikn || {}) });
   const reikningar = () => S?.reikningar || [];
   const findR = id => reikningar().find(r => r.id === id);
   const pidsOf = R => R.verkefniIds || (R.verkefniId ? [R.verkefniId] : []);
-  const rate = p => +(p?.timagjald || RK().timagjald || 0);
+  const rate = p => +(p?.timagjald || (window.rateOf ? rateOf(p) : 0) || RK().timagjald || 0); // verðskrá (verdskra.js)
   const addDays = (iso, n) => { const x = d(iso); x.setDate(x.getDate() + n); return isoDay(x); };
   const kaupandi = p => findVsk(p?.vskId) || findVsk(p?.vkId) || null; // greiðandi = viðskiptavinur (verkkaupi aflagður 1.4.0)
   const fx = n => String(n).replace(".", ",");
@@ -16,6 +16,20 @@
   // Öll verkefni (og „án verkefnis“) sem eiga eitthvað óreikningsfært
   const openGroups = () => [...verkefni().map(p => p.id), NONE].map(k => ({ k, p: k === NONE ? null : findProj(k), ...obilled(k === NONE ? null : k) })).filter(g => g.es.length || g.ks.length);
   window.rkUnbilled = obilled;
+  /* Óinnheimt (frá 1.6.0): óreikningsfærðir tímar × tímagjald + óreikningsfærður kostnaður, auk ógreiddra reikninga (með VSK) */
+  window.rkOinnheimt = () => {
+    const gs = openGroups().map(g => ({ ...g, h: sumT(g.es), kr: sumT(g.es) * rate(g.p) + sumK(g.ks) })).sort((a, b) => b.kr - a.kr);
+    const og = reikningar().filter(r => r.stada !== "Greitt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
+    const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ub = gs.reduce((a, g) => a + g.kr, 0);
+    return { gs, ub, og, ogKr: sum(og), late, lateKr: sum(late), tot: ub + sum(og), h: gs.reduce((a, g) => a + g.h, 0) };
+  };
+  window.rkOinnheimtCard = (full) => {
+    const o = rkOinnheimt(); if (!o.tot && !full) return "";
+    return `<div class="chart"><div class="chh4"><b>Óinnheimt</b><span>${esc(kr(o.tot))} alls</span></div>
+      <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ub))}</b><span>óreikningsfært · ${esc(num(Math.round(o.h * 10) / 10))} klst.</span></a><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ogKr))}</b><span>ógreiddir reikningar · ${o.og.length}</span></a>${o.late.length ? `<a class="tap late" data-act="tab:trk"><b>${esc(kr(o.lateKr))}</b><span>fram yfir gjalddaga</span></a>` : ""}</div>
+      ${o.gs.length ? `<div class="chh" style="margin-top:12px">${o.gs.slice(0, full ? 50 : 5).map(g => { const mx = o.gs[0].kr || 1; return `<a class="chr tap" ${g.p ? `data-open="verk:${esc(g.p.id)}"` : `data-act="tab:trk"`}><span class="chrl">${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt || "")}` : "Almennt"}</span><span class="chrb"><i style="width:${Math.max(2, Math.round(g.kr / mx * 100))}%"></i></span><span class="chrv">${esc(kr(g.kr))}</span></a>`; }).join("")}</div>` : ""}
+      <p class="hint" style="margin:10px 0 0">Óreikningsfært er reiknað með tímagjaldi úr verðskrá, án VSK. Ógreiddir reikningar eru með VSK.</p></div>`;
+  };
   window.rkFind = findR;
 
   function buildLines(groups, sund) {
@@ -103,7 +117,7 @@
         const T = st.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (eIds.has(e.id)) e.reikningur = R.id; });
         (st.kostnadur || []).forEach(k => { if (kIds.has(k.id)) k.reikningur = R.id; });
         st.stillingar = st.stillingar || {}; st.stillingar.reikn = { ...(st.stillingar.reikn || {}), nastaNr: Math.max(R.nr + 1, +(st.stillingar.reikn?.nastaNr || 0)) };
-        G.forEach(g => { const q = g.p && sFindP(st, g.p.id); if (q && g.verd) q.timagjald = g.verd; });
+        G.forEach(g => { const q = g.p && sFindP(st, g.p.id); if (q && g.verd && g.verd !== (window.rateOf ? rateOf({ ...q, timagjald: null }) : 0)) q.timagjald = g.verd; }); // aðeins ef vikið er frá verðskrá
       });
       toast(`Reikningur ${R.nr} búinn til`); closeSheet(); openDetail("reikn:" + R.id);
       if (window.MS && MS.on()) saveToOneDrive(R.id, true);
@@ -276,7 +290,7 @@
   window.rkTimarSection = function () {
     const gs = FJ() ? openGroups().sort((a, b) => sumT(b.es) - sumT(a.es)) : [];
     const open = gs.length ? `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Óreikningsfært${MCP ? `<a class="plink" data-act="rknew:" style="margin-left:auto">+ Nýr reikningur</a>` : ""}</div>${llist(gs.map(g => `<div class="lrow"><div class="lm"><div class="lt">${g.p ? `<span class="nr">${esc(g.p.nr)}</span>&nbsp; ${esc(g.p.stutt)}` : "Án verkefnis (almennt)"}</div><div class="ls">${esc([g.es.length ? hrs(sumT(g.es)) : "", g.ks.length ? kr(sumK(g.ks)) + " kostnaður" : "", rate(g.p) ? "≈ " + kr(sumT(g.es) * rate(g.p) + sumK(g.ks)) + " án VSK" : ""].filter(Boolean).join(" · "))}</div></div>${MCP ? `<button type="button" class="btn" data-act="rknew:${esc(g.k)}" style="flex:none">Reikningsfæra</button>` : ""}</div>`))}` : "";
-    return open + rkList(null, "Reikningar");
+    return (FJ() ? `<div style="margin-top:14px">${rkOinnheimtCard(true)}</div>` : "") + open + rkList(null, "Reikningar");
   };
   window.rkTag = e => e.reikningur ? (findR(e.reikningur) ? "Reikn. " + findR(e.reikningur).nr : "Reikningsfært") : "";
 

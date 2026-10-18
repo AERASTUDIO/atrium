@@ -288,3 +288,12 @@ body.onchat #fab{display:none!important}
 .aur select{width:100%}.auc{display:flex;gap:6px}.auc .btn{padding:4px 10px;min-height:34px}
 @media (max-width:900px){.aurow{grid-template-columns:minmax(0,1fr) auto}.aus,.aua{grid-column:1/-1}.auc{grid-column:1/-1}}
 .hw .ring{align-items:center;justify-content:center;text-align:center;min-height:100%}.hw .ring .rv,.hw .ring .rl{text-align:center!important;align-self:center}
+
+/* ---------- Verðskrá (1.6.0) ---------- */
+.vstab{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;font-size:14px}
+.vstab th{text-align:left;font-weight:500;font-size:12px;color:var(--muted);background:var(--bar0);padding:10px 14px}
+.vstab td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:middle}
+.vstab .r{text-align:right;font-variant-numeric:tabular-nums}
+.vstab .ls{font-size:12px;color:var(--muted);margin-top:2px}
+.vstab input{width:100%;min-height:38px}.vsdef{display:flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap;flex-direction:row}
+@media print{.side,.mbar,header,.backrow,.links,#fab,.viewas{display:none!important}}

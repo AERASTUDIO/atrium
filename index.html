@@ -596,7 +596,7 @@ const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.5.1"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.6.0"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
@@ -760,7 +760,7 @@ function vYfirlit(sub="heim"){
   const tiles=`<div class="htiles">${tile("hfrag",nFrag,"Til að ganga frá",late.length?`<span class="hl">${late.length} fram yfir</span>`:"")}${tile("hfram",w7,"Framundan næstu 7 daga")}${tile("verk",act.length,"Verkefni í gangi")}${tile("hnyl",unass.length,unass.length===1?"Óflokkaður póstur":"Óflokkaðir póstar · nýlegt")}</div>`;
   const hello=`<h2 class="hello">${greet}${first?", "+esc(first):""}</h2><p class="sub">${late.length?`<b style="color:var(--ink)">${late.length} ${late.length===1?"atriði komið":"atriði komin"} fram yfir</b> · `:""}${active().length} verkefni í gangi · ${openSubs.length} opin undirverk</p>`;
   if(!window.heimGrid) return P_hello+tiles;
-  const pieces={kvedja:hello,vika:ring,idag:agenda,naest:nextCard,spjold:tiles,frag:(P_late+P_todo+P_wait).trim(),framundan:P_fram7,verkefni:P_act.trim(),nylegt:P_feed.trim(),postur:P_unass.trim(),...homeChartParts()};
+  const pieces={oinnheimt:window.can&&can("fjarmal")&&window.rkOinnheimtCard?rkOinnheimtCard():"",kvedja:hello,vika:ring,idag:agenda,naest:nextCard,spjold:tiles,frag:(P_late+P_todo+P_wait).trim(),framundan:P_fram7,verkefni:P_act.trim(),nylegt:P_feed.trim(),postur:P_unass.trim(),...homeChartParts()};
   return klukkaBanner()+heimGrid(pieces);
 }
 /* ---------- Myndrit á Heim (1.4.0) ----------
@@ -796,7 +796,7 @@ function homeChartParts(){
     const og=R.filter(r=>r.stada!=="Greitt"), late=og.filter(r=>r.gjalddagi&&daysTo(r.gjalddagi)<0), sumR=xs=>xs.reduce((a,r)=>a+(+r.tot||0),0);
     const unb=faerslur().filter(e=>!e.reikningur&&e.verkefniId).reduce((a,e)=>a+(+e.timar||0),0);
     P.ch_reikn=(`<div class="chart"><div class="chh4"><b>Reikningsfært</b><span>síðustu 6 mánuðir · m.kr.</span></div>${barsV(mv.map(v=>v/1e6),m6.map(x=>MN[x.getMonth()]),{hi:5,fmt:v=>v?num(Math.round(v*100)/100):"",acts:m6.map(()=>"tab:trk")})}
-      <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(sumR(og)))}</b><span>ógreitt · ${og.length}</span></a>${late.length?`<a class="tap late" data-act="tab:trk"><b>${esc(kr(sumR(late)))}</b><span>fram yfir gjalddaga</span></a>`:""}<a class="tap" data-act="tab:trk"><b>${num(Math.round(unb*10)/10)}</b><span>klst. óreikningsfærðar</span></a></div></div>`);}
+      <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(sumR(og)))}</b><span>ógreitt · ${og.length}</span></a>${late.length?`<a class="tap late" data-act="tab:trk"><b>${esc(kr(sumR(late)))}</b><span>fram yfir gjalddaga</span></a>`:""}<a class="tap" data-act="tab:trk"><b>${esc(kr(window.rkOinnheimt?rkOinnheimt().ub:0))}</b><span>óreikningsfært · ${num(Math.round(unb*10)/10)} klst.</span></a></div></div>`);}
   if(!tot) P.ch_stada="";
   return P;
 }
@@ -1053,6 +1053,8 @@ function vTimar(sub="vikan"){
     <label>Tímabil<select id="repper">${periods.map(k=>`<option>${esc(k)}</option>`).join("")}<option value="__dagar">Velja dagsetningar…</option></select></label>
     <div class="two" id="repdagar" hidden style="margin-top:10px"><label>Frá<input id="repfra" type="date" value="${isoDay(new Date(today.getFullYear(),today.getMonth(),1))}"></label><label>Til<input id="reptil" type="date" value="${isoDay(today)}"></label></div>
     <label style="margin-top:10px">Verkefni<select id="repproj"><option value="">Öll verkefni</option>${verkefni().slice().sort((a,b)=>b.nr.localeCompare(a.nr)).map(p=>`<option value="${esc(p.id)}">${esc(p.nafn)}</option>`).join("")}</select></label>
+    <label style="margin-top:10px" id="repsubw" hidden>Undirverk<select id="repsub"><option value="">Öll undirverk</option></select></label>
+    <label class="chk" style="flex-direction:row;align-items:center;gap:8px;margin-top:10px;color:var(--ink)"><input type="checkbox" id="repgrp"> Flokka eftir undirverkum</label>
     ${STARFS().length>1?`<label style="margin-top:10px">Starfsmaður<select id="repstarf"><option value="">Allir</option>${STARFS().map(x=>`<option value="${esc(x.sk)}"${timStarf===x.sk?" selected":""}>${esc(x.nafn)}</option>`).join("")}</select></label>`:""}
     <button type="button" class="btn primary" data-act="report" style="width:100%;margin-top:10px;min-height:46px">Skoða tímaskýrslu</button>
     <p class="hint" style="margin-top:6px">Skýrslan opnast fyrst hér til yfirlestrar. Þaðan er hægt að sækja hana sem Excel-skjal.</p>`;
@@ -1064,13 +1066,16 @@ function vTimar(sub="vikan"){
   if(sub==="rk") return T_rk||'<div class="empty">Engir reikningar.</div>';
   return T_vikan;
 }
-document.addEventListener("change",e=>{if(e.target.id==="repper"){const b=document.getElementById("repdagar"); if(b) b.hidden=e.target.value!=="__dagar";}});
+document.addEventListener("change",e=>{if(e.target.id==="repper"){const b=document.getElementById("repdagar"); if(b) b.hidden=e.target.value!=="__dagar";}
+  if(e.target.id==="repproj"){const p=findProj(e.target.value), w=document.getElementById("repsubw"), sel=document.getElementById("repsub"); if(!w||!sel) return; const us=(p?.undirverk||[]).slice().sort((a,b)=>String(a.nr).localeCompare(String(b.nr)));
+    w.hidden=!us.length; sel.innerHTML=`<option value="">Öll undirverk</option>`+us.map(u=>`<option value="${esc(u.id)}">${esc(u.nr)} ${esc(subName(u))}</option>`).join(""); if(us.length){const g=document.getElementById("repgrp"); if(g) g.checked=true;}}});
 function reportClick(){const sel=document.getElementById("repper").value, pid=document.getElementById("repproj")?.value||"", pp=pid?findProj(pid):null, sk=document.getElementById("repstarf")?.value||"";
+  const sid=pp?document.getElementById("repsub")?.value||"":"", su=sid?findSub(sid)?.u:null, grp=!!document.getElementById("repgrp")?.checked;
   let pred, label;
   if(sel==="__dagar"){const a=document.getElementById("repfra").value, b=document.getElementById("reptil").value; if(!a||!b) return toast("Veldu frá og til dagsetningu."); if(b<a) return toast("„Til“ getur ekki verið á undan „Frá“.");
     pred=e=>{const x=String(e.date||"").slice(0,10); return x>=a&&x<=b;}; label=dIS(a)+" – "+dIS(b);}
   else {pred=e=>(e.timabil||timabilOf(e.date))===sel; label=sel;}
-  openReport(e=>pred(e)&&(!pp||e.verkefniId===pp.id||nrMatch(e.nr,pp.nr))&&(!sk||(e.starfsmadur||ME())===sk),{bil:label,verkefni:pp?.nafn||"",starf:sk?starfName(sk):""});}
+  openReport(e=>pred(e)&&(!pp||e.verkefniId===pp.id||nrMatch(e.nr,pp.nr))&&(!sid||e.undirverkId===sid)&&(!sk||(e.starfsmadur||ME())===sk),{bil:label,verkefni:(pp?.nafn||"")+(su?" › "+su.nr+" "+subName(su):""),starf:sk?starfName(sk):"",flokka:grp||!!sid});}
 const dIS=iso=>{const y=d(iso); return y?pad(y.getDate())+"."+pad(y.getMonth()+1)+"."+y.getFullYear():"";};
 let REP=null;
 /* Dagvinna / yfirvinna: dagvinna kl. 08–16 virka daga (mán–fös, ekki almennir frídagar á Íslandi). Annað er yfirvinna.
@@ -1091,8 +1096,10 @@ function splitDY(e){const t=+e.timar||0, day=String(e.date||"").slice(0,10); if(
 const sumDY=es=>es.reduce((o,e)=>{const x=splitDY(e); o.d+=x.d; o.y+=x.y; return o;},{d:0,y:0});
 function buildReport(pred,meta){
   const es=faerslur().filter(pred), ks=kostn().filter(pred).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-  const groups=new Map(); es.forEach(e=>{const p=findProj(e.verkefniId)||projByNr(e.nr); const k=p?p.id:"_"; if(!groups.has(k)) groups.set(k,{p,es:[]}); groups.get(k).es.push(e);});
-  const gs=[...groups.values()].sort((a,b)=>String(a.p?.nr||"zz").localeCompare(String(b.p?.nr||"zz")));
+  // Flokkað eftir verkefnum, eða eftir undirverkum innan verkefna (meta.flokka)
+  const groups=new Map(); es.forEach(e=>{const p=findProj(e.verkefniId)||projByNr(e.nr), u=meta.flokka&&e.undirverkId?findSub(e.undirverkId)?.u:null; const k=(p?p.id:"_")+(meta.flokka?"|"+(u?u.id:""):"");
+    if(!groups.has(k)) groups.set(k,{p,u,flokka:!!meta.flokka,es:[],label:(p?p.nafn:"Án verkefnis")+(meta.flokka?" › "+(u?u.nr+" "+subName(u):"Án undirverks"):""),st:meta.flokka?(u?u.nr:(p?.nr||"")+" – án undirverks"):(p?.nr||"")}); groups.get(k).es.push(e);});
+  const gs=[...groups.values()].sort((a,b)=>String(a.p?.nr||"zz").localeCompare(String(b.p?.nr||"zz"))||String(a.u?.nr||"zz").localeCompare(String(b.u?.nr||"zz")));
   gs.forEach(g=>g.es.sort((a,b)=>String(a.date+(a.fra||"")).localeCompare(String(b.date+(b.fra||"")))));
   return {meta,gs,tot:sumT(es),dy:sumDY(es),n:es.length,ks,ktot:sumK(ks),multi:new Set(es.concat(ks).map(e=>e.starfsmadur||ME())).size>1};
 }
@@ -1105,13 +1112,13 @@ function openReport(pred,meta){
   sheet.innerHTML=`<h3 id="sheet-h" class="sr">Tímaskýrsla</h3><div class="rep">
     <div class="rh"><div><h4>Tímaskýrsla</h4><div class="rm">${esc(ORG.nafn)} · ${esc(R.meta.bil)}${R.meta.verkefni?" · "+esc(R.meta.verkefni):""}${R.meta.starf?" · "+esc(R.meta.starf):""}</div></div><div class="rm" style="text-align:right">${R.n} færslur<br><b style="font-size:20px;color:var(--ink)">${hrs(R.tot)}</b><br>Dagvinna ${fmtH(R.dy.d)} · Yfirvinna ${fmtH(R.dy.y)}${R.ks.length?`<br>+ ${esc(kr(R.ktot))}`:""}</div></div>
     ${R.n?`<div class="tw"><table><thead><tr><th>Dagsetning</th><th>Undirverk</th><th>Lýsing</th><th>Frá</th><th>Til</th>${R.multi?"<th>Starfsm.</th>":""}<th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>
-    ${R.gs.map(g=>`<tr class="pg"><td colspan="${cols}">${esc(g.p?g.p.nafn:"Án verkefnis")}</td></tr>${g.es.map(row).join("")}<tr class="st"><td colspan="${cols-3}">Samtals ${esc(g.p?.nr||"")}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}
+    ${R.gs.map(g=>`<tr class="pg"><td colspan="${cols}">${esc(g.label)}</td></tr>${g.es.map(row).join("")}<tr class="st"><td colspan="${cols-3}">Samtals ${esc(g.st)}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}
     <tr class="gt"><td colspan="${cols-3}">Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>
     <p class="hint" style="margin-top:6px">Dagvinna er kl. 08–16 virka daga (aðfangadag og gamlársdag 08–13). Kvöld, helgar og almennir frídagar teljast yfirvinna.</p>`:""}
     ${R.ks.length?`<div class="viewtitle">Útlagður kostnaður</div><div class="tw"><table><thead><tr><th>Dagsetning</th><th>Verkefni</th><th>Lýsing</th>${R.multi?"<th>Starfsm.</th>":""}<th class="r">Upphæð</th></tr></thead><tbody>
       ${R.ks.map(k=>{const p=findProj(k.verkefniId); return `<tr><td>${esc(dIS(String(k.date).slice(0,10)))}</td><td>${esc(p?.nr||"")}</td><td>${esc(k.lysing||"")}${k.kvittun?` <a class="plink" href="${esc(k.kvittun)}" target="_blank" rel="noopener">🧾</a>`:""}</td>${R.multi?`<td>${esc(k.starfsmadur||ME())}</td>`:""}<td class="r">${esc(kr(k.upphaed))}</td></tr>`;}).join("")}
       <tr class="gt"><td colspan="${R.multi?4:3}">Samtals</td><td class="r">${esc(kr(R.ktot))}</td></tr></tbody></table></div>`:""}
-    ${R.gs.length>1?`<div class="viewtitle">Samantekt eftir verkefnum</div><div class="tw sum"><table style="min-width:0"><thead><tr><th></th><th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>${R.gs.map(g=>`<tr><td>${esc(g.p?g.p.nafn:"Án verkefnis")}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}<tr class="gt"><td>Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>`:""}
+    ${R.gs.length>1?`<div class="viewtitle">Samantekt eftir ${R.meta.flokka?"undirverkum":"verkefnum"}</div><div class="tw sum"><table style="min-width:0"><thead><tr><th></th><th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>${R.gs.map(g=>`<tr><td>${esc(g.label)}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}<tr class="gt"><td>Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>`:""}
     <div class="actions" style="margin-top:16px"><button type="button" class="btn" id="rep-close">Loka</button><button type="button" class="btn primary" id="rep-xlsx">Sækja Excel</button></div></div>`;
   sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden=false;
   document.getElementById("rep-close").onclick=closeSheet; document.getElementById("rep-xlsx").onclick=()=>downloadXlsx(REP);
@@ -1125,14 +1132,14 @@ function downloadXlsx(R){
   rows.push([]);
   const head=["Dagsetning","Verknúmer","Undirverk","Lýsing","Frá","Til"].concat(m?["Starfsm."]:[]).map(h=>S_(h,3)); head.push(S_("Dagv.",13),S_("Yfirv.",13),S_("Klst.",13)); rows.push(head);
   const hdrRow=rows.length;
-  R.gs.forEach(g=>{rows.push([S_(g.p?g.p.nafn:"Án verkefnis",7),...Array(m?6:5).fill(S_("",7)),S_("",14),S_("",14),S_("",14)]);
+  R.gs.forEach(g=>{rows.push([S_(g.label,7),...Array(m?6:5).fill(S_("",7)),S_("",14),S_("",14),S_("",14)]);
     g.es.forEach(e=>{const r=e.undirverkId?findSub(e.undirverkId):null;
       rows.push([{date:String(e.date).slice(0,10),s:5},S_(e.undirverkId&&r?r.u.nr:(g.p?.nr||e.nr||""),4),S_(r?subName(r.u):"",12),S_(cleanLys(e.lysing),12),S_(e.fra||"",4),S_(e.til||"",4)].concat(m?[S_(e.starfsmadur||ME(),4)]:[]).concat((x=>[S_(x.d||"",6),S_(x.y||"",6)])(splitDY(e)),[S_(Math.round((+e.timar||0)*100)/100,6)]));});
-    rows.push([S_("Samtals "+(g.p?.nr||""),8),...Array(m?6:5).fill(S_("",8)),...DY(g.es,9),S_(Math.round(sumT(g.es)*100)/100,9)]); rows.push([]);});
+    rows.push([S_("Samtals "+g.st,8),...Array(m?6:5).fill(S_("",8)),...DY(g.es,9),S_(Math.round(sumT(g.es)*100)/100,9)]); rows.push([]);});
   const allEs=R.gs.flatMap(g=>g.es);
   rows.push([S_("Samtals",10),...Array(m?6:5).fill(S_("",10)),...DY(allEs,11),S_(Math.round(R.tot*100)/100,11)]);
-  if(R.gs.length>1){rows.push([],[S_("Samantekt eftir verkefnum",3),...Array(m?6:5).fill(S_("",3)),S_("Dagv.",13),S_("Yfirv.",13),S_("Klst.",13)]);
-    R.gs.forEach(g=>rows.push([S_(g.p?g.p.nafn:"Án verkefnis",4),...Array(m?6:5).fill(S_("",4)),...DY(g.es,6),S_(Math.round(sumT(g.es)*100)/100,6)]));
+  if(R.gs.length>1){rows.push([],[S_("Samantekt eftir "+(R.meta.flokka?"undirverkum":"verkefnum"),3),...Array(m?6:5).fill(S_("",3)),S_("Dagv.",13),S_("Yfirv.",13),S_("Klst.",13)]);
+    R.gs.forEach(g=>rows.push([S_(g.label,4),...Array(m?6:5).fill(S_("",4)),...DY(g.es,6),S_(Math.round(sumT(g.es)*100)/100,6)]));
     rows.push([S_("Samtals",10),...Array(m?6:5).fill(S_("",10)),...DY(allEs,11),S_(Math.round(R.tot*100)/100,11)]);}
   if(R.ks.length){rows.push([],[S_("Útlagður kostnaður",7),...Array(m?8:7).fill(S_("",7)),S_("",14)]);
     rows.push(["Dagsetning","Verknúmer","Undirverk","Lýsing","Kvittun","","",""].concat(m?["Starfsm."]:[]).map(h=>S_(h,3)).concat([S_("Upphæð kr.",13)]));
@@ -1164,10 +1171,10 @@ function kostnSection(ks,title){return `<div class="viewtitle" style="display:fl
 const timeRowL=e=>{const x=d(e.date); return lrow("time:"+e.id,{lead:x?`<b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small>`:"–",title:esc(cleanLys(e.lysing)),sub:esc([e.fra?e.fra+(e.til?"–"+e.til:""):"",e.verkefniId?e.nr:"Almennt",window.rkTag?rkTag(e):""].filter(Boolean).join(" · ")),right:`<span class="lc">${esc(hrs(e.timar))}</span>`});};
 const sumT=es=>es.reduce((a,e)=>a+(+e.timar||0),0);
 function timesPage(es,startAct){
-  const pid=DETAIL&&DETAIL.startsWith("verk:")?DETAIL.slice(5):null;
+  const pid=DETAIL&&DETAIL.startsWith("verk:")?DETAIL.slice(5):null, sidR=DETAIL&&DETAIL.startsWith("sub:")?DETAIL.slice(4):null;
   const groups={}; es.forEach(e=>{const k=e.timabil||timabilOf(e.date); (groups[k]=groups[k]||[]).push(e);});
   return `<div class="kpis"><div class="card"><b>${num(sumT(es))}</b><span>klst. alls</span></div><div class="card"><b>${num(sumT(es.filter(e=>(e.timabil||timabilOf(e.date))===curPeriod())))}</b><span>klst. á tímabili</span></div></div>
-  ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="${startAct}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button><button type="button" class="btn" data-act="add:kostn">+ Kostnaður</button>${pid&&(es.length||kostn().some(k=>k.verkefniId===pid))?`<button type="button" class="btn" data-act="prep:${esc(pid)}">Tímaskýrsla</button>`:""}</div>`:""}
+  ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="${startAct}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button><button type="button" class="btn" data-act="add:kostn">+ Kostnaður</button>${pid&&(es.length||kostn().some(k=>k.verkefniId===pid))?`<button type="button" class="btn" data-act="prep:${esc(pid)}">Tímaskýrsla</button>`:""}${sidR&&es.length?`<button type="button" class="btn" data-act="srep:${esc(sidR)}">Tímaskýrsla undirverks</button>`:""}</div>`:""}
   ${pid&&window.rkProjSection?rkProjSection(pid):""}
   ${es.length?Object.entries(groups).map(([k,g])=>`<div class="viewtitle">${esc(k)} · ${hrs(sumT(g))}</div>${llist(g.map(timeRowL))}`).join(""):`<div class="empty" style="margin-top:16px">Engar tímaskráningar ennþá.</div>`}
   ${(()=>{const ks=kostn().filter(k=>DETAIL?.startsWith("verk:")?k.verkefniId===DETAIL.slice(5):DETAIL?.startsWith("sub:")?k.undirverkId===DETAIL.slice(4):false); return kostnSection(ks);})()}`;
@@ -1190,7 +1197,7 @@ function dVerk(p){
     const soon=[...openS.filter(u=>u.skiladagur).map(u=>({w:u.skiladagur,h:subRowL(u)})),...upF.map(f=>({w:f.date,h:meetRowL(f)}))].sort((a,b)=>String(a.w).localeCompare(String(b.w))).slice(0,5);
     body=`${klukkaBanner(p)}
     ${MCP?`<div class="viewtitle" style="margin-top:14px">Staða verkefnis</div><div class="stat-row pstada" role="group" aria-label="Staða verkefnis">${STODUR().map(x=>`<button type="button" class="chipbtn" data-act="status:verk:${esc(p.id)}:${esc(x.n)}" aria-pressed="${x.n===p.stada}">${esc(x.n)}</button>`).join("")}</div>`:""}
-    <div class="kpis" style="margin-top:16px"><div class="card"><b>${num(p.timar)}</b><span>klst. skráðar</span></div><div class="card"><b>${openS.length}</b><span>opin undirverk</span></div></div>
+    <div class="kpis" style="margin-top:16px"><div class="card"><b>${num(p.timar)}</b><span>klst. skráðar</span></div><div class="card"><b>${openS.length}</b><span>opin undirverk</span></div>${can("fjarmal")&&window.rkUnbilled&&window.rateOf?(()=>{const u=rkUnbilled(p.id), v=sumT(u.es)*rateOf(p)+sumK(u.ks); return v?`<div class="card tap" data-act="tab:trk"><b>${esc(kr(v))}</b><span>óreikningsfært · ${esc(num(rateOf(p)))} kr./klst.</span></div>`:"";})():""}</div>
     ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button><button type="button" class="btn" data-act="add:undir">+ Undirverk</button><button type="button" class="btn" data-act="add:fund">+ Fundur</button></div>`:""}
     ${(()=>{const b=budgetOf(p); return b?`<div class="budget"><div class="bt"><span>Áætlun</span><b>${num(p.timar)} af ${num(b.a)} klst. · ${Math.round(b.pct*100)}%</b></div><div class="pbar ${b.cls}"><i style="width:${Math.min(100,Math.round(b.pct*100))}%"></i></div>${b.cls?`<p class="hint" style="margin:8px 0 0">${b.cls==="over"?"Komið fram yfir áætlaða tíma.":"Yfir 80% af áætluðum tímum notað."}</p>`:""}${p.tilbod?`<p class="hint" style="margin:6px 0 0">Tilboð: ${esc(Number(p.tilbod).toLocaleString("is-IS"))} kr.</p>`:""}</div>`:"";})()}
     ${p.yfirlit||p.naest||p.athuga?`<div class="viewtitle">Staðan</div><div class="card" style="font-size:14.5px">${esc(p.yfirlit||"")}${p.naest?`<div style="margin-top:8px"><b>Næst:</b> ${esc(p.naest)}</div>`:""}${p.athuga?`<div style="margin-top:8px"><b>Athuga:</b> ${esc(p.athuga)}</div>`:""}</div>`:""}
@@ -1214,7 +1221,7 @@ function dVerk(p){
       ["Verknúmer",`<span class="nr">${esc(p.nr)}</span>`],["Heiti",esc(p.stutt||"")],["Viðskiptavinur",projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")],
       ["Þjónusta",p.thjonusta?.length?p.thjonusta.map(esc).join(", "):""],
       ["Skiladagur",p.skiladagur?fmtDT(p.skiladagur)+(!isDone(p)?` <span style="color:var(--muted)">· ${rel(daysTo(p.skiladagur))}</span>`:""):""],
-      ["Viðburður",p.vidburdur?fmtDT(p.vidburdur):""],["Tímabil verks",timabilTxt(p)],["Teikningar frá",esc(p.teikningarFra||"")],
+      ["Viðburður",p.vidburdur?fmtDT(p.vidburdur):""],["Tímabil verks",timabilTxt(p)],["Tímagjald",window.rateOf&&rateOf(p)?esc(num(rateOf(p))+" kr./klst. · "+(p.timagjald?"eigið tímagjald":taxtiOf(p)?.heiti||"")):""],["Teikningar frá",esc(p.teikningarFra||"")],
       ["Mappa",p.mappa?`<a class="plink" href="${esc(p.mappa)}" target="_blank" rel="noopener">Opna í OneDrive</a>`:""]],linkBtns(p,{edit:"verk"}))}
     <div class="viewtitle">Starfsmenn á verkefni</div><div class="stat-row">${STARFS().map(x=>`<button type="button" class="chipbtn" data-act="pstarf:${esc(p.id)}:${esc(x.sk)}" aria-pressed="${(p.starfsmenn?.length?p.starfsmenn:[ME()]).includes(x.sk)}">${esc(x.nafn)}</button>`).join("")}</div>
     <p class="hint" style="margin-top:10px">✎ Breyta nær líka yfir Staðan (yfirlit, næst, athuga) og Lýsingu. Stöður, þjónustu og starfsmenn má breyta undir Stillingar í valmyndinni.</p>`;
@@ -1295,6 +1302,7 @@ function detailHTML(){
   const i=DETAIL.indexOf(":"), t=DETAIL.slice(0,i), id=DETAIL.slice(i+1);
   if(t==="skjal"){const x=findSkjal(id); return x&&(x.snid&&window.dSkjalNy?dSkjalNy(x):dSkjal(x));}
   if(t==="vsk"){const c=findVsk(id); return c&&dVsk(c);}
+  if(t==="verdskra") return window.dVerdskra?dVerdskra():null;
   if(t==="verk"){const p=findProj(id); return p&&dVerk(p);}
   if(t==="sub"){const r=findSub(id); return r&&dSub(r.u,r.p);}
   if(t==="fund"){const f=findFund(id); return f&&dFund(f);}
@@ -1333,6 +1341,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k.startsWith("rk")&&window.rkAct){rkAct(k,r,el); return;}
   if(k.startsWith("sp")&&window.spAct&&spAct(k,r)) return;
   if(k==="hw"&&window.heimAct){heimAct(r); return;}
+  if(k==="vs"&&window.vsAct){vsAct(r); return;}
   if(k==="viewas"&&window.viewAsAct){viewAsAct(r); return;}
   if(k.startsWith("sk")&&window.skAct){skAct(k,r,el); return;}
   if(k.startsWith("po")&&window.poAct){poAct(k,r,el); return;}
@@ -1358,7 +1367,8 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="cmdel"){const [pid,cid]=r; if(confirm("Eyða athugasemdinni?")) saveSnapshot(s=>{const p=sFindP(s,pid); if(p) p.athugasemdir=(p.athugasemdir||[]).filter(c=>c.id!==cid);}); return;}
   if(k==="cfg"){cfgAct(r[0],r[1]); return;}
   if(k==="tstarf"){timStarf=r[0]||""; wDay=null; render(); return;}
-  if(k==="prep"){const p=findProj(r[0]); if(p) openReport(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr),{bil:"Allt tímabil verkefnis",verkefni:p.nafn,starf:""}); return;}
+  if(k==="prep"){const p=findProj(r[0]); if(p) openReport(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr),{bil:"Allt tímabil verkefnis",verkefni:p.nafn,starf:"",flokka:(p.undirverk||[]).length>0}); return;}
+  if(k==="srep"){const x=findSub(r[0]); if(x) openReport(e=>e.undirverkId===x.u.id||(!e.undirverkId&&e.nr===x.u.nr),{bil:"Allt tímabil",verkefni:x.p.nafn+" › "+x.u.nr+" "+subName(x.u),starf:"",flokka:true}); return;}
   if(k==="pstarf"){const [pid,sk]=r; saveSnapshot(s=>{const p=sFindP(s,pid); if(!p) return; const cur=p.starfsmenn?.length?p.starfsmenn:[ME()]; p.starfsmenn=cur.includes(sk)?cur.filter(x=>x!==sk):cur.concat(sk); if(!p.starfsmenn.length) p.starfsmenn=[ME()];}); return;}
   if(k==="week"){weekOff=Math.min(0,weekOff+(+r[0])); wDay=null; render(); return;}
   if(k==="wday"){wDay=wDay===r[0]?null:r[0]; render(); return;}
@@ -2010,6 +2020,7 @@ function openEdit(type,id){
     <div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${THJ().map(t=>`<label><input type="checkbox" name="thj" value="${t}"${p.thjonusta?.includes(t)?" checked":""}>${t}</label>`).join("")}</div></div>
     <label>Mappa (slóð)<input id="e-mappa" type="url" value="${esc(p.mappa||"")}" placeholder="https://…"></label>
     <div class="two"><label>Áætlaðir tímar<input id="e-aklst" inputmode="decimal" value="${p.aklst?esc(num(p.aklst)):""}" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="e-tilbod" inputmode="numeric" value="${p.tilbod?esc(String(p.tilbod)):""}" placeholder="t.d. 450000"></label></div>
+    ${window.VERD?`<div class="two"><label>Verkþáttur (verðskrá)<select id="e-taxti"><option value="">Sjálfvirkt${(()=>{const l=VERD().lidir.find(l=>(l.verkefni||[]).includes(p.nr))||VERD().lidir.find(l=>l.sjalfgefid); return l?" – "+esc(l.heiti):"";})()}</option>${VERD().lidir.map(l=>`<option value="${esc(l.id)}"${p.taxti===l.id?" selected":""}>${esc(l.heiti)} · ${esc(num(l.verd))} kr.</option>`).join("")}</select></label><label>Eigið tímagjald (kr./klst.)<input id="e-gjald" inputmode="numeric" value="${p.timagjald?esc(String(p.timagjald)):""}" placeholder="Autt = eftir verðskrá"></label></div>`:""}
     <label>Yfirlit<textarea id="e-yf">${esc(p.yfirlit||"")}</textarea></label>
     <div class="two"><label>Næst<input id="e-naest" value="${esc(p.naest||"")}"></label><label>Athuga<input id="e-ath" value="${esc(p.athuga||"")}"></label></div>
     <label>Teikningar frá<input id="e-tf" value="${esc(p.teikningarFra||"")}"></label>
@@ -2081,7 +2092,7 @@ async function saveEdit(type,id){
         "Viðskiptavinur":legacySel(cl,["Sonik"]),"Verkkaupi":legacySel(vk,VERKKAUPAR)};
       await updatePage(id,props);
       const extra={vskId:cl?.id||null,vkId:vk?.id||null,...snap};
-      await saveSnapshot(s=>{const q=sFindP(s,id); if(q) Object.assign(q,{stutt:name,nafn:p.nr+" "+name,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,mappa:mp||null,aklst:parseFloat(String(val("e-aklst")).replace(",","."))||null,tilbod:parseInt(String(val("e-tilbod")).replace(/\D/g,""))||null,yfirlit:val("e-yf")||null,naest:val("e-naest")||null,athuga:val("e-ath")||null,teikningarFra:val("e-tf")||null,lysing:val("e-lys")||null,...extra});});
+      await saveSnapshot(s=>{const q=sFindP(s,id); if(q) Object.assign(q,{stutt:name,nafn:p.nr+" "+name,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,mappa:mp||null,aklst:parseFloat(String(val("e-aklst")).replace(",","."))||null,tilbod:parseInt(String(val("e-tilbod")).replace(/\D/g,""))||null,...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null,timagjald:parseKr(val("e-gjald"))||null}:{}),yfirlit:val("e-yf")||null,naest:val("e-naest")||null,athuga:val("e-ath")||null,teikningarFra:val("e-tf")||null,lysing:val("e-lys")||null,...extra});});
       patchLiveVerk(id,extra);
     }
     if(type==="vsk"){const old=findVsk(id); const {c,props}=readVskForm("e",true);
@@ -2198,6 +2209,7 @@ document.getElementById("fab").hidden=true;
 </script>
 <script src="ms-app.js"></script>
 <script src="pdf.js"></script>
+<script src="verdskra.js"></script>
 <script src="reikn.js"></script>
 <script src="skjol.js"></script>
 <script src="postur.js"></script>

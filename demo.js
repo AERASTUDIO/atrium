@@ -18,7 +18,7 @@ function sampleState() {
     { id: "d0000000000000000000000000000c04", name: "Listasafn Suðurlands", hlutverk: ["Viðskiptavinur", "Verkkaupi"], kennitala: "000000-0004", vsknr: "", heimilisfang: "Austurvegur 4", postnumer: "800", stadur: "Selfoss", simi: "555 0401", netfang: "safn@listasafn.example", vefsida: "", tengilidur: "Helgi Þór", simiT: "", netfangT: "", athugasemdir: "" }
   ];
   const sub = (pnr, k, name, stada, skil, timar) => ({ id: `sub-${pnr}-${k}`, nr: `${pnr}-${pad(k)}`, heiti: `${pnr}-${pad(k)} ${name}`, stada, skiladagur: skil == null ? null : day(skil), timar, serMappa: null, mappa: null, lysing: null });
-  const P = (o) => ({ yfirlit: null, mappa: null, starfsmenn: ["JJ"], aklst: null, tilbod: null, timagjald: 14900, athugasemdir: [], ...o, nafn: o.nr + " " + o.stutt });
+  const P = (o) => ({ yfirlit: null, mappa: null, starfsmenn: ["JJ"], aklst: null, tilbod: null, athugasemdir: [], ...o, nafn: o.nr + " " + o.stutt });
   const verkefni = [
     P({ id: "p1", nr: `${yr}-21`, stutt: "Lýsing hótelanddyris", stada: "Í vinnslu", vskId: "d0000000000000000000000000000c01", vidskiptavinur: "Norðurljós hótel", vkId: "d0000000000000000000000000000c02", verkkaupi: "Fjarðarbyggð arkitektar", thjonusta: ["Lýsing"], timar: 31.5, aklst: 40, tilbod: 650000, skiladagur: day(9), vidburdur: null,
       lysing: "Ný lýsing í anddyri og móttöku hótelsins. Áhersla á hlýja birtu og stýringu eftir tíma dags.", naest: "Klára ljósateikningu og senda til yfirferðar.", athuga: "Bíða eftir loftaplani frá arkitekt.",
@@ -87,7 +87,7 @@ function sampleState() {
     stillingar: {
       starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }],
       vikumark: 40,
-      reikn: { nafn: "AERA Studio (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@aera.example", simi: "", banki: "", timagjald: 14900, vsk: 24, frestur: 14, nastaNr: 1003 },
+      reikn: { nafn: "AERA Studio (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@aera.example", simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
       undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@aera.example" }
     }
   };
