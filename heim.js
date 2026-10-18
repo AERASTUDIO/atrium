@@ -41,7 +41,7 @@
     skjol:   ["Skjöl", "tab:skjol", "doc"]
   };
   const SC_DEF = ["tima", "klukka", "verk", "spjall"];
-  let PREF = null, EDIT = false, DBREF = null, saving = null;
+  let PREF = null, DBREF = null, saving = null;
   const LSK = "aera-heim";
   const me = () => window.USER?.email || "";
   const fj = () => !!(window.can && can("fjarmal"));
@@ -55,7 +55,7 @@
   function save(p) {
     PREF = p; try { localStorage.setItem(LSK, JSON.stringify(p)); } catch (e) {}
     clearTimeout(saving); saving = setTimeout(() => { if (DBREF && me()) DBREF.set("notandi/" + me(), { heim: p, breytt: new Date().toISOString() }).catch(e => console.warn("Heim-stilling", e)); }, 400);
-    render();
+    render(); if (editorOpen()) openEditor(true);
   }
   window.heimStart = db => { DBREF = db; if (!me() || !db?.watch) return;
     db.watch("notandi/" + me(), s => { const h = s.exists ? s.data()?.heim : null; if (h && JSON.stringify(h) !== JSON.stringify(PREF)) { PREF = h; try { localStorage.setItem(LSK, JSON.stringify(h)); } catch (e) {} if (typeof tab !== "undefined" && tab === "yfirlit") render(); } }, () => {}); };
@@ -74,31 +74,70 @@
 
   window.heimGrid = function (pieces) {
     pieces = { ...pieces, flyti: flyti(), spjall: spjall() };
-    const c = cur(), SZ = { s: "S", m: "M", l: "L" };
-    const cells = c.w.map((x, i) => {
-      const html = pieces[x.id] || "", size = x.s || W[x.id].s;
-      if (!html && !EDIT) return "";
-      const tools = EDIT ? `<div class="hwt"><b>${esc(W[x.id].l)}</b><span>
-          <button type="button" data-act="hw:up:${i}" aria-label="Færa framar" ${i ? "" : "disabled"}>←</button>
-          <button type="button" data-act="hw:down:${i}" aria-label="Færa aftar" ${i < c.w.length - 1 ? "" : "disabled"}>→</button>
-          <button type="button" data-act="hw:size:${i}" aria-label="Breyta stærð" title="Stærð: lítil, miðlungs, full breidd">${SZ[size]}</button>
-          <button type="button" data-act="hw:del:${i}" aria-label="Fjarlægja ${esc(W[x.id].l)}">✕</button></span></div>` : "";
-      return `<section class="hw hw-${size}${EDIT ? " edit" : ""}" data-w="${esc(x.id)}">${tools}${html || `<div class="empty">${esc(W[x.id].l)} – ekkert til að sýna núna.</div>`}</section>`;
-    }).join("");
-    const hidden = Object.keys(W).filter(id => avail(id) && !c.w.some(x => x.id === id));
-    const editor = EDIT ? `<div class="hedit">
-        <div class="viewtitle">Bæta við einingu</div>${hidden.length ? `<div class="hadd">${hidden.map(id => `<button type="button" class="chipbtn" data-act="hw:add:${id}" title="${esc(W[id].d)}">+ ${esc(W[id].l)}</button>`).join("")}</div>` : `<p class="hint">Allar einingar eru á Heim.</p>`}
-        <div class="viewtitle">Flýtileiðir</div><div class="hadd">${Object.keys(SC).map(k => `<button type="button" class="chipbtn" data-act="hw:sc:${k}" aria-pressed="${c.sc.includes(k)}">${esc(SC[k][0])}</button>`).join("")}</div>
-        <div class="viewtitle">Festa verkefni sem flýtileið</div><div class="hadd">${active().map(p => `<button type="button" class="chipbtn" data-act="hw:pin:${esc(p.id)}" aria-pressed="${c.pin.includes(p.id)}"><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt || "")}</button>`).join("") || '<span class="hint">Engin verkefni í gangi.</span>'}</div>
-        <div class="links" style="margin-top:16px"><button type="button" class="btn primary" data-act="hw:done">Lokið</button><button type="button" class="btn" data-act="hw:reset">Sjálfgefið útlit</button></div></div>` : "";
-    return `<div class="hgrid">${cells}</div>${editor}${EDIT ? "" : `<div class="hcust"><button type="button" class="klink" data-act="hw:edit">Sérsníða Heim</button></div>`}`;
+    const c = cur();
+    const cells = c.w.map(x => { const html = pieces[x.id] || "", size = x.s || W[x.id].s; return html ? `<section class="hw hw-${size}" data-w="${esc(x.id)}">${html}</section>` : ""; }).join("");
+    return `<div class="hgrid">${cells}</div><div class="hcust"><button type="button" class="btn" data-act="hw:edit">${IC_EDIT} Sérsníða Heim</button></div>`;
   };
+  const IC_EDIT = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>`;
+
+  /* ---------- Gluggi: Sérsníða Heim ----------
+     Einn listi með öllum einingum: rofi kveikir/slekkur, dregið (eða ↑ ↓) til að raða, stærð valin með hnöppum.
+     Breytingar sjást strax á Heim fyrir aftan gluggann. */
+  let TAB = "einingar", DRAG = null;
+  const SZL = { s: "Lítil", m: "Hálf", l: "Breið" };
+  function editorHTML() {
+    const c = cur(), on = c.w, off = Object.keys(W).filter(id => avail(id) && !on.some(x => x.id === id));
+    const row = (id, i, active) => { const x = active ? on[i] : { id }, size = x.s || W[id].s;
+      return `<li class="hed${active ? "" : " off"}" ${active ? `draggable="true" data-i="${i}"` : ""}>
+        <span class="hgrip" aria-hidden="true">${active ? "⋮⋮" : ""}</span>
+        <span class="hedt"><b>${esc(W[id].l)}</b><small>${esc(W[id].d)}</small></span>
+        ${active ? `<span class="hsz" role="group" aria-label="Stærð">${["s", "m", "l"].map(k => `<button type="button" data-act="hw:sz:${i}:${k}" aria-pressed="${size === k}">${SZL[k]}</button>`).join("")}</span>
+        <span class="hmv"><button type="button" data-act="hw:up:${i}" aria-label="Færa upp" ${i ? "" : "disabled"}>↑</button><button type="button" data-act="hw:down:${i}" aria-label="Færa niður" ${i < on.length - 1 ? "" : "disabled"}>↓</button></span>` : ""}
+        <label class="hsw"><input type="checkbox" data-hw="${esc(id)}" ${active ? "checked" : ""} aria-label="Sýna ${esc(W[id].l)}"><i></i></label></li>`; };
+    const tabs = [["einingar", "Einingar"], ["flyti", "Flýtileiðir"]];
+    const body = TAB === "einingar"
+      ? `<p class="hint" style="margin:0 0 10px">Kveiktu á því sem þú vilt sjá. Dragðu línurnar (eða notaðu ↑ ↓) til að raða og veldu stærð. Breytingarnar sjást strax á Heim.</p>
+        <ul class="hedl" id="hedl">${on.map((x, i) => row(x.id, i, true)).join("")}</ul>
+        ${off.length ? `<div class="kind" style="margin:16px 0 8px">Fleiri einingar</div><ul class="hedl">${off.map(id => row(id, -1, false)).join("")}</ul>` : ""}`
+      : `<p class="hint" style="margin:0 0 10px">Veldu hnappana sem birtast í einingunni Flýtileiðir.</p>
+        <div class="hscp">${Object.keys(SC).map(k => `<button type="button" class="hscpk" data-act="hw:sc:${k}" aria-pressed="${c.sc.includes(k)}">${(typeof EI !== "undefined" && EI[SC[k][2]]) || ""}<span>${esc(SC[k][0])}</span><i aria-hidden="true">${c.sc.includes(k) ? "✓" : "+"}</i></button>`).join("")}</div>
+        <div class="kind" style="margin:16px 0 8px">Festa verkefni</div>
+        <div class="hscp">${active().map(p => `<button type="button" class="hscpk" data-act="hw:pin:${esc(p.id)}" aria-pressed="${c.pin.includes(p.id)}"><span class="nr">${esc(p.nr)}</span><span>${esc(p.stutt || "")}</span><i aria-hidden="true">${c.pin.includes(p.id) ? "✓" : "+"}</i></button>`).join("") || '<span class="hint">Engin verkefni í gangi.</span>'}</div>
+        ${c.sc.length + c.pin.length && !c.w.some(x => x.id === "flyti") ? `<p class="hint" style="margin-top:10px">Einingin Flýtileiðir er falin – kveiktu á henni undir Einingar.</p>` : ""}`;
+    return `<div class="hedh"><h3 id="sheet-h">Sérsníða Heim</h3></div>
+      <nav class="seg hedtabs" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" aria-selected="${TAB === k}" data-act="hw:tab:${k}">${l}</button>`).join("")}</nav>
+      <div class="hedb">${body}</div>
+      <div class="actions"><button type="button" class="btn" data-act="hw:reset">Sjálfgefið útlit</button><button type="button" class="btn primary" data-act="hw:done">Lokið</button></div>`;
+  }
+  function openEditor(keepScroll) {
+    const box = document.getElementById("sheet"), wrap = document.getElementById("sheetwrap"); if (!box || !wrap) return;
+    const sc = keepScroll ? box.querySelector(".hedb")?.scrollTop || 0 : 0;
+    box.innerHTML = editorHTML(); box.closest(".sheet").classList.add("wide", "hedsheet"); wrap.hidden = false;
+    const b = box.querySelector(".hedb"); if (b) b.scrollTop = sc;
+    wireDrag(box);
+  }
+  const editorOpen = () => !document.getElementById("sheetwrap")?.hidden && !!document.querySelector("#sheet .hedtabs");
+  function wireDrag(box) {
+    const list = box.querySelector("#hedl"); if (!list) return;
+    list.querySelectorAll("li[draggable]").forEach(li => {
+      li.addEventListener("dragstart", e => { DRAG = +li.dataset.i; li.classList.add("drag"); e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", li.dataset.i); } catch (x) {} });
+      li.addEventListener("dragend", () => { li.classList.remove("drag"); DRAG = null; list.querySelectorAll(".over").forEach(x => x.classList.remove("over")); });
+      li.addEventListener("dragover", e => { if (DRAG == null) return; e.preventDefault(); list.querySelectorAll(".over").forEach(x => x.classList.remove("over")); li.classList.add("over"); });
+      li.addEventListener("drop", e => { e.preventDefault(); const to = +li.dataset.i; if (DRAG == null || DRAG === to) return; const c = cur(), w = c.w.map(x => ({ ...x })), [m] = w.splice(DRAG, 1); w.splice(to, 0, m); DRAG = null; save({ ...c, w }); });
+    });
+  }
+  // Smellir í glugganum (glugginn er utan #view, svo hann fær ekki almennu smellumeðhöndlunina)
+  document.addEventListener("click", e => { const b = e.target.closest?.("#sheet [data-act^='hw:']"); if (!b || b.disabled) return; e.preventDefault(); heimAct(b.dataset.act.split(":").slice(1)); });
+  document.addEventListener("change", e => { const id = e.target?.dataset?.hw; if (!id) return; const c = cur(); let w = c.w.map(x => ({ ...x }));
+    w = e.target.checked ? (w.some(x => x.id === id) ? w : w.concat({ id })) : w.filter(x => x.id !== id); save({ ...c, w }); });
 
   window.heimAct = function (r) {
     const [op, a] = r, c = cur(), w = c.w.map(x => ({ ...x })), i = +a;
-    if (op === "edit") { EDIT = true; render(); return; }
-    if (op === "done") { EDIT = false; render(); return; }
+    if (op === "edit") { TAB = "einingar"; openEditor(); return; }
+    if (op === "done") { const sh = document.getElementById("sheet"); sh?.closest(".sheet")?.classList.remove("hedsheet"); if (typeof closeSheet === "function") closeSheet(); return; }
+    if (op === "tab") { TAB = a; openEditor(); return; }
     if (op === "reset") { if (confirm("Setja Heim aftur í sjálfgefið útlit?")) save({ w: DEF.map(id => ({ id })), sc: SC_DEF.slice(), pin: [] }); return; }
+    if (op === "sz") { const [, , k] = r; w[i].s = k; }
     if (op === "up" && i > 0) [w[i - 1], w[i]] = [w[i], w[i - 1]];
     if (op === "down" && i < w.length - 1) [w[i + 1], w[i]] = [w[i], w[i + 1]];
     if (op === "size") { const s = w[i].s || W[w[i].id].s; w[i].s = { s: "m", m: "l", l: "s" }[s]; }

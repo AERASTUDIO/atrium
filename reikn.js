@@ -16,9 +16,12 @@
   // Öll verkefni (og „án verkefnis“) sem eiga eitthvað óreikningsfært
   const openGroups = () => [...verkefni().map(p => p.id), NONE].map(k => ({ k, p: k === NONE ? null : findProj(k), ...obilled(k === NONE ? null : k) })).filter(g => g.es.length || g.ks.length);
   window.rkUnbilled = obilled;
+  // Krónur fyrir tímafærslur: hver færsla með gjaldi eigin þjónustu eða gjaldi verkefnisins (projRate)
+  const esKr = (es, projRate) => es.reduce((a, e) => a + (+e.timar || 0) * (window.entryRate ? entryRate(e, projRate) : projRate), 0);
+  window.rkUnbilledKr = pid => { const u = obilled(pid), p = pid ? findProj(pid) : null; return esKr(u.es, rate(p)) + sumK(u.ks); };
   /* Óinnheimt (frá 1.6.0): óreikningsfærðir tímar × tímagjald + óreikningsfærður kostnaður, auk ógreiddra reikninga (með VSK) */
   window.rkOinnheimt = () => {
-    const gs = openGroups().map(g => ({ ...g, h: sumT(g.es), kr: sumT(g.es) * rate(g.p) + sumK(g.ks) })).sort((a, b) => b.kr - a.kr);
+    const gs = openGroups().map(g => ({ ...g, h: sumT(g.es), kr: esKr(g.es, rate(g.p)) + sumK(g.ks) })).sort((a, b) => b.kr - a.kr);
     const og = reikningar().filter(r => r.stada !== "Greitt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
     const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ub = gs.reduce((a, g) => a + g.kr, 0);
     return { gs, ub, og, ogKr: sum(og), late, lateKr: sum(late), tot: ub + sum(og), h: gs.reduce((a, g) => a + g.h, 0) };
@@ -36,11 +39,14 @@
     const multi = groups.length > 1, L = [];
     groups.forEach(({ p, es, ks, verd }) => {
       const pre = multi ? (p ? p.nr + " · " : "Almennt · ") : "";
-      if (sund) es.slice().sort((a, b) => String(a.date + (a.fra || "")).localeCompare(String(b.date + (b.fra || "")))).forEach(e => L.push({ lysing: pre + dIS(String(e.date).slice(0, 10)) + " – " + cleanLys(e.lysing), magn: Math.round((+e.timar || 0) * 100) / 100, eining: "klst.", verd }));
+      // Hver færsla fær gjald eigin þjónustu (e.taxti) ef hún er önnur en verkefnisins, annars gjald verkefnisins
+      const ev = e => window.entryRate ? entryRate(e, verd) : verd, tx = e => (ev(e) !== verd && e.taxti && window.lidOf) ? lidOf(e.taxti) : null;
+      if (sund) es.slice().sort((a, b) => String(a.date + (a.fra || "")).localeCompare(String(b.date + (b.fra || "")))).forEach(e => L.push({ lysing: pre + dIS(String(e.date).slice(0, 10)) + " – " + cleanLys(e.lysing) + (tx(e) ? " (" + tx(e).heiti + ")" : ""), magn: Math.round((+e.timar || 0) * 100) / 100, eining: "klst.", verd: ev(e) }));
       else {
         const g = new Map();
-        es.forEach(e => { const r = e.undirverkId ? findSub(e.undirverkId) : null; const k = r ? r.u.id : "_"; if (!g.has(k)) g.set(k, { lysing: pre + "Tímavinna – " + (r ? subName(r.u) : p ? (p.stutt || p.nafn) : "almenn vinna"), magn: 0 }); g.get(k).magn += +e.timar || 0; });
-        [...g.values()].forEach(x => L.push({ lysing: x.lysing, magn: Math.round(x.magn * 100) / 100, eining: "klst.", verd }));
+        es.forEach(e => { const r = e.undirverkId ? findSub(e.undirverkId) : null, t = tx(e); const k = (r ? r.u.id : "_") + "|" + (t ? t.id : "") + "|" + ev(e);
+          if (!g.has(k)) g.set(k, { lysing: pre + "Tímavinna – " + (r ? subName(r.u) : p ? (p.stutt || p.nafn) : "almenn vinna") + (t ? " (" + t.heiti + ")" : ""), magn: 0, verd: ev(e) }); g.get(k).magn += +e.timar || 0; });
+        [...g.values()].forEach(x => L.push({ lysing: x.lysing, magn: Math.round(x.magn * 100) / 100, eining: "klst.", verd: x.verd }));
       }
       ks.forEach(k => L.push({ lysing: pre + "Útlagður kostnaður – " + (k.lysing || ""), magn: 1, eining: "stk.", verd: Math.round(+k.upphaed || 0) }));
     });
@@ -58,7 +64,7 @@
     const missing = !rk.kt || !rk.banki;
     const grpHTML = g => `<details class="rkg" data-g="${esc(g.k)}"><summary><label class="rkrow rkgh" onclick="event.stopPropagation()"><input type="checkbox" data-gall="${esc(g.k)}"><span><b>${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt)}` : "Án verkefnis (almennt)"}</b></span><b class="rkgt"></b></label></summary>
       <div class="rkgb">${g.es.length ? `<label class="rkrate">Tímagjald kr./klst.<input data-rate="${esc(g.k)}" inputmode="numeric" value="${rate(g.p) || ""}" placeholder="t.d. 15000"></label>` : ""}
-      <div class="rkpick">${g.es.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).map(e => `<label class="rkrow"><input type="checkbox" data-rke="${esc(e.id)}" data-gk="${esc(g.k)}"><span>${esc(dIS(String(e.date).slice(0, 10)))} · ${esc(cleanLys(e.lysing))}</span><b>${esc(hrs(e.timar))}</b></label>`).join("")}
+      <div class="rkpick">${g.es.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).map(e => `<label class="rkrow"><input type="checkbox" data-rke="${esc(e.id)}" data-gk="${esc(g.k)}"><span>${esc(dIS(String(e.date).slice(0, 10)))} · ${esc(cleanLys(e.lysing))}${e.taxti && window.lidOf && lidOf(e.taxti) ? ` <span class="tag">${esc(lidOf(e.taxti).heiti)}</span>` : ""}</span><b>${esc(hrs(e.timar))}</b></label>`).join("")}
       ${g.ks.map(k => `<label class="rkrow"><input type="checkbox" data-rkk="${esc(k.id)}" data-gk="${esc(g.k)}"><span>${esc(dIS(k.date))} · 🧾 ${esc(k.lysing)}</span><b>${esc(kr(k.upphaed))}</b></label>`).join("")}</div></div></details>`;
     sheet.innerHTML = `<h3 id="sheet-h">Nýr reikningur</h3>
       ${missing ? `<div class="msg err" style="margin-bottom:10px">Upplýsingar um seljanda vantar (kennitala og bankareikningur). Fylltu þær út í Stillingum → Reikningar áður en reikningur er sendur.</div>` : ""}
@@ -85,7 +91,7 @@
         h.checked = n > 0 && n === cs.length; h.indeterminate = n > 0 && n < cs.length;
         const s = sel().find(x => x.k === g.k); sheet.querySelector(`.rkg[data-g="${CSS.escape(g.k)}"] .rkgt`).textContent = s ? [s.es.length ? hrs(sumT(s.es)) : "", s.ks.length ? kr(sumK(s.ks)) : ""].filter(Boolean).join(" + ") : ""; });
       const G = sel(), L = buildLines(G, document.getElementById("rk-sund").checked), t = totals(L, +RK().vsk || 0);
-      document.getElementById("rk-sum").innerHTML = G.length ? `${G.map(g => `<div class="sub-i"><span>${esc(g.p ? g.p.nr + " " + g.p.stutt : "Almennt")}${g.es.length ? ` · ${num(sumT(g.es))} klst. × ${esc(kr(g.verd))}` : ""}</span><b>${esc(kr(Math.round(sumT(g.es) * g.verd) + sumK(g.ks)))}</b></div>`).join("")}
+      document.getElementById("rk-sum").innerHTML = G.length ? `${G.map(g => `<div class="sub-i"><span>${esc(g.p ? g.p.nr + " " + g.p.stutt : "Almennt")}${g.es.length ? ` · ${num(sumT(g.es))} klst.${g.es.every(e => (window.entryRate ? entryRate(e, g.verd) : g.verd) === g.verd) ? " × " + esc(kr(g.verd)) : ""}` : ""}</span><b>${esc(kr(Math.round(esKr(g.es, g.verd)) + sumK(g.ks)))}</b></div>`).join("")}
         <div class="sub-i"><span>VSK ${esc(String(RK().vsk))}%</span><b>${esc(kr(t.vsk))}</b></div><div class="sub-i" style="font-size:16px"><span>Samtals til greiðslu</span><b>${esc(kr(t.tot))}</b></div>` : `<span class="hint">Ekkert valið.</span>`; };
     Q("[data-gall]").forEach(h => h.addEventListener("change", () => { setGroup(h.dataset.gall, h.checked); h.closest("details").open = h.checked; upd(); }));
     sheet.addEventListener("input", upd); sheet.addEventListener("change", e => { if (!e.target.dataset.gall) upd(); });
@@ -98,7 +104,7 @@
     const draft = () => {
       const G = sel(), nr = parseInt(val("rk-nr")) || 0, bid = val("rk-buyer");
       if (!G.length) { msg("Veldu að minnsta kosti eina færslu.", "err"); return null; }
-      const noRate = G.find(g => g.es.length && !g.verd); if (noRate) { msg(`Skráðu tímagjald fyrir ${noRate.p ? noRate.p.nr : "almenna tíma"}.`, "err"); return null; }
+      const noRate = G.find(g => g.es.some(e => !(window.entryRate ? entryRate(e, g.verd) : g.verd))); if (noRate) { msg(`Skráðu tímagjald fyrir ${noRate.p ? noRate.p.nr : "almenna tíma"}.`, "err"); return null; }
       if (!bid) { msg("Veldu viðskiptavin.", "err"); return null; }
       if (!nr) { msg("Skráðu reikningsnúmer.", "err"); return null; }
       const L = buildLines(G, document.getElementById("rk-sund").checked), vskP = +RK().vsk || 0;

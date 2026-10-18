@@ -8,15 +8,30 @@
     lidir: [
       { id: "ljos", heiti: "Ljósahönnun", verd: 10000 },
       { id: "honnun", heiti: "Almenn hönnunarvinna", verd: 10000, sjalfgefid: true },
-      { id: "grand", heiti: "Hönnunarvinna – Grand Hótel, stækkun", verd: 12000, verkefni: ["2026-04"] },
-      { id: "annad", heiti: "Önnur vinna", verd: 10000 }
+      { id: "grand", heiti: "Hönnunarvinna – Grand Hótel, stækkun", verd: 12350, verkefni: ["2026-04"] },
+      { id: "sonik", heiti: "Sonik hugbúnaðarþróun", verd: 6000, verkefni: ["2026-12"] },
+      { id: "annad", heiti: "Önnur vinna", verd: 10000 },
+      { id: "almenn", heiti: "Almenn vinna", verd: 8000, almennt: true }
     ],
+    v: 2,
     vsk: 24, vskSkra: false,
     athugasemd: "VSK leggst aðeins á reikninga eftir að félagið er komið á VSK-skrá."
   };
-  window.VERD = () => { const v = (typeof CFG === "function" && CFG().verdskra) || null; return v && Array.isArray(v.lidir) && v.lidir.length ? { ...DEF, ...v } : DEF; };
+  // Vistuð verðskrá eldri en v2 fær nýju línurnar (Sonik, Almenn vinna) bætt við þar til hún er vistuð aftur
+  window.VERD = () => { const v = (typeof CFG === "function" && CFG().verdskra) || null; if (!(v && Array.isArray(v.lidir) && v.lidir.length)) return DEF;
+    if ((v.v || 1) < 2) { const lidir = v.lidir.concat(DEF.lidir.filter(l => ["sonik", "almenn"].includes(l.id) && !v.lidir.some(x => x.id === l.id || x.heiti === l.heiti))); return { ...DEF, ...v, lidir }; }
+    return { ...DEF, ...v }; };
   const lid = id => VERD().lidir.find(l => l.id === id);
-  window.taxtiOf = p => (p?.taxti && lid(p.taxti)) || VERD().lidir.find(l => (l.verkefni || []).includes(p?.nr)) || VERD().lidir.find(l => l.sjalfgefid) || null;
+  // Þjónusta (verkþáttur) verkefnis; tímar án verkefnis fá línuna merkta „Án verkefnis“
+  window.taxtiOf = p => (p?.taxti && lid(p.taxti)) || (p ? VERD().lidir.find(l => (l.verkefni || []).includes(p.nr)) : VERD().lidir.find(l => l.almennt)) || VERD().lidir.find(l => l.sjalfgefid) || null;
+  window.lidOf = lid;
+  // Þjónusta tímafærslu: eigin (e.taxti) ef valin, annars þjónusta verkefnisins
+  window.svcOf = e => (e?.taxti && lid(e.taxti)) || taxtiOf(e?.verkefniId ? findProj(e.verkefniId) : null);
+  // Tímagjald færslu: ef færslan hefur aðra þjónustu en verkefnið gildir verð þeirrar línu, annars tímagjald verkefnisins (base)
+  window.entryRate = (e, base) => { const p = e?.verkefniId ? findProj(e.verkefniId) : null, own = e?.taxti && lid(e.taxti);
+    return own && own.id !== taxtiOf(p)?.id ? +own.verd : base; };
+  // Val á þjónustu í tímaskráningarformi (tómt = eltir verkefnið)
+  window.taxtiSelect = (id, cur) => `<label>Þjónusta<select id="${id}"><option value="">Eins og verkefnið</option>${VERD().lidir.map(l => `<option value="${esc(l.id)}"${cur === l.id ? " selected" : ""}>${esc(l.heiti)} · ${esc(num(l.verd))} kr./klst.</option>`).join("")}</select></label>`;
   window.rateOf = p => +(p?.timagjald || taxtiOf(p)?.verd || 0);
   const kr0 = n => num(Math.round(+n || 0));
   const fj = () => !!(window.can && can("stillingar"));
@@ -28,8 +43,8 @@
   window.dVerdskra = function () {
     const v = VERD(), vp = +v.vsk || 24, vs = !!v.vskSkra;
     const rows = v.lidir.map((l, i) => EDIT ? `<tr><td><input data-vs="heiti:${i}" value="${esc(l.heiti)}" aria-label="Verkþáttur"></td><td class="r"><input data-vs="verd:${i}" inputmode="numeric" value="${esc(String(l.verd || ""))}" aria-label="Verð" style="text-align:right;max-width:120px"></td>
-        <td><label class="vsdef"><input type="radio" name="vsdef" value="${i}"${l.sjalfgefid ? " checked" : ""}> Sjálfgefið</label></td><td><input data-vs="verkefni:${i}" value="${esc((l.verkefni || []).join(", "))}" placeholder="Verknúmer, t.d. 2026-04" aria-label="Verkefni"></td><td><button type="button" class="mini" data-act="vs:del:${i}" aria-label="Eyða línu">✕</button></td></tr>`
-      : `<tr><td>${esc(l.heiti)}${l.sjalfgefid ? ' <span class="tag">sjálfgefið</span>' : ""}${(l.verkefni || []).length ? `<div class="ls">Gildir fyrir ${esc(l.verkefni.join(", "))}</div>` : ""}</td><td class="r">${esc(kr0(l.verd))}</td><td class="r">${esc(kr0(l.verd * vp / 100))}</td><td class="r"><b>${esc(kr0(l.verd * (1 + vp / 100)))}</b></td></tr>`).join("");
+        <td><label class="vsdef"><input type="radio" name="vsdef" value="${i}"${l.sjalfgefid ? " checked" : ""}> Sjálfgefið</label><label class="vsdef"><input type="radio" name="vsalm" value="${i}"${l.almennt ? " checked" : ""}> Án verkefnis</label></td><td><input data-vs="verkefni:${i}" value="${esc((l.verkefni || []).join(", "))}" placeholder="Verknúmer, t.d. 2026-04" aria-label="Verkefni"></td><td><button type="button" class="mini" data-act="vs:del:${i}" aria-label="Eyða línu">✕</button></td></tr>`
+      : `<tr><td>${esc(l.heiti)}${l.sjalfgefid ? ' <span class="tag">sjálfgefið</span>' : ""}${l.almennt ? ' <span class="tag">tímar án verkefnis</span>' : ""}${(l.verkefni || []).length ? `<div class="ls">Gildir fyrir ${esc(l.verkefni.join(", "))}</div>` : ""}</td><td class="r">${esc(kr0(l.verd))}</td><td class="r">${esc(kr0(l.verd * vp / 100))}</td><td class="r"><b>${esc(kr0(l.verd * (1 + vp / 100)))}</b></td></tr>`).join("");
     const head = EDIT ? `<tr><th>Verkþáttur</th><th class="r">Verð án VSK</th><th></th><th>Á verkefni</th><th></th></tr>` : `<tr><th>Verkþáttur</th><th class="r">Verð án VSK (kr./klst.)</th><th class="r">VSK ${vp}% (kr.)</th><th class="r">Verð með VSK (kr./klst.)</th></tr>`;
     const lo = Math.min(...v.lidir.map(l => +l.verd || 0)), hi = Math.max(...v.lidir.map(l => +l.verd || 0));
     const used = verkefni().filter(p => !isDone(p)).map(p => [p, taxtiOf(p)]);
@@ -44,17 +59,17 @@
         : `<p class="hint" style="margin-top:8px">${esc(v.athugasemd || "")} ${vs ? "Félagið er á VSK-skrá." : "<b>Félagið er ekki á VSK-skrá – reikningar eru án VSK.</b>"}</p>
         ${fj() ? `<div class="links"><button type="button" class="btn" data-act="vs:edit">✎ Breyta verðskrá</button><button type="button" class="btn" onclick="window.print()">Prenta / PDF</button></div>` : `<div class="links"><button type="button" class="btn" onclick="window.print()">Prenta / PDF</button></div>`}`}
       <div class="viewtitle">Tímagjald verkefna í gangi</div>${llist(used.map(([p, l]) => lrow("verk:" + p.id, { title: `<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt || p.nafn)}`, sub: esc(p.timagjald ? "Eigið tímagjald verkefnis" : l ? l.heiti : "Ekkert tímagjald"), right: `<span class="lc">${esc(kr0(rateOf(p)))} kr./klst.</span>` })))}
-      <p class="hint">Tímagjald verkefnis: eigið tímagjald (ef skráð) › verkþáttur valinn á verkefni › verkþáttur sem nefnir verknúmerið › sjálfgefinn verkþáttur. Breyta má fyrir hvert verkefni undir Breyta verkefni og við reikningsfærslu.</p>`;
+      <p class="hint">Tímagjald verkefnis: eigið tímagjald (ef skráð) › verkþáttur valinn á verkefni › verkþáttur sem nefnir verknúmerið › sjálfgefinn verkþáttur. Tímar án verkefnis fá línuna merkta „tímar án verkefnis“. Á hverri tímaskráningu má velja aðra þjónustu – þá gildir verð þeirrar línu. Breyta má fyrir hvert verkefni undir Breyta verkefni og við reikningsfærslu.</p>`;
   };
 
   function read() {
     const v = VERD(), lidir = v.lidir.map((l, i) => {
       const g = k => document.querySelector(`[data-vs="${k}:${i}"]`)?.value ?? "";
-      return { id: l.id || ("l" + Date.now().toString(36) + i), heiti: g("heiti").trim(), verd: parseKr(g("verd")) || 0, sjalfgefid: document.querySelector(`input[name="vsdef"][value="${i}"]`)?.checked || false,
+      return { id: l.id || ("l" + Date.now().toString(36) + i), heiti: g("heiti").trim(), verd: parseKr(g("verd")) || 0, sjalfgefid: document.querySelector(`input[name="vsdef"][value="${i}"]`)?.checked || false, almennt: document.querySelector(`input[name="vsalm"][value="${i}"]`)?.checked || false,
         verkefni: g("verkefni").split(/[,\s]+/).map(s => s.trim()).filter(Boolean) };
     }).filter(l => l.heiti);
     if (!lidir.some(l => l.sjalfgefid) && lidir.length) lidir[0].sjalfgefid = true;
-    return { ...v, lidir, vskSkra: !!document.getElementById("vs-skra")?.checked, athugasemd: document.getElementById("vs-ath")?.value || "" };
+    return { ...v, v: 2, lidir, vskSkra: !!document.getElementById("vs-skra")?.checked, athugasemd: document.getElementById("vs-ath")?.value || "" };
   }
   window.vsAct = function (r) {
     const [op, a] = r;

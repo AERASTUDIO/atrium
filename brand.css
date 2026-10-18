@@ -297,3 +297,33 @@ body.onchat #fab{display:none!important}
 .vstab .ls{font-size:12px;color:var(--muted);margin-top:2px}
 .vstab input{width:100%;min-height:38px}.vsdef{display:flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap;flex-direction:row}
 @media print{.side,.mbar,header,.backrow,.links,#fab,.viewas{display:none!important}}
+
+/* ---------- Gluggi: Sérsníða Heim (1.6.2) ---------- */
+.hcust .btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border-radius:12px;color:var(--muted)}
+.hedsheet{max-width:640px!important}
+.hedh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.hedh h3{margin:0}
+.hedtabs{margin:0 0 14px}
+.hedb{max-height:min(62vh,640px);overflow-y:auto;margin:0 -4px;padding:0 4px}
+.hedl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hed{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);transition:border-color .15s,opacity .15s}
+.hed[draggable]{cursor:grab}.hed.drag{opacity:.45}.hed.over{border-color:var(--hi);box-shadow:inset 0 2px 0 var(--hi)}
+.hed.off{background:transparent;border-style:dashed}.hed.off .hedt b{color:var(--muted)}
+.hgrip{width:14px;color:var(--muted);font-size:13px;letter-spacing:-2px;flex:none;user-select:none}
+.hedt{flex:1;min-width:0;display:flex;flex-direction:column}.hedt b{font-weight:500;font-size:14px}.hedt small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hsz{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.hsz button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:12px;padding:6px 9px;cursor:pointer}
+.hsz button[aria-pressed="true"]{background:var(--hi);color:var(--on-hi)}
+.hmv{display:flex;gap:2px;flex:none}.hmv button{appearance:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
+.hmv button:disabled{opacity:.3;cursor:default}
+.hsw{position:relative;width:42px;height:24px;flex:none;cursor:pointer;display:block!important;margin:0}
+.hsw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.hsw i{position:absolute;inset:0;border-radius:12px;background:var(--bar0);transition:background .15s}
+.hsw i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.hsw input:checked+i{background:var(--hi)}.hsw input:checked+i::after{transform:translateX(18px);background:var(--on-hi)}
+.hsw input:focus-visible+i{outline:2px solid var(--hi);outline-offset:2px}
+.hscp{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.hscpk{appearance:none;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+.hscpk svg{width:18px;height:18px;color:var(--muted);flex:none}.hscpk span:not(.nr){flex:1;min-width:0}.hscpk .nr{font-size:12px;color:var(--muted)}
+.hscpk i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--bar0);font-size:12px;flex:none}
+.hscpk[aria-pressed="true"]{border-color:var(--hi)}.hscpk[aria-pressed="true"] i{background:var(--hi);color:var(--on-hi)}
+@media (max-width:560px){.hed{flex-wrap:wrap}.hedt{flex-basis:calc(100% - 90px)}.hsz{order:3;margin-left:24px}.hmv{order:4;margin-left:auto}.hedt small{white-space:normal}}
