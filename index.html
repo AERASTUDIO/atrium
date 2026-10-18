@@ -6,7 +6,9 @@
 <script>/* Sýniútgáfa (?demo): tilbúin gögn, engin innskráning; staðbundnar stillingar fara í sessionStorage svo raunverulega appið á sama tæki verði ekki fyrir áhrifum. */
 window.AERA_DEMO=new URLSearchParams(location.search).has("demo");
 if(window.AERA_DEMO){try{Object.defineProperty(window,"localStorage",{value:window.sessionStorage,configurable:true});}catch(e){}}</script>
+<script src="fyrirtaeki.js"></script>
 <script src="ms.js"></script>
+<script src="gogn.js"></script>
 </head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -586,12 +588,13 @@ const budgetPill=p=>{const b=budgetOf(p); return b&&b.cls?`<span class="pill ${b
 const STODUR=()=>CFG().stodur?.length?CFG().stodur:DEF_STODUR;
 const THJ=()=>CFG().thjonusta?.length?CFG().thjonusta:DEF_THJ;
 const STARFS=()=>CFG().starfsmenn?.length?CFG().starfsmenn:DEF_STARF;
-const ME=()=>(window.USER?.sk&&STARFS().some(x=>x.sk===USER.sk))?USER.sk:(STARFS().find(x=>x.eg)||STARFS()[0]).sk;
+// Innskráður notandi skráir á sig (skammstöfun úr notendaskrá); annars sá sem merktur er „ég“ í Starfsmönnum.
+const ME=()=>window.USER?.sk||(STARFS().find(x=>x.eg)||STARFS()[0]).sk;
 const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.2.2"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.3.0"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
@@ -1041,7 +1044,7 @@ function openReport(pred,meta){
   const dz=n=>n?fmtH(n):"", dyCells=x=>`<td class="r">${dz(x.d)}</td><td class="r">${dz(x.y)}</td>`, dyG=es=>{const x=sumDY(es); return `<td class="r">${fmtH(x.d)}</td><td class="r">${fmtH(x.y)}</td>`;};
   const cols=(R.multi?7:6)+2;
   sheet.innerHTML=`<h3 id="sheet-h" class="sr">Tímaskýrsla</h3><div class="rep">
-    <div class="rh"><div><h4>Tímaskýrsla</h4><div class="rm">AERA Studio · ${esc(R.meta.bil)}${R.meta.verkefni?" · "+esc(R.meta.verkefni):""}${R.meta.starf?" · "+esc(R.meta.starf):""}</div></div><div class="rm" style="text-align:right">${R.n} færslur<br><b style="font-size:20px;color:var(--ink)">${hrs(R.tot)}</b><br>Dagvinna ${fmtH(R.dy.d)} · Yfirvinna ${fmtH(R.dy.y)}${R.ks.length?`<br>+ ${esc(kr(R.ktot))}`:""}</div></div>
+    <div class="rh"><div><h4>Tímaskýrsla</h4><div class="rm">${esc(ORG.nafn)} · ${esc(R.meta.bil)}${R.meta.verkefni?" · "+esc(R.meta.verkefni):""}${R.meta.starf?" · "+esc(R.meta.starf):""}</div></div><div class="rm" style="text-align:right">${R.n} færslur<br><b style="font-size:20px;color:var(--ink)">${hrs(R.tot)}</b><br>Dagvinna ${fmtH(R.dy.d)} · Yfirvinna ${fmtH(R.dy.y)}${R.ks.length?`<br>+ ${esc(kr(R.ktot))}`:""}</div></div>
     ${R.n?`<div class="tw"><table><thead><tr><th>Dagsetning</th><th>Undirverk</th><th>Lýsing</th><th>Frá</th><th>Til</th>${R.multi?"<th>Starfsm.</th>":""}<th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>
     ${R.gs.map(g=>`<tr class="pg"><td colspan="${cols}">${esc(g.p?g.p.nafn:"Án verkefnis")}</td></tr>${g.es.map(row).join("")}<tr class="st"><td colspan="${cols-3}">Samtals ${esc(g.p?.nr||"")}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}
     <tr class="gt"><td colspan="${cols-3}">Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>
@@ -1057,7 +1060,7 @@ function openReport(pred,meta){
 function downloadXlsx(R){
   const m=R.multi, S_=(v,s)=>({v,s}), rows=[], merges=[], last=m?"J":"I", r2=n=>Math.round(n*100)/100, DY=(es,st)=>{const x=sumDY(es); return [S_(r2(x.d),st),S_(r2(x.y),st)];};
   rows.push([S_("Tímaskýrsla",1)]); merges.push(`A1:${last}1`);
-  rows.push([S_("AERA Studio",2)]);
+  rows.push([S_(ORG.nafn,2)]);
   rows.push([S_("Tímabil: "+R.meta.bil+(R.meta.verkefni?"   ·   Verkefni: "+R.meta.verkefni:"")+(R.meta.starf?"   ·   Starfsmaður: "+R.meta.starf:""),2)]);
   rows.push([S_("Útbúið "+dIS(isoDay(new Date()))+"   ·   "+R.n+" færslur   ·   Dagvinna "+num(R.dy.d)+" klst.   ·   Yfirvinna "+num(R.dy.y)+" klst.   (dagvinna kl. 08–16 virka daga)",2)]);
   rows.push([]);
@@ -1220,7 +1223,7 @@ function dSkjal(x){
   const p=skjalProj(x);
   return backBar()+`<div class="kicker"><span class="kind">Skjal</span>${typePill(x.tegund)}</div>
   <h2 class="big" style="margin-top:6px">${esc(x.name||"Án titils")}</h2>
-  <p class="sub">${p?"Skjal í "+projLink(p):"Skjal í AERA Studio"}</p>
+  <p class="sub">${p?"Skjal í "+projLink(p):"Skjal í "+esc(ORG.nafn)}</p>
   ${statRow("skjal",x.id,DSTAT,x.stada||"Not started",STL)}
   <div class="viewtitle">Upplýsingar</div><div class="card"><dl class="kv" style="margin:0">${kvRows([
     ["Staða",esc(STL[x.stada]||x.stada||"Ekki hafið")],["Tegund",esc(x.tegund||"")],["Verkefni",p?projLink(p):""],
@@ -1357,7 +1360,7 @@ function icsText(items){const z=n=>String(n).padStart(2,"0"), stamp=new Date().t
       timed?"DTSTART:"+loc(i.when):"DTSTART;VALUE=DATE:"+dOnly(i.when), timed?"DTEND:"+loc(end):"DTEND;VALUE=DATE:"+isoDay(nx).replace(/-/g,""),
       "SUMMARY:"+tx((i.t==="fund"?"":i.kind+": ")+i.title+(i.nr?" ("+i.nr+")":"")), i.o?.stadsetning?"LOCATION:"+tx(i.o.stadsetning):null, i.o?.fundarhlekkur?"URL:"+i.o.fundarhlekkur:null,
       "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+tx(i.title), timed?"TRIGGER:-PT15M":"TRIGGER:-PT15H","END:VALARM","END:VEVENT"].filter(Boolean).join("\r\n");});
-  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//AERA Studio//app//IS","CALSCALE:GREGORIAN","X-WR-CALNAME:AERA Studio",...ev,"END:VCALENDAR"].join("\r\n");}
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//"+ORG.nafn+"//app//IS","CALSCALE:GREGORIAN","X-WR-CALNAME:"+ORG.nafn,...ev,"END:VCALENDAR"].join("\r\n");}
 function downloadIcs(arg){let items=[];
   if(arg==="all"){calItems().forEach((l,k)=>{if(k>=isoDay(today)) l.filter(i=>!i.span&&!i.done).forEach(i=>items.push(i));});}
   else {const f=findFund(arg); if(f) items=[{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||"",open:"fund:"+f.id,o:f}];}
@@ -1783,8 +1786,12 @@ let saveErr=null;
 // Fjarlægir „undefined“ úr hlutum (Firestore hafnar þeim) og breytir í null í listum.
 function fsClean(v){if(Array.isArray(v)) return v.map(x=>x===undefined?null:fsClean(x));
   if(v&&typeof v==="object"&&Object.getPrototypeOf(v)===Object.prototype){const o={}; for(const k in v){if(v[k]!==undefined) o[k]=fsClean(v[k]);} return o;} return v;}
+// Eigandi tíma/kostnaðar: starfsmaðurinn sem færslan er á (ef notandinn má skrá á aðra), annars notandinn sjálfur.
+const skEmail=sk=>sk?(window.nuUsers?nuUsers():[]).find(u=>u.sk===sk)?.email||null:null;
+const ownerOf=x=>(window.can&&can("fjarmal")?skEmail(x.starfsmadur||x.sk):null)||USER?.email||"";
 async function saveSnapshot(mut){
   if(!DB) throw {message:"Ekki tengt gagnagrunni."};
+  if(window.SPLIT) return saveSplit(mut);
   const prev=S, cur=structuredClone(S||{}); const ids=[]; ID_REC=ids; try{ mut(cur); } finally { ID_REC=null; } cur.uppfaert=new Date().toISOString();
   const clean=fsClean(cur); S=clean; render();
   // Firestore tekur ekki við „undefined“; hreinsað hér að ofan. Ef vistun mistekst samt er skjárinn færður til baka svo ekkert sýnist vistað sem er það ekki.
@@ -1797,6 +1804,24 @@ async function saveSnapshot(mut){
       .catch(e=>{ if(["unavailable","deadline-exceeded"].includes(e?.code)||navigator.onLine===false) viaSet(); else fail(e); }); }
     catch(e){ fail(e); throw e; }
   } else { try{ viaSet(); }catch(e){ fail(e); throw e; } }
+}
+// Vistun í söfn (frá 1.3.0): aðeins færslur sem breyttust eru skrifaðar, hver í sitt skjal.
+// Afgangurinn (stillingar, samtölur …) fer í app/state með færslu (transaction) eins og áður.
+function saveSplit(mut){
+  const prev=S, cur=structuredClone(S||{}); const ids=[]; ID_REC=ids; try{ mut(cur); } finally { ID_REC=null; }
+  const me=USER?.email||""; GOGN.stamp(prev,cur,me,ownerOf);
+  const clean=fsClean(cur); S=clean; render();
+  const fail=e=>{saveErr=e; if(S===clean){S=prev; render();} toast("Vistun mistókst – breytingin fór ekki upp. ("+(e?.code||e?.message||"villa")+")");};
+  const ops=GOGN.ops(prev,clean,me);
+  if(ops.length) DB.commit(ops).catch(fail);
+  if(!GOGN.restChanged(prev,clean)) return;
+  const restOf=c=>{const r=fsClean(GOGN.rest(c)); r.skipting=2; r.uppfaert=new Date().toISOString(); return r;};
+  const viaSet=()=>DB.set("app/state",restOf(clean)).catch(fail);
+  if(DB.tx&&navigator.onLine!==false){
+    DB.tx("app/state",fresh=>{const c=structuredClone(clean), r=GOGN.rest(fresh||{}); for(const k in r) c[k]=k==="timar"?{...r.timar,faerslur:c.timar?.faerslur||[]}:r[k]; ID_PLAY=ids.slice();
+      try{ mut(c); }catch(e){ return restOf({...GOGN.rest(fresh||{}),...GOGN.rest(clean)}); } finally { ID_PLAY=null; } return restOf(c);})
+      .catch(e=>{ if(["unavailable","deadline-exceeded"].includes(e?.code)||navigator.onLine===false) viaSet(); else fail(e); });
+  } else viaSet();
 }
 const sFindP=(s,id)=>(s.verkefni||[]).find(v=>v.id===id);
 const sFindU=(s,id)=>{for(const p of s.verkefni||[]){const u=(p.undirverk||[]).find(u=>u.id===id); if(u) return [p,u];} return [null,null];};
@@ -2055,7 +2080,7 @@ function projFolder(p){if(!SK?.moppur) return null; const k=Object.keys(SK.moppu
 function skrarHTML(p){
   if(window.MS&&MS.on()&&window.msSkrar) return msSkrar(p);
   const m=projFolder(p); if(!SK) return window.msMissing?`<div class="viewtitle">Skrár í OneDrive</div><div class="empty">Tengdu Microsoft til að sjá skrár verkefnisins.${msMissing()}</div>`:"";
-  if(!m) return `<div class="viewtitle">Skrár í OneDrive</div><div class="empty">Engin mappa fannst fyrir ${esc(p.nafn)} undir AERA/Verkefni.</div>`;
+  if(!m) return `<div class="viewtitle">Skrár í OneDrive</div><div class="empty">Engin mappa fannst fyrir ${esc(p.nafn)} undir ${esc(ORG.od.verkefni)}.</div>`;
   const item=(parts,it)=>{const isF=it.t==="f", ext=isF?(it.n.split(".").pop()||"").toLowerCase():"";
     return `<a class="lrow fl" href="${esc(odUrl(parts.concat(it.n),isF))}" target="_blank" rel="noopener"><div class="lm"><div class="lt">${isF?"":""}${esc(it.n)}</div><div class="ls">${esc([isF?(ODTYPE[ext]||ext.toUpperCase()):"Mappa",kb(it.s)].join(" · "))}</div></div><div class="lr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></div></a>`;};
   const rows=(m.atridi||[]).map(d=>{const parts=[m.k,d.n], has=d.s>0;
@@ -2071,8 +2096,29 @@ window.aeraStart=function(db){
     const me=nd?.notendur?.[USER?.email]; if(me&&USER&&!USER.varaleid){ if(me.virkur===false){toast("Aðgangur þinn hefur verið gerður óvirkur."); setTimeout(()=>aeraSignOut(),1500); return;} Object.assign(USER,{nafn:me.nafn||USER.nafn,sk:me.sk||USER.sk,hlutverk:me.hlutverk||USER.hlutverk}); }
     if(S) render();},()=>{}); document.getElementById("syncbtn").hidden=false; document.getElementById("logoutbtn").hidden=false; document.getElementById("fab").hidden=false;
   db.watch("app/skrar",s=>{SK=s.exists?s.data():null; if(S) render();},()=>{});
-  db.watch("app/state",s=>{PENDING=!!s.pending; if(s.exists){const nd=s.data(); if(JSON.stringify(nd)!==JSON.stringify(S)){S=nd; render(); openFromHash();} else drawSync(); if(!s.fromCache&&window.msTick) msTick();} else if(!s.fromCache) importView();},
-    e=>{document.getElementById("view").innerHTML=`<h2 class="big">Gögn ekki aðgengileg</h2><div class="empty">${esc(e?.code==="permission-denied"?"Þessi aðgangur hefur ekki leyfi til að lesa gögnin.":(e?.message||"Óþekkt villa"))}</div>`;});
+  // Gögnin: app/state + söfn. Gamla sniðið (allt í app/state) er lesið eins og áður þar til admin hefur flutt gögnin.
+  const P={state:null,cols:{},klukka:null,ready:new Set(),pend:{}}; let mode=null, migrating=false;
+  const showErr=e=>{document.getElementById("view").innerHTML=`<h2 class="big">Gögn ekki aðgengileg</h2><div class="empty">${esc(e?.code==="permission-denied"?"Þessi aðgangur hefur ekki leyfi til að lesa gögnin.":(e?.message||"Óþekkt villa"))}</div>`;};
+  const rebuild=()=>{ if(P.ready.size<GOGN.COLS.length+2) return; const nd=GOGN.join(P); PENDING=Object.values(P.pend).some(Boolean);
+    if(JSON.stringify(nd)!==JSON.stringify(S)){S=nd; render(); openFromHash();} else drawSync(); };
+  const startSplit=()=>{ if(mode==="split") return; mode="split"; window.SPLIT=true; const fj=window.can&&can("fjarmal");
+    for(const c of GOGN.COLS) db.watchCol(c.k, c.eigandi&&!fj?["eigandi",USER.email]:null,
+      r=>{P.cols[c.k]=r.docs; P.pend[c.k]=r.pending; P.ready.add(c.k); rebuild(); if(!r.fromCache&&window.msTick) msTick();},
+      e=>{console.warn("Safn "+c.k,e); P.cols[c.k]=P.cols[c.k]||[]; P.ready.add(c.k); rebuild();});
+    db.watch("klukka/"+USER.email, s=>{P.klukka=s.exists?s.data():null; P.ready.add("klukka"); rebuild();}, ()=>{P.ready.add("klukka"); rebuild();}); };
+  const migrateNow=async d=>{ migrating=true; toast("Flyt gögnin í nýtt snið…");
+    try{ await db.commit(GOGN.migrate(d,USER.email,x=>skEmail(x.starfsmadur||x.sk))); toast("Gögnin eru flutt í nýja sniðið"); }
+    catch(e){ migrating=false; console.warn("Flutningur",e); toast("Flutningur gagna mistókst: "+(e?.code||e?.message||"villa")); } };
+  db.watch("app/state",s=>{
+    if(!s.exists){ if(!s.fromCache) importView(); return; }
+    const d=s.data();
+    if(GOGN.isSplit(d)){ P.state=d; P.pend.state=!!s.pending; P.ready.add("state"); startSplit(); rebuild(); return; }
+    if(mode==="split") return; // eldra snið birtist ekki aftur eftir flutning
+    mode="legacy"; window.SPLIT=false; PENDING=!!s.pending;
+    if(JSON.stringify(d)!==JSON.stringify(S)){S=d; render(); openFromHash();} else drawSync();
+    if(!s.fromCache&&!migrating&&!s.pending&&window.can&&can("notendur")&&Array.isArray(d.verkefni)) migrateNow(d);
+    if(!s.fromCache&&window.msTick) msTick();
+  }, showErr);
 };
 document.getElementById("fab").hidden=true;
 </script>

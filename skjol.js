@@ -17,9 +17,9 @@
   const badge = x => { const s = SN[x.snid] || SN.tengill; return `<span class="dbadge" style="--dc:${s.c}">${s.b}</span>`; };
   const where = x => x.stadur === "stofa" ? "Stofa" + (x.mappa ? " › " + x.mappa : "") : x.stadur === "verk" ? ((findProj(x.projectId)?.nr || "Verkefni") + (x.mappa ? " › " + x.mappa : "")) : "Óflokkað";
   const dirOf = async (stadur, pid, mappa) => {
-    if (stadur === "stofa") return "AERA/Stofa/" + (mappa || "Skjöl");
+    if (stadur === "stofa") return ORG.od.stofa + "/" + (mappa || "Skjöl");
     if (stadur === "verk") { const p = findProj(pid); const pre = (mappa || "02").slice(0, 2); return await msProjSub(p, /^\d\d$/.test(pre) ? pre : "__", mappa || "02 Vinnuskjöl"); }
-    return "AERA/Verkefni/Óflokkað";
+    return ORG.od.verkefni + "/" + ORG.od.oflokkad;
   };
   const row = x => lrow("skjal:" + x.id, { lead: badge(x), title: esc(x.name), sub: esc([where(x), fmtDate(x.breytt || x.stofnad)].filter(Boolean).join(" · ")), right: x.stadur === "oflokkad" && MCP ? `<button type="button" class="btn" data-act="skflokka:${esc(x.id)}" style="padding:6px 12px;min-height:34px">Flokka</button>` : "" });
 

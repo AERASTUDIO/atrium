@@ -3,7 +3,7 @@
    Nýir póstar í tengdum þræði birtast sjálfkrafa á síðu verkefnisins því þráðurinn er sóttur beint úr pósthólfinu. */
 (function () {
   const SEL = "$select=id,subject,from,receivedDateTime,bodyPreview,webLink,isRead,hasAttachments,conversationId";
-  const FOLD = [["inbox", "Innhólf"], ["aera", "AERA"], ["sentitems", "Sent"], ["tengilidir", "Tengiliðir"]];
+  const FOLD = [["inbox", "Innhólf"], ["aera", ORG.postmappa], ["sentitems", "Sent"], ["tengilidir", "Tengiliðir"]];
   let fold = "inbox", q = "", list = null, next = null, loading = false, err = null, aeraId = null, target = null; // target = verkefni sem verið er að finna pósta fyrir
   const MSG = {}, ATT = {};
   const msOn = () => !!(window.MS && MS.on());
@@ -33,7 +33,7 @@
 
   async function folderPath() {
     if (fold !== "aera") return `/me/mailFolders/${fold}/messages`;
-    if (!aeraId) { const f = encodeURIComponent("displayName eq 'AERA'"); let xs = (await MS.g(`/me/mailFolders?$filter=${f}&$select=id`)).value; if (!xs.length) xs = (await MS.g(`/me/mailFolders/inbox/childFolders?$filter=${f}&$select=id`)).value; if (!xs.length) throw new Error("Engin póstmappa sem heitir AERA."); aeraId = xs[0].id; }
+    if (!aeraId) { const f = encodeURIComponent(`displayName eq '${ORG.postmappa.replace(/'/g, "''")}'`); let xs = (await MS.g(`/me/mailFolders?$filter=${f}&$select=id`)).value; if (!xs.length) xs = (await MS.g(`/me/mailFolders/inbox/childFolders?$filter=${f}&$select=id`)).value; if (!xs.length) throw new Error("Engin póstmappa sem heitir ${ORG.postmappa}."); aeraId = xs[0].id; }
     return `/me/mailFolders/${aeraId}/messages`;
   }
   async function load(more) {
@@ -218,16 +218,16 @@
   const SIGKEY = () => window.USER?.email || "";
   const SIG = () => {
     const own = (CFG().undirskriftir || {})[SIGKEY()];
-    const first = !window.USER || window.USER.varaleid || window.USER.email === "dagur@aerastudio.is";
-    const base = first ? { nafn: "Dagur Fannar Möller", titillIS: "Eigandi", titillEN: "Owner", netfang: "aerastudioice@gmail.com", ...(CFG().undirskrift || {}) }
+    const first = !window.USER || window.USER.varaleid || window.USER.email === ORG.admin.email;
+    const base = first ? { nafn: ORG.admin.nafn, titillIS: ORG.admin.titillIS || "", titillEN: ORG.admin.titillEN || "", netfang: ORG.admin.email, ...(CFG().undirskrift || {}) }
                        : { nafn: window.USER?.nafn || MS.user()?.name || "", titillIS: "", titillEN: "", netfang: window.USER?.email || "" };
-    return { kvedja: "Kveðja / Best regards", fyrirtaeki: "AERA Studio", simi: "", vefur: "", ...base, ...(own || {}) };
+    return { kvedja: "Kveðja / Best regards", fyrirtaeki: ORG.nafn, simi: "", vefur: "", ...base, ...(own || {}) };
   };
-  const LOGO_URL = "https://aerastudio.github.io/aera-app/icons/sig-logo.png", LOGO_CID = "aeralogo@aerastudio";
+  const LOGO_URL = ORG.appUrl + ORG.sigLogo, LOGO_CID = "logo@" + ORG.len;
   window.poSigHTML = (logo, o) => { const g = { ...SIG(), ...(o || {}) }, E = x => esc(x || ""), web = String(g.vefur || "").replace(/^https?:\/\//, "");
     return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Poppins,Calibri,Arial,Helvetica,sans-serif;color:#121416">
 ${g.kvedja ? `<tr><td colspan="2" style="padding:0 0 14px 0;font-size:10.5pt;color:#121416">${E(g.kvedja)},</td></tr>` : ""}
-<tr><td style="padding:0 16px 0 0;vertical-align:middle"><img src="${logo}" width="140" height="44" alt="AERA Studio" style="display:block;border:0;width:140px;height:44px"></td>
+<tr><td style="padding:0 16px 0 0;vertical-align:middle"><img src="${logo}" width="140" height="44" alt="${E(ORG.nafn)}" style="display:block;border:0;width:140px;height:44px"></td>
 <td style="border-left:2px solid #2F3742;padding:2px 0 2px 16px;vertical-align:middle;font-size:10pt;line-height:15pt">
 <span style="font-size:11.5pt;font-weight:bold;color:#121416">${E(g.nafn)}</span><br>
 <span style="color:#7C8896">${[g.titillIS, g.titillEN].filter(Boolean).map(E).join(" &middot; ")}</span><br>
@@ -249,7 +249,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
       <div class="two">${f("titillIS", "Starfsheiti (íslenska)")}${f("titillEN", "Starfsheiti (enska)")}</div>
       ${f("fyrirtaeki", "Fyrirtæki")}
       <div class="two">${f("netfang", "Netfang", 'type="email"')}${f("simi", "Sími (valfrjálst)", 'inputmode="tel" placeholder="+354 …"')}</div>
-      ${f("vefur", "Vefsíða (valfrjálst)", 'placeholder="aerastudio.is"')}
+      ${f("vefur", "Vefsíða (valfrjálst)", 'placeholder="' + esc(ORG.vefur || "") + '"')}
       <div class="links"><button type="button" class="btn" data-act="posigsave">Vista undirskrift</button><button type="button" class="btn" data-act="posigcopy">Afrita fyrir Outlook</button></div>
       <p class="hint" style="margin-top:6px">„Afrita fyrir Outlook“ setur undirskriftina á klippiborðið. Límdu hana svo í Outlook › Stillingar › Undirskriftir til að nota hana líka þar.</p>`; };
   const sgRead = () => { const o = {}; ["kvedja", "nafn", "titillIS", "titillEN", "fyrirtaeki", "netfang", "simi", "vefur"].forEach(k => { const el = document.getElementById("sg-" + k); if (el) o[k] = el.value.trim(); }); return o; };

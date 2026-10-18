@@ -85,7 +85,7 @@ function sampleState() {
     timar: { faerslur },
     netfangaskra: [],
     stillingar: {
-      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }],
+      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }],
       vikumark: 40,
       reikn: { nafn: "AERA Studio (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@aera.example", simi: "", banki: "", timagjald: 14900, vsk: 24, frestur: 14, nastaNr: 1003 },
       undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@aera.example" }
@@ -93,33 +93,51 @@ function sampleState() {
   };
 }
 
-// Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar).
+// Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar), ?demo=bokari = bókari (Sigrún).
 const now = new Date().toISOString();
 const notendur = { notendur: {
   "jona@aera.example": { nafn: "Jóna Jónsdóttir", sk: "JJ", hlutverk: "admin", virkur: true, stofnad: iso(-30), breytt: iso(-30), sidast: now },
   "gunnar@aera.example": { nafn: "Gunnar Gunnarsson", sk: "GG", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-20), breytt: iso(-20), sidast: iso(-1) },
-  "helga@aera.example": { nafn: "Helga Sigurðardóttir", sk: "HS", hlutverk: "starfsmadur", virkur: false, stofnad: iso(-60), breytt: iso(-5), sidast: iso(-9) }
+  "helga@aera.example": { nafn: "Helga Sigurðardóttir", sk: "HS", hlutverk: "starfsmadur", virkur: false, stofnad: iso(-60), breytt: iso(-5), sidast: iso(-9) },
+  "sigrun@aera.example": { nafn: "Sigrún Bókari", sk: "SB", hlutverk: "bokari", virkur: true, stofnad: iso(-10), breytt: iso(-10), sidast: iso(-2) }
 } };
-const asStaff = new URLSearchParams(location.search).get("demo") === "starfsmadur";
-const email = asStaff ? "gunnar@aera.example" : "jona@aera.example";
+const demoRole = new URLSearchParams(location.search).get("demo");
+const email = demoRole === "starfsmadur" ? "gunnar@aera.example" : demoRole === "bokari" ? "sigrun@aera.example" : "jona@aera.example";
 const user = { email, ...notendur.notendur[email] };
 
-// Gagnagrunnur í minni: sama viðmót og firebase.js lætur appið fá (get / set / tx / watch).
+// Gagnagrunnur í minni: sama viðmót og firebase.js lætur appið fá (get / set / tx / watch / commit / watchCol).
+// Sýnigögnin byrja í gamla sniðinu (allt í app/state) svo flutningurinn yfir í söfn keyrir líka í sýniútgáfunni (hjá admin).
+// Sýniútgáfan líkir eftir aðgangsreglum: starfsmaður sér aðeins sína tíma og sinn kostnað.
 const store = { "app/state": sampleState(), "app/notendur": notendur };
-const watchers = {};
+const watchers = {}, colw = {};
 const snap = path => ({ exists: store[path] != null, data: () => structuredClone(store[path]), pending: false, fromCache: false });
+const notify = path => { (watchers[path] || []).forEach(cb => cb(snap(path))); const seg = path.split("/"); if (seg.length === 2 && seg[0] !== "app") (colw[seg[0]] || []).forEach(f => f()); };
 const db = {
   email,
   async get(path) { return snap(path); },
   user,
-  async set(path, data) { store[path] = structuredClone(data); (watchers[path] || []).forEach(cb => cb(snap(path))); },
+  async set(path, data) { store[path] = structuredClone(data); notify(path); },
   async tx(path, fn) { const out = fn(structuredClone(store[path] || {})); await this.set(path, out); return out; },
-  watch(path, cb) { (watchers[path] = watchers[path] || []).push(cb); setTimeout(() => cb(snap(path)), 0); return () => {}; }
+  async commit(list) { list.forEach(o => { if (o.del) delete store[o.path]; else store[o.path] = structuredClone(o.data); }); [...new Set(list.map(o => o.path))].forEach(notify); },
+  watch(path, cb) { (watchers[path] = watchers[path] || []).push(cb); setTimeout(() => cb(snap(path)), 0); return () => {}; },
+  watchCol(name, filter, cb, onErr) {
+    const fj = ["admin", "bokari"].includes(user.hlutverk), own = name === "timar" || name === "kostnadur";
+    const f = () => { if (own && !fj && !(filter && filter[0] === "eigandi" && filter[1] === email)) return onErr && onErr({ code: "permission-denied" });
+      cb({ docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])).filter(d => !filter || d[filter[0]] === filter[1]), pending: false, fromCache: false }); };
+    (colw[name] = colw[name] || []).push(f); setTimeout(f, 0); return () => {};
+  }
 };
+// Starfsmaður/bókari í sýniútgáfu: gögnin eru þegar flutt (admin flytur í raun einu sinni).
+if (user.hlutverk !== "admin") {
+  const sk2em = Object.fromEntries(Object.entries(notendur.notendur).map(([e, u]) => [u.sk, e]));
+  const ow = x => sk2em[x.starfsmadur || x.sk] || "jona@aera.example";
+  const go = () => { if (!window.GOGN) return setTimeout(go, 20); for (const o of GOGN.migrate(store["app/state"], "jona@aera.example", ow)) store[o.path] = structuredClone(o.data); window.aeraStart(db); };
+  go();
+}
 
 window.aeraSignOut = () => location.reload(); // „Endurstilla“ í sýniútgáfu
 document.querySelectorAll('[onclick="aeraSignOut()"]').forEach(b => { b.textContent = "Endurstilla sýniútgáfu"; });
 const v = document.getElementById("appver"); if (v) v.textContent = "Sýniútgáfa";
 document.title = "AERA Studio · sýniútgáfa";
-window.aeraStart(db);
+if (user.hlutverk === "admin") window.aeraStart(db);
 setTimeout(() => window.toast && toast("Sýniútgáfa með tilbúnum gögnum – breytingar vistast ekki"), 600);

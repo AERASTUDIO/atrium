@@ -3,7 +3,7 @@
    Gögn: S.reikningar[], S.stillingar.reikn{}, verkefni.timagjald, færsla.reikningur / kostnaður.reikningur = id reiknings. */
 (function () {
   const NONE = "_"; // lykill fyrir tíma/kostnað án verkefnis
-  const RK = () => ({ nafn: "AERA Studio", kt: "", heimilisfang: "", vsknr: "", banki: "", netfang: "", simi: "", vsk: 24, frestur: 14, nastaNr: 1001, timagjald: 0, ...(CFG().reikn || {}) });
+  const RK = () => ({ nafn: ORG.nafn, kt: "", heimilisfang: "", vsknr: "", banki: "", netfang: "", simi: "", vsk: 24, frestur: 14, nastaNr: 1001, timagjald: 0, ...(CFG().reikn || {}) });
   const reikningar = () => S?.reikningar || [];
   const findR = id => reikningar().find(r => r.id === id);
   const pidsOf = R => R.verkefniIds || (R.verkefniId ? [R.verkefniId] : []);
@@ -207,7 +207,7 @@
     const R = findR(id); if (!R) return;
     if (!(window.MS && MS.on())) { toast("Tengdu Microsoft í Stillingum til að vista í OneDrive."); return; }
     try {
-      const it = await msSaveFile("AERA/Stofa/Reikningar/" + String(R.dags || "").slice(0, 4), fileBase(R) + ".pdf", new Blob([invoicePdf(R)], { type: "application/pdf" }), "application/pdf", !!R.pdfId);
+      const it = await msSaveFile(ORG.od.reikningar + "/" + String(R.dags || "").slice(0, 4), fileBase(R) + ".pdf", new Blob([invoicePdf(R)], { type: "application/pdf" }), "application/pdf", !!R.pdfId);
       await saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.pdfUrl = it.webUrl; q.pdfId = it.id; } });
       toast(quiet ? "Reikningurinn vistaður í OneDrive (Stofa › Reikningar)" : "Vistað í OneDrive");
     } catch (e) { toast("Vistun í OneDrive tókst ekki: " + (e?.message || "villa")); }
@@ -248,6 +248,8 @@
     a.download = fileBase(R) + ".xlsx"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast("Reikningur sóttur sem Excel");
   }
 
+  // Reikningar: allir starfsmenn sjá þá, en aðeins admin og bókari búa til, breyta og senda (firestore.rules framfylgir).
+  const FJ = () => !!MCP && (!window.can || can("fjarmal"));
   /* ---------- Síða reiknings ---------- */
   window.rkDetail = function (R) {
     const greitt = R.stada === "Greitt", late = !greitt && daysTo(R.gjalddagi) < 0, ps = pidsOf(R).map(findProj).filter(Boolean), on = window.MS && MS.on();
@@ -255,11 +257,11 @@
       <h2 class="big" style="margin-top:6px">Nr. ${esc(String(R.nr))} · ${esc(R.kaupandi?.name || "")}</h2>
       <p class="sub">${ps.map(projLink).join(", ")}${ps.length ? " · " : ""}${esc(kr(R.tot))} með VSK</p>
       <div class="links"><button type="button" class="btn primary" data-act="rkpdf:${esc(R.id)}">Sækja PDF</button>
-        ${R.pdfUrl ? `<a class="btn" href="${esc(R.pdfUrl)}" target="_blank" rel="noopener">📁 Í OneDrive</a>` : on ? `<button type="button" class="btn" data-act="rkod:${esc(R.id)}">Vista í OneDrive</button>` : ""}
-        ${on ? `<button type="button" class="btn" data-act="rksend:${esc(R.id)}">✉ Senda${R.sent ? " aftur" : ""}</button>` : ""}<button type="button" class="btn" data-act="rkprint:${esc(R.id)}">Prenta</button><button type="button" class="btn" data-act="rkxlsx:${esc(R.id)}">Excel</button>
-        <button type="button" class="btn" data-act="rkpaid:${esc(R.id)}">${greitt ? "Merkja ógreitt" : "✓ Merkja greitt"}</button><button type="button" class="btn danger" data-act="rkdel:${esc(R.id)}">Eyða</button></div>
+        ${R.pdfUrl ? `<a class="btn" href="${esc(R.pdfUrl)}" target="_blank" rel="noopener">📁 Í OneDrive</a>` : on && FJ() ? `<button type="button" class="btn" data-act="rkod:${esc(R.id)}">Vista í OneDrive</button>` : ""}
+        ${on && FJ() ? `<button type="button" class="btn" data-act="rksend:${esc(R.id)}">✉ Senda${R.sent ? " aftur" : ""}</button>` : ""}<button type="button" class="btn" data-act="rkprint:${esc(R.id)}">Prenta</button><button type="button" class="btn" data-act="rkxlsx:${esc(R.id)}">Excel</button>
+        ${FJ() ? `<button type="button" class="btn" data-act="rkpaid:${esc(R.id)}">${greitt ? "Merkja ógreitt" : "✓ Merkja greitt"}</button><button type="button" class="btn danger" data-act="rkdel:${esc(R.id)}">Eyða</button>` : ""}</div>
       <div class="invwrap">${invoiceHTML(R)}</div>
-      ${R.pdfUrl ? `<p class="hint" style="margin-top:8px">PDF vistað í OneDrive: AERA › Stofa › Reikningar › ${esc(String(R.dags || "").slice(0, 4))}.${on ? ` <a class="plink" data-act="rkod:${esc(R.id)}">Vista aftur</a>` : ""}</p>` : ""}`;
+      ${R.pdfUrl ? `<p class="hint" style="margin-top:8px">PDF vistað í OneDrive: AERA › Stofa › Reikningar › ${esc(String(R.dags || "").slice(0, 4))}.${on && FJ() ? ` <a class="plink" data-act="rkod:${esc(R.id)}">Vista aftur</a>` : ""}</p>` : ""}`;
   };
   const rkRow = R => { const greitt = R.stada === "Greitt", late = !greitt && daysTo(R.gjalddagi) < 0, nrs = pidsOf(R).map(findProj).filter(Boolean).map(p => p.nr);
     return lrow("reikn:" + R.id, { lead: `<b>${esc(String(R.nr).slice(-3))}</b><small>nr.</small>`, title: esc(R.kaupandi?.name || ""), sub: esc([nrs.join(", "), dIS(R.dags), greitt ? "Greitt" : late ? "Fram yfir gjalddaga" : "Gjalddagi " + dIS(R.gjalddagi)].filter(Boolean).join(" · ")), right: `<span class="lc">${esc(kr(R.tot))}</span>` }); };
@@ -268,11 +270,11 @@
 
   window.rkProjSection = function (pid) {
     const { es, ks } = obilled(pid);
-    const box = es.length || ks.length ? `<div class="card rkopen"><div class="sub-i"><span>Óreikningsfært</span><b>${esc(hrs(sumT(es)))}${ks.length ? " + " + esc(kr(sumK(ks))) : ""}</b></div>${MCP ? `<button type="button" class="btn primary" data-act="rknew:${esc(pid)}" style="width:100%;margin-top:10px">Reikningsfæra</button>` : ""}</div>` : "";
+    const box = FJ() && (es.length || ks.length) ? `<div class="card rkopen"><div class="sub-i"><span>Óreikningsfært</span><b>${esc(hrs(sumT(es)))}${ks.length ? " + " + esc(kr(sumK(ks))) : ""}</b></div>${MCP ? `<button type="button" class="btn primary" data-act="rknew:${esc(pid)}" style="width:100%;margin-top:10px">Reikningsfæra</button>` : ""}</div>` : "";
     return (box ? `<div class="viewtitle">Reikningsfærsla</div>${box}` : "") + rkList(r => pidsOf(r).includes(pid), "Reikningar verkefnisins");
   };
   window.rkTimarSection = function () {
-    const gs = openGroups().sort((a, b) => sumT(b.es) - sumT(a.es));
+    const gs = FJ() ? openGroups().sort((a, b) => sumT(b.es) - sumT(a.es)) : [];
     const open = gs.length ? `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Óreikningsfært${MCP ? `<a class="plink" data-act="rknew:" style="margin-left:auto">+ Nýr reikningur</a>` : ""}</div>${llist(gs.map(g => `<div class="lrow"><div class="lm"><div class="lt">${g.p ? `<span class="nr">${esc(g.p.nr)}</span>&nbsp; ${esc(g.p.stutt)}` : "Án verkefnis (almennt)"}</div><div class="ls">${esc([g.es.length ? hrs(sumT(g.es)) : "", g.ks.length ? kr(sumK(g.ks)) + " kostnaður" : "", rate(g.p) ? "≈ " + kr(sumT(g.es) * rate(g.p) + sumK(g.ks)) + " án VSK" : ""].filter(Boolean).join(" · "))}</div></div>${MCP ? `<button type="button" class="btn" data-act="rknew:${esc(g.k)}" style="flex:none">Reikningsfæra</button>` : ""}</div>`))}` : "";
     return open + rkList(null, "Reikningar");
   };
@@ -294,11 +296,12 @@
 
   window.rkAct = function (k, r) {
     const id = r.join(":");
+    if (["rknew", "rkod", "rksend", "rkpaid", "rkdel", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpdf") { const R = findR(id); if (R) downloadPdf(R); return; }
     if (k === "rkod") { toast("Vista í OneDrive…"); saveToOneDrive(id, false); return; }
     if (k === "rksend") { const R = findR(id); if (!R || !window.poCompose) return; const bytes = invoicePdf(R), s = R.seljandi || {};
-      poCompose({ to: R.kaupandi?.netfang || "", subject: `Reikningur nr. ${R.nr} frá ${s.nafn || "AERA Studio"}`, pid: pidsOf(R)[0] || null,
+      poCompose({ to: R.kaupandi?.netfang || "", subject: `Reikningur nr. ${R.nr} frá ${s.nafn || ORG.nafn}`, pid: pidsOf(R)[0] || null,
         body: `Góðan dag,
 
 Meðfylgjandi er reikningur nr. ${R.nr} að upphæð ${kr(R.tot)} með gjalddaga ${dIS(R.gjalddagi)}.${s.banki ? `

@@ -2,7 +2,7 @@
    fundargerðir (.docx) og póstar úr Outlook-möppunni „AERA“. Notar window.MS (ms.js). */
 (function () {
   if (!window.MS || window.__aeraPopup) return;
-  const ROOT = "AERA/Verkefni", OFLOKKAD = "Óflokkað", FUNDAMAPPA = "08 Samskipti og fundir";
+  const ROOT = ORG.od.verkefni, OFLOKKAD = ORG.od.oflokkad, FUNDAMAPPA = "08 Samskipti og fundir";
   const STD = ["01 Móttekið", "02 Vinnuskjöl", "03 Módel", "04 Teikningar", "05 Lýsing", "06 3D Render", "07 Útgefin Gögn", "08 Samskipti og fundir"];
   const encP = s => s.split("/").map(encodeURIComponent).join("/");
   const safe = s => String(s || "").replace(/["*:<>?/\\|]/g, "-").replace(/\s+/g, " ").trim().replace(/[. ]+$/, "");
@@ -168,8 +168,8 @@
   async function ensureDir(dir) { const parts = dir.split("/").filter(Boolean); let cur = parts.shift(), it = null;
     for (const p of parts) { it = await mkFolder(cur, p); cur += "/" + p; } return it || MS.g(`/me/drive/root:/${encP(cur)}`); }
   window.msProjSub = projSub;
-  window.msStofa = async () => (await all(`/me/drive/root:/${encP("AERA/Stofa")}:/children?$select=name,folder&$top=200`)).filter(i => i.folder).map(i => i.name).sort((a, b) => a.localeCompare(b, "is"));
-  window.msSnidmat = async ext => (await all(`/me/drive/root:/${encP("AERA/Stofa/Sniðmát")}:/children?$select=id,name,file&$top=200`).catch(() => [])).filter(i => i.file && i.name.toLowerCase().endsWith(ext));
+  window.msStofa = async () => (await all(`/me/drive/root:/${encP(ORG.od.stofa)}:/children?$select=name,folder&$top=200`)).filter(i => i.folder).map(i => i.name).sort((a, b) => a.localeCompare(b, "is"));
+  window.msSnidmat = async ext => (await all(`/me/drive/root:/${encP(ORG.od.snidmat)}:/children?$select=id,name,file&$top=200`).catch(() => [])).filter(i => i.file && i.name.toLowerCase().endsWith(ext));
   // Nýtt Office-skjal: afrit af sniðmáti (id í OneDrive) eða tómu skjali úr appinu
   window.msNewOffice = async function (dir, name, ext, templateId) {
     let blob;
@@ -217,7 +217,7 @@
   let MF = null, lastMail = 0;
   async function mailFolder() {
     if (MF) return MF;
-    const q = "$filter=" + encodeURIComponent("displayName eq 'AERA'") + "&$select=id,displayName";
+    const q = "$filter=" + encodeURIComponent(`displayName eq '${ORG.postmappa.replace(/'/g, "''")}'`) + "&$select=id,displayName";
     let xs = (await MS.g(`/me/mailFolders?${q}`)).value;
     if (!xs.length) xs = (await MS.g(`/me/mailFolders/inbox/childFolders?${q}`)).value;
     if (!xs.length) throw new Error("Fann ekki póstmöppuna „AERA“ í Outlook.");

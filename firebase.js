@@ -3,7 +3,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction }
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { firebaseConfig, MS_TENANT, MS_DOMAIN, ADMIN, LEGACY_EMAILS } from "./firebase-config.js";
 
@@ -105,6 +105,20 @@ onAuthStateChanged(auth, async user => {
         const s = await t.get(ref(path)); const out = fn(s.exists() ? s.data() : {});
         t.set(ref(path), out); return out;
       });
+    },
+    // Mörg skrif í einu (hópur): set eða delete á einstök skjöl. Skipt í búta (Firestore leyfir 500 í hóp); síðasta skrifið fer síðast.
+    async commit(list) {
+      for (let i = 0; i < list.length; i += 400) {
+        const b = writeBatch(fs);
+        for (const o of list.slice(i, i + 400)) o.del ? b.delete(ref(o.path)) : b.set(ref(o.path), o.data);
+        await b.commit();
+      }
+    },
+    // Fylgist með heilu safni (t.d. "verkefni"), mögulega síuðu: filter = [reitur, gildi] (t.d. ["eigandi", netfang]).
+    watchCol(name, filter, cb, onErr) {
+      const q = filter ? query(collection(fs, name), where(filter[0], "==", filter[1])) : collection(fs, name);
+      return onSnapshot(q, { includeMetadataChanges: true },
+        s => cb({ docs: s.docs.map(d => d.data()), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);
     },
     watch(path, cb, onErr) {
       return onSnapshot(ref(path), { includeMetadataChanges: true },

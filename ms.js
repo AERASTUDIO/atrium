@@ -2,12 +2,12 @@
 // Innskráning: OAuth 2.0 með PKCE (engin leyndarmál í kóðanum). Lyklar geymast aðeins á þessu tæki.
 (function () {
   const CFG = {
-    clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", // „AERA app“ í Entra hjá aerastudio.is
-    tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f",  // AERA Studio ehf
+    clientId: window.ORG.ms.clientId, // Entra-forrit fyrirtækisins (fyrirtaeki.js)
+    tenant: window.ORG.ms.tenant,
     scopes: "openid profile offline_access User.Read Files.ReadWrite Mail.Read Mail.Send",
     base: "openid profile offline_access User.Read Files.ReadWrite Mail.Read"
   };
-  const REDIRECT = location.hostname === "aerastudio.github.io" ? "https://aerastudio.github.io/aera-app/" : location.origin + location.pathname;
+  const REDIRECT = window.ORG.appUrl && location.href.startsWith(window.ORG.appUrl) ? window.ORG.appUrl : location.origin + location.pathname;
   const AUTH = `https://login.microsoftonline.com/${CFG.tenant}/oauth2/v2.0`;
   const KEY = "aera_ms", PK = "aera_ms_pkce", RES = "aera_ms_res";
   const ls = { get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } },

@@ -4,8 +4,10 @@
 // Athugið: það sem appið felur á skjánum er ekki vörn. Raunveruleg vörn er í firestore.rules.
 (function () {
   window.ROLES = {
-    admin:       { heiti: "Admin",      notendur: true,  stillingar: true  },
-    starfsmadur: { heiti: "Starfsmaður", notendur: false, stillingar: false }
+    // fjarmal: býr til og breytir reikningum, sér tíma og kostnað allra (firestore.rules framfylgir því sama)
+    admin:       { heiti: "Admin",       notendur: true,  stillingar: true,  fjarmal: true  },
+    bokari:      { heiti: "Bókari",      notendur: false, stillingar: false, fjarmal: true  },
+    starfsmadur: { heiti: "Starfsmaður", notendur: false, stillingar: false, fjarmal: false }
   };
   let NU = null; // app/notendur
   window.USER = null; // innskráður notandi {email, nafn, sk, hlutverk, varaleid}
@@ -15,7 +17,7 @@
   window.nuSet = d => { NU = d; };
 
   const lc = s => String(s || "").trim().toLowerCase();
-  const DOMAIN = "aerastudio.is";
+  const DOMAIN = ORG.len;
   const roleName = r => ROLES[r]?.heiti || r;
   const MN = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."], p2 = n => String(n).padStart(2, "0");
   const when = t => { if (!t) return "aldrei"; const x = new Date(t); return `${x.getDate()}. ${MN[x.getMonth()]} ${x.getFullYear()} kl. ${p2(x.getHours())}:${p2(x.getMinutes())}`; };
