@@ -235,17 +235,21 @@
     return cand.length === 1 ? cand[0].id : null;
   }
   window.msGuessProj = guessProj;
+  // AERA-póstmappan: þræðir sem passa við verkefni eru tengdir sjálfkrafa (tilvísun, ekki afrit);
+  // aðrir þræðir birtast sem óflokkaðir (window.MS_OFL) þar til þeir eru tengdir.
   async function postar(manual) {
     const fid = await mailFolder();
-    const ms = await MS.g(`/me/mailFolders/${fid}/messages?$top=50&$orderby=receivedDateTime%20desc&$select=id,subject,from,receivedDateTime,bodyPreview,webLink`);
+    const ms = (await MS.g(`/me/mailFolders/${fid}/messages?$top=50&$orderby=receivedDateTime%20desc&$select=id,subject,from,receivedDateTime,bodyPreview,webLink,conversationId`)).value || [];
     lastMail = Date.now();
-    const have = S?.postar || [];
-    const known = m => have.some(x => x.gid === m.id || (x.url && x.url === m.webLink) || (x.efni === (m.subject || "") && String(x.dags || "").slice(0, 10) === String(m.receivedDateTime || "").slice(0, 10)));
-    const nyir = (ms.value || []).filter(m => !known(m)).map(m => ({ id: newId(), gid: m.id, efni: m.subject || "(ekkert efni)", fra: m.from?.emailAddress?.name || m.from?.emailAddress?.address || "",
-      dags: m.receivedDateTime, url: m.webLink, brot: (m.bodyPreview || "").slice(0, 240), verkefniId: guessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address) }));
-    if (nyir.length) await saveSnapshot(s => { s.postar = (s.postar || []).concat(nyir); });
-    if (manual) toast(nyir.length ? `${nyir.length} ${nyir.length === 1 ? "nýr póstur" : "nýir póstar"}` : "Engir nýir póstar");
-    return nyir.length;
+    const tengt = new Set((S?.thraedir || []).map(t => t.conv)), seen = new Set(), ofl = [], auto = [];
+    for (const m of ms) { const c = m.conversationId; if (!c || tengt.has(c) || seen.has(c)) continue; seen.add(c);
+      const pid = guessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address);
+      if (pid) auto.push({ c, pid, efni: m.subject }); else ofl.push(m); }
+    for (const a of auto) await poLinkConv(a.c, a.pid, a.efni, "sjálfvirkt");
+    window.MS_OFL = ofl; render();
+    if (window.poMigrate) poMigrate().catch(e => console.warn("Flutningur pósta", e));
+    if (manual) toast(auto.length ? `${auto.length} ${auto.length === 1 ? "þráður tengdur" : "þræðir tengdir"} sjálfkrafa` : ofl.length ? `${ofl.length} óflokkaðir þræðir` : "Engir nýir póstar");
+    return auto.length;
   }
 
   /* ---------- Sjálfvirk vinnsla þegar tengt ---------- */
@@ -262,7 +266,7 @@
           VK = null;
         } catch (e) { console.warn("Mappa", e); break; }
       }
-      if (Date.now() - lastMail > 15 * 60 * 1000) await postar(false).catch(e => console.warn("Póstar", e));
+      if (Date.now() - lastMail > 5 * 60 * 1000) await postar(false).catch(e => console.warn("Póstar", e));
     } finally { ticking = false; }
   };
 

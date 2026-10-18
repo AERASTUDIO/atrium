@@ -70,13 +70,18 @@ function sampleState() {
     { id: "s1", name: "Tilboð – sýningarlýsing", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p3", mappa: "01 Móttekið", stofnad: iso(-6), breytt: iso(-3) },
     { id: "s2", name: "Verklýsing anddyri", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p1", mappa: "02 Vinnuskjöl", stofnad: iso(-11), breytt: iso(-1) }
   ];
-  const postar = [
-    { id: "m1", efni: `${yr}-21 Loftaplan anddyris`, fra: "Ólafur Árnason", dags: iso(-1), url: null, brot: "Sæll, loftaplanið kemur á morgun…", verkefniId: "p1" },
-    { id: "m2", efni: "Fyrirspurn um útilýsingu", fra: "Katrín Jónsdóttir", dags: iso(0), url: null, brot: "Gætuð þið skoðað lýsingu á bílastæði…", verkefniId: null }
+  // Póstþræðir: aðeins tilvísun í conversationId; póstarnir sjálfir eru sóttir úr pósthólfinu.
+  const thraedir = [
+    { id: "t1", conv: "demo-conv-1", verkefniId: "p1", efni: `${yr}-21 Loftaplan anddyris`, tengt: iso(-1), af: "sjálfvirkt" }
   ];
+  // Eldri afrit úr gamla pósthólfinu sem fundust ekki
+  const postar = [
+    { id: "m1", efni: "Ljósaval í móttöku", fra: "Ólafur Árnason", dags: iso(-40), url: null, verkefniId: "p1", ekkiFannst: true }
+  ];
+  window.MS_OFL = [{ id: "demo-m2", conversationId: "demo-conv-2", subject: "Fyrirspurn um útilýsingu", from: { emailAddress: { name: "Katrín Jónsdóttir", address: "katrin@example.is" } }, receivedDateTime: iso(0), bodyPreview: "Gætuð þið skoðað lýsingu á bílastæði…" }];
   return {
     uppfaert: new Date().toISOString(),
-    verkefni, fundir, vidskiptavinir: vsk, skjol, kostnadur, reikningar, postar,
+    verkefni, fundir, vidskiptavinir: vsk, skjol, kostnadur, reikningar, postar, thraedir,
     timar: { faerslur },
     netfangaskra: [],
     stillingar: {

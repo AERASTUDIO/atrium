@@ -565,7 +565,8 @@ const SECTIONS=[
   {k:"verkefni",l:"Verkefni",ic:TABDEF.find(t=>t[0]==="verk")[2],tabs:[["verk","Verkefni"],["undir","Undirverk"],["vsk","Viðskiptavinir"],["skjol","Skjöl"]]},
   {k:"dagatal",l:"Dagatal",ic:TABDEF.find(t=>t[0]==="dagatal")[2],tabs:[["dagatal","Dagatal"],["fundir","Fundir"]]},
   {k:"timar",l:"Tímar",ic:TABDEF.find(t=>t[0]==="timar")[2],tabs:[["timar","Vikan"],["tfaer","Færslur"],["tskyr","Skýrslur"],["trk","Reikningar"]]},
-  {k:"meira",l:"Meira",ic:IC('<circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>'),tabs:[["meira","Meira"],["postur","Póstur",1],["stillingar","Stillingar",1]]}];
+  {k:"postur",l:"Póstur",ic:TABDEF.find(t=>t[0]==="postur")[2],tabs:[["postur","Póstur"]]},
+  {k:"meira",l:"Meira",ic:IC('<circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>'),tabs:[["meira","Meira"],["stillingar","Stillingar",1]]}];
 const TABS=SECTIONS.flatMap(x=>x.tabs.map(t=>t[0]));
 const secOf=t=>SECTIONS.find(x=>x.tabs.some(y=>y[0]===t))||SECTIONS[0];
 const tabTitle=t=>secOf(t).tabs.find(y=>y[0]===t)?.[1]||"";
@@ -590,7 +591,7 @@ const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
-const APP_VERSION="1.2.1"; document.getElementById("appver").textContent="v"+APP_VERSION;
+const APP_VERSION="1.2.2"; document.getElementById("appver").textContent="v"+APP_VERSION;
 {const hd=document.querySelector("header"); const setH=()=>document.documentElement.style.setProperty("--hh",hd.getBoundingClientRect().height+"px"); setH(); try{new ResizeObserver(setH).observe(hd);}catch(e){addEventListener("resize",setH);}}
 let S=null, tab="yfirlit", DB=null, MCP=null, DETAIL=null, listScroll=0;
 try{const t=localStorage.getItem("aera-tab"); if(TABS.includes(t)) tab=t;}catch(e){}
@@ -724,9 +725,9 @@ function vYfirlit(sub="heim"){
   const waiting=verkefni().filter(p=>p.stada===STODUR()[0]?.n);
   const feed=[...faerslur().map(e=>({w:String(e.date||"")+"T"+(e.til||e.fra||"12:00"),ic:"⏱",h:lrow("time:"+e.id,{lead:EI.time,title:esc(cleanLys(e.lysing)),sub:esc([fmtDate(e.date),(findProj(e.verkefniId)||projByNr(e.nr))?.stutt].filter(Boolean).join(" · ")),right:`<span class="lc">${esc(hrs(e.timar))}</span>`})})),
     ...verkefni().flatMap(p=>(p.athugasemdir||[]).map(c=>({w:c.d,h:lrow("verk:"+p.id,{lead:EI.chat,title:esc(c.t.length>70?c.t.slice(0,70)+"…":c.t),sub:esc(p.stutt+" · "+fmtDate(c.d))})}))),
-    ...(S?.postar||[]).map(m=>({w:m.dags,h:`<a class="lrow fl" href="${esc(m.url||"#")}" target="_blank" rel="noopener"><div class="ll">${EI.mail}</div><div class="lm"><div class="lt">${esc(m.efni)}</div><div class="ls">${esc([m.fra,fmtDate(m.dags),findProj(m.verkefniId)?.stutt].filter(Boolean).join(" · "))}</div></div></a>`}))]
+    ...(S?.thraedir||[]).map(t=>({w:t.tengt,h:lrow("verk:"+t.verkefniId,{lead:EI.mail,title:esc(t.efni||"Póstþráður"),sub:esc(["Þráður tengdur",findProj(t.verkefniId)?.stutt,fmtDate(t.tengt)].filter(Boolean).join(" · "))})}))]
     .sort((a,b)=>String(b.w).localeCompare(String(a.w))).slice(0,6);
-  const unass=(S?.postar||[]).filter(m=>!m.verkefniId);
+  const unass=(window.MS_OFL||[]);
   const P_hello=`${klukkaBanner()}<h2 class="hello">${greet}${first?", "+esc(first):""}</h2>
   <p class="sub">${late.length?`<b style="color:var(--ink)">${late.length} ${late.length===1?"atriði komið":"atriði komin"} fram yfir</b> · `:""}${active().length} verkefni í gangi · ${openSubs.length} opin undirverk</p>
   <div class="hero">${ring}${agenda}${nextCard}</div>`;
@@ -738,7 +739,7 @@ function vYfirlit(sub="heim"){
     TODO_N=R.length; return R.length?`<div class="viewtitle">Til að ganga frá</div>${llist(R)}`:"";})()}`;
   const P_act=`  ${act.length?`<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Verkefni í gangi · ${act.length}<a class="plink" data-act="tab:verk" style="margin-left:auto">Sjá öll</a></div><div class="pcards">${act.map(pc).join("")}</div>`:""}`;
   const P_wait=`  ${waiting.length?`<div class="viewtitle">Bíða svars · ${waiting.length}</div>${llist(waiting.map(p=>lrow("verk:"+p.id,{title:`<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt)}`,sub:esc(vkName(p)||vsName(p)||""),right:statusPill(p.stada)})))}`:""}`;
-  const P_unass=`  ${unass.length?`<div class="viewtitle">Óflokkaðir póstar · ${unass.length}</div>${llist(unass.map(m=>`<div class="lrow"><div class="ll">${EI.mail}</div><div class="lm"><a class="lt plink" href="${esc(m.url||"#")}" target="_blank" rel="noopener">${esc(m.efni)}</a><div class="ls">${esc([m.fra,fmtDate(m.dags)].filter(Boolean).join(" · "))}</div></div><select data-pasgn="${esc(m.id)}" aria-label="Tengja við verkefni" style="width:auto;max-width:150px;padding:6px 8px;font-size:13px"><option value="">Tengja við…</option>${active().map(p=>`<option value="${esc(p.id)}">${esc(p.nr)}</option>`).join("")}</select></div>`))}`:""}`;
+  const P_unass=`  ${unass.length?`<div class="viewtitle">Óflokkaðir þræðir í AERA-möppunni · ${unass.length}</div>${llist(unass.map(m=>`<div class="lrow"><div class="ll">${EI.mail}</div><div class="lm tap" ${tapAttr("post",m.id)}><div class="lt">${esc(m.subject||"(ekkert efni)")}</div><div class="ls">${esc([m.from?.emailAddress?.name||m.from?.emailAddress?.address,fmtDate(m.receivedDateTime)].filter(Boolean).join(" · "))}</div></div><select data-polink="${esc(m.id)}" aria-label="Tengja þráð við verkefni" style="width:auto;max-width:150px;padding:6px 8px;font-size:13px"><option value="">Tengja við…</option>${active().map(p=>`<option value="${esc(p.id)}">${esc(p.nr)}</option>`).join("")}</select></div>`))}`:(window.MS&&MS.on&&!MS.on()?`<div class="empty">Tengdu Microsoft til að sjá óflokkaða pósta.</div>`:"")}`;
   const P_fram7=`  <div class="viewtitle">Framundan · næstu 7 dagar</div>${(()=>{const w=up.filter(i=>{const n=daysTo(i.when);return n>=0&&n<=7;}); return w.length?llist(w.map(i=>lrow(i.open,{lead:(()=>{const x=d(i.when); return x?`<b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small>`:"–";})(),title:esc(i.title),sub:esc([i.kind,hhmm(i.when)?"kl. "+hhmm(i.when):"",i.nr].filter(Boolean).join(" · ")),right:relPill(daysTo(i.when))}))):`<div class="empty">Ekkert á dagskrá næstu viku.</div>`;})()}`;
   const P_feed=`  ${feed.length?`<div class="viewtitle">Nýlegt</div><div class="feed">${llist(feed.map(f=>f.h))}</div>`:""}`;
   const nFrag=late.length+TODO_N+waiting.length, w7=up.filter(i=>{const n=daysTo(i.when);return n>=0&&n<=7;}).length;
@@ -748,7 +749,6 @@ function vYfirlit(sub="heim"){
   if(sub==="nyl") return (P_unass+P_feed)||'<div class="empty">Ekkert nýlegt.</div>';
   return P_hello+`<div class="htiles">${tile("hfrag",nFrag,"Til að ganga frá",late.length?`<span class="hl">${late.length} fram yfir</span>`:"")}${tile("hfram",w7,"Framundan næstu 7 daga")}${tile("verk",act.length,"Verkefni í gangi")}${tile("hnyl",unass.length,unass.length===1?"Óflokkaður póstur":"Óflokkaðir póstar · nýlegt")}</div>`;
 }
-document.addEventListener("change",e=>{const id=e.target.dataset?.pasgn; if(id!=null&&e.target.value) saveSnapshot(s=>{const m=(s.postar||[]).find(x=>x.id===id); if(m) m.verkefniId=e.target.value;}).then(()=>toast("Póstur tengdur verkefni"));});
 /* Framundan (áður sér flipi, nú hluti af Yfirliti) */
 let showLater=false;
 /* ---------- Skeiðklukka (S.klukka samstillist milli tækja) ---------- */
@@ -1386,9 +1386,9 @@ function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB];
   const co=can("stillingar")?["folk","fyrir","vstill"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn</div><div class="mlist">${mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins",noch:1})}</div>`;}
-function vMeira(){const U=window.USER, un=(S?.postar||[]).filter(m=>!m.verkefniId).length, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
+function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
   return `${U?`<div class="mprof"><div class="mav" aria-hidden="true">${esc(U.sk||ini)}</div><div class="grow"><div style="font-size:16px">${esc(U.nafn||U.email)}</div><div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(U.email||"")} · ${esc((window.ROLES?.[U.hlutverk]?.heiti)||"")}</div></div></div>`:""}
-  <div class="mlist" style="margin-top:14px">${mrow("tab:postur","Póstur",{ic:EI.mail,v:un?un+" óflokkað":""})}${mrow("tab:stillingar","Stillingar",{ic:EIC('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>')})}${mrow("js:syncNow()","Sækja afrit af gögnum",{ic:EIC('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),noch:1})}</div>
+  <div class="mlist" style="margin-top:14px">${mrow("tab:stillingar","Stillingar",{ic:EIC('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>')})}${mrow("js:syncNow()","Sækja afrit af gögnum",{ic:EIC('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),noch:1})}</div>
   <button type="button" class="btn" style="width:100%;min-height:52px;margin-top:14px;border-radius:var(--r)" onclick="aeraSignOut()">${window.AERA_DEMO?"Endurstilla sýniútgáfu":"Skrá út"}</button>
   <div class="mfoot"><img src="icons/${document.documentElement.dataset.theme==="light"?"logo-ljos":"logo-dokk"}.svg" alt="AERA Studio"><span>Útgáfa ${esc(APP_VERSION)}</span></div>`;}
 /* ---------- Stillingar appsins ---------- */
@@ -1460,7 +1460,7 @@ function leitGroups(q){const w=fold(q).split(/\s+/).filter(Boolean);
   G.vsk=vskList().filter(c=>hit(c.name,c.tengilidur,c.stadur,c.netfang,c.kennitala)).map(c=>lrow("vsk:"+c.id,{title:esc(c.name),sub:esc([(c.hlutverk||[]).join(" og "),c.stadur].filter(Boolean).join(" · "))}));
   G.tima=faerslur().filter(e=>hit(e.lysing,e.nr)).sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(e=>lrow("time:"+e.id,{title:esc(cleanLys(e.lysing)),sub:esc([fmtDate(e.date),e.nr,hrs(e.timar)].filter(Boolean).join(" · "))}));
   G.skjal=(S?.skjol||[]).filter(x=>x.snid&&hit(x.name,x.mappa,findProj(x.projectId)?.nafn)).map(x=>lrow("skjal:"+x.id,{title:esc(x.name),sub:esc([{word:"Word",excel:"Excel",powerpoint:"PowerPoint",canva:"Canva",tengill:"Tengill"}[x.snid],findProj(x.projectId)?.nr||(x.stadur==="stofa"?"Stofa":"Óflokkað")].filter(Boolean).join(" · "))}));
-  G.post=(S?.postar||[]).filter(m=>hit(m.efni,m.fra,m.brot)).sort((a,b)=>String(b.dags).localeCompare(String(a.dags))).map(m=>m.gid&&window.MS&&MS.on()?lrow("post:"+m.gid,{lead:EI.mail,title:esc(m.efni),sub:esc([m.fra,fmtDate(m.dags),findProj(m.verkefniId)?.nr].filter(Boolean).join(" · "))}):`<a class="lrow fl" href="${esc(m.url||"#")}" target="_blank" rel="noopener"><div class="ll">${EI.mail}</div><div class="lm"><div class="lt">${esc(m.efni)}</div><div class="ls">${esc([m.fra,fmtDate(m.dags)].filter(Boolean).join(" · "))}</div></div></a>`);
+  G.post=(S?.thraedir||[]).filter(t=>hit(t.efni)).sort((a,b)=>String(b.tengt).localeCompare(String(a.tengt))).map(t=>lrow("verk:"+t.verkefniId,{lead:EI.mail,title:esc(t.efni||"Póstþráður"),sub:esc(["Póstþráður",findProj(t.verkefniId)?.nr].filter(Boolean).join(" · "))}));
   G.kostn=(S?.kostnadur||[]).filter(k=>hit(k.lysing,findProj(k.verkefniId)?.nafn)).sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(k=>lrow("kostn:"+k.id,{title:esc(k.lysing),sub:esc([fmtDate(k.date),findProj(k.verkefniId)?.nr,kr(k.upphaed)].filter(Boolean).join(" · "))}));
   G.reikn=(S?.reikningar||[]).filter(r=>hit(String(r.nr),r.kaupandi?.name,...(r.linur||[]).map(l=>l.lysing))).sort((a,b)=>(b.nr||0)-(a.nr||0)).map(r=>lrow("reikn:"+r.id,{title:esc("Nr. "+r.nr+" · "+(r.kaupandi?.name||"")),sub:esc([fmtDate(r.dags),kr(r.tot),r.stada].filter(Boolean).join(" · "))}));
   const fl=[]; if(SK?.moppur) Object.entries(SK.moppur).forEach(([pk,m])=>(m.atridi||[]).forEach(dd=>(dd.i||[]).forEach(it=>{if(hit(it.n,dd.n,pk)) fl.push({pk,dd,it});})));
@@ -1492,8 +1492,8 @@ function drawMenu(){
   const html=(cls)=>SECTIONS.map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
   sideExtra(); document.getElementById("sitems").innerHTML=html(""); document.getElementById("tbar").innerHTML=html(" tb");
 }
-function secCounts(){if(!S) return {}; const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0).length, un=(S.postar||[]).filter(m=>!m.verkefniId).length;
-  return {heim:late?"⚠ "+late:"","heim!":late>0,verkefni:String(active().length||""),dagatal:(()=>{const n=(calItems().get(isoDay(today))||[]).length; return n?n+" í dag":"";})(),timar:num(periodSum(curPeriod()))+" klst.",meira:un?String(un):"","meira!":false};}
+function secCounts(){if(!S) return {}; const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0).length, un=(window.MS_OFL||[]).length;
+  return {heim:late?"⚠ "+late:"","heim!":late>0,verkefni:String(active().length||""),dagatal:(()=>{const n=(calItems().get(isoDay(today))||[]).length; return n?n+" í dag":"";})(),timar:num(periodSum(curPeriod()))+" klst.",postur:un?String(un):"","postur!":un>0,meira:""};}
 function sideExtra(){const el=document.getElementById("sextra"); if(!el||!S) return; const k=klukka(); let h="";
   if(k){const q=findProj(k.pid); h+=`<div class="sx-k"><div class="sx-h">Klukka í gangi</div><div class="sx-t">${esc(q?.nafn||"")}</div><b class="kt" data-start="${esc(k.start)}">${elapsed(k)}</b><button type="button" class="btn primary" onclick="stopKlukka()">Stoppa og skrá</button></div>`;}
   else if(MCP) h+=`<button type="button" class="btn sx-start" onclick="kind='tima';PREFILL={timer:true};openSheet()">▶ Byrja klukku</button>`;
@@ -1502,8 +1502,6 @@ function sideExtra(){const el=document.getElementById("sextra"); if(!el||!S) ret
   let rec=[]; try{rec=JSON.parse(localStorage.getItem("aera-recent")||"[]");}catch(e){}
   const rp=rec.map(findProj).filter(Boolean).slice(0,4); if(rp.length) h+=`<div class="sx-h">Nýlega opnað</div>${rp.map(p=>`<a class="sx-i" ${tapAttr("verk",p.id)}><span><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt)}</span></a>`).join("")}`;
   const wt=verkefni().filter(p=>p.stada===STODUR()[0]?.n); if(wt.length) h+=`<div class="sx-h">Bíða svars<span class="sx-b">${wt.length}</span></div>${wt.slice(0,4).map(p=>`<a class="sx-i" ${tapAttr("verk",p.id)}><span><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt)}</span></a>`).join("")}`;
-  const nx=upcoming().filter(i=>daysTo(i.when)>0).slice(0,3);
-  if(nx.length) h+=`<div class="sx-h">Næst á dagskrá</div>${nx.map(i=>`<a class="sx-i" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))}><span>${esc(i.title)}</span><small>${esc(rel(daysTo(i.when)))}${hhmm(i.when)?" · "+hhmm(i.when):""}</small></a>`).join("")}`;
   const act=active().slice(0,6); if(act.length) h+=`<div class="sx-h">Verkefni í gangi</div>${act.map(p=>`<a class="sx-i" ${tapAttr("verk",p.id)}><span><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt)}</span></a>`).join("")}`;
   h+=`<div class="sx-h">Vikan</div><div class="sx-w"><b>${num(weekSum(0))}</b> klst. í vikunni · <b>${num(periodSum(curPeriod()))}</b> á tímabili</div>`;
   el.innerHTML=h;}

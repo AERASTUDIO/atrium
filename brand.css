@@ -163,3 +163,19 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 .foot{margin-top:22px;opacity:.8}
 .viewtitle::before{display:none!important}
 .viewtitle{border-left:0!important;padding-left:0!important}
+
+/* Klukka – læsileg í báðum þemum (texti í mótlit við --hi) */
+.klukka,.sx-k{background:var(--hi)!important;color:var(--on-hi)!important}
+.klukka .ls,.sx-k .sx-h,.sx-k .sx-t{color:var(--on-hi)!important;opacity:.75}
+.klukka .lt,.klukka .kt,.sx-k .kt{color:var(--on-hi)!important}
+.sx-k .kt{display:block;font-size:28px;font-weight:300;letter-spacing:.01em}
+.klukka .btn,.sx-k .btn{background:transparent!important;border:1px solid color-mix(in srgb,var(--on-hi) 35%,transparent)!important;color:var(--on-hi)!important}
+.klukka .btn.primary,.sx-k .btn.primary{background:var(--on-hi)!important;color:var(--hi)!important;border-color:var(--on-hi)!important}
+.sx-k{margin:0 0 6px}
+
+/* Neðri stika: sex hlutir */
+nav.mbar.tbar{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tbar .tab{font-size:10.5px}
+.pothr+.pothr{border-top:1px solid var(--line)}
+.pothr>.lrow:first-child .lt{font-weight:500}
+.pothr>.lrow.tap{padding-left:22px}
