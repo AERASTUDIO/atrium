@@ -243,5 +243,6 @@ body.onchat #fab{display:none!important}
 .spform{display:flex!important;flex-wrap:nowrap!important;grid-template-columns:none}.spform textarea{flex:1 1 auto}
 .spform{flex-direction:row!important}
 .spwrap{grid-template-columns:minmax(0,1fr)}.spconv,.spchans{min-width:0}
+@media (min-width:1024px){.spwrap{grid-template-columns:260px minmax(0,1fr)}}
 @media (max-width:1023px){.spconv{height:calc(100dvh - 400px)}}
 @media (max-width:640px){.tmrow{flex-wrap:wrap}.tmrow .lr{width:100%;justify-content:flex-start;padding-left:44px}}
