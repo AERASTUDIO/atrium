@@ -43,22 +43,23 @@
     try {
       const p = s.path.join("/"), url = p ? `/me/drive/root:/${encP(p)}:/children?${SEL}` : `/me/drive/root/children?${SEL}`;
       let j;
-      try { j = await MS.g(url); }
-      catch (e) { if ((e.status === 404 || e.code === "itemNotFound") && key === "min" && s.path.length === 1) { await ensure(p); j = await MS.g(url); } else throw e; }
+      const g = s.sp && window.odG ? odG : MS.g;
+      try { j = await g(url); }
+      catch (e) { if ((e.status === 404 || e.code === "itemNotFound") && key === "min" && s.path.length === 1) { await ensure(p); j = await g(url); } else throw e; }
       s.items = (j.value || []).sort((a, b) => (!!b.folder - !!a.folder) || a.name.localeCompare(b.name, "is"));
     } catch (e) { s.err = (e.status === 404 || e.code === "itemNotFound") ? "Mappan fannst ekki í þínu OneDrive." : e.message; s.items = []; }
     s.at = Date.now(); s.busy = false; render();
   }
   function browser(key, root, title, hint) {
     if (!on()) return `<div class="empty" style="margin-top:12px">Tengdu Microsoft til að sjá ${esc(title.toLowerCase())}.${window.msMissing ? msMissing() : ""}</div>`;
-    const s = ST[key] || (ST[key] = { root: root.split("/"), path: root.split("/"), items: null });
+    const s = ST[key] || (ST[key] = { root: root.split("/"), path: root.split("/"), items: null, sp: key === "fyr" && !!ORG.sp });
     if (!s.items && !s.busy) load(key);
     const crumbs = s.path.map((n, i) => i < s.root.length - 1 ? "" : `<button type="button" class="crumb" data-act="odcd:${key}:${i}"${i === s.path.length - 1 ? ' aria-current="true"' : ""}>${esc(n)}</button>`).filter(Boolean).join('<span class="crs">›</span>');
     const rel = n => s.path.concat(n).join("/");
     const rows = (s.items || []).map(it => it.folder
       ? `<div class="lrow tap" data-act="odin:${key}:${esc(encodeURIComponent(it.name))}" role="button" tabindex="0"><div class="ll">${ICF}</div><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([it.folder.childCount != null ? it.folder.childCount + " atriði" : "", it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><div class="lr">${CHEV}</div></div>`
-      : `<div class="lrow tap" data-act="msprev:${esc(it.id)}" role="button" tabindex="0"><div class="ll">${ICD}</div><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typ(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr plink" ${window.odLink ? odLink(it, rel(it.name)) : `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`} onclick="event.stopPropagation()">Opna</a></div>`).join("");
-    return `<div class="odbar"><nav class="crumbs" aria-label="Slóð">${crumbs}</nav><span class="odbtns"><button type="button" class="mini" data-act="odref:${key}" aria-label="Uppfæra">↻</button>${window.odIsLocal && odIsLocal() ? `<a class="plink" ${odLink({ folder: {}, webUrl: "" }, s.path.join("/"))}>Opna í tölvunni</a>` : ""}</span></div>
+      : `<div class="lrow tap" data-act="msprev:${esc(it.id)}" role="button" tabindex="0"><div class="ll">${ICD}</div><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typ(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr plink" ${window.odLink ? odLink(it, rel(it.name), s.sp) : `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`} onclick="event.stopPropagation()">Opna</a></div>`).join("");
+    return `<div class="odbar"><nav class="crumbs" aria-label="Slóð">${crumbs}</nav><span class="odbtns"><button type="button" class="mini" data-act="odref:${key}" aria-label="Uppfæra">↻</button>${window.odIsLocal && odIsLocal() ? `<a class="plink" ${odLink({ folder: {}, webUrl: "" }, s.path.join("/"), s.sp)}>Opna í tölvunni</a>` : ""}</span></div>
       ${hint ? `<p class="hint" style="margin:0 0 8px">${hint}</p>` : ""}
       ${s.err ? `<div class="msg err">${esc(s.err)}</div>` : ""}
       ${s.items == null ? `<div class="empty">Sæki…</div>` : s.items.length ? llist([rows]) : `<div class="empty">Mappan er tóm.</div>`}`;
@@ -74,7 +75,7 @@
   window.vSkjolMin = () => `<p class="sub" style="margin:14px 0 10px">Þitt eigið svæði í OneDrive. Tímaskýrslur og annað sem þú vistar úr appinu fer hingað – aðeins þú sérð það.</p>` +
     browser("min", MINE(), "Mín skjöl");
   window.vSkjolFyr = () => (window.vSkjolNy ? vSkjolNy() : "") + `<div class="viewtitle" style="margin-top:22px">Möppur fyrirtækisins</div>` +
-    browser("fyr", ROOT(), "möppur fyrirtækisins", window.USER && window.ORG && USER.email !== ORG.admin.email ? "Möppur fyrirtækisins eru enn í OneDrive admin og flytjast á sameiginlegt svæði (SharePoint) – þangað til sérðu hér aðeins það sem er í þínu eigin OneDrive." : "");
+    browser("fyr", ROOT(), "möppur fyrirtækisins", window.USER && window.ORG && USER.email !== ORG.admin.email && !ORG.sp ? "Möppur fyrirtækisins eru enn í OneDrive admin og flytjast á sameiginlegt svæði (SharePoint) – þangað til sérðu hér aðeins það sem er í þínu eigin OneDrive." : "");
 
   let REC = null, recBusy = false;
   window.vSkjolNyl = function () {

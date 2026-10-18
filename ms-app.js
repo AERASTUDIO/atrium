@@ -9,8 +9,24 @@
   const SEL = "$select=id,name,size,folder,file,webUrl,webDavUrl,parentReference,lastModifiedDateTime";
   const isOn = () => MS.on();
 
+  /* Drif fyrirtækisins (1.9.0): ef ORG.sp er stillt (SharePoint-síða) fara allar möppur fyrirtækisins (AERA/…) þangað,
+     annars í OneDrive þess sem er innskráður eins og áður. Slóðir (ORG.od.*) eru þær sömu – aðeins drifið skiptir um stað. */
+  let SPB = null;
+  async function base() {
+    if (!ORG.sp) return "/me/drive";
+    if (SPB) return SPB;
+    let c = null; try { c = JSON.parse(localStorage.getItem("aera-sp-drive") || "null"); } catch (e) {}
+    if (c && c.sp === ORG.sp && c.b) return (SPB = c.b);
+    const site = await MS.g(`/sites/${ORG.sp}?$select=id`), d = await MS.g(`/sites/${site.id}/drive?$select=id`);
+    SPB = `/drives/${d.id}`; try { localStorage.setItem("aera-sp-drive", JSON.stringify({ sp: ORG.sp, b: SPB })); } catch (e) {}
+    return SPB;
+  }
+  // Eins og MS.g, en „/me/drive…“ vísar á drif fyrirtækisins þegar það er stillt
+  async function G(path, opt) { return MS.g(path.startsWith("/me/drive") ? (await base()) + path.slice(9) : path, opt); }
+  window.odBase = base; window.odG = G;
+
   async function all(path) {
-    let j = await MS.g(path), out = j.value || [];
+    let j = await G(path), out = j.value || [];
     while (j["@odata.nextLink"]) { j = await MS.g(j["@odata.nextLink"]); out = out.concat(j.value || []); }
     return out;
   }
@@ -40,8 +56,8 @@
   }
 
   async function mkFolder(parentPath, name) {
-    try { return await MS.g(`/me/drive/root:/${encP(parentPath)}:/children`, { method: "POST", body: { name, folder: {}, "@microsoft.graph.conflictBehavior": "fail" } }); }
-    catch (e) { if (e.status === 409 || e.code === "nameAlreadyExists") return MS.g(`/me/drive/root:/${encP(parentPath + "/" + name)}`); throw e; }
+    try { return await G(`/me/drive/root:/${encP(parentPath)}:/children`, { method: "POST", body: { name, folder: {}, "@microsoft.graph.conflictBehavior": "fail" } }); }
+    catch (e) { if (e.status === 409 || e.code === "nameAlreadyExists") return G(`/me/drive/root:/${encP(parentPath + "/" + name)}`); throw e; }
   }
   async function mkProj(nafn) {
     const name = safe(nafn), it = await mkFolder(ROOT, name);
@@ -57,16 +73,19 @@
   const LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
   const isWin = /Windows/i.test(navigator.userAgent), isMob = /Android|iPhone|iPad/i.test(navigator.userAgent);
   const odMode = () => LS("aera-od-opna") || (isWin && !isMob ? "tolva" : "vefur");
-  const odRoot = () => LS("aera-od-rot") || ORG.odLocal || ("%UserProfile%\\OneDrive - " + ORG.nafn + " ehf");
+  const odRoot = sp => sp ? (LS("aera-sp-rot") || ORG.spLocal || "") : (LS("aera-od-rot") || ORG.odLocal || ("%UserProfile%\\OneDrive - " + ORG.nafn + " ehf"));
+  // Skrá/mappa á SharePoint-drifi fyrirtækisins (driveType documentLibrary) – þá er samstillta mappan önnur en OneDrive
+  const isSp = it => !!ORG.sp && it?.parentReference?.driveType === "documentLibrary";
   const relOf = it => { const pp = String(it?.parentReference?.path || "").replace(/^\/drive(s\/[^/]+)?\/root:?\/?/, ""); return decodeURIComponent((pp ? pp + "/" : "") + (it?.name || "")); };
-  const localPath = rel => odRoot().replace(/[\\/]+$/, "") + "\\" + String(rel || "").split("/").filter(Boolean).join("\\");
+  const localPath = rel => { const sp = String(rel || "").startsWith("~sp~"); if (sp) rel = rel.slice(4); return odRoot(sp).replace(/[\\/]+$/, "") + "\\" + String(rel || "").split("/").filter(Boolean).join("\\"); };
   const OFF = { docx: "ms-word", doc: "ms-word", xlsx: "ms-excel", xls: "ms-excel", pptx: "ms-powerpoint", ppt: "ms-powerpoint" };
   const offApp = n => OFF[(String(n).split(".").pop() || "").toLowerCase()];
   // Eigindi á tengil fyrir möppu/skrá: á vefnum = venjulegur tengill; í tölvu = aðgerð sem afritar slóð eða opnar í Office
-  window.odLink = (it, rel) => {
+  window.odLink = (it, rel, sp) => {
+    sp = sp || isSp(it);
     if (odMode() !== "tolva") return `href="${esc(it.webUrl)}" target="_blank" rel="noopener"`;
     if (!it.folder && offApp(it.name) && (it.webDavUrl || it.webUrl)) return `href="${esc(offApp(it.name) + ":ofe|u|" + (it.webDavUrl || it.webUrl))}"`;
-    return `href="#" data-act="odlocal:${esc(encodeURIComponent(rel || relOf(it)))}"`;
+    return `href="#" data-act="odlocal:${esc(encodeURIComponent((sp ? "~sp~" : "") + (rel || relOf(it))))}"`;
   };
   async function copyLocal(rel) {
     const path = localPath(rel);
@@ -81,11 +100,12 @@
     sheetwrap.hidden = false;
     const done = () => { if (document.getElementById("od-vist")?.checked) LS("aera-od-vist", "1"); closeSheet(); };
     document.getElementById("od-ok").onclick = done;
-    document.getElementById("od-web").onclick = async () => { done(); try { const it = await MS.g(`/me/drive/root:/${encP(rel)}?$select=webUrl`); window.open(it.webUrl, "_blank", "noopener"); } catch (e) { toast(e.message); } };
+    document.getElementById("od-web").onclick = async () => { done(); try { const sp = rel.startsWith("~sp~"), r2 = sp ? rel.slice(4) : rel; const it = await (sp ? G : MS.g)(`/me/drive/root:/${encP(r2)}?$select=webUrl`); window.open(it.webUrl, "_blank", "noopener"); } catch (e) { toast(e.message); } };
   }
   window.odCopyLocal = copyLocal;
   window.odIsLocal = () => odMode() === "tolva";
-  document.addEventListener("change", e => { if (e.target.id === "od-rot") { LS("aera-od-rot", e.target.value.trim()); toast("OneDrive-mappa vistuð á þessu tæki"); } });
+  document.addEventListener("change", e => { if (e.target.id === "od-rot") { LS("aera-od-rot", e.target.value.trim()); toast("OneDrive-mappa vistuð á þessu tæki"); }
+    if (e.target.id === "sp-rot") { LS("aera-sp-rot", e.target.value.trim()); toast("Mappa fyrirtækisins vistuð á þessu tæki"); } });
 
   const typeOf = n => { const e = (n.split(".").pop() || "").toLowerCase(); return ODTYPE[e] || e.toUpperCase(); };
   function fileRow(it) {
@@ -126,8 +146,9 @@
     sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden = false;
     let it = null;
     try {
-      it = await MS.g(`/me/drive/items/${id}?$select=id,name,webUrl,webDavUrl,size,file`);
-      const pv = await MS.g(`/me/drive/items/${id}/preview`, { method: "POST", body: {} });
+      let g = G; try { it = await G(`/me/drive/items/${id}?$select=id,name,webUrl,webDavUrl,size,file`); }
+      catch (e) { if (!ORG.sp || e.status !== 404) throw e; g = MS.g; it = await MS.g(`/me/drive/items/${id}?$select=id,name,webUrl,webDavUrl,size,file`); }
+      const pv = await g(`/me/drive/items/${id}/preview`, { method: "POST", body: {} });
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px;word-break:break-word">${esc(it.name)}</h3>
         <iframe src="${esc(pv.getUrl)}" title="${esc(it.name)}" style="width:100%;height:min(72vh,900px);border:0;border-radius:10px;background:#fff"></iframe>
@@ -188,33 +209,33 @@
     return ROOT + "/" + k + "/" + (fm ? fm.name : fallbackName);
   }
   async function upload(path, data, type) {
-    return MS.g(`/me/drive/root:/${encP(path)}:/content?@microsoft.graph.conflictBehavior=rename`, { method: "PUT", body: data, headers: { "Content-Type": type || "application/octet-stream" } });
+    return G(`/me/drive/root:/${encP(path)}:/content?@microsoft.graph.conflictBehavior=rename`, { method: "PUT", body: data, headers: { "Content-Type": type || "application/octet-stream" } });
   }
   // Vista skrá í möppu (slóðin stofnuð ef þarf). replace=true skrifar yfir skrá með sama nafni.
   window.msSaveFile = async function (dir, name, data, type, replace) {
     const parts = dir.split("/").filter(Boolean); let cur = parts.shift();
     for (const p of parts) { await mkFolder(cur, p); cur += "/" + p; }
-    return MS.g(`/me/drive/root:/${encP(dir + "/" + safe(name.replace(/\.[a-z0-9]+$/i, "")) + (name.match(/\.[a-z0-9]+$/i) || [""])[0])}:/content?@microsoft.graph.conflictBehavior=${replace ? "replace" : "rename"}`, { method: "PUT", body: data, headers: { "Content-Type": type || "application/octet-stream" } });
+    return G(`/me/drive/root:/${encP(dir + "/" + safe(name.replace(/\.[a-z0-9]+$/i, "")) + (name.match(/\.[a-z0-9]+$/i) || [""])[0])}:/content?@microsoft.graph.conflictBehavior=${replace ? "replace" : "rename"}`, { method: "PUT", body: data, headers: { "Content-Type": type || "application/octet-stream" } });
   };
   // Tryggja að mappa sé til (öll slóðin) og skila henni
   async function ensureDir(dir) { const parts = dir.split("/").filter(Boolean); let cur = parts.shift(), it = null;
-    for (const p of parts) { it = await mkFolder(cur, p); cur += "/" + p; } return it || MS.g(`/me/drive/root:/${encP(cur)}`); }
+    for (const p of parts) { it = await mkFolder(cur, p); cur += "/" + p; } return it || G(`/me/drive/root:/${encP(cur)}`); }
   window.msProjSub = projSub;
   window.msStofa = async () => (await all(`/me/drive/root:/${encP(ORG.od.stofa)}:/children?$select=name,folder&$top=200`)).filter(i => i.folder).map(i => i.name).sort((a, b) => a.localeCompare(b, "is"));
   window.msSnidmat = async ext => (await all(`/me/drive/root:/${encP(ORG.od.snidmat)}:/children?$select=id,name,file&$top=200`).catch(() => [])).filter(i => i.file && i.name.toLowerCase().endsWith(ext));
   // Nýtt Office-skjal: afrit af sniðmáti (id í OneDrive) eða tómu skjali úr appinu
   window.msNewOffice = async function (dir, name, ext, templateId) {
     let blob;
-    if (templateId) { const t = await MS.g(`/me/drive/items/${templateId}`); blob = await (await fetch(t["@microsoft.graph.downloadUrl"])).blob(); }
+    if (templateId) { const t = await G(`/me/drive/items/${templateId}`); blob = await (await fetch(t["@microsoft.graph.downloadUrl"])).blob(); }
     else blob = await (await fetch("templates/" + { docx: "word", xlsx: "excel", pptx: "powerpoint" }[ext] + "." + ext)).blob();
     await ensureDir(dir);
-    return MS.g(`/me/drive/root:/${encP(dir + "/" + safe(name) + "." + ext)}:/content?@microsoft.graph.conflictBehavior=rename`, { method: "PUT", body: blob, headers: { "Content-Type": "application/octet-stream" } });
+    return G(`/me/drive/root:/${encP(dir + "/" + safe(name) + "." + ext)}:/content?@microsoft.graph.conflictBehavior=rename`, { method: "PUT", body: blob, headers: { "Content-Type": "application/octet-stream" } });
   };
   // Færa (og/eða endurnefna) skrá í OneDrive
   window.msMove = async function (itemId, dir, newName) {
     const body = {}; if (dir) { const f = await ensureDir(dir); body.parentReference = { id: f.id }; } if (newName) body.name = newName;
     body["@microsoft.graph.conflictBehavior"] = "rename";
-    const it = await MS.g(`/me/drive/items/${itemId}`, { method: "PATCH", body }); Object.keys(TREE).forEach(k => delete TREE[k]); return it;
+    const it = await G(`/me/drive/items/${itemId}`, { method: "PATCH", body }); Object.keys(TREE).forEach(k => delete TREE[k]); return it;
   };
   // Kvittun fyrir útlagðan kostnað → <verkefni>/02 Vinnuskjöl/Kvittanir (eða Óflokkað/Kvittanir)
   // Almenn vistun: mappa (slóð frá rót OneDrive) búin til ef hún er ekki til, skrá vistuð þar.
@@ -315,7 +336,7 @@
       <p class="hint" style="margin:6px 0 8px">Skrár koma beint úr OneDrive. Ný verkefni fá möppu með 01–08, nýir fundir fá fundargerð í „08 Samskipti og fundir“ (eða Óflokkað) og póstar úr Outlook-möppunni „AERA“ sækjast á 15 mínútna fresti meðan appið er opið.</p>
       <div class="kind" style="margin-top:12px">Opna möppur og skjöl (á þessu tæki)</div>
       <div class="stat-row" style="margin-top:6px"><button type="button" class="chipbtn" data-act="odmode:tolva" aria-pressed="${odMode() === "tolva"}">Í tölvunni</button><button type="button" class="chipbtn" data-act="odmode:vefur" aria-pressed="${odMode() === "vefur"}">Á netinu (OneDrive)</button></div>
-      ${odMode() === "tolva" ? `<label style="margin-top:8px">OneDrive-mappa í tölvunni<input id="od-rot" value="${esc(odRoot())}" placeholder="%UserProfile%\\OneDrive - …"></label><p class="hint" style="margin:4px 0 8px">Möppur: slóðin er afrituð til að líma í File Explorer. Word, Excel og PowerPoint opnast beint í forritunum. Annað opnast á netinu.</p>` : ""}
+      ${odMode() === "tolva" ? `<label style="margin-top:8px">OneDrive-mappa í tölvunni<input id="od-rot" value="${esc(odRoot())}" placeholder="%UserProfile%\\OneDrive - …"></label>${ORG.sp ? `<label style="margin-top:8px">Samstillt mappa fyrirtækisins (SharePoint)<input id="sp-rot" value="${esc(odRoot(true))}" placeholder="%UserProfile%\\AERA Studio ehf\\…"></label>` : ""}<p class="hint" style="margin:4px 0 8px">Möppur: slóðin er afrituð til að líma í File Explorer. Word, Excel og PowerPoint opnast beint í forritunum. Annað opnast á netinu.</p>` : ""}
       <div class="links"><button type="button" class="btn" data-act="msmail">Sækja pósta núna</button>${nb ? `<button type="button" class="btn" data-act="mstick">Stofna möppur sem bíða (${nb})</button>` : ""}<button type="button" class="btn" data-act="mslogout">Aftengja</button></div>`;
   };
   window.msMissing = () => `<div class="links" style="margin-top:8px"><button type="button" class="btn" data-act="mslogin">${MS.hadLogin() ? "Tengjast Microsoft aftur" : "Tengjast Microsoft"}</button></div>`;

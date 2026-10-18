@@ -49,16 +49,18 @@ service cloud.firestore {
     }
 
     // Sameiginleg söfn: allir virkir notendur lesa og skrifa.
-    match /verkefni/{id}       { allow read, write: if active(); }
-    match /vidskiptavinir/{id} { allow read, write: if active(); }
+    // Verkefnum og viðskiptavinum getur aðeins admin eytt (frá 1.9.0).
+    match /verkefni/{id}       { allow read, create, update: if active(); allow delete: if admin(); }
+    match /vidskiptavinir/{id} { allow read, create, update: if active(); allow delete: if admin(); }
     match /fundir/{id}         { allow read, write: if active(); }
     match /skjol/{id}          { allow read, write: if active(); }
     match /thraedir/{id}       { allow read, write: if active(); }
 
-    // Reikningar: allir lesa; aðeins fjármál (admin, bókari) skrifa.
+    // Reikningar: allir lesa; aðeins fjármál (admin, bókari) skrifa; aðeins admin eyðir (frá 1.9.0).
     match /reikningar/{id} {
       allow read: if active();
-      allow write: if fjarmal();
+      allow create, update: if fjarmal();
+      allow delete: if admin();
     }
 
     // Tímar og útlagður kostnaður: hver sér og skrifar sínar færslur (reiturinn eigandi = netfang); fjármál sjá og skrifa allar.

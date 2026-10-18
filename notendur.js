@@ -5,9 +5,10 @@
 (function () {
   window.ROLES = {
     // fjarmal: býr til og breytir reikningum, sér tíma og kostnað allra (firestore.rules framfylgir því sama)
-    admin:       { heiti: "Admin",       notendur: true,  stillingar: true,  fjarmal: true  },
-    bokari:      { heiti: "Bókari",      notendur: false, stillingar: false, fjarmal: true  },
-    starfsmadur: { heiti: "Starfsmaður", notendur: false, stillingar: false, fjarmal: false }
+    // eyda: eyðir verkefnum, viðskiptavinum og reikningum (frá 1.9.0; firestore.rules: delete aðeins admin)
+    admin:       { heiti: "Admin",       notendur: true,  stillingar: true,  fjarmal: true,  eyda: true  },
+    bokari:      { heiti: "Bókari",      notendur: false, stillingar: false, fjarmal: true,  eyda: false },
+    starfsmadur: { heiti: "Starfsmaður", notendur: false, stillingar: false, fjarmal: false, eyda: false }
   };
   let NU = null; // app/notendur
   window.USER = null; // innskráður notandi {email, nafn, sk, hlutverk, varaleid}

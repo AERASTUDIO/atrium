@@ -33,6 +33,7 @@ function deleteItem(type,id){
   if(type==="vsk"){const c=findVsk(id); if(!c) return; const n=vskProjects(c).length; label=c.name;
     q=`Eyða „${c.name}“ úr viðskiptavinum?`+(n?`\n\n${n} verkefni tengjast fyrirtækinu. Þau haldast en tengingin fellur niður.`:"");
     mut=s=>{s.vidskiptavinir=(s.vidskiptavinir||[]).filter(x=>!sameId(x.id,id)); (s.verkefni||[]).forEach(p=>{if(sameId(p.vskId,id)){p.vskId=null;p.vidskiptavinur=null;} if(sameId(p.vkId,id)){p.vkId=null;p.verkkaupi=null;}});};}
+  if((type==="verk"||type==="vsk")&&window.can&&!can("eyda")) return toast("Aðeins admin getur eytt verkefnum og viðskiptavinum.");
   if(!mut||!confirm(q)) return; if(q2&&confirm(q2)) mut=mut2;
   const before=structuredClone(S);
   saveSnapshot(mut).then(()=>{

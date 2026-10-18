@@ -102,7 +102,7 @@ const STC={"Beiðni":"l1","Í vinnslu":"l2","Í yfirferð":"l3","Afhent":"done",
 const STL={"Done":"Lokið","In progress":"Í vinnslu","Up next":"Næst","Not started":"Ekki hafið"};
 const statusPill=s=>STODUR().some(x=>x.n===s)?`<span class="pill pc-${stColor(s)}">${esc(s)}</span>`:`<span class="pill ${STC[s]??""}">${esc(STL[s]||s)}</span>`;
 /* Einföld listaröð: [fremst] titill / undirlína [hægra megin] › */
-const lrow=(open,o)=>`<div class="lrow tap" ${tapAttr(open.split(":")[0],open.slice(open.indexOf(":")+1))}>${o.lead!=null?`<div class="ll">${o.lead}</div>`:""}<div class="lm"><div class="lt">${o.title}</div>${o.sub?`<div class="ls">${o.sub}</div>`:""}</div>${o.right?`<div class="lr">${o.right}</div>`:""}${MCP?`<button type="button" class="ldel" data-act="del:${esc(open)}" aria-label="Eyða"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>`:""}${CHEV}</div>`;
+const lrow=(open,o)=>`<div class="lrow tap" ${tapAttr(open.split(":")[0],open.slice(open.indexOf(":")+1))}>${o.lead!=null?`<div class="ll">${o.lead}</div>`:""}<div class="lm"><div class="lt">${o.title}</div>${o.sub?`<div class="ls">${o.sub}</div>`:""}</div>${o.right?`<div class="lr">${o.right}</div>`:""}${MCP&&!(/^(verk|vsk):/.test(open)&&window.can&&!can("eyda"))?`<button type="button" class="ldel" data-act="del:${esc(open)}" aria-label="Eyða"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>`:""}${CHEV}</div>`;
 const llist=rows=>`<div class="llist">${rows.join("")}</div>`;
 const dateBlock=iso=>{const x=d(iso);return x?`<div class="date"><b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small></div>`:`<div class="date"><b>–</b></div>`;};
 const FGLABEL=f=>{const x=d(f?.date); return "Fundargerð"+(x?" "+pad(x.getDate())+"."+pad(x.getMonth()+1)+"."+x.getFullYear():"");};
@@ -110,7 +110,7 @@ function linkBtns(o,opts={}){let h="";
   if(o.fundargerd) h+=`<a class="btn primary" href="${esc(o.fundargerd)}" target="_blank" rel="noopener">${esc(FGLABEL(o))}</a>`;
   if(o.fundarhlekkur) h+=`<a class="btn ${o.fundargerd?"":"primary"}" href="${esc(o.fundarhlekkur)}" target="_blank" rel="noopener">Fjarfundur</a>`;
   if(o.mappa) h+=`<a class="btn" href="${esc(o.mappa)}" target="_blank" rel="noopener">Mappa</a>`;
-  if(opts.edit&&MCP&&o.id&&!isTmp(o.id)) h+=`<button type="button" class="btn" data-act="edit:${opts.edit}:${esc(o.id)}">✎ Breyta</button><button type="button" class="btn danger" data-act="del:${opts.edit}:${esc(o.id)}">Eyða</button>`;
+  if(opts.edit&&MCP&&o.id&&!isTmp(o.id)) h+=`<button type="button" class="btn" data-act="edit:${opts.edit}:${esc(o.id)}">✎ Breyta</button>${(opts.edit==="verk"||opts.edit==="vsk")&&window.can&&!can("eyda")?"":`<button type="button" class="btn danger" data-act="del:${opts.edit}:${esc(o.id)}">Eyða</button>`}`;
   return h?`<div class="links">${h}</div>`:"";}
 const isTmp=id=>!id||/^(tmp|nytt)/.test(String(id));
 const USTAT=["Not started","Up next","In progress","Done"];

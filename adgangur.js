@@ -15,14 +15,15 @@
     ["Spjall – Almennt", "spjall", { admin: "rw", bokari: "rw", starfsmadur: "rw" }],
     ["Spjall – bein skilaboð", "spjall", { admin: "own", bokari: "own", starfsmadur: "own" }],
     ["Reikningar", "reikningar", { admin: "rw", bokari: "rw", starfsmadur: "r" }],
+    ["Eyða verkefnum, viðskiptavinum og reikningum", "delete", { admin: "ja", bokari: "nei", starfsmadur: "nei" }],
     ["Tímaskráning", "timar", { admin: "rw", bokari: "rw", starfsmadur: "own" }],
     ["Útlagður kostnaður", "kostnadur", { admin: "rw", bokari: "rw", starfsmadur: "own" }],
     ["Skeiðklukka", "klukka", { admin: "own", bokari: "own", starfsmadur: "own" }],
     ["Stillingar fyrirtækis", "app/state", { admin: "rw", bokari: "—", starfsmadur: "—" }],
     ["Notendur og hlutverk", "app/notendur", { admin: "rw", bokari: "r", starfsmadur: "r" }]
   ];
-  const TXT = { rw: "Les og skrifar", r: "Les", own: "Aðeins eigið", "—": "Enginn aðgangur" };
-  const CLS = { rw: "pa", r: "pr", own: "po", "—": "pn" };
+  const TXT = { rw: "Les og skrifar", r: "Les", own: "Aðeins eigið", "—": "Enginn aðgangur", ja: "Já", nei: "Nei" };
+  const CLS = { rw: "pa", r: "pr", own: "po", "—": "pn", ja: "pa", nei: "pn" };
   const lc = s => String(s || "").trim().toLowerCase();
   const roleName = r => ROLES[r]?.heiti || r;
 

@@ -27,6 +27,11 @@ window.ORG = {
   },
   // Samstillt OneDrive-mappa á Windows-tölvum starfsmanna (Explorer skilur %UserProfile%)
   odLocal: "%UserProfile%\\OneDrive - AERA Studio ehf",
+  // SharePoint-síða fyrirtækisins (frá 1.9.0). Tómt = möppur fyrirtækisins eru í OneDrive þess sem er innskráður (eins og áður).
+  // Þegar síðan er tilbúin: sp = "<lén>.sharepoint.com:/sites/<síða>" og AERA-mappan færð í „Documents“ síðunnar (sama uppbygging).
+  // Krefst heimildarinnar Files.ReadWrite.All (Delegated, admin consent) í Entra-forritinu.
+  sp: "",
+  spLocal: "",                         // samstillt mappa síðunnar á Windows, t.d. "%UserProfile%\\AERA Studio ehf\\AERA - Documents"
   // Outlook-mappa sem appið flokkar póst úr
   postmappa: "AERA",
   // Undirskrift í tölvupósti
