@@ -2,7 +2,7 @@
    (fyrirtaeki.js, firebase-config.js, merki og litir) og velur hvaða einingar eru í notkun.
    Einingar lausnarinnar.
    Allt er í boði í kóðanum; hver uppsetning (fyrirtaeki.js › einingar) og admin (Stillingar › Einingar, vistað í
-   S.stillingar.einingar) velja hvað er virkt. Það sem ekki er tilgreint er virkt. Sjá Kerfisskjölun, kafla um einingar.
+   S.stillingar.einingar) velja hvað er virkt. Það sem ekki er tilgreint er virkt – nema einingar merktar „sjálfgefið óvirkt“ (4. gildi), sem þarf að kveikja á. Sjá Kerfisskjölun, kafla um einingar.
    Ný eining: bæta línu í EININGAR og athuga ON("lykill") þar sem hún birtist. */
 (function () {
   window.VARA = { nafn: "Atrium", fra: "AERA Studio" };
@@ -20,14 +20,17 @@
     skjol:          ["Skjöl", "Skjalalisti fyrirtækisins (Word, Excel, Canva, tenglar)"],
     onedrive:       ["OneDrive og SharePoint", "Möppur verkefna, Mín skjöl, Nýlegt og forskoðun skráa"],
     postur:         ["Póstur", "Outlook-pósthólf, verkefnapóstur og póstþræðir á verkefnum"],
-    spjall:         ["Spjall", "Spjallrásir og bein skilaboð milli starfsfólks"]
+    spjall:         ["Spjall", "Spjallrásir og bein skilaboð milli starfsfólks"],
+    // Frá 2.4.0 – sjálfgefið óvirkar (4. gildi = 1): kveikt á í uppsetningu (fyrirtaeki.js › einingar: { vorur: true }) eða af admin
+    vorur:          ["Vörulisti", "Búnaður og vörur til leigu og sölu, pakkar, vinna og þjónusta", null, 1],
+    tilbod:         ["Tilboð", "Tilboð með línum úr vörulista, leigudögum, afslætti, PDF og stöðu – samþykkt tilboð verður verkefni", "vorur", 1]
   };
   const ALLTAF = ["verkefni"];
   // S er skilgreint með let í app-grunnur.js (ekki á window) – lesið við keyrslu
   const st = () => { try { return typeof S !== "undefined" ? S : null; } catch (e) { return null; } };
   const raw = () => ({ ...(window.ORG?.einingar || {}), ...(st()?.stillingar?.einingar || {}) });
   // Er eining virk? (og sú sem hún er háð)
-  const ON = k => { if (ALLTAF.includes(k)) return true; if ((window.ORG?.einingar || {})[k] === false) return false; const r = raw(); if (r[k] === false || r[k] === 0) return false; const dep = EININGAR[k]?.[2]; return dep ? ON(dep) : true; };
+  const ON = k => { if (ALLTAF.includes(k)) return true; if ((window.ORG?.einingar || {})[k] === false) return false; const r = raw(); if (r[k] === false || r[k] === 0) return false; if (EININGAR[k]?.[3] && r[k] !== true) return false; const dep = EININGAR[k]?.[2]; return dep ? ON(dep) : true; };
   // Læst í uppsetningu (fyrirtaeki.js) – admin getur þá ekki kveikt á henni í appinu
   const LAST = k => (window.ORG?.einingar || {})[k] === false;
   window.EININGAR = EININGAR; window.ON = ON; window.einLast = LAST; window.EIN_ALLTAF = ALLTAF;
@@ -35,7 +38,7 @@
 
   // Hvaða eining hver flipi tilheyrir (flipar án línu eru alltaf sýndir)
   window.TAB_EIN = { undir: "undirverk", vsk: "vidskiptavinir", dagatal: "dagatal", fundir: "fundir", timar: "timar", tfaer: "timar", tskyr: "timar",
-    trk: "reikningar", skjolmin: "onedrive", skjol: "skjol", skjolnyl: "onedrive", postur: "postur", spjall: "spjall" };
+    trk: "reikningar", skjolmin: "onedrive", skjol: "skjol", skjolnyl: "onedrive", postur: "postur", spjall: "spjall", vorur: "vorur", tilbod: "tilbod" };
   window.tabOn = t => !window.TAB_EIN[t] || ON(window.TAB_EIN[t]);
   // Tegundir í „+ Nýtt“
   window.KIND_EIN = { tima: "timar", kostn: "kostnadur", fund: "fundir", undir: "undirverk", verk: "verkefni", vsk: "vidskiptavinir", skjal: "skjol" };

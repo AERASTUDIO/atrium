@@ -112,7 +112,7 @@ function dVsk(c){
   ${textCard("Athugasemdir",c.athugasemdir)}
   ${addRow([["verk","+ Verkefni"]])}
   <div class="viewtitle">Verkefni í gangi · ${act.length}</div>${act.length?`<div class="list">${act.map(projCard).join("")}</div>`:`<div class="empty">Engin verkefni í gangi.</div>`}
-  <div class="viewtitle">Tilboð · ${tb.length}</div>${tb.length?llist(tb.map(tbRow)):`<div class="empty">Engin tilboð skráð. Tilboðsupphæð er skráð á verkefni.</div>`}
+  ${window.ON&&ON("tilbod")&&window.tbFor?(tbFor(t=>sameId(t.vskId,c.id))||`<div class="viewtitle">Tilboð</div><div class="empty">Engin tilboð til ${esc(c.name)}.</div>`):`<div class="viewtitle">Tilboð · ${tb.length}</div>${tb.length?llist(tb.map(tbRow)):`<div class="empty">Engin tilboð skráð. Tilboðsupphæð er skráð á verkefni.</div>`}`}
   ${rk.length?rkList(r=>rk.includes(r),"Reikningar"):`<div class="viewtitle">Reikningar · 0</div><div class="empty">Engir reikningar gefnir út á ${esc(c.name)}.</div>`}
   ${done.length?`<div class="viewtitle">Afhent · ${done.length}</div><div class="list">${done.map(projCard).join("")}</div>`:""}`;
 }

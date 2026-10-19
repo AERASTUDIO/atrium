@@ -402,3 +402,22 @@ body.onchat #fab{display:none!important}
   .hasco #login .lco,.hasco #login .login-in p,.hasco #login .login-in .btn{animation:aIn .6s var(--ease) both}
   .hasco #login .lco{animation-delay:3.4s}.hasco #login .login-in p{animation-delay:3.55s}.hasco #login .login-in .btn{animation-delay:3.7s}.hasco #login #login-btn{animation-delay:3.85s}
 }
+
+/* Tilboð (sala.js, 2.4.0): línur í hlutum, ritill og samtölur */
+.tbgrp{margin:0 0 14px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.tbgh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:var(--b0);font-size:13.5px}
+.tbgh b{font-weight:500;letter-spacing:.02em}.tbgh span{color:var(--muted);font-variant-numeric:tabular-nums}
+.tbgh input.tbhl{flex:1;min-width:0;font-weight:500;background:transparent;border:1px dashed var(--line)}
+.tbl{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;padding:10px 14px;border-top:1px solid var(--line);font-size:14px}
+.tbl>b{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbln{flex:1;min-width:0}.tbln .ls{color:var(--muted);font-size:12.5px;margin-top:2px}
+.tbl.ed{flex-wrap:wrap}.tbl.ed .tbln>input{width:100%;font-weight:500}
+.tbf{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:8px}
+.tbf label{font-size:11.5px;margin:0}.tbf input,.tbf select{min-height:38px;padding:6px 8px;font-size:14px}
+.tblr{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.tblr b{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tblr .btn{min-height:34px;padding:4px 12px}
+@media (max-width:560px){.tbl.ed .tblr{flex-direction:row;width:100%;justify-content:space-between;align-items:center}}
+.kicker .tag,.lt .tag{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 8px;margin-left:4px;vertical-align:middle}
+/* Neðri stika: jafn breiðir dálkar eftir fjölda hluta (fleiri einingar, t.d. Tilboð, frá 2.4.0) */
+nav.mbar.tbar{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+nav.mbar.tbar:has(>:nth-child(7)) .tab{font-size:9.5px;letter-spacing:-.01em}

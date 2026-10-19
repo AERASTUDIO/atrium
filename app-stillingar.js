@@ -7,6 +7,7 @@ const STPAGES={utlit:{l:"Útlit",s:["Útlit"]},ms:{l:"Microsoft 365",s:["Microso
   folk:{l:"Fólk",d:"Notendur, hlutverk og starfsmenn",s:["Notendur","Starfsmenn"],adm:1},fyrir:{l:"Reikningar og fyrirtæki",d:"Seljandi, tímagjald, VSK og vinnuvika",s:["Reikningar","Vinnuvika"],adm:1},
   adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
   einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()},
+  tilbod:{l:"Tilboð og vörulisti",d:"Flokkar, dagstuðlar, VSK, tilboðsnúmer og skilmálar",s:[],adm:1,fn:()=>window.tbStillingar?tbStillingar():""},
   vstill:{l:"Verkefnastillingar",d:"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna","Þjónusta","Sniðmát undirverka"],adm:1}};
 function stChunks(){const h=vStillingarAll(), parts=h.split('<div class="viewtitle">'), m={};
   parts.slice(1).forEach(x=>{const t=x.slice(0,x.indexOf("</div>")).replace(/<[^>]+>/g,"").trim(); m[t]=(m[t]||"")+'<div class="viewtitle">'+x;}); return m;}
@@ -15,7 +16,7 @@ function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB];
   if(sub&&(!sub.adm||can("stillingar"))){if(sub.fn) return sub.fn(); const m=stChunks(); return sub.s.map(t=>m[t]||"").join("")||'<div class="empty">Ekkert hér.</div>';}
   const msOn=window.MS&&MS.on?MS.on():false;
   const me=["utlit","ms","sig","amin"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
-  const co=can("stillingar")?["adgangur","folk","einingar","fyrir","vstill"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
+  const co=can("stillingar")?["adgangur","folk","einingar","fyrir","vstill",...(window.ON&&(ON("vorur")||ON("tilbod"))?["tilbod"]:[])].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn</div><div class="mlist">${mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins",noch:1})}</div>`;}
 function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();

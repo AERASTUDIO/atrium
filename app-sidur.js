@@ -168,6 +168,7 @@ function detailHTML(){
   if(t==="kostn"){const k=findKostn(id); return k&&dKostn(k);}
   if(t==="post"){return window.dPost?dPost(id):null;}
   if(t==="reikn"){const R=window.rkFind&&rkFind(id); return R&&rkDetail(R);}
+  if(window.DETAIL_EXT?.[t]) return DETAIL_EXT[t](id); // einingar í eigin skrám (t.d. sala.js)
   return null;
 }
 function openDetail(key){
@@ -195,6 +196,7 @@ viewEl.addEventListener("click",e=>{if(lpFired){lpFired=false; e.preventDefault(
 viewEl.addEventListener("change",e=>{if(e.target.id==="timfilter"){timFilter=e.target.value;render();}
   if(e.target.id==="undirfilter"){undirFilter=e.target.value;render();} if(e.target.id==="skjalfilter"){skjalFilter=e.target.value;render();}});
 function doAct(act,el){const [k,...r]=act.split(":");
+  {const x=window.ACT_EXT&&Object.keys(ACT_EXT).find(p=>k.startsWith(p)); if(x){ACT_EXT[x](k,r,el); return;}} // einingar í eigin skrám
   if(k.startsWith("ms")&&window.msAct){msAct(k,r,el); return;}
   if(k==="odmode"&&window.msAct){msAct(k,r,el); return;}
   if(k==="odlocal"&&window.odCopyLocal){odCopyLocal(decodeURIComponent(r.join(":"))); return;}
@@ -250,7 +252,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="stsub"){window.STSUB=r[0]||null; render(); window.scrollTo({top:0}); return;}
   if(k==="status"){const [type,id,st]=r; quickStatus(type,id,st,el);}}
 viewEl.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ") return; const t=e.target.closest?.("[data-open]"); if(t&&t===e.target){e.preventDefault();openDetail(t.dataset.open);}});
-const NEWBTN={postur:"Póstur",skjol:"Skjal",verk:"Verkefni",undir:"Undirverk",fundir:"Fundur",timar:"Skrá tíma",tfaer:"Skrá tíma",vsk:"Viðskiptavinur",dagatal:"Fundur"};
+const NEWBTN={postur:"Póstur",skjol:"Skjal",verk:"Verkefni",undir:"Undirverk",fundir:"Fundur",timar:"Skrá tíma",tfaer:"Skrá tíma",vsk:"Viðskiptavinur",dagatal:"Fundur",tilbod:"Tilboð",vorur:"Vara"};
 function pageHead(){if(tab==="yfirlit"||tab==="leit") return "";
   const sec=secOf(tab), cur=sec.tabs.find(x=>x[0]===tab)||sec.tabs[0], hid=!!cur[2], vis=sec.tabs.filter(x=>!x[2]), nb=NEWBTN[tab]&&MCP?NEWBTN[tab]:"";
   if(tab==="stillingar"&&window.STSUB&&STPAGES[STSUB]&&(!STPAGES[STSUB].adm||can("stillingar"))) return `<div class="phead"><a class="pback" data-act="stsub:" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Stillingar</a><div class="phrow"><h2 class="ptitle">${esc(STPAGES[STSUB].l)}</h2></div></div>`;
@@ -265,7 +267,7 @@ function render(){
   const det=DETAIL?detailHTML():null; if(DETAIL&&!det) DETAIL=null;
   document.body.classList.toggle("haspnew",!det&&!!NEWBTN[tab]&&!!MCP);
   document.body.classList.toggle("onchat",!det&&tab==="spjall");
-  v.innerHTML=(window.viewAsBanner?viewAsBanner():"")+(det||pageHead()+({yfirlit:()=>vYfirlit("heim"),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolFyr?vSkjolFyr():(window.vSkjolNy?vSkjolNy():""),skjolmin:()=>window.vSkjolMin?vSkjolMin():"",skjolnyl:()=>window.vSkjolNyl?vSkjolNyl():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||(()=>vYfirlit("heim")))()); drawSync();
+  v.innerHTML=(window.viewAsBanner?viewAsBanner():"")+(det||pageHead()+({yfirlit:()=>vYfirlit("heim"),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolFyr?vSkjolFyr():(window.vSkjolNy?vSkjolNy():""),skjolmin:()=>window.vSkjolMin?vSkjolMin():"",skjolnyl:()=>window.vSkjolNyl?vSkjolNyl():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||window.VIEWS_EXT?.[tab]||(()=>vYfirlit("heim")))()); drawSync();
   // Hreyfing aðeins þegar skipt er um síðu – ekki þegar gögn uppfærast
   const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==render._k){const dv=!!DETAIL&&!String(render._k||"").includes("|"+DETAIL+"|"); render._k=key; v.classList.remove("anim","slide"); void v.offsetWidth; v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide"); clearTimeout(render._a); render._a=setTimeout(()=>v.classList.remove("anim","slide"),900);}
   document.getElementById("foot").textContent=S.uppfaert?"Síðast breytt "+fmtDate(S.uppfaert)+(hhmm(S.uppfaert)?" kl. "+hhmm(S.uppfaert):""):"";

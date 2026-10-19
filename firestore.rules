@@ -41,7 +41,7 @@ service cloud.firestore {
     match /app/state {
       allow read: if active();
       allow write: if active() && !(resource != null && resource.data.get("skipting", 0) >= 2
-        && (request.resource.data.keys().hasAny(["verkefni", "vidskiptavinir", "fundir", "skjol", "thraedir", "reikningar", "kostnadur", "klukka"])
+        && (request.resource.data.keys().hasAny(["verkefni", "vidskiptavinir", "fundir", "skjol", "thraedir", "reikningar", "kostnadur", "klukka", "vorur", "tilbod"])
             || request.resource.data.get("timar", {}).keys().hasAny(["faerslur", "nyjast"])));
     }
     match /app/skrar {
@@ -55,6 +55,9 @@ service cloud.firestore {
     match /fundir/{id}         { allow read, write: if active(); }
     match /skjol/{id}          { allow read, write: if active(); }
     match /thraedir/{id}       { allow read, write: if active(); }
+    // Vörulisti og tilboð (frá 2.4.0): allir virkir notendur lesa og skrifa; aðeins admin eyðir.
+    match /vorur/{id}          { allow read, create, update: if active(); allow delete: if admin(); }
+    match /tilbod/{id}         { allow read, create, update: if active(); allow delete: if admin(); }
 
     // Reikningar: allir lesa; aðeins fjármál (admin, bókari) skrifa; aðeins admin eyðir (frá 1.9.0).
     match /reikningar/{id} {

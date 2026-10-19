@@ -38,6 +38,7 @@ TABDEF.push(["stillingar","Stillingar",IC('<circle cx="12" cy="12" r="3"/><path 
 const SECTIONS_ALL=[
   {k:"heim",l:"Heim",ic:IC('<path d="M4 11l8-7 8 7v9.5H4z"/><path d="M10 20.5v-6h4v6"/>'),tabs:[["yfirlit","Heim"],["hfrag","Til að ganga frá",1],["hfram","Framundan",1],["hnyl","Nýlegt og póstar",1]]},
   {k:"verkefni",l:"Verkefni",ic:TABDEF.find(t=>t[0]==="verk")[2],tabs:[["verk","Verkefni"],["undir","Undirverk"],["vsk","Viðskiptavinir"]]},
+  {k:"sala",l:"Tilboð",ic:IC('<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.7 6.7a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.4"/>'),tabs:[["tilbod","Tilboð"],["vorur","Vörulisti"]]},
   {k:"dagatal",l:"Dagatal",ic:TABDEF.find(t=>t[0]==="dagatal")[2],tabs:[["dagatal","Dagatal"],["fundir","Fundir"]]},
   {k:"timar",l:"Tímar",ic:TABDEF.find(t=>t[0]==="timar")[2],tabs:[["timar","Vikan"],["tfaer","Færslur"],["tskyr","Skýrslur"],["trk","Reikningar"]]},
   {k:"skjol",l:"Skjöl",ic:TABDEF.find(t=>t[0]==="skjol")[2],tabs:[["skjolmin","Mín skjöl"],["skjol","Fyrirtækið"],["skjolnyl","Nýlegt"]]},

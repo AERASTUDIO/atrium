@@ -57,12 +57,12 @@ function sampleState() {
   const reikningar = [
     { id: "r1", nr: 1001, dags: day(-40), gjalddagi: day(-26), verkefniIds: ["p6"], verkefniId: "p6", vskId: "d0000000000000000000000000000c03",
       kaupandi: { name: "Kaffihúsið Bolli", kennitala: "000000-0003", heimilisfang: "Laugavegur 99", postnumer: "101", stadur: "Reykjavík", netfang: "bolli@bolli.example" },
-      seljandi: { nafn: "AERA Studio (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@aera.example", simi: "", vsk: 24, frestur: 14 },
+      seljandi: { nafn: (window.ORG?.nafn || "AERA Studio") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", vsk: 24, frestur: 14 },
       linur: [{ lysing: "Ljósastýring veitingasalar", magn: 16, eining: "klst.", verd: 14900 }], vskP: 24, net: 238400, vsk: 57216, tot: 295616,
       timaIds: [], kostnIds: [], stada: "Greitt", greitt: day(-28), stofnad: iso(-40) },
     { id: "r2", nr: 1002, dags: day(-10), gjalddagi: day(4), verkefniIds: ["p5"], verkefniId: "p5", vskId: "d0000000000000000000000000000c02",
       kaupandi: { name: "Fjarðarbyggð arkitektar", kennitala: "000000-0002", heimilisfang: "Hafnarbraut 12", postnumer: "220", stadur: "Hafnarfjörður", netfang: "info@fjardar.example" },
-      seljandi: { nafn: "AERA Studio (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@aera.example", simi: "", vsk: 24, frestur: 14 },
+      seljandi: { nafn: (window.ORG?.nafn || "AERA Studio") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", vsk: 24, frestur: 14 },
       linur: [{ lysing: "Innréttingar móttöku – teiknivinna", magn: 42, eining: "klst.", verd: 14900 }], vskP: 24, net: 625800, vsk: 150192, tot: 775992,
       timaIds: [], kostnIds: [], stada: "Ógreitt", greitt: null, stofnad: iso(-10) }
   ];
@@ -87,7 +87,7 @@ function sampleState() {
     stillingar: {
       starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }],
       vikumark: 40,
-      reikn: { nafn: "AERA Studio (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@aera.example", simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
+      reikn: { nafn: (window.ORG?.nafn || "AERA Studio") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
       undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@aera.example" }
     }
   };
@@ -109,6 +109,8 @@ const user = { email, ...notendur.notendur[email] };
 // Sýnigögnin byrja í gamla sniðinu (allt í app/state) svo flutningurinn yfir í söfn keyrir líka í sýniútgáfunni (hjá admin).
 // Sýniútgáfan líkir eftir aðgangsreglum: starfsmaður sér aðeins sína tíma og sinn kostnað.
 const store = { "app/state": sampleState(), "app/notendur": notendur };
+// Vörulisti og tilboð (sala.js): sýnigögn þegar einingarnar eru virkar í uppsetningunni (t.d. Sonik)
+if (window.salaPrufa && window.ON && ON("vorur")) { const st = store["app/state"], p = salaPrufa(st.vidskiptavinir); st.vorur = p.vorur; st.tilbod = p.tilbod; }
 // Spjall í sýniútgáfu
 [["s1", "almennt", [], "gunnar@aera.example", "Gunnar Gunnarsson", "Er einhver með lykilinn að sýnishornaskápnum?", -1],
  ["s2", "almennt", [], "jona@aera.example", "Jóna Jónsdóttir", "Hann er á skrifborðinu mínu 👍", -1],
@@ -143,7 +145,7 @@ if (user.hlutverk !== "admin") {
 window.aeraSignOut = () => location.reload(); // „Skrá út“ í sýniútgáfu: innskráningarskjárinn birtist aftur og sýnigögnin byrja upp á nýtt
 document.querySelectorAll('[onclick="aeraSignOut()"]').forEach(b => { b.textContent = "Skrá út"; });
 const v = document.getElementById("appver"); if (v) v.textContent = "Sýniútgáfa";
-document.title = "AERA Studio · sýniútgáfa";
+document.title = (window.ORG?.nafn || "Atrium") + " · sýniútgáfa";
 if (user.hlutverk === "admin") window.aeraStart(db);
 setTimeout(() => window.toast && toast("Sýniútgáfa með tilbúnum gögnum – breytingar vistast ekki"), 600);
 

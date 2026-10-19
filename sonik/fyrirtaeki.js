@@ -27,8 +27,8 @@ window.ORG = {
   postholf: "",
   sigLogo: "sonik/sig-logo.png",
   docLogo: "sonik/doc-logo.png",
-  // einingar sem Sonik notar ekki: { lykill: false }
-  einingar: {},
+  // Einingar: true = kveikt á sjálfgefið óvirkri einingu; false = læst (admin getur ekki kveikt)
+  einingar: { vorur: true, tilbod: true },
   // Firebase-verkefni Sonik (atrium-sonik). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyCxuTQrngLVcptXtatN70I2Lf6S3zEk420",
