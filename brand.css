@@ -379,3 +379,21 @@ body.onchat #fab{display:none!important}
 /* Atrium – heiti lausnarinnar neðst í Meira (2.0.1) */
 .mfoot .atr{display:inline-flex;align-items:center;gap:7px}
 .mfoot .atr img{width:16px;height:16px;flex:none}
+
+/* Tvímerking (frá 2.2.0): merki fyrirtækis (uppsetningar) | Atrium. Án ORG.logo birtist Atrium eitt eins og áður. */
+.cobrand{display:flex;align-items:center;gap:12px;line-height:0}
+.colog,.cosep{display:none}
+.hasco .colog{display:block;height:28px;width:auto;max-width:96px;object-fit:contain}
+.hasco .cosep{display:block;width:1px;height:26px;background:var(--line);flex:none}
+.hasco .cobrand .logo{height:22px}
+.side .cobrand{justify-content:center;margin:2px 0 10px}
+.hasco .side .colog{height:40px;max-width:120px}
+.hasco .side .cobrand .logo{height:24px;margin:0}
+/* í haus símans er aðeins Atrium-táknið við hlið fyrirtækismerkisins */
+.hasco header .cobrand .logo{background-image:url(icons/atrium-merki-dokk.svg)!important;aspect-ratio:1/1!important;height:24px}
+:root.hasco[data-theme="light"] header .cobrand .logo{background-image:url(icons/atrium-merki-ljos.svg)!important}
+/* Innskráning: fyrirtækismerki efst, Atrium-merkið neðst */
+.lco{display:block;max-height:120px;max-width:240px;width:auto;height:auto;margin:0 auto 6px}
+.hasco #login .llogo{position:absolute;left:0;right:0;bottom:max(28px,env(safe-area-inset-bottom));margin:0;gap:10px}
+.hasco #login .lmark{width:40px;height:40px}
+.hasco #login .lword{width:96px}
