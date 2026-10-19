@@ -21,9 +21,10 @@
     onedrive:       ["OneDrive og SharePoint", "Möppur verkefna, Mín skjöl, Nýlegt og forskoðun skráa"],
     postur:         ["Póstur", "Outlook-pósthólf, verkefnapóstur og póstþræðir á verkefnum"],
     spjall:         ["Spjall", "Spjallrásir og bein skilaboð milli starfsfólks"],
-    // Frá 2.4.0 – sjálfgefið óvirkar (4. gildi = 1): kveikt á í uppsetningu (fyrirtaeki.js › einingar: { vorur: true }) eða af admin
-    vorur:          ["Vörulisti", "Búnaður og vörur til leigu og sölu, pakkar, vinna og þjónusta", null, 1],
-    tilbod:         ["Tilboð", "Tilboð með línum úr vörulista, leigudögum, afslætti, PDF og stöðu – samþykkt tilboð verður verkefni", "vorur", 1]
+    // Frá 2.4.0 (aðskildar deildir frá 2.5.0) – sjálfgefið óvirkar (4. gildi = 1): kveikt á í uppsetningu
+    // (fyrirtaeki.js › einingar: { leiga: true, sala: true }) eða af admin. Kóðinn er í sala.js.
+    leiga:          ["Leiga", "Búnaðarlisti og leigutilboð með leigudögum og dagstuðlum, pakkar og tæknimenn", null, 1],
+    sala:           ["Sala", "Vörulisti með lagerstöðu og sölutilboð (heildsala og install)", null, 1]
   };
   const ALLTAF = ["verkefni"];
   // S er skilgreint með let í app-grunnur.js (ekki á window) – lesið við keyrslu
@@ -38,7 +39,7 @@
 
   // Hvaða eining hver flipi tilheyrir (flipar án línu eru alltaf sýndir)
   window.TAB_EIN = { undir: "undirverk", vsk: "vidskiptavinir", dagatal: "dagatal", fundir: "fundir", timar: "timar", tfaer: "timar", tskyr: "timar",
-    trk: "reikningar", skjolmin: "onedrive", skjol: "skjol", skjolnyl: "onedrive", postur: "postur", spjall: "spjall", vorur: "vorur", tilbod: "tilbod" };
+    trk: "reikningar", skjolmin: "onedrive", skjol: "skjol", skjolnyl: "onedrive", postur: "postur", spjall: "spjall", ltilbod: "leiga", lvorur: "leiga", stilbod: "sala", svorur: "sala" };
   window.tabOn = t => !window.TAB_EIN[t] || ON(window.TAB_EIN[t]);
   // Tegundir í „+ Nýtt“
   window.KIND_EIN = { tima: "timar", kostn: "kostnadur", fund: "fundir", undir: "undirverk", verk: "verkefni", vsk: "vidskiptavinir", skjal: "skjol" };
