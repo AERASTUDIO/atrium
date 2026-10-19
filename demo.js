@@ -140,23 +140,23 @@ if (user.hlutverk !== "admin") {
   go();
 }
 
-window.aeraSignOut = () => location.reload(); // „Endurstilla“ í sýniútgáfu
-document.querySelectorAll('[onclick="aeraSignOut()"]').forEach(b => { b.textContent = "Endurstilla sýniútgáfu"; });
+window.aeraSignOut = () => location.reload(); // „Skrá út“ í sýniútgáfu: innskráningarskjárinn birtist aftur og sýnigögnin byrja upp á nýtt
+document.querySelectorAll('[onclick="aeraSignOut()"]').forEach(b => { b.textContent = "Skrá út"; });
 const v = document.getElementById("appver"); if (v) v.textContent = "Sýniútgáfa";
 document.title = "AERA Studio · sýniútgáfa";
 if (user.hlutverk === "admin") window.aeraStart(db);
 setTimeout(() => window.toast && toast("Sýniútgáfa með tilbúnum gögnum – breytingar vistast ekki"), 600);
 
-// Innskráningarskjárinn birtist líka í sýniútgáfunni (einu sinni í hverri lotu), með hreyfimerki Atrium.
+// Innskráningarskjárinn birtist alltaf þegar sýniútgáfan er opnuð eða endurhlaðin, með hreyfimerki Atrium.
 // Hnappurinn opnar sýniútgáfuna – engin raunveruleg innskráning.
 try {
   // sleppt í sjálfvirkum prófunum/skjámyndum (navigator.webdriver), nema slóðin hafi &inn
   const q = new URLSearchParams(location.search);
-  if (!sessionStorage.getItem("atrium-demo-inn") && (!navigator.webdriver || q.has("inn"))) {
+  if (!navigator.webdriver || q.has("inn")) {
     const l = document.getElementById("login"), b = document.getElementById("login-ms"), t = l.querySelector(".login-in p");
     if (t) t.innerHTML = `Sýniútgáfa ${ORG.nafn ? "– " + ORG.nafn.replace(/[<>&]/g, "") : ""}. Skoðaðu og prófaðu appið með tilbúnum gögnum.`;
     b.textContent = "Opna sýniútgáfu";
-    b.addEventListener("click", () => { try { sessionStorage.setItem("atrium-demo-inn", "1"); } catch (e) {} l.hidden = true; });
+    b.addEventListener("click", () => { l.hidden = true; });
     l.hidden = false;
   }
 } catch (e) {}
