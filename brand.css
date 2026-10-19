@@ -376,3 +376,6 @@ body.onchat #fab{display:none!important}
 .chks{display:flex;flex-wrap:wrap;gap:4px 16px}
 .dtabs{top:calc(env(safe-area-inset-top,0px) + var(--hdr,57px) + var(--bk,54px))}
 .backrow.stuck:has(+ *){border-bottom-color:transparent}
+/* Atrium – heiti lausnarinnar neðst í Meira (2.0.1) */
+.mfoot .atr{display:inline-flex;align-items:center;gap:7px}
+.mfoot .atr img{width:16px;height:16px;flex:none}
