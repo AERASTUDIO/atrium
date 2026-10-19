@@ -304,7 +304,7 @@ function downloadIcs(arg){let items=[];
   if(arg==="all"){calItems().forEach((l,k)=>{if(k>=isoDay(today)) l.filter(i=>!i.span&&!i.done).forEach(i=>items.push(i));});}
   else {const f=findFund(arg); if(f) items=[{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||"",open:"fund:"+f.id,o:f}];}
   if(!items.length) return toast("Ekkert framundan til að setja í dagatal");
-  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([icsText(items)],{type:"text/calendar;charset=utf-8"})); a.download=arg==="all"?"AERA dagatal.ics":"AERA fundur.ics";
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([icsText(items)],{type:"text/calendar;charset=utf-8"})); a.download=arg==="all"?ORG.nafn+" dagatal.ics":ORG.nafn+" fundur.ics";
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); toast(items.length>1?`${items.length} atriði í dagatalsskrá`:"Opnaðu skrána til að bæta í dagatalið");}
 let notifT=[];
 function scheduleNotifs(){notifT.forEach(clearTimeout); notifT=[]; if(!("Notification" in window)||Notification.permission!=="granted"||!S) return;

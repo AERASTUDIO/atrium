@@ -255,7 +255,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
   const sig = () => "\n\n";
   window.poSigSettingsHTML = () => { const g = SIG(), f = (k, l, ex = "") => `<label>${l}<input id="sg-${k}" value="${esc(g[k] || "")}" ${ex}></label>`;
     return `<div class="viewtitle">Undirskrift í pósti</div>
-      <p class="hint" style="margin:0 0 8px">Birtist neðst í póstum sem eru sendir úr appinu, á íslensku og ensku, með merki AERA.</p>
+      <p class="hint" style="margin:0 0 8px">Birtist neðst í póstum sem eru sendir úr appinu, á íslensku og ensku, með merki ${esc(ORG.nafn)}.</p>
       <div class="sigprev" id="sg-prev">${poSigHTML("icons/sig-logo.png")}</div>
       ${f("kvedja", "Kveðja")}${f("nafn", "Nafn")}
       <div class="two">${f("titillIS", "Starfsheiti (íslenska)")}${f("titillEN", "Starfsheiti (enska)")}</div>

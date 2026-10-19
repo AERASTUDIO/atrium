@@ -296,7 +296,7 @@
     const q = "$filter=" + encodeURIComponent(`displayName eq '${ORG.postmappa.replace(/'/g, "''")}'`) + "&$select=id,displayName";
     let xs = (await MS.g(`/me/mailFolders?${q}`)).value;
     if (!xs.length) xs = (await MS.g(`/me/mailFolders/inbox/childFolders?${q}`)).value;
-    if (!xs.length) throw new Error("Fann ekki póstmöppuna „AERA“ í Outlook.");
+    if (!xs.length) throw new Error(`Fann ekki póstmöppuna „${ORG.postmappa}“ í Outlook.`);
     return MF = xs[0].id;
   }
   // Giskar á verkefni pósts: verknúmer eða heiti í efni/texta, annars netfang sendanda sem passar við viðskiptavin með eitt verkefni í gangi

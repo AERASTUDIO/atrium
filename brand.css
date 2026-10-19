@@ -43,8 +43,8 @@ h1,h2,h3,.hello,h2.big,.ptitle,.cal-head h2{font-weight:300!important;letter-spa
 .kpis .card b,.date b,.ring b{font-weight:300}
 
 /* Lógó – litaútgáfa eftir þema (ekki breyta litum merkisins) */
-.logo{-webkit-mask:none!important;mask:none!important;background:url(icons/logo-dokk.svg) no-repeat left center/contain!important;aspect-ratio:340.62/124!important;height:34px}
-:root[data-theme="light"] .logo{background-image:url(icons/logo-ljos.svg)!important}
+.logo{-webkit-mask:none!important;mask:none!important;background:url(icons/atrium-haus-dokk.svg) no-repeat left center/contain!important;aspect-ratio:368.59/108!important;height:30px}
+:root[data-theme="light"] .logo{background-image:url(icons/atrium-haus-ljos.svg)!important}
 .side .logo{height:44px;margin:4px 6px 8px}
 .login-in .logo{height:0;display:none}
 
@@ -124,8 +124,8 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 #login #login-btn{background:none!important;border:0!important;color:#93A0AD!important}
 /* Lárétt merki: mynd vinstra megin, texti hægra megin (eins og logo-*.svg) */
 .llogo{display:flex;align-items:center;justify-content:center;gap:18px;margin:0 auto 22px}
-.lmark{width:104px;height:91px;display:block;margin:0;flex:none}
-.lword{width:150px;display:block;margin:0;flex:none}
+.lmark{width:96px;height:96px;display:block;margin:0;flex:none}
+.lword{width:190px;display:block;margin:0;flex:none}
 
 /* ---------- Hreyfingar (sleppt ef tækið biður um minni hreyfingu) ---------- */
 @keyframes aIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}

@@ -8,8 +8,10 @@ window.ORG = {
   vefur: "aerastudio.is",
   appUrl: "https://aerastudio.github.io/aera-app/",
 
-  // Microsoft Entra: forritið „AERA app“ hjá fyrirtækinu
-  ms: { clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f" },
+  // Microsoft Entra: forritið hjá fyrirtækinu (hét „AERA app“; endurnefnt í „Atrium“)
+  // merki fyrirtækisins (neðst í Meira); appið sjálft ber merki Atrium
+  logo: { ljos: "icons/logo-ljos.svg", dokk: "icons/logo-dokk.svg" },
+  ms: { appNafn: "Atrium", clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f" },
 
   // Fyrsti admin – skráður sjálfkrafa í notendaskrána ef hún er ekki til
   admin: { email: "dagur@aerastudio.is", nafn: "Dagur Fannar Möller", sk: "DFM", titillIS: "Eigandi", titillEN: "Owner" },
@@ -23,7 +25,8 @@ window.ORG = {
     reikningar: "AERA/Stofa/Reikningar",
     snidmat: "AERA/Stofa/Sniðmát",
     oflokkad: "Óflokkað",
-    mitt: "AERA app"          // „Mín skjöl“ – mappa í OneDrive hvers notanda (tímaskýrslur o.fl.)
+    mitt: "Atrium",           // „Mín skjöl“ – mappa í OneDrive hvers notanda (tímaskýrslur o.fl.)
+    mittAdur: "AERA app"      // eldra heiti möppunnar – endurnefnd sjálfkrafa í „mitt“ (2.1.0)
   },
   // Samstillt OneDrive-mappa á Windows-tölvum starfsmanna (Explorer skilur %UserProfile%)
   odLocal: "%UserProfile%\\OneDrive - AERA Studio ehf",

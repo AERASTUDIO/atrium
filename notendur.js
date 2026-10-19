@@ -60,7 +60,7 @@
         ${u.virkur ? "" : `<button type="button" class="mini" data-act="nudel:${esc(u.email)}" aria-label="Eyða notanda">✕</button>`}
       </div></div>`;
     return `<div class="viewtitle">Notendur</div>
-    <p class="hint" style="margin:0 0 8px">Starfsmenn skrá sig inn með Microsoft-aðgangi @${DOMAIN}. Bættu notanda við hér <b>og</b> í Entra (Enterprise apps › AERA app › Users and groups).</p>
+    <p class="hint" style="margin:0 0 8px">Starfsmenn skrá sig inn með Microsoft-aðgangi @${DOMAIN}. Bættu notanda við hér <b>og</b> í Entra (Enterprise apps › ${esc(ORG.ms.appNafn || "Atrium")} › Users and groups).</p>
     ${list.length ? list.map(row).join("") : '<div class="empty">Engir notendur skráðir.</div>'}
     <div class="two" style="margin-top:12px"><label>Netfang<input id="nu-email" type="email" placeholder="nafn@${DOMAIN}" autocomplete="off"></label><label>Nafn<input id="nu-nafn" type="text" placeholder="Fullt nafn"></label></div>
     <div class="two"><label>Skammstöfun<input id="nu-sk" type="text" placeholder="T.d. JJ" maxlength="4"></label>

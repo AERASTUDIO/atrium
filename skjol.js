@@ -128,7 +128,7 @@
       <div class="links">${x.url ? `<a class="btn primary" href="${esc(x.url)}" target="_blank" rel="noopener">Opna${off ? " í " + s.l : x.snid === "canva" ? " í Canva" : ""} ↗</a>` : x.snid === "canva" ? `<a class="btn primary" href="https://www.canva.com/" target="_blank" rel="noopener">Opna Canva ↗</a>` : ""}
         ${msOn() && (x.odId || (window.msCanPrevUrl && msCanPrevUrl(x.url))) ? `<button type="button" class="btn" data-act="${esc(x.odId ? "msprev:" + x.odId : msPrevUrl(x.url))}">Forskoða</button>` : ""}
         ${MCP ? `<button type="button" class="btn" data-act="skflokka:${esc(x.id)}">${x.stadur === "oflokkad" ? "Flokka" : "Færa"}</button><button type="button" class="btn" data-act="skren:${esc(x.id)}">${off ? "Endurnefna" : "Breyta"}</button><button type="button" class="btn danger" data-act="skdel:${esc(x.id)}">Fjarlægja</button>` : ""}</div>
-      <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([["Tegund", esc(s.l)], ["Staður", esc(where(x))], ["Í OneDrive", x.slod ? esc(x.slod.replace(/^AERA\//, "AERA › ").replace(/\//g, " › ")) : ""], ["Verkefni", p ? projLink(p) : ""], ["Búið til", fmtDate(x.stofnad)], ["Síðast breytt", fmtDate(x.breytt)]])}</dl></div>`;
+      <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([["Tegund", esc(s.l)], ["Staður", esc(where(x))], ["Í OneDrive", x.slod ? esc(x.slod.replace(/\//g, " › ")) : ""], ["Verkefni", p ? projLink(p) : ""], ["Búið til", fmtDate(x.stofnad)], ["Síðast breytt", fmtDate(x.breytt)]])}</dl></div>`;
   };
 
   window.skAct = function (k, r) {

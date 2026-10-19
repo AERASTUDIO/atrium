@@ -108,7 +108,7 @@ async function reportPreview(R){toast("Bý til PDF…"); try{const bytes=await r
 async function deliverDoc(bytes,name,type,sub){
   const dl=document.getElementById("rep-dl")?.checked;
   if(!dl&&window.MS&&MS.on()&&window.odSaveMine){toast("Vista í Mín skjöl…");
-    try{const it=await odSaveMine(sub,name,new Blob([bytes],{type}),type); odSavedSheet(it,(ORG.od.mitt||"AERA app")+" › "+sub.replace(/\//g," › ")); return it;}
+    try{const it=await odSaveMine(sub,name,new Blob([bytes],{type}),type); odSavedSheet(it,(ORG.od.mitt||"Atrium")+" › "+sub.replace(/\//g," › ")); return it;}
     catch(e){toast("Vistun í OneDrive tókst ekki ("+(e?.message||"villa")+") – sæki á tækið í staðinn");}}
   const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); toast("Skjal sótt á tækið");
 }

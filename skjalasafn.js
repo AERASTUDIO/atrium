@@ -1,10 +1,10 @@
 /* Skjöl (frá 1.8.0): eigin hluti í valmyndinni með þremur flipum.
-   - Mín skjöl (skjolmin): OneDrive notandans, rót í möppunni „AERA app“ (ORG.od.mitt) – tímaskýrslur o.fl. vistast hér
+   - Mín skjöl (skjolmin): OneDrive notandans, rót í möppunni „Atrium“ (ORG.od.mitt; hét „AERA app“ fyrir 2.1.0 og er endurnefnd sjálfkrafa) – tímaskýrslur o.fl. vistast hér
    - Fyrirtækið (skjol): verðskrá, skjöl appsins og möppur fyrirtækisins (AERA/…) – flyst á SharePoint síðar
    - Nýlegt (skjolnyl): síðustu skrár sem notandinn opnaði eða breytti (Microsoft Graph /me/drive/recent)
    Möppuvafri: smellt á möppu opnar hana í appinu, „Opna“ fylgir stillingunni Í tölvunni / Á netinu (ms-app.js › odLink). */
 (function () {
-  const MINE = () => ORG.od.mitt || "AERA app";
+  const MINE = () => ORG.od.mitt || "Atrium";
   const ROOT = () => (ORG.od.stofa || "AERA/Stofa").split("/")[0];
   const on = () => !!(window.MS && MS.on());
   const encP = s => String(s).split("/").map(encodeURIComponent).join("/");
@@ -24,8 +24,18 @@
     }
     return cur;
   }
+  // Eldra heiti möppunnar (ORG.od.mittAdur, t.d. „AERA app“) → endurnefnt í nýja heitið einu sinni (2.1.0)
+  let migP = null;
+  function migrateMine() {
+    const old = ORG.od.mittAdur; if (!old || old === MINE()) return Promise.resolve();
+    return migP || (migP = (async () => {
+      try { await MS.g(`/me/drive/root:/${encP(MINE())}?$select=id`); return; } catch (e) { if (e.status !== 404) return; }
+      try { const it = await MS.g(`/me/drive/root:/${encP(old)}?$select=id`); await MS.g(`/me/drive/items/${it.id}`, { method: "PATCH", body: { name: MINE() } }); } catch (e) {}
+    })());
+  }
   // Vista skrá í Mín skjöl (t.d. sub = "Tímaskýrslur/2026"); skilar driveItem
   window.odSaveMine = async function (sub, name, data, type) {
+    await migrateMine();
     const dir = await ensure(MINE() + "/" + sub);
     return MS.g(`/me/drive/root:/${encP(dir + "/" + name)}:/content?@microsoft.graph.conflictBehavior=rename`, { method: "PUT", body: data, headers: { "Content-Type": type || "application/octet-stream" } });
   };
@@ -42,6 +52,7 @@
   async function load(key) {
     const s = ST[key]; s.busy = true; s.err = null; render();
     try {
+      if (key === "min") await migrateMine();
       const p = s.path.join("/"), url = p ? `/me/drive/root:/${encP(p)}:/children?${SEL}` : `/me/drive/root/children?${SEL}`;
       let j;
       const g = s.sp && window.odG ? odG : MS.g;
