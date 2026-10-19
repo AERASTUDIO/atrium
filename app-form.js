@@ -100,9 +100,10 @@ function enhanceForm(){
   const first=f.querySelector("input:not([type=hidden]):not([type=checkbox]),select"); if(first&&!("ontouchstart" in window)) setTimeout(()=>first.focus(),50);
 }
 function drawForm(){
-  const T={tima:"Tími",fund:"Fundur",undir:"Undirverk",verk:"Verkefni",vsk:"Viðskiptavinur"};
+  const T=Object.fromEntries(Object.entries({tima:"Tími",fund:"Fundur",undir:"Undirverk",verk:"Verkefni",vsk:"Viðskiptavinur"}).filter(([k])=>kindOn(k)));
+  if(!kindOn(kind)) kind=Object.keys(T)[0]||"verk";
   let f="";
-  const subseg=`<div class="seg seg2" role="group" aria-label="Tegund skráningar"><button type="button" data-k2="tima" aria-pressed="${kind==="tima"}">Vinnutími</button><button type="button" data-k2="kostn" aria-pressed="${kind==="kostn"}">Útlagður kostnaður</button></div>`;
+  const subseg=!ON("kostnadur")?"":`<div class="seg seg2" role="group" aria-label="Tegund skráningar"><button type="button" data-k2="tima" aria-pressed="${kind==="tima"}">Vinnutími</button><button type="button" data-k2="kostn" aria-pressed="${kind==="kostn"}">Útlagður kostnaður</button></div>`;
   const dayPick=`<div><div class="kind" style="margin-bottom:6px">Dagur</div><div class="daychips"><button type="button" class="chipbtn" data-day="0">Í dag</button><button type="button" class="chipbtn" data-day="-1">Í gær</button><input id="f-date" type="date" required value="${isoDay(today)}" aria-label="Dagsetning"></div></div>`;
   if(kind==="kostn") f=`${subseg}<label>Verkefni<select id="f-proj">${projOpts(true)}<option value="">Ekkert verkefni (almennt)</option></select></label>
     <label>Lýsing<input id="f-desc" required placeholder="T.d. prentun teikninga, akstur, efni"></label>

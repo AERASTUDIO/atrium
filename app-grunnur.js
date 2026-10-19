@@ -34,7 +34,7 @@ const TABDEF=[
   ["postur","Póstur",IC('<rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/>')]];
 TABDEF.push(["stillingar","Stillingar",IC('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>')]);
 /* Fimm hlutar (v1.2): hver hluti hefur undirsíður. Þriðja gildið (1) = falin undirsíða sem opnast úr hlutanum sjálfum (ekki í flipastiku). */
-const SECTIONS=[
+const SECTIONS_ALL=[
   {k:"heim",l:"Heim",ic:IC('<path d="M4 11l8-7 8 7v9.5H4z"/><path d="M10 20.5v-6h4v6"/>'),tabs:[["yfirlit","Heim"],["hfrag","Til að ganga frá",1],["hfram","Framundan",1],["hnyl","Nýlegt og póstar",1]]},
   {k:"verkefni",l:"Verkefni",ic:TABDEF.find(t=>t[0]==="verk")[2],tabs:[["verk","Verkefni"],["undir","Undirverk"],["vsk","Viðskiptavinir"]]},
   {k:"dagatal",l:"Dagatal",ic:TABDEF.find(t=>t[0]==="dagatal")[2],tabs:[["dagatal","Dagatal"],["fundir","Fundir"]]},
@@ -42,7 +42,14 @@ const SECTIONS=[
   {k:"skjol",l:"Skjöl",ic:TABDEF.find(t=>t[0]==="skjol")[2],tabs:[["skjolmin","Mín skjöl"],["skjol","Fyrirtækið"],["skjolnyl","Nýlegt"]]},
   {k:"postur",l:"Samskipti",ic:IC('<path d="M4 5.5h11a1.5 1.5 0 0 1 1.5 1.5v6.5A1.5 1.5 0 0 1 15 15H9l-4 3.5V15H4a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 4 5.5z"/><path d="M16.5 9H20a1.5 1.5 0 0 1 1.5 1.5V17a1.5 1.5 0 0 1-1.5 1.5h-1V21l-3.5-2.5H11a1.5 1.5 0 0 1-1.5-1.5v-.5"/>'),tabs:[["postur","Póstur"],["spjall","Spjall"],["teymi","Samstarfsfólk"]]},
   {k:"meira",l:"Meira",ic:IC('<circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>'),tabs:[["meira","Meira"],["stillingar","Stillingar",1]],nobar:1}]; // Meira: í hliðarstiku og sem prófílhnappur í haus (ekki í neðri stiku síma)
-const TABS=SECTIONS.flatMap(x=>x.tabs.map(t=>t[0]));
+// Einingar (kjarni.js): flipar og hlutar sem eru ekki virkir hjá þessari uppsetningu eru faldir. Endurreiknað þegar stillingin breytist.
+const SECTIONS=[], TABS=[]; let _einSig=null;
+function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return false; _einSig=sg;
+  SECTIONS.length=0; SECTIONS_ALL.forEach(x=>{const tabs=x.tabs.filter(t=>!window.tabOn||tabOn(t[0])); const vis=tabs.filter(t=>!t[2]); if(!vis.length) return;
+    // Ef aðeins ein síða er eftir í hluta (t.d. Reikningar án tímaskráningar) ber hlutinn heiti hennar
+    SECTIONS.push({...x,tabs,l:vis.length===1&&vis.length<x.tabs.filter(t=>!t[2]).length?vis[0][1]:x.l});});
+  TABS.length=0; SECTIONS.forEach(x=>x.tabs.forEach(t=>TABS.push(t[0]))); return true;}
+applyEin();
 const secOf=t=>SECTIONS.find(x=>x.tabs.some(y=>y[0]===t))||SECTIONS[0];
 const tabTitle=t=>secOf(t).tabs.find(y=>y[0]===t)?.[1]||"";
 const DTYPES=["Draft","Spec","PRD","RFC","Design Review","Decision","Strategy","Guideline","Runbook","Postmortem","OKRs"], DSTAT=["Not started","In progress","Done"];

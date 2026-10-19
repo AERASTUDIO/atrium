@@ -337,7 +337,7 @@
   window.msTick = async function () {
     if (!isOn() || ticking || !S) return; ticking = true;
     try {
-      const bid = company() ? (S.odBidrod || []).slice() : [];
+      const bid = company() && (!window.ON || ON("onedrive")) ? (S.odBidrod || []).slice() : [];
       for (const b of bid) {
         if (noFolder(findProj(b.verkefniId))) { await saveSnapshot(s => { s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== b.verkefniId); }); continue; }
         try {
@@ -346,7 +346,7 @@
           VK = null;
         } catch (e) { console.warn("Mappa", e); break; }
       }
-      if (Date.now() - lastMail > 5 * 60 * 1000) await postar(false).catch(e => console.warn("Póstar", e));
+      if ((!window.ON || ON("postur")) && Date.now() - lastMail > 5 * 60 * 1000) await postar(false).catch(e => console.warn("Póstar", e));
     } finally { ticking = false; }
   };
 

@@ -6,6 +6,7 @@ window.STSUB=null;
 const STPAGES={utlit:{l:"Útlit",s:["Útlit"]},ms:{l:"Microsoft 365",s:["Microsoft 365"]},sig:{l:"Undirskrift í pósti",s:["Undirskrift í pósti"]},amin:{l:"Áminningar",s:["Áminningar"]},
   folk:{l:"Fólk",d:"Notendur, hlutverk og starfsmenn",s:["Notendur","Starfsmenn"],adm:1},fyrir:{l:"Reikningar og fyrirtæki",d:"Seljandi, tímagjald, VSK og vinnuvika",s:["Reikningar","Vinnuvika"],adm:1},
   adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
+  einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()},
   vstill:{l:"Verkefnastillingar",d:"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna","Þjónusta","Sniðmát undirverka"],adm:1}};
 function stChunks(){const h=vStillingarAll(), parts=h.split('<div class="viewtitle">'), m={};
   parts.slice(1).forEach(x=>{const t=x.slice(0,x.indexOf("</div>")).replace(/<[^>]+>/g,"").trim(); m[t]=(m[t]||"")+'<div class="viewtitle">'+x;}); return m;}
@@ -14,14 +15,14 @@ function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB];
   if(sub&&(!sub.adm||can("stillingar"))){if(sub.fn) return sub.fn(); const m=stChunks(); return sub.s.map(t=>m[t]||"").join("")||'<div class="empty">Ekkert hér.</div>';}
   const msOn=window.MS&&MS.on?MS.on():false;
   const me=["utlit","ms","sig","amin"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
-  const co=can("stillingar")?["adgangur","folk","fyrir","vstill"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
+  const co=can("stillingar")?["adgangur","folk","einingar","fyrir","vstill"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn</div><div class="mlist">${mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins",noch:1})}</div>`;}
 function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
   return `${U?`<div class="mprof"><div class="mav" aria-hidden="true">${esc(U.sk||ini)}</div><div class="grow"><div style="font-size:16px">${esc(U.nafn||U.email)}</div><div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(U.email||"")} · ${esc((window.ROLES?.[U.hlutverk]?.heiti)||"")}</div></div></div>`:""}
   <div class="mlist" style="margin-top:14px">${mrow("tab:stillingar","Stillingar",{ic:EIC('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>')})}${mrow("js:syncNow()","Sækja afrit af gögnum",{ic:EIC('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),noch:1})}</div>
   <button type="button" class="btn" style="width:100%;min-height:52px;margin-top:14px;border-radius:var(--r)" onclick="aeraSignOut()">${window.AERA_DEMO?"Endurstilla sýniútgáfu":"Skrá út"}</button>
-  <div class="mfoot"><img src="icons/${document.documentElement.dataset.theme==="light"?"logo-ljos":"logo-dokk"}.svg" alt="AERA Studio"><span>Útgáfa ${esc(APP_VERSION)}</span></div>`;}
+  <div class="mfoot"><img src="icons/${document.documentElement.dataset.theme==="light"?"logo-ljos":"logo-dokk"}.svg" alt="${esc(ORG.nafn)}"><span>${esc((window.VARA?.nafn||"")+" ")}${esc(APP_VERSION)}${window.VARA&&ORG.nafn!==VARA.fra?" · frá "+esc(VARA.fra):""}</span></div>`;}
 /* ---------- Stillingar appsins ---------- */
 function vStillingarAll(){
   const used=n=>verkefni().filter(p=>p.stada===n).length, usedT=n=>verkefni().filter(p=>(p.thjonusta||[]).includes(n)).length, usedS=sk=>faerslur().filter(e=>(e.starfsmadur||ME())===sk).length;
@@ -117,7 +118,7 @@ const menuwrap=document.getElementById("menuwrap"), mbtn=document.getElementById
 function menuCounts(){if(!S) return {};
   const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0).length;
   return {yfirlit:late?"⚠ "+late:"",dagatal:(()=>{const n=(calItems().get(isoDay(today))||[]).length; return n?n+" í dag":"";})(),verk:active().length+" í gangi",undir:verkefni().flatMap(p=>(p.undirverk||[]).filter(u=>u.stada!=="Done")).length+" opin",
-    fundir:(S.fundir||[]).filter(f=>daysTo(f.date)>=0).length+" framundan",timar:num(periodSum(curPeriod()))+" klst.",vsk:String(vskList().length||""),skjol:(()=>{const n=window.skCount?skCount():0, t=(S.skjol||[]).filter(x=>x.snid).length; return n?n+" óflokkuð":t?String(t):"";})()};}
+    fundir:(S.fundir||[]).filter(f=>daysTo(f.date)>=0).length+" framundan",timar:ON("timar")?num(periodSum(curPeriod()))+" klst.":"",vsk:String(vskList().length||""),skjol:(()=>{const n=window.skCount?skCount():0, t=(S.skjol||[]).filter(x=>x.snid).length; return n?n+" óflokkuð":t?String(t):"";})()};}
 function drawMenu(){
   const cur=secOf(tab), c=secCounts();
   const html=(cls)=>SECTIONS.filter(x=>!(cls&&x.nobar)).map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
@@ -125,10 +126,10 @@ function drawMenu(){
   const av=document.getElementById("avbtn"); if(av){const U=window.USER; av.textContent=(U?.sk||String(U?.nafn||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2)).toUpperCase(); av.setAttribute("aria-current",cur?.k==="meira"?"page":"false"); av.hidden=!U;}
 }
 function secCounts(){if(!S) return {}; const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0).length, un=(window.MS_OFL||[]).length;
-  return {heim:late?"⚠ "+late:"","heim!":late>0,verkefni:String(active().length||""),dagatal:(()=>{const n=(calItems().get(isoDay(today))||[]).length; return n?n+" í dag":"";})(),timar:num(periodSum(curPeriod()))+" klst.",postur:(()=>{const sp=window.spUnread?spUnread():0; return sp||un?String(sp+un):"";})(),"postur!":un>0||(window.spUnread?spUnread():0)>0,meira:""};}
+  return {heim:late?"⚠ "+late:"","heim!":late>0,verkefni:String(active().length||""),dagatal:(()=>{const n=(calItems().get(isoDay(today))||[]).length; return n?n+" í dag":"";})(),timar:ON("timar")?num(periodSum(curPeriod()))+" klst.":"",postur:(()=>{const sp=window.spUnread?spUnread():0; return sp||un?String(sp+un):"";})(),"postur!":un>0||(window.spUnread?spUnread():0)>0,meira:""};}
 function sideExtra(){const el=document.getElementById("sextra"); if(!el||!S) return; const k=klukka(); let h="";
   if(k){const q=findProj(k.pid); h+=`<div class="sx-k"><div class="sx-h">Klukka í gangi</div><div class="sx-t">${esc(q?.nafn||"")}</div><b class="kt" data-start="${esc(k.start)}">${elapsed(k)}</b><button type="button" class="klink" data-act="kedit">Frá kl. ${esc(hhmm(k.start))} ✎</button><button type="button" class="btn primary" onclick="stopKlukka()">Stoppa og skrá</button></div>`;}
-  else if(MCP) h+=`<button type="button" class="btn sx-start" onclick="kind='tima';PREFILL={timer:true};openSheet()">▶ Byrja klukku</button>`;
+  else if(MCP&&ON("timar")) h+=`<button type="button" class="btn sx-start" onclick="kind='tima';PREFILL={timer:true};openSheet()">▶ Byrja klukku</button>`;
   const td=(calItems().get(isoDay(today))||[]).filter(i=>!i.span);
   if(td.length) h+=`<div class="sx-h">Í dag<span class="sx-b">${td.length}</span></div>${td.map(i=>`<a class="sx-i" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))}><span>${esc(i.title)}</span><small>${esc(i.kind)}${hhmm(i.when)?" · "+hhmm(i.when):""}</small></a>`).join("")}`;
   let rec=[]; try{rec=JSON.parse(localStorage.getItem("aera-recent")||"[]");}catch(e){}
@@ -147,3 +148,13 @@ const pickTab=e=>{const b=e.target.closest(".tab"); if(!b) return;
   tab=b.dataset.tab; DETAIL=null; window.STSUB=null; closeMenu(); try{history.replaceState(null,"");}catch(e){} try{localStorage.setItem("aera-tab",tab)}catch(e){}; render(); window.scrollTo({top:0});};
 document.getElementById("mitems").addEventListener("click",pickTab); document.getElementById("sitems").addEventListener("click",pickTab); document.getElementById("tbar").addEventListener("click",pickTab);
 
+
+/* Einingar (2.0.0): admin velur hvaða hlutar eru í notkun. Vistað í S.stillingar.einingar; það sem uppsetningin
+   (fyrirtaeki.js › einingar) hefur slökkt á er læst. Sjá kjarni.js. */
+function vEiningar(){const E=window.EININGAR||{}, sv=S?.stillingar?.einingar||{};
+  return `<p class="hint" style="margin:14px 0 10px">Slökktu á því sem fyrirtækið notar ekki – það hverfur úr valmynd, Heim og formum hjá öllum. Gögnin eyðast ekki og birtast aftur ef kveikt er á ný.</p>
+  <div class="llist">${Object.entries(E).map(([k,[l,d,dep]])=>{const alltaf=(window.EIN_ALLTAF||[]).includes(k), last=einLast(k), on=ON(k), depOff=dep&&!ON(dep);
+    return `<label class="lrow" style="cursor:${alltaf||last?"default":"pointer"};${alltaf||last||depOff?"opacity:.6":""}"><div class="lm"><div class="lt">${esc(l)}</div><div class="ls">${esc(d)}${last?" · óvirkt í þessari uppsetningu":depOff?" · krefst "+esc(E[dep][0]):""}</div></div>
+      <span class="hsw"><input type="checkbox" data-ein="${esc(k)}" ${on?"checked":""} ${alltaf||last||depOff||!MCP?"disabled":""} aria-label="${esc(l)}"><i></i></span></label>`;}).join("")}</div>`;}
+document.addEventListener("change",e=>{const k=e.target?.dataset?.ein; if(!k) return; if(!can("stillingar")){e.target.checked=!e.target.checked; return toast("Aðeins admin getur breytt einingum.");}
+  const v=e.target.checked; saveSnapshot(s=>{s.stillingar=s.stillingar||{}; s.stillingar.einingar={...(s.stillingar.einingar||{}),[k]:v};}).then(()=>toast((window.EININGAR[k]?.[0]||k)+(v?" virkt":" falið"))).catch(err=>toast(errText(err)));});

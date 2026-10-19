@@ -6,22 +6,22 @@
   // Allar einingar: heiti, lýsing, sjálfgefin stærð (s = þriðjungur, m = helmingur, l = full breidd), og hvort aðeins fjármál sjá
   const W = {
     kvedja:    { l: "Kveðja", d: "Góðan dag og staðan í stuttu máli", s: "l" },
-    vika:      { l: "Vikumarkmið", d: "Hringur með klst. vikunnar", s: "s" },
+    vika:      { l: "Vikumarkmið", d: "Hringur með klst. vikunnar", s: "s", e: "timar" },
     idag:      { l: "Í dag", d: "Fundir, skil og klukka dagsins", s: "s" },
     naest:     { l: "Næst á eftir", d: "Næsta atriði á dagskrá", s: "s" },
     spjold:    { l: "Lykiltölur", d: "Spjöld með tölum sem skipta máli – veldu þau undir Lykiltölur", s: "l" },
     flyti:     { l: "Flýtileiðir", d: "Hnappar sem þú velur sjálf(ur)", s: "l" },
-    ch_vikur:  { l: "Myndrit: tímar 8 vikur", d: "Súlurit yfir vikurnar", s: "m" },
-    ch_verk:   { l: "Myndrit: tímar á verkefni", d: "Yfirstandandi tímabil", s: "m" },
+    ch_vikur:  { l: "Myndrit: tímar 8 vikur", d: "Súlurit yfir vikurnar", s: "m", e: "timar" },
+    ch_verk:   { l: "Myndrit: tímar á verkefni", d: "Yfirstandandi tímabil", s: "m", e: "timar" },
     ch_stada:  { l: "Myndrit: staða verkefna", d: "Verkefni í gangi eftir stöðu", s: "m" },
-    ch_reikn:  { l: "Myndrit: reikningsfært", d: "Reikningar, ógreitt, óreikningsfært", s: "m", fj: 1 },
-    oinnheimt: { l: "Óinnheimt", d: "Óreikningsfært og ógreitt í krónum", s: "m", fj: 1 },
+    ch_reikn:  { l: "Myndrit: reikningsfært", d: "Reikningar, ógreitt, óreikningsfært", s: "m", fj: 1, e: "reikningar" },
+    oinnheimt: { l: "Óinnheimt", d: "Óreikningsfært og ógreitt í krónum", s: "m", fj: 1, e: "reikningar" },
     verkefni:  { l: "Verkefni í gangi", d: "Spjöld verkefna með framvindu", s: "l" },
     framundan: { l: "Framundan 7 dagar", d: "Fundir, skil og gjalddagar", s: "m" },
     frag:      { l: "Til að ganga frá", d: "Fram yfir, óreikningsfært, ógreitt", s: "m" },
     nylegt:    { l: "Nýlegt", d: "Síðustu tímar, athugasemdir og þræðir", s: "m" },
-    postur:    { l: "Óflokkaður póstur", d: "Þræðir í AERA-möppunni", s: "m" },
-    spjall:    { l: "Spjall", d: "Nýjustu skilaboðin", s: "m" }
+    postur:    { l: "Óflokkaður póstur", d: "Þræðir í verkefnapóstinum sem á eftir að tengja", s: "m", e: "postur" },
+    spjall:    { l: "Spjall", d: "Nýjustu skilaboðin", s: "m", e: "spjall" }
   };
   const DEF = ["kvedja", "vika", "idag", "naest", "flyti", "spjold", "oinnheimt", "ch_vikur", "ch_verk", "ch_stada", "ch_reikn"];
   // Flýtileiðir: [heiti, aðgerð, tákn-lykill]
@@ -43,14 +43,14 @@
   const SC_DEF = ["tima", "klukka", "verk", "spjall"];
   // Lykiltölur (spjöld): [heiti, lýsing, aðeins fjármál]
   const TL = {
-    timar_dag: ["Klst. í dag", "Það sem þú hefur skráð í dag, með klukku í gangi"],
+    timar_dag: ["Klst. í dag", "Það sem þú hefur skráð í dag, með klukku í gangi", 0, "timar"],
     fram7: ["Framundan 7 daga", "Fundir, skil og gjalddagar næstu viku"],
     verk: ["Verkefni í gangi", "Fjöldi verkefna og hve mörg eru fram yfir skiladag"],
-    oinn: ["Óinnheimt", "Óreikningsfært og ógreitt í krónum", 1],
+    oinn: ["Óinnheimt", "Óreikningsfært og ógreitt í krónum", 1, "reikningar"],
     olesid: ["Ólesið", "Ólesin skilaboð í spjalli og óflokkaður póstur"],
     seint: ["Komið fram yfir", "Skil og fundir sem eru komin fram yfir"],
     frag: ["Til að ganga frá", "Fram yfir, óreikningsfært, ógreitt o.fl."],
-    nyl: ["Óflokkaður póstur", "Þræðir í AERA-möppunni sem á eftir að tengja"]
+    nyl: ["Óflokkaður póstur", "Þræðir í verkefnapóstinum sem á eftir að tengja", 0, "postur"]
   };
   const TL_DEF = () => fj() ? ["timar_dag", "fram7", "verk", "oinn"] : ["timar_dag", "fram7", "verk", "olesid"];
   const PIC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>`; // mappa = verkefni
@@ -58,12 +58,15 @@
   const LSK = "aera-heim";
   const me = () => window.USER?.email || "";
   const fj = () => !!(window.can && can("fjarmal"));
-  const avail = id => W[id] && (!W[id].fj || fj());
+  const avail = id => W[id] && (!W[id].fj || fj()) && (!W[id].e || !window.ON || ON(W[id].e));
+  // Flýtileið/lykiltala er aðeins í boði ef einingin hennar er virk (kjarni.js)
+  const scOn = k => { const a = SC[k]?.[1] || ""; return !window.ON ? true : a.startsWith("tab:") ? (!window.tabOn || tabOn(a.slice(4))) : a.startsWith("add:") ? (!window.kindOn || kindOn(a.slice(4))) : a.startsWith("kstart") ? ON("timar") : true; };
+  const tlOn = k => TL[k] && (!TL[k][2] || fj()) && (!TL[k][3] || !window.ON || ON(TL[k][3]));
   const load = () => { try { return JSON.parse(localStorage.getItem(LSK) || "null"); } catch (e) { return null; } };
   const cur = () => {
     const p = PREF || load() || {};
     const w = (p.w || DEF.map(id => ({ id }))).filter(x => avail(x.id));
-    return { w, sc: p.sc || SC_DEF.slice(), pin: p.pin || [], tl: (p.tl || TL_DEF()).filter(k => TL[k] && (!TL[k][2] || fj())) };
+    return { w, sc: (p.sc || SC_DEF.slice()).filter(scOn), pin: p.pin || [], tl: (p.tl || TL_DEF()).filter(tlOn) };
   };
   function save(p) {
     PREF = p; try { localStorage.setItem(LSK, JSON.stringify(p)); } catch (e) {}
@@ -113,14 +116,14 @@
     const tabs = [["einingar", "Einingar"], ["tl", "Lykiltölur"], ["flyti", "Flýtileiðir"]];
     const body = TAB === "tl"
       ? `<p class="hint" style="margin:0 0 10px">Veldu tölurnar sem birtast í einingunni Lykiltölur (best er að velja fjórar). Röðin fylgir valinu.</p>
-        <div class="hscp">${Object.keys(TL).filter(k => !TL[k][2] || fj()).map(k => { const n = c.tl.indexOf(k); return `<button type="button" class="hscpk" data-act="hw:tl:${k}" aria-pressed="${n >= 0}"><span class="hscm"><b>${esc(TL[k][0])}</b><small>${esc(TL[k][1])}</small></span><i aria-hidden="true">${n >= 0 ? n + 1 : "+"}</i></button>`; }).join("")}</div>
+        <div class="hscp">${Object.keys(TL).filter(tlOn).map(k => { const n = c.tl.indexOf(k); return `<button type="button" class="hscpk" data-act="hw:tl:${k}" aria-pressed="${n >= 0}"><span class="hscm"><b>${esc(TL[k][0])}</b><small>${esc(TL[k][1])}</small></span><i aria-hidden="true">${n >= 0 ? n + 1 : "+"}</i></button>`; }).join("")}</div>
         ${!c.w.some(x => x.id === "spjold") ? `<p class="hint" style="margin-top:10px">Einingin Lykiltölur er falin – kveiktu á henni undir Einingar.</p>` : ""}`
       : TAB === "einingar"
       ? `<p class="hint" style="margin:0 0 10px">Kveiktu á því sem þú vilt sjá. Dragðu línurnar (eða notaðu ↑ ↓) til að raða og veldu stærð. Breytingarnar sjást strax á Heim.</p>
         <ul class="hedl" id="hedl">${on.map((x, i) => row(x.id, i, true)).join("")}</ul>
         ${off.length ? `<div class="kind" style="margin:16px 0 8px">Fleiri einingar</div><ul class="hedl">${off.map(id => row(id, -1, false)).join("")}</ul>` : ""}`
       : `<p class="hint" style="margin:0 0 10px">Veldu hnappana sem birtast í einingunni Flýtileiðir.</p>
-        <div class="hscp">${Object.keys(SC).map(k => `<button type="button" class="hscpk" data-act="hw:sc:${k}" aria-pressed="${c.sc.includes(k)}">${(typeof EI !== "undefined" && EI[SC[k][2]]) || ""}<span>${esc(SC[k][0])}</span><i aria-hidden="true">${c.sc.includes(k) ? "✓" : "+"}</i></button>`).join("")}</div>
+        <div class="hscp">${Object.keys(SC).filter(scOn).map(k => `<button type="button" class="hscpk" data-act="hw:sc:${k}" aria-pressed="${c.sc.includes(k)}">${(typeof EI !== "undefined" && EI[SC[k][2]]) || ""}<span>${esc(SC[k][0])}</span><i aria-hidden="true">${c.sc.includes(k) ? "✓" : "+"}</i></button>`).join("")}</div>
         <div class="kind" style="margin:16px 0 8px">Festa verkefni</div>
         <div class="hscp hscpp">${active().map(p => `<button type="button" class="hscpk" data-act="hw:pin:${esc(p.id)}" aria-pressed="${c.pin.includes(p.id)}">${PIC}<span class="hscm"><b>${esc(p.stutt || p.nafn)}</b><small>${esc(p.nr)}</small></span><i aria-hidden="true">${c.pin.includes(p.id) ? "✓" : "+"}</i></button>`).join("") || '<span class="hint">Engin verkefni í gangi.</span>'}</div>
         ${c.sc.length + c.pin.length && !c.w.some(x => x.id === "flyti") ? `<p class="hint" style="margin-top:10px">Einingin Flýtileiðir er falin – kveiktu á henni undir Einingar.</p>` : ""}`;

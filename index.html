@@ -7,6 +7,7 @@
 window.AERA_DEMO=new URLSearchParams(location.search).has("demo");
 if(window.AERA_DEMO){try{Object.defineProperty(window,"localStorage",{value:window.sessionStorage,configurable:true});}catch(e){}}</script>
 <script src="fyrirtaeki.js"></script>
+<script src="kjarni.js"></script>
 <script src="ms.js"></script>
 <script src="gogn.js"></script>
 </head><body>
@@ -38,7 +39,7 @@ if(window.AERA_DEMO){try{Object.defineProperty(window,"localStorage",{value:wind
 <script src="xlsx.js"></script>
 <script src="skjalagerd.js"></script>
 <script type="module">if(window.AERA_DEMO) import("./demo.js"); else import("./firebase.js");</script>
-<script>const APP_VERSION="1.9.5"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
+<script>const APP_VERSION="2.0.0"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
 <script src="app-grunnur.js"></script>
 <script src="app-listar.js"></script>
 <script src="app-skyrslur.js"></script>
