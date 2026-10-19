@@ -29,6 +29,13 @@ window.ORG = {
   docLogo: "sonik/doc-logo.png",
   // einingar sem Sonik notar ekki: { lykill: false }
   einingar: {},
-  // Firebase-verkefni Sonik – TODO þegar verkefnið hefur verið stofnað. Tómt = aðeins sýniútgáfa virkar.
-  firebase: null
+  // Firebase-verkefni Sonik (atrium-sonik). Opinber auðkenni vefforrits, ekki leyndarmál.
+  firebase: {
+    apiKey: "AIzaSyCxuTQrngLVcptXtatN70I2Lf6S3zEk420",
+    authDomain: "atrium-sonik.firebaseapp.com",
+    projectId: "atrium-sonik",
+    storageBucket: "atrium-sonik.firebasestorage.app",
+    messagingSenderId: "656889180932",
+    appId: "1:656889180932:web:682c3c921757b8a70e1651"
+  }
 };
