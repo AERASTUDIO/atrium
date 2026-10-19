@@ -6,7 +6,7 @@ window.ORG = {
   nafn: "AERA Studio",                 // birtist á reikningum, skýrslum, undirskrift o.fl.
   len: "aerastudio.is",                // Microsoft-lén starfsmanna (innskráning)
   vefur: "aerastudio.is",
-  appUrl: "https://aerastudio.github.io/aera-app/",
+  appUrl: "https://aerastudio.github.io/atrium/",
 
   // Microsoft Entra: forritið hjá fyrirtækinu (hét „AERA app“; endurnefnt í „Atrium“)
   // merki fyrirtækisins (neðst í Meira); appið sjálft ber merki Atrium

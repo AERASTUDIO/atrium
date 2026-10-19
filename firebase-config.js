@@ -1,4 +1,4 @@
-// Firebase-tengistillingar fyrir AERA appið (verkefni aera-app-cfdb3).
+// Firebase-tengistillingar fyrir uppsetningu AERA Studio á Atrium (verkefni aera-app-cfdb3).
 // Þetta eru opinber auðkenni vefforrits, ekki leyndarmál; gögnin eru varin með Firestore-reglum og innskráningu.
 export const firebaseConfig = {
   apiKey: "AIzaSyAUyV3MyuFrgpQ2pNMAsQIYnqYnp32hTFs",

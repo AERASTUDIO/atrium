@@ -1,4 +1,4 @@
-// Sýniútgáfa appsins (opnast með ?demo í slóðinni, t.d. https://aerastudio.github.io/aera-app/?demo).
+// Sýniútgáfa appsins (opnast með ?demo í slóðinni, t.d. https://aerastudio.github.io/atrium/?demo).
 // Engin innskráning, engin tenging við Firestore eða Microsoft: appið keyrir á tilbúnum sýnigögnum
 // sem búa aðeins í minni vafrans. Breytingar gleymast þegar síðan er endurhlaðin.
 // Öll nöfn, fyrirtæki og tölur hér eru uppspuni.
