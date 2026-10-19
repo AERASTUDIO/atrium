@@ -43,5 +43,16 @@ window.ORG = {
   // geta sent frá því (Send as). Krefst Mail.Read.Shared og Mail.Send.Shared í Entra. Tómt = aðeins eigið pósthólf.
   postholf: "aera@aerastudio.is",
   // Undirskrift í tölvupósti
-  sigLogo: "icons/sig-logo.png"
+  sigLogo: "icons/sig-logo.png",
+  // Merki á reikningum, tímaskýrslum og fundargerðum (PNG)
+  docLogo: "icons/doc-logo.png",
+  // Firebase-verkefni uppsetningarinnar (aera-app-cfdb3). Opinber auðkenni vefforrits, ekki leyndarmál.
+  firebase: {
+    apiKey: "AIzaSyAUyV3MyuFrgpQ2pNMAsQIYnqYnp32hTFs",
+    authDomain: "aera-app-cfdb3.firebaseapp.com",
+    projectId: "aera-app-cfdb3",
+    storageBucket: "aera-app-cfdb3.firebasestorage.app",
+    messagingSenderId: "476747764052",
+    appId: "1:476747764052:web:396030a039ee790aeb78c1"
+  }
 };

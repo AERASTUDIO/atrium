@@ -1,13 +1,8 @@
-// Firebase-tengistillingar fyrir uppsetningu AERA Studio á Atrium (verkefni aera-app-cfdb3).
+// Firebase-tengistillingar uppsetningarinnar (sjá ORG.firebase í fyrirtaeki.js).
 // Þetta eru opinber auðkenni vefforrits, ekki leyndarmál; gögnin eru varin með Firestore-reglum og innskráningu.
-export const firebaseConfig = {
-  apiKey: "AIzaSyAUyV3MyuFrgpQ2pNMAsQIYnqYnp32hTFs",
-  authDomain: "aera-app-cfdb3.firebaseapp.com",
-  projectId: "aera-app-cfdb3",
-  storageBucket: "aera-app-cfdb3.firebasestorage.app",
-  messagingSenderId: "476747764052",
-  appId: "1:476747764052:web:396030a039ee790aeb78c1"
-};
+// Frá 2.3.0 eru tengistillingarnar í fyrirtaeki.js (ORG.firebase) svo hver uppsetning hafi sitt Firebase-verkefni.
+// Tómt = uppsetningin er ekki tengd gagnagrunni enn (aðeins sýniútgáfa).
+export const firebaseConfig = window.ORG.firebase || null;
 
 // Fyrirtækjagildin (lén, Entra, fyrsti admin, varaleið) eru í fyrirtaeki.js (window.ORG).
 const O = window.ORG;

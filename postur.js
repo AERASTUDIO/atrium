@@ -235,7 +235,7 @@
                        : { nafn: window.USER?.nafn || MS.user()?.name || "", titillIS: "", titillEN: "", netfang: window.USER?.email || "" };
     return { kvedja: "Kveðja / Best regards", fyrirtaeki: ORG.nafn, simi: "", vefur: "", ...base, ...(own || {}) };
   };
-  const LOGO_URL = ORG.appUrl + ORG.sigLogo, LOGO_CID = "logo@" + ORG.len;
+  const LOGO_URL = new URL(ORG.sigLogo, document.baseURI).href, LOGO_CID = "logo@" + ORG.len;
   window.poSigHTML = (logo, o) => { const g = { ...SIG(), ...(o || {}) }, E = x => esc(x || ""), web = String(g.vefur || "").replace(/^https?:\/\//, "");
     return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Poppins,Calibri,Arial,Helvetica,sans-serif;color:#121416">
 ${g.kvedja ? `<tr><td colspan="2" style="padding:0 0 14px 0;font-size:10.5pt;color:#121416">${E(g.kvedja)},</td></tr>` : ""}
@@ -247,7 +247,7 @@ ${g.kvedja ? `<tr><td colspan="2" style="padding:0 0 14px 0;font-size:10.5pt;col
 ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decoration:none">${E(g.netfang)}</a>` : ""}${g.simi ? `<br><span style="color:#121416">S. / Tel. ${E(g.simi)}</span>` : ""}${web ? `<br><a href="https://${E(web)}" style="color:#2F3742;text-decoration:none">${E(web)}</a>` : ""}
 </td></tr></table>`; };
   let logoB64 = null;
-  const logoAtt = async () => { if (!logoB64) logoB64 = await b64(await (await fetch("icons/sig-logo.png")).blob());
+  const logoAtt = async () => { if (!logoB64) logoB64 = await b64(await (await fetch(ORG.sigLogo)).blob());
     return { "@odata.type": "#microsoft.graph.fileAttachment", name: "aera-logo.png", contentType: "image/png", contentBytes: logoB64, isInline: true, contentId: LOGO_CID }; };
   window.poSigCopy = async () => { const h = poSigHTML(LOGO_URL);
     try { await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([h], { type: "text/html" }), "text/plain": new Blob([document.createRange().createContextualFragment(h).textContent.replace(/\n\s*/g, "\n").trim()], { type: "text/plain" }) })]); toast("Undirskrift afrituð – límdu hana í undirskriftastillingar Outlook"); }
@@ -256,7 +256,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
   window.poSigSettingsHTML = () => { const g = SIG(), f = (k, l, ex = "") => `<label>${l}<input id="sg-${k}" value="${esc(g[k] || "")}" ${ex}></label>`;
     return `<div class="viewtitle">Undirskrift í pósti</div>
       <p class="hint" style="margin:0 0 8px">Birtist neðst í póstum sem eru sendir úr appinu, á íslensku og ensku, með merki ${esc(ORG.nafn)}.</p>
-      <div class="sigprev" id="sg-prev">${poSigHTML("icons/sig-logo.png")}</div>
+      <div class="sigprev" id="sg-prev">${poSigHTML(ORG.sigLogo)}</div>
       ${f("kvedja", "Kveðja")}${f("nafn", "Nafn")}
       <div class="two">${f("titillIS", "Starfsheiti (íslenska)")}${f("titillEN", "Starfsheiti (enska)")}</div>
       ${f("fyrirtaeki", "Fyrirtæki")}
@@ -285,7 +285,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
       ${mode === "new" ? `<label><span class="lbl">Efni <span class="req">*</span></span><input id="po-subj" value="${esc(subj)}" autocomplete="off"></label>` : `<p class="hint" style="margin:0">Efni: ${esc(subj)}</p>`}
       <label>Texti<textarea id="po-body" rows="8">${esc(o.body != null ? o.body : sig())}</textarea></label>
       <label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="po-sig" checked style="width:auto">Undirskrift</label>
-      <div class="sigprev" id="po-sigprev">${poSigHTML("icons/sig-logo.png")}</div>
+      <div class="sigprev" id="po-sigprev">${poSigHTML(ORG.sigLogo)}</div>
       <div><div class="kind" style="margin-bottom:6px">Viðhengi</div><div id="po-atts" class="poatts"></div>
         <label class="btn" style="display:inline-flex;margin-top:6px;cursor:pointer">📎 Bæta við skrá<input id="po-file" type="file" multiple hidden></label></div>
       ${mode === "new" ? `<label>Tengja við verkefni<select id="po-proj"><option value="">Ekkert</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${x.id === pid0 ? " selected" : ""}>${esc(x.nafn)}</option>`).join("")}</select></label>` : ""}

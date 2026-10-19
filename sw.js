@@ -1,6 +1,6 @@
 // Þjónustuskrifta (service worker): geymir appið á tækinu svo það opnist hratt og virki án nets.
 // Hækkaðu VERSION þegar eitthvað breytist, þá sækja tækin nýju útgáfuna.
-const VERSION = "atrium-2.2.4"; // sama og APP_VERSION í index.html
+const VERSION = "atrium-2.3.0"; // sama og APP_VERSION í index.html
 const SHELL = ["./", "index.html", "app.css", "app-grunnur.js", "app-listar.js", "app-skyrslur.js", "app-sidur.js", "app-stillingar.js", "app-form.js", "app-breyta.js", "firebase.js", "firebase-config.js", "xlsx.js", "skjalagerd.js", "icons/doc-logo.png", "ms.js", "ms-app.js", "verdskra.js", "reikn.js", "skjol.js", "postur.js", "spjall.js", "heim.js", "skjalasafn.js", "adgangur.js", "notendur.js", "gogn.js", "fyrirtaeki.js", "kjarni.js", "demo.js", "manifest.webmanifest?v=3",
   "icons/atrium-icon-192.png", "icons/atrium-icon-512.png", "icons/atrium-icon-maskable-512.png", "icons/atrium-apple-touch-icon.png", "icons/atrium-favicon.svg", "icons/atrium-haus-ljos.svg", "icons/atrium-haus-dokk.svg", "icons/atrium-ordmerki-dokk.svg", "icons/sig-logo.png", "icons/atrium-merki-ljos.svg", "icons/atrium-merki-dokk.svg",
   "brand.css", "icons/logo-ljos.svg", "icons/logo-dokk.svg", "icons/ordmerki-dokk.svg"];
@@ -20,7 +20,7 @@ self.addEventListener("fetch", e => {
   if (own) {
     // Netið fyrst (nýjasta útgáfan), annars geymda útgáfan
     e.respondWith(fetch(req, { cache: "no-cache" }).then(r => { if (r.ok) { const c = r.clone(); caches.open(VERSION).then(x => x.put(req, c)); } return r; })
-      .catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match("index.html"))));
+      .catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || (req.mode === "navigate" && caches.match(new URL("index.html", req.url).href)) || caches.match("index.html"))));
   } else {
     // Söfn og letur breytast ekki: geymda útgáfan fyrst
     e.respondWith(caches.match(req).then(r => r || fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(VERSION).then(x => x.put(req, c)); } return n; })));

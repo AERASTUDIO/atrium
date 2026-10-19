@@ -308,7 +308,7 @@ function downloadIcs(arg){let items=[];
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); toast(items.length>1?`${items.length} atriði í dagatalsskrá`:"Opnaðu skrána til að bæta í dagatalið");}
 let notifT=[];
 function scheduleNotifs(){notifT.forEach(clearTimeout); notifT=[]; if(!("Notification" in window)||Notification.permission!=="granted"||!S) return;
-  const now=Date.now(), show=(title,body)=>navigator.serviceWorker?.ready.then(r=>r.showNotification(title,{body,icon:"icons/icon-192.png",tag:title+body})).catch(()=>{try{new Notification(title,{body});}catch(e){}});
+  const now=Date.now(), show=(title,body)=>navigator.serviceWorker?.ready.then(r=>r.showNotification(title,{body,icon:"icons/atrium-icon-192.png",tag:title+body})).catch(()=>{try{new Notification(title,{body});}catch(e){}});
   calItems().forEach(l=>l.filter(i=>!i.span&&!i.done).forEach(i=>{const at=hhmm(i.when)?new Date(i.when).getTime()-15*6e4:new Date(String(i.when).slice(0,10)+"T09:00").getTime(); const ms=at-now;
     if(ms>0&&ms<24*36e5) notifT.push(setTimeout(()=>show(i.kind+(hhmm(i.when)?" kl. "+hhmm(i.when):" í dag"),i.title+(i.nr?" · "+i.nr:"")),ms));}));}
 async function enableNotifs(){if(!("Notification" in window)) return alert("Þetta tæki styður ekki tilkynningar úr vafra. Notaðu „Setja í dagatalið mitt“ í staðinn.");

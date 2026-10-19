@@ -7,6 +7,8 @@
 window.AERA_DEMO=new URLSearchParams(location.search).has("demo");
 if(window.AERA_DEMO){try{Object.defineProperty(window,"localStorage",{value:window.sessionStorage,configurable:true});}catch(e){}}</script>
 <script src="fyrirtaeki.js"></script>
+<script>/* Uppsetningar á sama léni (t.d. /sonik/) fá sitt eigið svæði í localStorage svo stillingar og Microsoft-lyklar blandist ekki */
+if(window.ORG&&ORG.lsForskeyti){try{const L=window.localStorage,p=ORG.lsForskeyti;Object.defineProperty(window,"localStorage",{configurable:true,value:{getItem:k=>L.getItem(p+k),setItem:(k,v)=>L.setItem(p+k,v),removeItem:k=>L.removeItem(p+k),clear:()=>{for(let i=L.length-1;i>=0;i--){const k=L.key(i);if(k&&k.startsWith(p))L.removeItem(k);}},key:i=>{const ks=[];for(let j=0;j<L.length;j++){const k=L.key(j);if(k&&k.startsWith(p))ks.push(k.slice(p.length));}return ks[i]??null;},get length(){let n=0;for(let j=0;j<L.length;j++)if((L.key(j)||"").startsWith(p))n++;return n;}}});}catch(e){}}</script>
 <script src="kjarni.js"></script>
 <script>/* Merki fyrirtækis (uppsetningar) birtist við hlið Atrium */if((ORG.merki||ORG.logo||{}).ljos||(ORG.merki||ORG.logo||{}).dokk)document.documentElement.classList.add("hasco");</script>
 <script src="ms.js"></script>
@@ -39,8 +41,8 @@ if(window.AERA_DEMO){try{Object.defineProperty(window,"localStorage",{value:wind
 
 <script src="xlsx.js"></script>
 <script src="skjalagerd.js"></script>
-<script type="module">if(window.AERA_DEMO) import("./demo.js"); else import("./firebase.js");</script>
-<script>const APP_VERSION="2.2.4"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
+<script type="module">if(window.AERA_DEMO) import("./demo.js"); else if(window.ORG.firebase) import("./firebase.js"); else { /* uppsetning án gagnagrunns (enn sem komið er) */ document.getElementById("login").hidden=false; document.getElementById("login-msg").textContent="Þessi uppsetning er ekki enn tengd gagnagrunni. Sýniútgáfan virkar: bættu ?demo aftan við slóðina."; document.getElementById("login-ms").disabled=true; }</script>
+<script>const APP_VERSION="2.3.0"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
 <script src="app-grunnur.js"></script>
 <script src="app-listar.js"></script>
 <script src="app-skyrslur.js"></script>

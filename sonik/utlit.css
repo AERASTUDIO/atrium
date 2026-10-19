@@ -1,0 +1,23 @@
+/* Útlit uppsetningar Sonik – litir af sonik.is: teal #2A7289, berjalitur #B2597D, ljósblár #D4F7FF, dökkur #0C2127, ljós #F2FCFF.
+   Kemur á eftir brand.css og gengur framar henni. Atrium-merkið heldur sínum litum. */
+:root, :root[data-theme="dark"], :root[data-theme="dark"][data-variant]{
+  --bg:#0C2127; --surface:#102C34; --ink:#E6F7FB; --muted:#8DBBC8; --line:#1A3D47;
+  --accent:#7ED0E4; --accent-soft:#17414C; --on-accent:#0C2127; --hi:#7ED0E4; --on-hi:#0C2127;
+  --b0:#133540; --b1:#17414C; --b2:#2A7289; --b3:#8DBBC8; --b4:#E6F7FB;
+  --t0:#BFE9F3; --t1:#E6F7FB; --t2:#F2FCFF; --t3:#0C2127; --t4:#0C2127;
+  --raise:#133540; --raise2:#17414C; --hover:#11303A; --sheet:#0F2A32; --field:#0E262D; --border2:#2A7289; --bar0:#17414C;
+  --late:#E39BB8; --late-soft:#3B2230; --crit:#E39BB8;
+}
+:root[data-theme="light"], :root[data-theme="light"][data-variant]{
+  --bg:#F2FCFF; --surface:#FFFFFF; --ink:#0C2127; --muted:#4D7584; --line:#D6ECF2;
+  --accent:#2A7289; --accent-soft:#D4F7FF; --on-accent:#FFFFFF; --hi:#2A7289; --on-hi:#FFFFFF;
+  --b0:#E6F6FA; --b1:#D4F0F7; --b2:#9FD0DE; --b3:#2A7289; --b4:#0C2127;
+  --t0:#2A7289; --t1:#2A7289; --t2:#0C2127; --t3:#FFFFFF; --t4:#FFFFFF;
+  --raise:#E6F6FA; --raise2:#FFFFFF; --hover:#EAF8FB; --sheet:#FFFFFF; --field:#FFFFFF; --border2:#9FD0DE; --bar0:#D4F0F7;
+  --late:#B2597D; --late-soft:#F6E6EE; --crit:#B2597D;
+}
+.fab,.btn.primary.new{background:#B2597D!important;color:#fff!important;border-color:#B2597D!important}
+#login{background:#0C2127!important;color:#E6F7FB}
+#login .login-in p{color:#8DBBC8}
+#login .btn.primary{background:#B2597D!important;color:#fff!important;border-color:#B2597D!important}
+#login #login-btn{color:#8DBBC8!important}

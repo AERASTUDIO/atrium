@@ -1,5 +1,5 @@
 /* Skjalagerð (frá 1.7.0): sameiginlegt útlit fyrir öll skjöl sem appið býr til – reikninga, tímaskýrslur og fundargerðir.
-   - Merki: icons/doc-logo.png (lárétta merkið, mynd vinstra megin, texti hægra megin)
+   - Merki: ORG.docLogo (sjálfgefið icons/doc-logo.png) (lárétta merkið, mynd vinstra megin, texti hægra megin)
    - Letur: Poppins (fonts/, SIL Open Font License) – Light í fyrirsögnum, Regular í meginmáli, Medium í áherslum
    - Litir merkjahandbókar: Nótt #121416, Grafít #2F3742, Stál #7C8896, Þoka #C9D1D9, Pappír #F6F7F8
    - Haus: merki + tegund skjals (t.d. REIKNINGUR) og auðkenni; fótur á hverri síðu: fyrirtæki, kt., vefur og „Bls. x af y“
@@ -17,7 +17,7 @@
   }
   // Merkið sem PNG (bæti og data-URL) – sótt einu sinni
   async function logo() {
-    if (!LOGO) LOGO = fetch("icons/doc-logo.png").then(r => r.arrayBuffer()).then(buf => ({ bytes: new Uint8Array(buf), url: "data:image/png;base64," + b64(buf), w: 960, h: 303 }));
+    if (!LOGO) LOGO = fetch(ORG.docLogo || "icons/doc-logo.png").then(r => r.arrayBuffer()).then(buf => { const v = new DataView(buf); return { bytes: new Uint8Array(buf), url: "data:image/png;base64," + b64(buf), w: v.getUint32(16) || 960, h: v.getUint32(20) || 303 }; });
     return LOGO;
   }
   // Upplýsingar um fyrirtækið (Reikningsstillingar, annars fyrirtaeki.js)
@@ -50,7 +50,7 @@
         y = Math.max(y, M + lh + 8) + 10; P.line(M, y, P.X1, y, C.thoka, 0.8); return y + 22;
       },
       // Haus á framhaldssíðum
-      contHead(label) { P.text(label, M, M, { size: 8.5, color: C.stal }); doc.addImage(L.url, "PNG", P.X1 - 70, M - 14, 70, 70 * L.h / L.w); P.line(M, M + 10, P.X1, M + 10, C.lina); return M + 30; },
+      contHead(label) { P.text(label, M, M, { size: 8.5, color: C.stal }); { const ch = Math.min(70 * L.h / L.w, 24), cw = ch * L.w / L.h; doc.addImage(L.url, "PNG", P.X1 - cw, M - 14, cw, ch); } P.line(M, M + 10, P.X1, M + 10, C.lina); return M + 30; },
       // Fótur á öllum síðum
       finish(label) {
         const n = doc.getNumberOfPages();
@@ -68,6 +68,7 @@
   /* ---------- Excel: merki efst og fótur með síðunúmerum ---------- */
   // Bætir merkinu við .xlsx (teikning við A1) – kallað af makeXlsx þegar logo er gefið
   function xlsxLogoParts(L, wpx) {
+    if (wpx * L.h / L.w > 64) wpx = Math.round(64 * L.w / L.h); // há merki (t.d. hringlaga) ekki hærri en 64 px
     const h = Math.round(wpx * L.h / L.w), emu = n => Math.round(n * 9525);
     return {
       drawing: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><xdr:oneCellAnchor><xdr:from><xdr:col>0</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>${emu(4)}</xdr:rowOff></xdr:from><xdr:ext cx="${emu(wpx)}" cy="${emu(h)}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="Merki"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${emu(wpx)}" cy="${emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>`,
@@ -84,7 +85,7 @@
     const para = b => `<w:p>${b.s ? `<w:pPr><w:pStyle w:val="${b.s}"/></w:pPr>` : ""}${b.k ? run(b.k + ": ", { c: HEX.stal }) : ""}${run(b.t || "")}</w:p>`;
     const cell = (t, o = {}) => `<w:tc><w:tcPr><w:tcW w:w="${o.w}" w:type="dxa"/><w:tcBorders><w:bottom w:val="single" w:sz="4" w:color="${HEX.lina}"/></w:tcBorders>${o.fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${o.fill}"/>` : ""}</w:tcPr><w:p><w:pPr><w:spacing w:before="60" w:after="60"/></w:pPr>${run(t, o)}</w:p></w:tc>`;
     const table = (opts.table || []).length ? `<w:tbl><w:tblPr><w:tblW w:w="9070" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="100" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="2200"/><w:gridCol w:w="6870"/></w:tblGrid>${opts.table.filter(([, v]) => v).map(([k, v]) => `<w:tr>${cell(k, { w: 2200, c: HEX.stal, sz: 19 })}${cell(v, { w: 6870 })}</w:tr>`).join("")}</w:tbl><w:p/>` : "";
-    const lw = 2000000, lh = Math.round(lw * L.h / L.w); // EMU (~5,5 cm breitt merki)
+    const lh = Math.min(Math.round(2000000 * L.h / L.w), 900000), lw = Math.round(lh * L.w / L.h); // EMU (~5,5 cm breitt merki, mest 2,5 cm hátt)
     const header = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
 <w:tbl><w:tblPr><w:tblW w:w="9070" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:bottom w:val="single" w:sz="6" w:color="${HEX.thoka}"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="4535"/><w:gridCol w:w="4535"/></w:tblGrid><w:tr>
 <w:tc><w:tcPr><w:tcW w:w="4535" w:type="dxa"/><w:vAlign w:val="bottom"/></w:tcPr><w:p><w:pPr><w:spacing w:after="120"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${lw}" cy="${lh}"/><wp:docPr id="1" name="Merki"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="merki.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdLogo"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${lw}" cy="${lh}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p></w:tc>
