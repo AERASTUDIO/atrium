@@ -1,6 +1,6 @@
 // Þjónustuskrifta (service worker): geymir appið á tækinu svo það opnist hratt og virki án nets.
 // Hækkaðu VERSION þegar eitthvað breytist, þá sækja tækin nýju útgáfuna.
-const VERSION = "atrium-2.3.2"; // sama og APP_VERSION í index.html
+const VERSION = "atrium-2.3.3"; // sama og APP_VERSION í index.html
 const SHELL = ["./", "index.html", "app.css", "app-grunnur.js", "app-listar.js", "app-skyrslur.js", "app-sidur.js", "app-stillingar.js", "app-form.js", "app-breyta.js", "firebase.js", "firebase-config.js", "xlsx.js", "skjalagerd.js", "icons/doc-logo.png", "ms.js", "ms-app.js", "verdskra.js", "reikn.js", "skjol.js", "postur.js", "spjall.js", "heim.js", "skjalasafn.js", "adgangur.js", "notendur.js", "gogn.js", "fyrirtaeki.js", "kjarni.js", "demo.js", "manifest.webmanifest?v=3",
   "icons/atrium-icon-192.png", "icons/atrium-icon-512.png", "icons/atrium-icon-maskable-512.png", "icons/atrium-apple-touch-icon.png", "icons/atrium-favicon.svg", "icons/atrium-haus-ljos.svg", "icons/atrium-haus-dokk.svg", "icons/atrium-ordmerki-dokk.svg", "icons/sig-logo.png", "icons/atrium-merki-ljos.svg", "icons/atrium-merki-dokk.svg",
   "brand.css", "icons/logo-ljos.svg", "icons/logo-dokk.svg", "icons/ordmerki-dokk.svg"];
