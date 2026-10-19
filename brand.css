@@ -394,6 +394,11 @@ body.onchat #fab{display:none!important}
 :root.hasco[data-theme="light"] header .cobrand .logo{background-image:url(icons/atrium-merki-ljos.svg)!important}
 /* Innskráning: fyrirtækismerki efst, Atrium-merkið neðst */
 .lco{display:block;max-height:120px;max-width:240px;width:auto;height:auto;margin:0 auto 6px}
-.hasco #login .llogo{position:absolute;left:0;right:0;bottom:max(28px,env(safe-area-inset-bottom));margin:0;gap:10px}
-.hasco #login .lmark{width:40px;height:40px}
-.hasco #login .lword{width:96px}
+/* Atrium-merkið endar neðst (minnkað); með hreyfingu byrjar það á miðjum skjá, teiknast, færist niður og þá birtist innskráning fyrirtækisins */
+.hasco #login .llogo{position:absolute;left:0;right:0;bottom:max(28px,env(safe-area-inset-bottom));margin:0;transform:scale(.45);transform-origin:50% 100%}
+@keyframes aAtrNidur{0%,74%{bottom:50%;transform:translateY(50%) scale(1)}100%{bottom:max(28px,env(safe-area-inset-bottom));transform:scale(.45)}}
+@media (prefers-reduced-motion: no-preference){
+  .hasco #login .llogo{animation:aAtrNidur 3.6s cubic-bezier(.65,0,.25,1) both}
+  .hasco #login .lco,.hasco #login .login-in p,.hasco #login .login-in .btn{animation:aIn .6s var(--ease) both}
+  .hasco #login .lco{animation-delay:3.4s}.hasco #login .login-in p{animation-delay:3.55s}.hasco #login .login-in .btn{animation-delay:3.7s}.hasco #login #login-btn{animation-delay:3.85s}
+}
