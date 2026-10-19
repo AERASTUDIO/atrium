@@ -188,7 +188,10 @@ window.aeraStart=function(db){
     try{ await db.commit(GOGN.migrate(d,USER.email,x=>skEmail(x.starfsmadur||x.sk))); toast("Gögnin eru flutt í nýja sniðið"); }
     catch(e){ migrating=false; console.warn("Flutningur",e); toast("Flutningur gagna mistókst: "+(e?.code||e?.message||"villa")); } };
   db.watch("app/state",s=>{
-    if(!s.exists){ if(!s.fromCache) importView(); return; }
+    if(!s.exists){ if(s.fromCache) return;
+      // Ný uppsetning (frá 2.4.1): admin stofnar tómt app/state í nýja sniðinu í stað þess að vera beðinn um gagnaskrá
+      if(window.can&&can("notendur")&&!migrating){ migrating=true; db.set("app/state",{skipting:2,uppfaert:new Date().toISOString(),stillingar:{},timar:{samtals:0}}).then(()=>{migrating=false;}).catch(e=>{migrating=false; console.warn("Stofna app/state",e); importView();}); return; }
+      importView(); return; }
     const d=s.data();
     if(GOGN.isSplit(d)){ P.state=d; P.pend.state=!!s.pending; P.ready.add("state"); startSplit(); rebuild(); return; }
     if(mode==="split") return; // eldra snið birtist ekki aftur eftir flutning
