@@ -11,6 +11,8 @@ window.ORG = {
   // Microsoft Entra: forritið hjá fyrirtækinu (hét „AERA app“; endurnefnt í „Atrium“)
   // merki fyrirtækisins (neðst í Meira); appið sjálft ber merki Atrium
   logo: { ljos: "icons/logo-ljos.svg", dokk: "icons/logo-dokk.svg" },
+  // táknið eitt (án texta) við hlið Atrium í haus, hliðarstiku og innskráningu; annars er logo notað
+  merki: { ljos: "icons/merki-ljos.svg", dokk: "icons/merki-dokk.svg" },
   ms: { appNafn: "Atrium", clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f" },
 
   // Fyrsti admin – skráður sjálfkrafa í notendaskrána ef hún er ekki til
