@@ -21,8 +21,8 @@ window.ORG = {
 
   od: { verkefni: "Sonik/Verkefni", stofa: "Sonik/Stofa", reikningar: "Sonik/Stofa/Reikningar", snidmat: "Sonik/Stofa/Sniðmát", oflokkad: "Óflokkað", mitt: "Atrium" },
   odLocal: "",
-  sp: "",
-  spLocal: "",
+  sp: "aerastudio.sharepoint.com:/sites/Atrium-Sonik",   // til bráðabirgða hjá AERA (frá 2.5.1) – Documents › Sonik; flyst til Sonik með eigin M365
+  spLocal: "%UserProfile%\\AERA Studio ehf\\Atrium - Sonik - Documents",
   postmappa: "Sonik",
   postholf: "",
   sigLogo: "sonik/sig-logo.png",
