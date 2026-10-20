@@ -217,12 +217,12 @@
   }
   async function saveToOneDrive(id, quiet) {
     const R = findR(id); if (!R) return;
-    if (!(window.MS && MS.on())) { toast("Tengdu Microsoft í Stillingum til að vista í OneDrive."); return; }
+    if (!(window.MS && MS.on())) { toast("Tengdu Microsoft í Stillingum til að vista í " + ODN() + "."); return; }
     try {
       const it = await msSaveFile(ORG.od.reikningar + "/" + String(R.dags || "").slice(0, 4), fileBase(R) + ".pdf", new Blob([await invoicePdf(R)], { type: "application/pdf" }), "application/pdf", !!R.pdfId);
       await saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.pdfUrl = it.webUrl; q.pdfId = it.id; } });
-      toast(quiet ? "Reikningurinn vistaður í OneDrive (Stofa › Reikningar)" : "Vistað í OneDrive");
-    } catch (e) { toast("Vistun í OneDrive tókst ekki: " + (e?.message || "villa")); }
+      toast(quiet ? "Reikningurinn vistaður í " + ODN() + " (Stofa › Reikningar)" : "Vistað í " + ODN());
+    } catch (e) { toast("Vistun í " + ODN() + " tókst ekki: " + (e?.message || "villa")); }
   }
 
   function printInv(R) {
@@ -270,11 +270,11 @@
       <h2 class="big" style="margin-top:6px">Nr. ${esc(String(R.nr))} · ${esc(R.kaupandi?.name || "")}</h2>
       <p class="sub">${ps.map(projLink).join(", ")}${ps.length ? " · " : ""}${esc(kr(R.tot))} með VSK</p>
       <div class="links"><button type="button" class="btn primary" data-act="rkpdf:${esc(R.id)}">Sækja PDF</button><button type="button" class="btn" data-act="rkpv:${esc(R.id)}">Forskoða PDF</button>
-        ${R.pdfUrl ? `<a class="btn" href="${esc(R.pdfUrl)}" target="_blank" rel="noopener">📁 Í OneDrive</a>` : on && FJ() ? `<button type="button" class="btn" data-act="rkod:${esc(R.id)}">Vista í OneDrive</button>` : ""}
+        ${R.pdfUrl ? `<a class="btn" href="${esc(R.pdfUrl)}" target="_blank" rel="noopener">📁 Í ${ODN()}</a>` : on && FJ() ? `<button type="button" class="btn" data-act="rkod:${esc(R.id)}">Vista í OneDrive</button>` : ""}
         ${on && FJ() ? `<button type="button" class="btn" data-act="rksend:${esc(R.id)}">✉ Senda${R.sent ? " aftur" : ""}</button>` : ""}<button type="button" class="btn" data-act="rkprint:${esc(R.id)}">Prenta</button><button type="button" class="btn" data-act="rkxlsx:${esc(R.id)}">Excel</button>
         ${FJ() ? `<button type="button" class="btn" data-act="rkpaid:${esc(R.id)}">${greitt ? "Merkja ógreitt" : "✓ Merkja greitt"}</button>${!window.can || can("eyda") ? `<button type="button" class="btn danger" data-act="rkdel:${esc(R.id)}">Eyða</button>` : ""}` : ""}</div>
       <div class="invwrap">${invoiceHTML(R)}</div>
-      ${R.pdfUrl ? `<p class="hint" style="margin-top:8px">PDF vistað í OneDrive: ${esc(ORG.od.reikningar.replace(/\//g, " › "))} › ${esc(String(R.dags || "").slice(0, 4))}.${on && FJ() ? ` <a class="plink" data-act="rkod:${esc(R.id)}">Vista aftur</a>` : ""}</p>` : ""}`;
+      ${R.pdfUrl ? `<p class="hint" style="margin-top:8px">PDF vistað í ${ODN()}: ${esc(ORG.od.reikningar.replace(/\//g, " › "))} › ${esc(String(R.dags || "").slice(0, 4))}.${on && FJ() ? ` <a class="plink" data-act="rkod:${esc(R.id)}">Vista aftur</a>` : ""}</p>` : ""}`;
   };
   const rkRow = R => { const greitt = R.stada === "Greitt", late = !greitt && daysTo(R.gjalddagi) < 0, nrs = pidsOf(R).map(findProj).filter(Boolean).map(p => p.nr);
     return lrow("reikn:" + R.id, { lead: `<b>${esc(String(R.nr).slice(-3))}</b><small>nr.</small>`, title: esc(R.kaupandi?.name || ""), sub: esc([nrs.join(", "), dIS(R.dags), greitt ? "Greitt" : late ? "Fram yfir gjalddaga" : "Gjalddagi " + dIS(R.gjalddagi)].filter(Boolean).join(" · ")), right: `<span class="lc">${esc(kr(R.tot))}</span>` }); };
@@ -296,7 +296,7 @@
   window.rkStillingarHTML = function () {
     const r = RK(), f = (k, l, extra = "") => `<label>${l}<input id="rk-${k}" value="${esc(String(r[k] ?? ""))}" ${extra}></label>`;
     return `<div class="viewtitle">Reikningar</div>
-      <p class="hint" style="margin:0 0 8px">Upplýsingar um seljanda sem birtast á reikningum. PDF reikninga vistast í OneDrive: ${esc(ORG.od.reikningar.replace(/\//g, " › "))} › ár.</p>
+      <p class="hint" style="margin:0 0 8px">Upplýsingar um seljanda sem birtast á reikningum. PDF reikninga vistast í ${ODN()}: ${esc(ORG.od.reikningar.replace(/\//g, " › "))} › ár.</p>
       ${f("nafn", "Nafn seljanda")}
       <div class="two">${f("kt", "Kennitala", 'inputmode="numeric" placeholder="000000-0000"')}${f("vsknr", "VSK-númer", 'inputmode="numeric"')}</div>
       ${f("heimilisfang", "Heimilisfang", 'placeholder="Gata 1, 101 Reykjavík"')}
@@ -313,7 +313,7 @@
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpdf") { const R = findR(id); if (R) downloadPdf(R); return; }
     if (k === "rkpv") { const R = findR(id); if (!R) return; toast("Bý til PDF…"); invoicePdf(R).then(b => blobPreview(new Blob([b], { type: "application/pdf" }), fileBase(R) + ".pdf")).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
-    if (k === "rkod") { toast("Vista í OneDrive…"); saveToOneDrive(id, false); return; }
+    if (k === "rkod") { toast("Vista í " + ODN() + "…"); saveToOneDrive(id, false); return; }
     if (k === "rksend") { const R = findR(id); if (!R || !window.poCompose) return; toast("Bý til PDF…"); invoicePdf(R).then(bytes => { const s = R.seljandi || {};
       poCompose({ to: R.kaupandi?.netfang || "", subject: `Reikningur nr. ${R.nr} frá ${s.nafn || ORG.nafn}`, pid: pidsOf(R)[0] || null,
         body: `Góðan dag,

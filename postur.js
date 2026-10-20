@@ -131,7 +131,7 @@
       ${p ? `<p class="hint" style="margin:8px 0 0">Þráðurinn er tengdur við ${esc(p.nr)} ${esc(p.stutt || "")}. Nýir póstar í sama þræði birtast sjálfkrafa á síðu verkefnisins.</p>` : ""}
       ${atts.length ? `<div class="viewtitle">Viðhengi · ${atts.length}</div><div class="llist">${atts.map(a => `<div class="lrow"><div class="ll">📎</div><div class="lm"><div class="lt">${esc(a.name)}</div><div class="ls">${esc(kb(a.size))}</div></div>
         <div class="lr" style="gap:6px"><button type="button" class="btn" data-act="poprev:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Forskoða</button><button type="button" class="btn" data-act="poatt:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Sækja</button>${p && MCP ? `<button type="button" class="btn" data-act="posave:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px" title="Vista í ${esc(p.nr)} › 01 Móttekið">→ Mappa</button>` : ""}</div></div>`).join("")}</div>
-        ${p ? `<p class="hint" style="margin-top:6px">„→ Mappa“ vistar viðhengið í ${esc(p.nr)} › 01 Móttekið í OneDrive.</p>` : `<p class="hint" style="margin-top:6px">Tengdu póstinn við verkefni til að geta vistað viðhengi í möppu þess.</p>`}` : ""}
+        ${p ? `<p class="hint" style="margin-top:6px">„→ Mappa“ vistar viðhengið í ${esc(p.nr)} › 01 Móttekið í ${ODN()}.</p>` : `<p class="hint" style="margin-top:6px">Tengdu póstinn við verkefni til að geta vistað viðhengi í möppu þess.</p>`}` : ""}
       <iframe class="pobody" sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(doc)}" title="Efni pósts"></iframe>`;
   };
 
@@ -394,7 +394,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     if (k === "poatt") { toast("Sæki viðhengi…"); attBlob(r[0], r[1]).then(({ blob, name }) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }).catch(e => toast(e.message)); return; }
     if (k === "posave") { const L = linked(r[0]), p = L && findProj(L.verkefniId); if (!p) return toast("Tengdu póstinn við verkefni fyrst.");
       toast("Vista í " + p.nr + "…");
-      attBlob(r[0], r[1]).then(async ({ blob, name }) => { const dir = await msProjSub(p, "01", "01 Móttekið"); await msSaveFile(dir, name, blob, blob.type, false); toast("Vistað í " + dir.replace(/^AERA\/Verkefni\//, "").replace(/\//g, " › ")); }).catch(e => toast(e.message)); return; }
+      attBlob(r[0], r[1]).then(async ({ blob, name }) => { const dir = await msProjSub(p, "01", "01 Móttekið"); await msSaveFile(dir, name, blob, blob.type, false); toast("Vistað í " + dir.replace(ORG.od.verkefni + "/", "").replace(/\//g, " › ")); }).catch(e => toast(e.message)); return; }
   };
   document.addEventListener("submit", e => { if (e.target.id === "poqi" || e.target.id === "poq") { e.preventDefault(); q = (document.getElementById("poqi")?.value || "").trim(); reset(); render(); } });
   document.addEventListener("input", e => { if (e.target.id === "poqi" && fold === "tengilidir") { q = e.target.value.trim(); const pos = e.target.selectionStart; render(); const n = document.getElementById("poqi"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } } });

@@ -6,6 +6,8 @@
    Ný eining: bæta línu í EININGAR og athuga ON("lykill") þar sem hún birtist. */
 (function () {
   window.VARA = { nafn: "Atrium", fra: "AERA Studio" };
+  // Hvar möppur fyrirtækisins búa (2.7.1): SharePoint-síða uppsetningarinnar (ORG.sp) eða OneDrive þess sem er innskráður
+  window.ODN = () => (window.ORG && ORG.sp ? "SharePoint" : "OneDrive");
   // lykill: [heiti, lýsing, háð einingu]
   const EININGAR = {
     verkefni:       ["Verkefni", "Verkefnalisti, síða verkefnis, staða og athugasemdir – grunnurinn (alltaf virkt)"],

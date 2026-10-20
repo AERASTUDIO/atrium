@@ -157,8 +157,8 @@ const odUrl=(parts,isFile)=>{const u=SK.grunnur+parts.map(encodeURIComponent).jo
 function projFolder(p){if(!SK?.moppur) return null; const k=Object.keys(SK.moppur).find(k=>k===p.nafn)||Object.keys(SK.moppur).find(k=>p.nr&&k.startsWith(p.nr+" ")); return k?{k,...SK.moppur[k]}:null;}
 function skrarHTML(p){
   if(window.MS&&MS.on()&&window.msSkrar) return msSkrar(p);
-  const m=projFolder(p); if(!SK) return window.msMissing?`<div class="viewtitle">Skrár í OneDrive</div><div class="empty">Tengdu Microsoft til að sjá skrár verkefnisins.${msMissing()}</div>`:"";
-  if(!m) return `<div class="viewtitle">Skrár í OneDrive</div><div class="empty">Engin mappa fannst fyrir ${esc(p.nafn)} undir ${esc(ORG.od.verkefni)}.</div>`;
+  const m=projFolder(p); if(!SK) return window.msMissing?`<div class="viewtitle">Skrár í ${ODN()}</div><div class="empty">Tengdu Microsoft til að sjá skrár verkefnisins.${msMissing()}</div>`:"";
+  if(!m) return `<div class="viewtitle">Skrár í ${ODN()}</div><div class="empty">Engin mappa fannst fyrir ${esc(p.nafn)} undir ${esc(ORG.od.verkefni)}.</div>`;
   const item=(parts,it)=>{const isF=it.t==="f", ext=isF?(it.n.split(".").pop()||"").toLowerCase():"";
     return `<a class="lrow fl" href="${esc(odUrl(parts.concat(it.n),isF))}" target="_blank" rel="noopener"><div class="lm"><div class="lt">${isF?"":""}${esc(it.n)}</div><div class="ls">${esc([isF?(ODTYPE[ext]||ext.toUpperCase()):"Mappa",kb(it.s)].join(" · "))}</div></div><div class="lr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></div></a>`;};
   const rows=(m.atridi||[]).map(d=>{const parts=[m.k,d.n], has=d.s>0;

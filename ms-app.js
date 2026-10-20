@@ -118,16 +118,16 @@
   }
 
   window.msSkrar = function (p) {
-    const head = (extra = "") => `<div class="viewtitle" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>Skrár í OneDrive</span><span style="display:flex;gap:12px">${extra}</span></div>`;
+    const head = (extra = "") => `<div class="viewtitle" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>Skrár í ${ODN()}</span><span style="display:flex;gap:12px">${extra}</span></div>`;
     if (!VK) {
       if (VKerr) return head() + `<div class="empty">Gat ekki sótt möppurnar: ${esc(VKerr)}<br><button type="button" class="btn" style="margin-top:10px" data-act="msref:">Reyna aftur</button></div>`;
       verkMoppur().then(render, render);
-      return head() + `<div class="empty">Sæki möppur úr OneDrive…</div>`;
+      return head() + `<div class="empty">Sæki möppur úr ${ODN()}…</div>`;
     }
     const k = keyOf(p);
     if (!k) {
       const pending = (S?.odBidrod || []).some(b => b.verkefniId === p.id);
-      return head() + `<div class="empty">${pending ? "Verið er að stofna möppu fyrir verkefnið í OneDrive…" : noFolder(p) ? "Almenn verkefni fá ekki eigin möppu í OneDrive. Fundargerðir og kvittanir þeirra fara í Óflokkað." : `Engin mappa fannst fyrir ${esc(p.nafn)} undir AERA/Verkefni.`}${pending ? "" : `<br><button type="button" class="btn primary" style="margin-top:10px" data-act="msmk:${esc(p.id)}">Stofna möppu með 01–08</button>`}</div>`;
+      return head() + `<div class="empty">${pending ? "Verið er að stofna möppu fyrir verkefnið í " + ODN() + "…" : noFolder(p) ? "Almenn verkefni fá ekki eigin möppu í " + ODN() + ". Fundargerðir og kvittanir þeirra fara í Óflokkað." : `Engin mappa fannst fyrir ${esc(p.nafn)} undir ${esc(ORG.od.verkefni)}.`}${pending ? "" : `<br><button type="button" class="btn primary" style="margin-top:10px" data-act="msmk:${esc(p.id)}">Stofna möppu með 01–08</button>`}</div>`;
     }
     const tr = TREE[k];
     const extra = `<a class="plink" data-act="msref:${esc(k)}">↻ Uppfæra</a><a class="plink" ${odLink({ ...VK[k], folder: {} }, ORG.od.verkefni + "/" + (VK[k].name || k))}>Opna möppu</a>`;
@@ -141,7 +141,7 @@
         <a class="plink" ${odLink(d)} onclick="event.stopPropagation()">Opna</a></summary>
         ${d.kids && d.kids.length ? `<div class="fitems">${d.kids.map(fileRow).join("")}</div>` : ""}</details>`;
     }).join("");
-    return head(extra) + `<div class="llist">${rows || '<div class="empty">Mappan er tóm.</div>'}</div><p class="hint" style="margin-top:8px">Beint úr OneDrive · sótt kl. ${esc(new Date(tr.t).toTimeString().slice(0, 5))}. Ýttu á skrá til að forskoða hana.</p>`;
+    return head(extra) + `<div class="llist">${rows || '<div class="empty">Mappan er tóm.</div>'}</div><p class="hint" style="margin-top:8px">Beint úr ${ODN()} · sótt kl. ${esc(new Date(tr.t).toTimeString().slice(0, 5))}. Ýttu á skrá til að forskoða hana.</p>`;
   };
 
   /* ---------- Forskoðun skráa ---------- */
@@ -284,7 +284,7 @@
       : await upload(dir + "/" + fname, bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     await saveSnapshot(s => { const q = (s.fundir || []).find(x => x.id === fid); if (q) { q.fundargerd = it.webUrl; q.fgId = it.id; } });
     Object.keys(TREE).forEach(k => delete TREE[k]);
-    if (!quiet) toast(mine ? "Fundargerð stofnuð í Mín skjöl › Fundargerðir" : "Fundargerð stofnuð í OneDrive");
+    if (!quiet) toast(mine ? "Fundargerð stofnuð í Mín skjöl › Fundargerðir" : "Fundargerð stofnuð í " + ODN());
     return it;
   }
   window.msFundargerd = (fid) => fundargerd(fid, false).catch(e => toast("Fundargerð: " + e.message));
@@ -354,12 +354,12 @@
   window.msStillingarHTML = function () {
     const u = MS.user(), on = isOn(), nb = (S?.odBidrod || []).length;
     if (!on) return `<div class="viewtitle">Microsoft 365</div>
-      <p class="hint" style="margin:0 0 8px">${MS.hadLogin() ? "Tengingin við Microsoft er runnin út á þessu tæki (hún gildir í sólarhring í senn)." : "Tengdu Microsoft-aðganginn þinn (@aerastudio.is) til að sjá skrár úr OneDrive, forskoða þær, stofna möppur og fundargerðir sjálfkrafa og sækja pósta úr Outlook-möppunni „AERA“."}</p>
+      <p class="hint" style="margin:0 0 8px">${MS.hadLogin() ? "Tengingin við Microsoft er runnin út á þessu tæki (hún gildir í sólarhring í senn)." : "Tengdu Microsoft-aðganginn þinn (@${esc(ORG.len)}) til að sjá skrár úr OneDrive, forskoða þær, stofna möppur og fundargerðir sjálfkrafa og sækja pósta úr Outlook-möppunni „AERA“."}</p>
       ${MS.lastError ? `<div class="msg err" style="margin-bottom:8px">${esc(MS.lastError)}</div>` : ""}
       <div class="links"><button type="button" class="btn primary" data-act="mslogin">${MS.hadLogin() ? "Tengjast aftur" : "Tengjast Microsoft"}</button></div>`;
     return `<div class="viewtitle">Microsoft 365</div>
       <div class="cfgrow"><span class="cdot pc-green"></span><div class="grow">Tengt sem ${esc(u?.name || "")}<div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(u?.email || "")}</div></div></div>
-      <p class="hint" style="margin:6px 0 8px">Skrár koma beint úr OneDrive. Ný verkefni fá möppu með 01–08, nýir fundir fá fundargerð í „08 Samskipti og fundir“ (eða Óflokkað) og póstar úr Outlook-möppunni „AERA“ sækjast á 15 mínútna fresti meðan appið er opið.</p>
+      <p class="hint" style="margin:6px 0 8px">Skrár fyrirtækisins koma beint úr ${ODN()}${ORG.sp ? " (" + esc(ORG.sp.split(":/").pop()) + ")" : ""}. Ný verkefni fá möppu með 01–08, nýir fundir fá fundargerð í „08 Samskipti og fundir“ (eða Óflokkað) og póstar úr Outlook-möppunni „AERA“ sækjast á 15 mínútna fresti meðan appið er opið.</p>
       <div class="kind" style="margin-top:12px">Opna möppur og skjöl (á þessu tæki)</div>
       <div class="stat-row" style="margin-top:6px"><button type="button" class="chipbtn" data-act="odmode:tolva" aria-pressed="${odMode() === "tolva"}">Í tölvunni</button><button type="button" class="chipbtn" data-act="odmode:vefur" aria-pressed="${odMode() === "vefur"}">Á netinu (OneDrive)</button></div>
       ${odMode() === "tolva" ? `<label style="margin-top:8px">OneDrive-mappa í tölvunni<input id="od-rot" value="${esc(odRoot())}" placeholder="%UserProfile%\\OneDrive - …"></label>${ORG.sp ? `<label style="margin-top:8px">Samstillt mappa fyrirtækisins (SharePoint)<input id="sp-rot" value="${esc(odRoot(true))}" placeholder="%UserProfile%\\AERA Studio ehf\\…"></label>` : ""}<p class="hint" style="margin:4px 0 8px">Möppur: slóðin er afrituð til að líma í File Explorer. Word, Excel og PowerPoint opnast beint í forritunum. Annað opnast á netinu.</p>` : ""}
