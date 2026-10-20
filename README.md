@@ -12,7 +12,7 @@
 | Skrá | Hlutverk |
 |---|---|
 | `app.html` | **Sniðmát** appsins: HTML, `APP_VERSION` og röð skriftanna. `python3 tools/uppsetningar.py` býr til `<uppsetning>/index.html` úr því |
-| `index.html` + `vefur/` | Rótin `/atrium/`: kynningarsíða Atrium (frá 20.10.2026) með skjámyndum úr sýniútgáfum – ekkert manifest, svo öppin skarast ekki. `?demo` vísar á `aera/?demo` |
+| `index.html` + `vefur/` | Rótin `/atrium/`: kynningarsíða Atrium (frá 20.10.2026) með skjámyndum úr sýniútgáfum – ekkert manifest, svo öppin skarast ekki. engir tenglar í öppin |
 | `aera/`, `sonik/` | **Uppsetningar:** `fyrirtaeki.js`, `manifest.webmanifest`, `firestore.rules`, merki/litir og sjálfvirk `index.html` |
 | `kjarni.js` | Atrium-kjarninn: heiti lausnarinnar og einingar (`ON("…")`) |
 | `firebase-config.js` | Opinber auðkenni Firebase-verkefnis uppsetningarinnar |

@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- Vefsíða Atrium (frá 2.11.0). Rótin /atrium/ er kynningarsíða – EKKI app: ekkert manifest hér, svo app-umfang
-     uppsetninganna (aera/, sonik/, party/) skarast ekki. Myndir í vefur/ (skjámyndir úr sýniútgáfum). -->
+     uppsetninganna (aera/, sonik/, party/) skarast ekki. Myndir í vefur/ (skjámyndir af hlutlausu Atrium). Engir tenglar í öppin eða sýniútgáfur. -->
 <html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Atrium – verkefni, tímar og reikningar á einum stað</title>
 <meta name="description" content="Atrium by AERA Studio: verkefni, tímaskráning, tilboð, reikningsdrög, skjöl og samskipti á einum stað – í tölvu og síma, beintengt Microsoft 365. Hvert fyrirtæki fær sitt eigið app.">
@@ -93,14 +93,14 @@ footer .lg{display:flex;gap:16px;margin-left:auto}footer a{text-decoration:none}
 <nav id="nav"><div class="w">
   <a class="logo" href="#" aria-label="Atrium"><img src="icons/atrium-haus-dokk.svg" alt="Atrium"></a>
   <div class="ln"><a href="#eiginleikar">Eiginleikar</a><a href="#einingar">Einingar</a><a href="#fyrirtaeki">Fyrir þitt fyrirtæki</a><a href="#oryggi">Öryggi</a></div>
-  <a class="btn" href="aera/?demo">Prófa sýniútgáfu</a>
+  <a class="btn" href="mailto:aera@aerastudio.is?subject=Atrium">Hafa samband</a>
 </div></nav>
 
 <header class="hero"><div class="glow"></div><div class="w">
   <div class="k rv">Atrium by AERA Studio</div>
   <h1 class="rv">Allt starfið<br>á einum stað.</h1>
   <p class="lead rv">Verkefni, tímar, tilboð, reikningsdrög, skjöl og samskipti – í tölvu og síma. Sniðið að þínu fyrirtæki, með þínu merki og þínum gögnum.</p>
-  <div class="cta rv"><a class="btn p" href="aera/?demo">Prófa sýniútgáfu</a><a class="btn" href="mailto:aera@aerastudio.is?subject=Atrium">Hafa samband</a></div>
+  <div class="cta rv"><a class="btn p" href="mailto:aera@aerastudio.is?subject=Atrium">Hafa samband</a><a class="btn" href="#eiginleikar">Sjá eiginleika</a></div>
   <div class="ms rv"><i><b></b><b></b><b></b><b></b></i>Beintengt Microsoft 365 – Outlook, OneDrive og SharePoint</div>
   <div class="stage rv">
     <div class="frame"><img src="vefur/heim.webp" alt="Heim-skjár Atrium í tölvu" width="2560" height="1600"></div>
@@ -171,9 +171,9 @@ footer .lg{display:flex;gap:16px;margin-left:auto}footer a{text-decoration:none}
 
 <div class="end"><div class="w">
   <img class="rv" src="icons/atrium-lodrett-dokk.svg" alt="Atrium">
-  <h2 class="rv">Prófaðu Atrium.</h2>
-  <p class="lead rv">Sýniútgáfan er opin öllum – engin innskráning, tilbúin gögn. Viltu Atrium fyrir þitt fyrirtæki? Hafðu samband.</p>
-  <div class="cta rv"><a class="btn p" href="aera/?demo">Opna sýniútgáfu</a><a class="btn" href="mailto:aera@aerastudio.is?subject=Atrium">aera@aerastudio.is</a></div>
+  <h2 class="rv">Atrium fyrir þitt fyrirtæki.</h2>
+  <p class="lead rv">Viltu sjá hvernig Atrium myndi virka hjá ykkur? Hafðu samband og við sýnum þér.</p>
+  <div class="cta rv"><a class="btn p" href="mailto:aera@aerastudio.is?subject=Atrium">aera@aerastudio.is</a></div>
 </div></div>
 
 <footer><div class="w">
@@ -181,8 +181,6 @@ footer .lg{display:flex;gap:16px;margin-left:auto}footer a{text-decoration:none}
 </div></footer>
 
 <script>
-// Gömlu „AERA app“-slóðirnar (…/atrium/?demo o.fl.) – fyrirspurn eða # fer beint í appið
-if (/[?&]demo\b/.test(location.search) || /^#/.test(location.hash) && location.hash.length > 1 && !document.getElementById(location.hash.slice(1))) location.replace("aera/" + location.search + location.hash);
 const nav = document.getElementById("nav"); addEventListener("scroll", () => nav.classList.toggle("sc", scrollY > 10), { passive: true });
 const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" }) : null;
 document.querySelectorAll(".rv").forEach((el, i) => io ? io.observe(el) : el.classList.add("in"));
