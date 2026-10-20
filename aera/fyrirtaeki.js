@@ -1,4 +1,5 @@
-/* Fyrirtækjastillingar – það eina sem þarf að breyta þegar appið er sett upp fyrir annað fyrirtæki (frá 1.3.0).
+/* Uppsetning AERA Studio á Atrium. Slóð: https://aerastudio.github.io/atrium/aera/ (sýniútgáfa: ?demo) – í undirmöppu frá 2.6.0.
+   Fyrirtækjastillingar – það eina sem þarf að breyta þegar appið er sett upp fyrir annað fyrirtæki (frá 1.3.0).
    Auk þessarar skrár eru fyrirtækjasértæk: firebase-config.js (Firebase-verkefnið), firestore.rules (lén í msUser),
    merki í icons/ og litir/letur í brand.css. Sjá Kerfisskjölun, kafla „Uppsetning fyrir annað fyrirtæki“.
    Engin leyndarmál hér – þetta eru opinber auðkenni. */
@@ -6,7 +7,7 @@ window.ORG = {
   nafn: "AERA Studio",                 // birtist á reikningum, skýrslum, undirskrift o.fl.
   len: "aerastudio.is",                // Microsoft-lén starfsmanna (innskráning)
   vefur: "aerastudio.is",
-  appUrl: "https://aerastudio.github.io/atrium/",
+  appUrl: "https://aerastudio.github.io/atrium/aera/",
 
   // Microsoft Entra: forritið hjá fyrirtækinu (hét „AERA app“; endurnefnt í „Atrium“)
   // merki fyrirtækisins (neðst í Meira); appið sjálft ber merki Atrium

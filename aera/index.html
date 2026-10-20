@@ -1,0 +1,65 @@
+<!doctype html><!-- SJÁLFVIRKT BÚIÐ TIL úr ../app.html með tools/uppsetningar.py (uppsetning: aera). Ekki breyta hér. --><!-- SNIÐMÁT: ekki opnað beint. tools/uppsetningar.py býr til aera/index.html, sonik/index.html … úr þessari skrá. --><html lang="is"><head><meta charset="utf-8"><base href="../"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><meta name="theme-color" id="themecolor" content="#121416">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Atrium">
+<link rel="manifest" href="aera/manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg"><link rel="icon" type="image/png" href="icons/atrium-icon-192.png"><link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">
+<title>Atrium</title>
+<script>/* Sýniútgáfa (?demo): tilbúin gögn, engin innskráning; staðbundnar stillingar fara í sessionStorage svo raunverulega appið á sama tæki verði ekki fyrir áhrifum. */
+window.AERA_DEMO=new URLSearchParams(location.search).has("demo");
+if(window.AERA_DEMO){try{Object.defineProperty(window,"localStorage",{value:window.sessionStorage,configurable:true});}catch(e){}}</script>
+<script src="aera/fyrirtaeki.js"></script>
+<script>/* Uppsetningar á sama léni (t.d. /sonik/) fá sitt eigið svæði í localStorage svo stillingar og Microsoft-lyklar blandist ekki */
+if(window.ORG&&ORG.lsForskeyti){try{const L=window.localStorage,p=ORG.lsForskeyti;Object.defineProperty(window,"localStorage",{configurable:true,value:{getItem:k=>L.getItem(p+k),setItem:(k,v)=>L.setItem(p+k,v),removeItem:k=>L.removeItem(p+k),clear:()=>{for(let i=L.length-1;i>=0;i--){const k=L.key(i);if(k&&k.startsWith(p))L.removeItem(k);}},key:i=>{const ks=[];for(let j=0;j<L.length;j++){const k=L.key(j);if(k&&k.startsWith(p))ks.push(k.slice(p.length));}return ks[i]??null;},get length(){let n=0;for(let j=0;j<L.length;j++)if((L.key(j)||"").startsWith(p))n++;return n;}}});}catch(e){}}</script>
+<script src="kjarni.js"></script>
+<script>/* Merki fyrirtækis (uppsetningar) birtist við hlið Atrium */if((ORG.merki||ORG.logo||{}).ljos||(ORG.merki||ORG.logo||{}).dokk)document.documentElement.classList.add("hasco");</script>
+<script src="ms.js"></script>
+<script src="gogn.js"></script>
+</head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="brand.css">
+
+<aside class="side" aria-label="Valmynd"><span class="cobrand"><img class="colog" alt=""><span class="cosep" aria-hidden="true"></span><span class="logo" role="img" aria-label="Atrium"></span></span>
+<button type="button" class="btn primary new" onclick="openFab()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Nýtt</button>
+<nav id="sitems"></nav>
+<div id="sextra"></div>
+<div class="sfoot"><button class="syncbtn" onclick="syncNow()">Sækja afrit af gögnum</button><button class="syncbtn" onclick="aeraSignOut()">Skrá út</button></div></aside>
+<div class="app">
+  <header><div class="brand"><h1><span class="cobrand"><img class="colog" alt=""><span class="cosep" aria-hidden="true"></span><span class="logo" role="img" aria-label="Atrium"></span></span><span class="sr">Atrium</span></h1><span class="appver" id="appver" aria-label="Útgáfa"></span><div class="hright"><span class="syncstat" id="syncstat" hidden></span><button type="button" class="iconbtn themebtn" id="themebtn" aria-label="Skipta um þema"></button><button type="button" class="avbtn" id="avbtn" aria-label="Aðgangur, stillingar og meira" hidden onclick="doAct('tab:meira')"></button><button type="button" class="iconbtn hsearch" id="searchbtn" aria-label="Leit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></button><div class="today" id="today"></div></div></div></header>
+  <main id="view" aria-live="polite"></main>
+  <div class="foot"><div id="foot"></div><button class="syncbtn" id="syncbtn" hidden onclick="syncNow()">Sækja afrit af gögnum</button><button class="syncbtn" id="logoutbtn" hidden onclick="aeraSignOut()">Skrá út</button></div>
+</div>
+<button class="fab" id="fab" aria-label="Bæta við"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg></button>
+<nav class="mbar tbar" id="tbar" aria-label="Valmynd"></nav><button type="button" id="mbtn" hidden aria-expanded="false"><span id="mico"></span><span id="mlab"></span><span id="mbadge"></span></button>
+<div id="menuwrap" hidden><div class="scrim" id="mscrim"></div><div class="mpanel"><div class="in" role="menu" id="mitems"></div></div></div>
+<div id="sheetwrap" hidden><div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-h"><div class="grab"></div><button type="button" class="sheetmin" id="sheetmin" aria-label="Lágmarka – halda áfram síðar" title="Lágmarka (halda áfram síðar)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 17h12"/></svg></button><div id="sheet"></div></div></div>
+<div id="dock" aria-label="Opin verk" hidden></div>
+<div id="login" hidden><div class="login-in"><img class="lco" id="login-colog" alt=""><div class="llogo"><svg class="lmark" viewBox="-4 -4 108 108" role="img" aria-label="Atrium"><polygon points="0.00,0.00 72.00,0.00 58.00,14.00 0.00,14.00" fill="#DFE5EA"/><polygon points="0.00,14.00 58.00,14.00 72.00,28.00 0.00,28.00" fill="#93A0AD"/><polygon points="72.00,0.00 72.00,28.00 58.00,14.00" fill="#4B5664"/><polygon points="100.00,0.00 100.00,72.00 86.00,58.00 86.00,0.00" fill="#DFE5EA"/><polygon points="86.00,0.00 86.00,58.00 72.00,72.00 72.00,0.00" fill="#93A0AD"/><polygon points="100.00,72.00 72.00,72.00 86.00,58.00" fill="#4B5664"/><polygon points="100.00,100.00 28.00,100.00 42.00,86.00 100.00,86.00" fill="#DFE5EA"/><polygon points="100.00,86.00 42.00,86.00 28.00,72.00 100.00,72.00" fill="#93A0AD"/><polygon points="28.00,100.00 28.00,72.00 42.00,86.00" fill="#4B5664"/><polygon points="0.00,100.00 0.00,28.00 14.00,42.00 14.00,100.00" fill="#DFE5EA"/><polygon points="14.00,100.00 14.00,42.00 28.00,28.00 28.00,100.00" fill="#93A0AD"/><polygon points="0.00,28.00 28.00,28.00 14.00,42.00" fill="#4B5664"/></svg><img class="lword" src="icons/atrium-ordmerki-dokk.svg" alt="Atrium by AERA Studio"></div>
+<p>Skráðu þig inn með aðgangi þínum hjá <span id="login-co">AERA Studio</span>.</p><script>document.getElementById("login-co").textContent=ORG.nafn;(function(){const l=ORG.merki||ORG.logo||{},i=document.getElementById("login-colog");if(l.dokk||l.ljos){i.src=l.dokk||l.ljos;i.alt=ORG.nafn;}else i.remove();})();</script><button type="button" class="btn primary" id="login-ms">Skrá inn með Microsoft</button><div id="login-msg" role="alert"></div></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="xlsx.js"></script>
+<script src="skjalagerd.js"></script>
+<script type="module">if(window.AERA_DEMO) import("./demo.js"); else if(window.ORG.firebase) import("./firebase.js"); else { /* uppsetning án gagnagrunns (enn sem komið er) */ document.getElementById("login").hidden=false; document.getElementById("login-msg").textContent="Þessi uppsetning er ekki enn tengd gagnagrunni. Sýniútgáfan virkar: bættu ?demo aftan við slóðina."; document.getElementById("login-ms").disabled=true; }</script>
+<script>const APP_VERSION="2.6.0"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
+<script src="app-grunnur.js"></script>
+<script src="app-listar.js"></script>
+<script src="app-skyrslur.js"></script>
+<script src="app-sidur.js"></script>
+<script src="app-stillingar.js"></script>
+<script src="app-form.js"></script>
+<script src="app-breyta.js"></script>
+<script src="ms-app.js"></script>
+<script src="verdskra.js"></script>
+<script src="reikn.js"></script>
+<script src="sala.js"></script>
+<script src="skjol.js"></script>
+<script src="postur.js"></script>
+<script src="spjall.js"></script>
+<script src="heim.js"></script>
+<script src="skjalasafn.js"></script>
+<script src="adgangur.js"></script>
+<script src="notendur.js"></script>
+
+</body></html>
