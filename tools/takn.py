@@ -24,7 +24,7 @@ def nest(p, x, y, w):
   vb, b = inner(p); return f'<svg x="{x}" y="{y}" width="{w}" height="{w}" viewBox="{vb}" preserveAspectRatio="xMidYMid meet">{b}</svg>'
 def svg(t, mask):
   # maskable: allt innan miðjuhrings (r = 40%) svo Android klippi ekki merkin
-  a, c, w = ((116, 116, 142), (254, 254, 142), None) if mask else ((84, 84, 172), (256, 256, 172), None)
+  a, c, w = ((122, 122, 124), (266, 266, 124), None) if mask else ((70, 70, 150), (292, 292, 150), None)
   return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">'
           f'<rect width="512" height="512" fill="{t["bg"]}"/><polygon points="512,0 512,512 0,512" fill="{t["litur"]}"/>'
           f'{nest(ATR, a[0], a[1], a[2])}{nest(t["merki"], c[0], c[1], c[2])}</svg>')
