@@ -21,7 +21,7 @@ window.ORG = {
 
   od: { verkefni: "Party/Verkefni", stofa: "Party/Stofa", reikningar: "Party/Stofa/Reikningar", snidmat: "Party/Stofa/Sniðmát", oflokkad: "Óflokkað", mitt: "Atrium" },
   odLocal: "",
-  sp: "",   // SharePoint-síða til bráðabirgða hjá AERA: aerastudio.sharepoint.com:/sites/Atrium-Party (þegar hún er til)
+  sp: "aerastudio.sharepoint.com:/sites/Atrium-Party",   // til bráðabirgða hjá AERA (frá 2.10.4) – Documents › Party; flyst til party.is með eigin M365
   spLocal: "%UserProfile%\\AERA Studio ehf\\Atrium - Party - Documents",
   postmappa: "Party",
   postholf: "",
