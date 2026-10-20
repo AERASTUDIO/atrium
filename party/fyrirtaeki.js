@@ -29,6 +29,13 @@ window.ORG = {
   docLogo: "party/doc-logo.png",
   // Einingar: true = kveikt á sjálfgefið óvirkri einingu; false = læst (admin getur ekki kveikt)
   einingar: { leiga: true, verdskra: false },   // partýbúnaður til leigu; Verðskrá á aðeins við AERA
-  // Firebase-verkefni party.is (atrium-party) – sett inn þegar verkefnið hefur verið stofnað
-  firebase: null
+  // Firebase-verkefni party.is (atrium-party). Opinber auðkenni vefforrits, ekki leyndarmál.
+  firebase: {
+    apiKey: "AIzaSyBWuSkYZ7vLIKoEfvSTMbUXr18l0JZztDs",
+    authDomain: "atrium-party.firebaseapp.com",
+    projectId: "atrium-party",
+    storageBucket: "atrium-party.firebasestorage.app",
+    messagingSenderId: "922712024534",
+    appId: "1:922712024534:web:9d78f780b4a67dfba1f077"
+  }
 };
