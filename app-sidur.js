@@ -252,7 +252,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="stsub"){window.STSUB=r[0]||null; render(); window.scrollTo({top:0}); return;}
   if(k==="status"){const [type,id,st]=r; quickStatus(type,id,st,el);}}
 viewEl.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ") return; const t=e.target.closest?.("[data-open]"); if(t&&t===e.target){e.preventDefault();openDetail(t.dataset.open);}});
-const NEWBTN={postur:"Póstur",skjol:"Skjal",verk:"Verkefni",undir:"Undirverk",fundir:"Fundur",timar:"Skrá tíma",tfaer:"Skrá tíma",vsk:"Viðskiptavinur",dagatal:"Fundur",ltilbod:"Leigutilboð",lvorur:"Búnaður",stilbod:"Sölutilboð",svorur:"Vara"};
+const NEWBTN={postur:"Póstur",skjol:"Skjal",verk:"Verkefni",lverk:"Verkefni",sverk:"Verkefni",undir:"Undirverk",fundir:"Fundur",timar:"Skrá tíma",tfaer:"Skrá tíma",vsk:"Viðskiptavinur",dagatal:"Fundur",ltilbod:"Leigutilboð",lvorur:"Búnaður",stilbod:"Sölutilboð",svorur:"Vara"};
 function pageHead(){if(tab==="yfirlit"||tab==="leit") return "";
   const sec=secOf(tab), cur=sec.tabs.find(x=>x[0]===tab)||sec.tabs[0], hid=!!cur[2], vis=sec.tabs.filter(x=>!x[2]), nb=NEWBTN[tab]&&MCP?NEWBTN[tab]:"";
   if(tab==="stillingar"&&window.STSUB&&STPAGES[STSUB]&&(!STPAGES[STSUB].adm||can("stillingar"))) return `<div class="phead"><a class="pback" data-act="stsub:" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Stillingar</a><div class="phrow"><h2 class="ptitle">${esc(STPAGES[STSUB].l)}</h2></div></div>`;

@@ -131,11 +131,11 @@ function projCard(p){
 }
 let vSort="stada"; try{vSort=localStorage.getItem("aera-vsort")||"stada";}catch(e){}
 const VSORT=[["stada","Stöðu"],["thjonusta","Þjónustu"],["verkkaupi","Viðskiptavini"],["skiladagur","Skiladegi"],["nr","Verknúmeri"],["klst","Klukkutímum"],["starf","Starfsmanni"]];
-function vVerk(){
-  const ps=verkD().slice().sort((a,b)=>b.nr.localeCompare(a.nr));
+function vVerk(dk){ // dk: deild (Leiga › Verkefni o.s.frv., 2.8.1) – annars valin deild
+  const ps=(dk?verkefni().filter(p=>p.deild===dk):verkD()).slice().sort((a,b)=>b.nr.localeCompare(a.nr));
   const row=p=>lrow("verk:"+p.id,{title:`<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt)}`,
     sub:esc([vkName(p)||vsName(p),(p.thjonusta||[]).join(", "),p.timar?hrs(p.timar):""].filter(Boolean).join(" · "))+(STARFS().length>1?` <span class="savs">${projStaff(p).map(staffAv).join("")}</span>`:""),
-    right:(window.deildPill&&!DEILD()?deildPill(p):"")+(isDone(p)?"":budgetPill(p))+(vSort!=="stada"?statusPill(p.stada):"")+(!isDone(p)&&p.skiladagur&&daysTo(p.skiladagur)<=14?relPill(daysTo(p.skiladagur)):"")});
+    right:(window.deildPill&&!dk&&!DEILD()?deildPill(p):"")+(isDone(p)?"":budgetPill(p))+(vSort!=="stada"?statusPill(p.stada):"")+(!isDone(p)&&p.skiladagur&&daysTo(p.skiladagur)<=14?relPill(daysTo(p.skiladagur)):"")});
   const act=ps.filter(p=>!isDone(p)), done=ps.filter(isDone);
   const grp=(t,xs,closed)=>xs.length?(closed?`<details class="grp"><summary class="viewtitle">${esc(t)} · ${xs.length}</summary>${llist(xs.map(row))}</details>`:`<div class="viewtitle">${esc(t)} · ${xs.length}</div>${llist(xs.map(row))}`):"";
   const by=(xs,key,order)=>{const m=new Map(); xs.forEach(p=>{[].concat(key(p)).forEach(k=>{k=k||"Óflokkað"; if(!m.has(k)) m.set(k,[]); m.get(k).push(p);});});

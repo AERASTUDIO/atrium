@@ -43,7 +43,7 @@
 
   // Hvaða eining hver flipi tilheyrir (flipar án línu eru alltaf sýndir)
   window.TAB_EIN = { undir: "undirverk", vsk: "vidskiptavinir", dagatal: "dagatal", fundir: "fundir", timar: "timar", tfaer: "timar", tskyr: "timar",
-    trk: "reikningar", skjolmin: "onedrive", skjol: "skjol", skjolnyl: "onedrive", postur: "postur", spjall: "spjall", ltilbod: "leiga", lvorur: "leiga", stilbod: "sala", svorur: "sala" };
+    trk: "reikningar", skjolmin: "onedrive", skjol: "skjol", skjolnyl: "onedrive", postur: "postur", spjall: "spjall", lverk: "deildir", sverk: "deildir", ltilbod: "leiga", lvorur: "leiga", stilbod: "sala", svorur: "sala" };
   window.tabOn = t => !window.TAB_EIN[t] || ON(window.TAB_EIN[t]);
   // Tegundir í „+ Nýtt“
   window.KIND_EIN = { tima: "timar", kostn: "kostnadur", fund: "fundir", undir: "undirverk", verk: "verkefni", vsk: "vidskiptavinir", skjal: "skjol" };

@@ -38,8 +38,8 @@ TABDEF.push(["stillingar","Stillingar",IC('<circle cx="12" cy="12" r="3"/><path 
 const SECTIONS_ALL=[
   {k:"heim",l:"Heim",ic:IC('<path d="M4 11l8-7 8 7v9.5H4z"/><path d="M10 20.5v-6h4v6"/>'),tabs:[["yfirlit","Heim"],["hfrag","Til að ganga frá",1],["hfram","Framundan",1],["hnyl","Nýlegt og póstar",1]]},
   {k:"verkefni",l:"Verkefni",ic:TABDEF.find(t=>t[0]==="verk")[2],tabs:[["verk","Verkefni"],["undir","Undirverk"],["vsk","Viðskiptavinir"]]},
-  {k:"leiga",l:"Leiga",ic:IC('<path d="M3.5 7.5l8.5-4 8.5 4v9l-8.5 4-8.5-4z"/><path d="M3.5 7.5l8.5 4 8.5-4M12 11.5v9"/>'),tabs:[["ltilbod","Tilboð"],["lvorur","Búnaður"]]},
-  {k:"sala",l:"Sala",ic:IC('<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.7 6.7a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.4"/>'),tabs:[["stilbod","Tilboð"],["svorur","Vörur"]]},
+  {k:"leiga",l:"Leiga",ic:IC('<path d="M3.5 7.5l8.5-4 8.5 4v9l-8.5 4-8.5-4z"/><path d="M3.5 7.5l8.5 4 8.5-4M12 11.5v9"/>'),tabs:[["lverk","Verkefni"],["ltilbod","Tilboð"],["lvorur","Búnaður"]]},
+  {k:"sala",l:"Sala",ic:IC('<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.7 6.7a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.4"/>'),tabs:[["sverk","Verkefni"],["stilbod","Tilboð"],["svorur","Vörur"]]},
   {k:"dagatal",l:"Dagatal",ic:TABDEF.find(t=>t[0]==="dagatal")[2],tabs:[["dagatal","Dagatal"],["fundir","Fundir"]]},
   {k:"timar",l:"Tímar",ic:TABDEF.find(t=>t[0]==="timar")[2],tabs:[["timar","Vikan"],["tfaer","Færslur"],["tskyr","Skýrslur"],["trk","Reikningar"]]},
   {k:"skjol",l:"Skjöl",ic:TABDEF.find(t=>t[0]==="skjol")[2],tabs:[["skjolmin","Mín skjöl"],["skjol","Fyrirtækið"],["skjolnyl","Nýlegt"]]},

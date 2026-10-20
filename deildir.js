@@ -16,7 +16,7 @@
 
   // Val í formum verkefnis (nýtt / breyta)
   window.deildSelect = (id, cur) => { const D = DEILDIR(); if (D.length < 2) return "";
-    const c = cur === undefined ? DEILD() : (cur || "");
+    const c = cur === undefined ? ({ lverk: "leiga", sverk: "sala" }[typeof tab !== "undefined" ? tab : ""] || DEILD()) : (cur || "");
     return `<label>Deild<select id="${id}"><option value=""${c ? "" : " selected"}>Engin (sést í öllum deildum)</option>${D.map(([k, l]) => `<option value="${k}"${k === c ? " selected" : ""}>${l}</option>`).join("")}</select></label>`; };
   window.deildVal = id => { const el = document.getElementById(id); return el ? (el.value || null) : undefined; };
   window.deildPill = p => (DEILDIR().length > 1 && p?.deild ? `<span class="pill deildpill">${esc(deildHeiti(p.deild))}</span>` : "");
@@ -36,4 +36,6 @@
     if (el.innerHTML !== html) el.innerHTML = html;
   }
   window.deildHdr = hdr;
+  // Leiga › Verkefni og Sala › Verkefni (2.8.1): verkefni deildarinnar undir hennar eigin hluta
+  Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { lverk: () => vVerk("leiga"), sverk: () => vVerk("sala") });
 })();
