@@ -18,25 +18,25 @@
     const leiga = !window.ON || ON("leiga") || ON("sala");
     const C = (name, o) => ({ id: gid(), name, hlutverk: ["Viðskiptavinur"], kennitala: "", vsknr: "", heimilisfang: "", postnumer: "", stadur: "", simi: "", netfang: "", vefsida: "", tengilidur: "", simiT: "", netfangT: "", athugasemdir: "Prufugögn.", prufa: true, ...o });
     const vsk = [
-      C("Prufuhótel Norðurljós", { kennitala: "000000-0901", heimilisfang: "Strandgata 1", postnumer: "600", stadur: "Akureyri", simi: "555 0901", netfang: "hotel@prufa.example", tengilidur: "Katrín Prufudóttir", netfangT: "katrin@prufa.example" }),
-      C("Prufuviðburðir ehf.", { hlutverk: ["Viðskiptavinur", "Verkkaupi"], kennitala: "000000-0902", heimilisfang: "Hafnarbraut 12", postnumer: "220", stadur: "Hafnarfjörður", simi: "555 0902", netfang: "info@vidburdir.example", tengilidur: "Ólafur Prufason" }),
-      C("Prufuveitingar ehf.", { kennitala: "000000-0903", heimilisfang: "Laugavegur 10", postnumer: "101", stadur: "Reykjavík", netfang: "matur@veitingar.example", tengilidur: "Sara Prufa" }),
-      C("Prufustofnun", { kennitala: "000000-0904", heimilisfang: "Austurvegur 4", postnumer: "800", stadur: "Selfoss", netfang: "stofnun@prufa.example", tengilidur: "Helgi Þór" })
+      C("Viðskiptavinur A", { kennitala: "000000-0901", heimilisfang: "Gata 1", postnumer: "600", stadur: "Bær", simi: "555 0901", netfang: "hotel@prufa.example", tengilidur: "Tengiliður A", netfangT: "katrin@prufa.example" }),
+      C("Viðskiptavinur B", { hlutverk: ["Viðskiptavinur", "Verkkaupi"], kennitala: "000000-0902", heimilisfang: "Gata 2", postnumer: "220", stadur: "Bær", simi: "555 0902", netfang: "info@vidburdir.example", tengilidur: "Tengiliður B" }),
+      C("Viðskiptavinur C", { kennitala: "000000-0903", heimilisfang: "Gata 3", postnumer: "101", stadur: "Bær", netfang: "matur@veitingar.example", tengilidur: "Tengiliður C" }),
+      C("Viðskiptavinur D", { kennitala: "000000-0904", heimilisfang: "Gata 4", postnumer: "800", stadur: "Bær", netfang: "stofnun@prufa.example", tengilidur: "Tengiliður D" })
     ];
     const [h, v, r, s] = vsk;
     const sub = (pnr, k, name, stada, skil, timar) => ({ id: gid(), nr: `${pnr}-${p2(k)}`, heiti: `${pnr}-${p2(k)} ${name}`, stada, skiladagur: skil == null ? null : day(skil), timar, serMappa: null, mappa: null, lysing: null });
     const P = (k, stutt, stada, cl, o) => { const nr = `${yr}-${90 + k}`; return { id: gid(), nr, stutt, nafn: nr + " " + stutt, stada, vskId: cl.id, vidskiptavinur: cl.name, vkId: null, verkkaupi: null, thjonusta: [T1], timar: 0, aklst: null, tilbod: null, skiladagur: null, vidburdur: null, yfirlit: null, mappa: null, starfsmenn: [me], athugasemdir: [], lysing: null, naest: null, athuga: null, undirverk: [], prufa: true, ...(o ? o(nr) : {}) }; };
     const verkefni = leiga ? [
-      P(1, "Árshátíð í Hörpu", "Í vinnslu", v, nr => ({ deild: "leiga", vkId: v.id, verkkaupi: v.name, thjonusta: [T1, T2], aklst: 60, tilbod: 2850000, skiladagur: day(12), vidburdur: day(12, "18:00"),
+      P(1, "Árshátíð", "Í vinnslu", v, nr => ({ deild: "leiga", vkId: v.id, verkkaupi: v.name, thjonusta: [T1, T2], aklst: 60, tilbod: 2850000, skiladagur: day(12), vidburdur: day(12, "18:00"),
         lysing: "Hljóð, ljós og LED-veggur fyrir árshátíð, 600 gestir. Uppsetning daginn áður.", naest: "Staðfesta sviðsteikningu og keyrsluplan.", athuga: "Aðgengi að hleðslubrú frá kl. 8.",
         athugasemdir: [{ id: gid(), t: "Viðskiptavinur vill bæta við tveimur skjám í anddyri.", d: iso(-1), sk: me }],
         undirverk: [sub(nr, 1, "Vettvangsskoðun", "Done", -8, 3), sub(nr, 2, "Teikning og keyrsluplan", "In progress", 4, 6), sub(nr, 3, "Uppsetning", "Not started", 11, 0), sub(nr, 4, "Viðburður og niðurtaka", "Not started", 12, 0)] })),
       P(2, "Ráðstefna – fundarsalur", "Tilboð", h, nr => ({ deild: "leiga", thjonusta: [T1], tilbod: 640000, skiladagur: day(5), vidburdur: day(5, "09:00"), lysing: "Hljóðkerfi, skjávarpi og tveir skjáir fyrir eins dags ráðstefnu.", undirverk: [sub(nr, 1, "Tilboð", "In progress", 1, 1)] })),
       P(3, "Hljóðkerfi fyrir veitingastað", "Í yfirferð", r, nr => ({ deild: "sala", thjonusta: [T2], aklst: 30, tilbod: 1950000, skiladagur: day(20), lysing: "Loftahátalarar, magnari og veggstýring (install).", naest: "Yfirfara teikningu með eiganda.",
         undirverk: [sub(nr, 1, "Mælingar", "Done", -6, 4), sub(nr, 2, "Teikning", "Done", -2, 5), sub(nr, 3, "Uppsetning", "Up next", 18, 0)] })),
-      P(4, "Útitónleikar – sumarhátíð", "Beiðni", s, nr => ({ deild: "leiga", thjonusta: [T1], skiladagur: null, vidburdur: day(40, "16:00"), lysing: "Fyrirspurn um svið, hljóð og ljós fyrir 3 daga útihátíð." })),
+      P(4, "Útitónleikar", "Beiðni", s, nr => ({ deild: "leiga", thjonusta: [T1], skiladagur: null, vidburdur: day(40, "16:00"), lysing: "Fyrirspurn um svið, hljóð og ljós fyrir 3 daga útihátíð." })),
       P(5, "Jólatónleikar", "Afhent", v, nr => ({ deild: "leiga", thjonusta: [T1, T2], skiladagur: day(-20), undirverk: [sub(nr, 1, "Uppsetning", "Done", -21, 10), sub(nr, 2, "Tónleikar", "Done", -20, 8)] })),
-      P(6, "Kynning í verslun", "Reikningsfært", r, nr => ({ deild: "sala", thjonusta: [T1], skiladagur: day(-45) }))
+      P(6, "Kynning", "Reikningsfært", r, nr => ({ deild: "sala", thjonusta: [T1], skiladagur: day(-45) }))
     ] : [
       P(1, "Hönnun anddyris", "Í vinnslu", h, nr => ({ aklst: 40, tilbod: 650000, skiladagur: day(9), lysing: "Prufuverkefni.", undirverk: [sub(nr, 1, "Forsendur", "Done", -12, 6), sub(nr, 2, "Teikningar", "In progress", 3, 10), sub(nr, 3, "Útgáfa", "Not started", 9, 0)] })),
       P(2, "Teikningar veitingastaðar", "Í yfirferð", r, nr => ({ tilbod: 380000, skiladagur: day(2), undirverk: [sub(nr, 1, "Módel", "Done", -10, 9), sub(nr, 2, "Yfirferð", "In progress", 2, 2)] })),
@@ -58,7 +58,7 @@
     timar.forEach(e => { const p = verkefni.find(x => x.id === e.verkefniId); p.timar = Math.round(((p.timar || 0) + e.timar) * 100) / 100; });
     const F = (name, off, hm, p, o) => ({ id: gid(), name, date: day(off, hm), stadsetning: null, fundarhlekkur: null, fundargerd: null, projectId: p?.id || null, verknr: p?.nafn || null, mappa: null, attendees: [], seria: null, prufa: true, ...o });
     const fundir = [
-      F("Rennsli og keyrsluplan", 0, "14:00", a1, { stadsetning: "Harpa" }), F("Yfirferð teikninga", 2, "10:00", a3, { fundarhlekkur: "https://meet.example.com/prufa" }),
+      F("Rennsli og keyrsluplan", 0, "14:00", a1, { stadsetning: "Salur A" }), F("Yfirferð teikninga", 2, "10:00", a3, { fundarhlekkur: "https://meet.example.com/prufa" }),
       F("Upphafsfundur ráðstefnu", 3, "13:00", a2, { stadsetning: h.name }), F("Vikufundur", -5, "09:00", null, { stadsetning: "Skrifstofa" })
     ];
     const kostnadur = [{ id: gid(), date: day(-4), verkefniId: a1.id, undirverkId: null, lysing: "Gaffer-teip og kapalbindi", upphaed: 18900, starfsmadur: me, kvittun: null, kvittunId: null, stofnad: iso(-4), prufa: true }];

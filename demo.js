@@ -1,4 +1,4 @@
-// Sýniútgáfa appsins (opnast með ?demo í slóðinni, t.d. https://aerastudio.github.io/atrium/?demo).
+// Sýniútgáfa appsins (opnast með ?demo í slóðinni, t.d. https://aerastudio.github.io/atrium/demo/?demo).
 // Engin innskráning, engin tenging við Firestore eða Microsoft: appið keyrir á tilbúnum sýnigögnum
 // sem búa aðeins í minni vafrans. Breytingar gleymast þegar síðan er endurhlaðin.
 // Öll nöfn, fyrirtæki og tölur hér eru uppspuni.
@@ -12,73 +12,73 @@ const yr = base.getFullYear();
 
 function sampleState() {
   const vsk = [
-    { id: "d0000000000000000000000000000c01", name: "Norðurljós hótel", hlutverk: ["Viðskiptavinur"], kennitala: "000000-0001", vsknr: "", heimilisfang: "Strandgata 1", postnumer: "600", stadur: "Akureyri", simi: "555 0101", netfang: "hotel@nordurljos.example", vefsida: "", tengilidur: "Katrín Jónsdóttir", simiT: "555 0102", netfangT: "katrin@nordurljos.example", athugasemdir: "Sýnigögn." },
-    { id: "d0000000000000000000000000000c02", name: "Fjarðarbyggð arkitektar", hlutverk: ["Verkkaupi"], kennitala: "000000-0002", vsknr: "", heimilisfang: "Hafnarbraut 12", postnumer: "220", stadur: "Hafnarfjörður", simi: "555 0201", netfang: "info@fjardar.example", vefsida: "", tengilidur: "Ólafur Árnason", simiT: "", netfangT: "olafur@fjardar.example", athugasemdir: "" },
-    { id: "d0000000000000000000000000000c03", name: "Kaffihúsið Bolli", hlutverk: ["Viðskiptavinur"], kennitala: "000000-0003", vsknr: "", heimilisfang: "Laugavegur 99", postnumer: "101", stadur: "Reykjavík", simi: "555 0301", netfang: "bolli@bolli.example", vefsida: "", tengilidur: "Sara Björk", simiT: "", netfangT: "", athugasemdir: "" },
-    { id: "d0000000000000000000000000000c04", name: "Listasafn Suðurlands", hlutverk: ["Viðskiptavinur", "Verkkaupi"], kennitala: "000000-0004", vsknr: "", heimilisfang: "Austurvegur 4", postnumer: "800", stadur: "Selfoss", simi: "555 0401", netfang: "safn@listasafn.example", vefsida: "", tengilidur: "Helgi Þór", simiT: "", netfangT: "", athugasemdir: "" }
+    { id: "d0000000000000000000000000000c01", name: "Viðskiptavinur A", hlutverk: ["Viðskiptavinur"], kennitala: "000000-0001", vsknr: "", heimilisfang: "Gata 1", postnumer: "600", stadur: "Bær", simi: "555 0101", netfang: "a@vidskiptavinur.example", vefsida: "", tengilidur: "Tengiliður A", simiT: "555 0102", netfangT: "tengilidur@vidskiptavinur.example", athugasemdir: "Sýnigögn." },
+    { id: "d0000000000000000000000000000c02", name: "Viðskiptavinur B", hlutverk: ["Verkkaupi"], kennitala: "000000-0002", vsknr: "", heimilisfang: "Gata 2", postnumer: "220", stadur: "Bær", simi: "555 0201", netfang: "b@vidskiptavinur.example", vefsida: "", tengilidur: "Tengiliður B", simiT: "", netfangT: "tengilidur.b@vidskiptavinur.example", athugasemdir: "" },
+    { id: "d0000000000000000000000000000c03", name: "Viðskiptavinur C", hlutverk: ["Viðskiptavinur"], kennitala: "000000-0003", vsknr: "", heimilisfang: "Gata 3", postnumer: "101", stadur: "Bær", simi: "555 0301", netfang: "c@vidskiptavinur.example", vefsida: "", tengilidur: "Tengiliður C", simiT: "", netfangT: "", athugasemdir: "" },
+    { id: "d0000000000000000000000000000c04", name: "Viðskiptavinur D", hlutverk: ["Viðskiptavinur", "Verkkaupi"], kennitala: "000000-0004", vsknr: "", heimilisfang: "Gata 4", postnumer: "800", stadur: "Bær", simi: "555 0401", netfang: "d@vidskiptavinur.example", vefsida: "", tengilidur: "Tengiliður D", simiT: "", netfangT: "", athugasemdir: "" }
   ];
   const sub = (pnr, k, name, stada, skil, timar) => ({ id: `sub-${pnr}-${k}`, nr: `${pnr}-${pad(k)}`, heiti: `${pnr}-${pad(k)} ${name}`, stada, skiladagur: skil == null ? null : day(skil), timar, serMappa: null, mappa: null, lysing: null });
   const P = (o) => ({ yfirlit: null, mappa: null, starfsmenn: ["JJ"], aklst: null, tilbod: null, athugasemdir: [], ...o, nafn: o.nr + " " + o.stutt });
   const verkefni = [
-    P({ id: "p1", nr: `${yr}-21`, stutt: "Lýsing hótelanddyris", stada: "Í vinnslu", vskId: "d0000000000000000000000000000c01", vidskiptavinur: "Norðurljós hótel", vkId: "d0000000000000000000000000000c02", verkkaupi: "Fjarðarbyggð arkitektar", thjonusta: ["Lýsing"], timar: 31.5, aklst: 40, tilbod: 650000, skiladagur: day(9), vidburdur: null,
-      lysing: "Ný lýsing í anddyri og móttöku hótelsins. Áhersla á hlýja birtu og stýringu eftir tíma dags.", naest: "Klára ljósateikningu og senda til yfirferðar.", athuga: "Bíða eftir loftaplani frá arkitekt.",
-      athugasemdir: [{ id: "a1", t: "Viðskiptavinur vill skoða tvær litahitastillingar á kynningarfundi.", d: iso(-2), sk: "JJ" }],
-      undirverk: [sub(`${yr}-21`, 1, "Forsendur", "Done", -12, 6), sub(`${yr}-21`, 2, "Ljósateikning", "In progress", 3, 18.5), sub(`${yr}-21`, 3, "Capture-módel", "Up next", 7, 7), sub(`${yr}-21`, 4, "Útgáfa", "Not started", 9, 0)] }),
-    P({ id: "p2", nr: `${yr}-22`, stutt: "Teikningar kaffihúss", stada: "Í yfirferð", vskId: "d0000000000000000000000000000c03", vidskiptavinur: "Kaffihúsið Bolli", thjonusta: ["Teiknivinna"], timar: 22, aklst: 24, tilbod: 380000, skiladagur: day(2), vidburdur: null,
-      lysing: "Grunnmyndir og útlit fyrir endurbætur á kaffihúsi.", naest: "Lagfæra athugasemdir eftir yfirferð.",
+    P({ id: "p1", nr: `${yr}-21`, stutt: "Hönnunarverkefni", stada: "Í vinnslu", vskId: "d0000000000000000000000000000c01", vidskiptavinur: "Viðskiptavinur A", vkId: "d0000000000000000000000000000c02", verkkaupi: "Viðskiptavinur B", thjonusta: ["Hönnun"], timar: 31.5, aklst: 40, tilbod: 650000, skiladagur: day(9), vidburdur: null,
+      lysing: "Dæmi um verkefni í vinnslu með undirverkum, áætlun og tilboði.", naest: "Klára teikningar og senda til yfirferðar.", athuga: "Bíða eftir gögnum frá viðskiptavini.",
+      athugasemdir: [{ id: "a1", t: "Viðskiptavinur vill skoða tvær útfærslur á kynningarfundi.", d: iso(-2), sk: "JJ" }],
+      undirverk: [sub(`${yr}-21`, 1, "Forsendur", "Done", -12, 6), sub(`${yr}-21`, 2, "Teikningar", "In progress", 3, 18.5), sub(`${yr}-21`, 3, "Módel", "Up next", 7, 7), sub(`${yr}-21`, 4, "Útgáfa", "Not started", 9, 0)] }),
+    P({ id: "p2", nr: `${yr}-22`, stutt: "Teiknivinna", stada: "Í yfirferð", vskId: "d0000000000000000000000000000c03", vidskiptavinur: "Viðskiptavinur C", thjonusta: ["Framkvæmd"], timar: 22, aklst: 24, tilbod: 380000, skiladagur: day(2), vidburdur: null,
+      lysing: "Dæmi um verkefni í yfirferð.", naest: "Lagfæra athugasemdir eftir yfirferð.",
       undirverk: [sub(`${yr}-22`, 1, "Gögn móttekin og yfirfarin", "Done", -20, 2), sub(`${yr}-22`, 2, "Módel", "Done", -10, 9), sub(`${yr}-22`, 3, "Teikningar", "Done", -3, 9), sub(`${yr}-22`, 4, "Yfirferð", "In progress", 2, 2)] }),
-    P({ id: "p3", nr: `${yr}-23`, stutt: "Sýningarlýsing safns", stada: "Tilboð", vskId: "d0000000000000000000000000000c04", vidskiptavinur: "Listasafn Suðurlands", vkId: "d0000000000000000000000000000c04", verkkaupi: "Listasafn Suðurlands", thjonusta: ["Lýsing", "Hönnun & ráðgjöf"], timar: 3, tilbod: 1200000, skiladagur: day(30), vidburdur: day(45, "17:00"), timabilFra: day(14, "09:00"), timabilTil: day(30, "17:00"),
-      lysing: "Lýsing fyrir nýja sumarsýningu.", undirverk: [sub(`${yr}-23`, 1, "Hugmyndavinna", "In progress", 6, 3), sub(`${yr}-23`, 2, "3D render", "Not started", 20, 0)] }),
-    P({ id: "p4", nr: `${yr}-24`, stutt: "Ráðgjöf um útilýsingu", stada: "Beiðni", vskId: "d0000000000000000000000000000c01", vidskiptavinur: "Norðurljós hótel", thjonusta: ["Hönnun & ráðgjöf"], timar: 0, skiladagur: null, undirverk: [] }),
-    P({ id: "p5", nr: `${yr}-17`, stutt: "Innréttingar móttöku", stada: "Afhent", vskId: "d0000000000000000000000000000c02", vidskiptavinur: "Fjarðarbyggð arkitektar", thjonusta: ["Teiknivinna"], timar: 42, skiladagur: day(-25), undirverk: [sub(`${yr}-17`, 1, "Teikningar", "Done", -30, 36), sub(`${yr}-17`, 2, "Útgáfa", "Done", -25, 6)] }),
-    P({ id: "p6", nr: `${yr}-12`, stutt: "Ljósastýring veitingasalar", stada: "Reikningsfært", vskId: "d0000000000000000000000000000c03", vidskiptavinur: "Kaffihúsið Bolli", thjonusta: ["Lýsing"], timar: 16, skiladagur: day(-60), undirverk: [] })
+    P({ id: "p3", nr: `${yr}-23`, stutt: "Viðburður", stada: "Tilboð", vskId: "d0000000000000000000000000000c04", vidskiptavinur: "Viðskiptavinur D", vkId: "d0000000000000000000000000000c04", verkkaupi: "Viðskiptavinur D", thjonusta: ["Hönnun", "Ráðgjöf"], timar: 3, tilbod: 1200000, skiladagur: day(30), vidburdur: day(45, "17:00"), timabilFra: day(14, "09:00"), timabilTil: day(30, "17:00"),
+      lysing: "Dæmi um verkefni á tilboðsstigi með viðburði.", undirverk: [sub(`${yr}-23`, 1, "Hugmyndavinna", "In progress", 6, 3), sub(`${yr}-23`, 2, "3D render", "Not started", 20, 0)] }),
+    P({ id: "p4", nr: `${yr}-24`, stutt: "Ráðgjöf", stada: "Beiðni", vskId: "d0000000000000000000000000000c01", vidskiptavinur: "Viðskiptavinur A", thjonusta: ["Ráðgjöf"], timar: 0, skiladagur: null, undirverk: [] }),
+    P({ id: "p5", nr: `${yr}-17`, stutt: "Afhent verkefni", stada: "Afhent", vskId: "d0000000000000000000000000000c02", vidskiptavinur: "Viðskiptavinur B", thjonusta: ["Framkvæmd"], timar: 42, skiladagur: day(-25), undirverk: [sub(`${yr}-17`, 1, "Teikningar", "Done", -30, 36), sub(`${yr}-17`, 2, "Útgáfa", "Done", -25, 6)] }),
+    P({ id: "p6", nr: `${yr}-12`, stutt: "Reikningsfært verkefni", stada: "Reikningsfært", vskId: "d0000000000000000000000000000c03", vidskiptavinur: "Viðskiptavinur C", thjonusta: ["Hönnun"], timar: 16, skiladagur: day(-60), undirverk: [] })
   ];
   const T = (id, off, pid, sid, lys, fra, til, t) => ({ id, date: day(off), lysing: lys, nr: verkefni.find(p => p.id === pid)?.nr, verkefniId: pid, undirverkId: sid, fra, til, timar: t, starfsmadur: "JJ", timabil: timabilOf(day(off)) });
   const faerslur = [
-    T("t1", 0, "p1", `sub-${yr}-21-2`, "Ljósateikning anddyri", "08:30", "11:30", 3),
-    T("t2", -1, "p1", `sub-${yr}-21-2`, "Ljósateikning móttaka", "09:00", "15:30", 6.5),
+    T("t1", 0, "p1", `sub-${yr}-21-2`, "Teiknivinna", "08:30", "11:30", 3),
+    T("t2", -1, "p1", `sub-${yr}-21-2`, "Teiknivinna", "09:00", "15:30", 6.5),
     T("t3", -1, "p2", `sub-${yr}-22-4`, "Yfirferð með viðskiptavini", "16:00", "17:00", 1),
-    T("t4", -2, "p2", `sub-${yr}-22-3`, "Lagfæringar á útliti", "09:00", "13:00", 4),
-    T("t5", -3, "p3", `sub-${yr}-23-1`, "Hugmyndavinna og skissur", "10:00", "13:00", 3),
-    T("t6", -4, "p1", `sub-${yr}-21-3`, "Capture-módel uppsetning", "08:00", "15:00", 7),
-    T("t7", -7, "p1", `sub-${yr}-21-2`, "Ljósateikning", "09:00", "14:00", 5),
+    T("t4", -2, "p2", `sub-${yr}-22-3`, "Lagfæringar", "09:00", "13:00", 4),
+    T("t5", -3, "p3", `sub-${yr}-23-1`, "Hugmyndavinna", "10:00", "13:00", 3),
+    T("t6", -4, "p1", `sub-${yr}-21-3`, "Módelvinna", "08:00", "15:00", 7),
+    T("t7", -7, "p1", `sub-${yr}-21-2`, "Teiknivinna", "09:00", "14:00", 5),
     T("t8", -8, "p2", `sub-${yr}-22-3`, "Teikningar", "09:00", "14:00", 5),
-    T("t9", -9, "p1", `sub-${yr}-21-1`, "Forsendur og mælingar", null, null, 6)
+    T("t9", -9, "p1", `sub-${yr}-21-1`, "Forsendur", null, null, 6)
   ];
   const fundir = [
-    { id: "f1", name: "Kynning á ljósateikningu", date: day(0, "14:00"), stadsetning: "Norðurljós hótel", fundarhlekkur: null, fundargerd: null, projectId: "p1", verknr: verkefni[0].nafn, mappa: null, attendees: [], seria: null },
+    { id: "f1", name: "Kynningarfundur", date: day(0, "14:00"), stadsetning: "Viðskiptavinur A", fundarhlekkur: null, fundargerd: null, projectId: "p1", verknr: verkefni[0].nafn, mappa: null, attendees: [], seria: null },
     { id: "f2", name: "Yfirferð teikninga", date: day(2, "10:00"), stadsetning: null, fundarhlekkur: "https://meet.example.com/demo", fundargerd: null, projectId: "p2", verknr: verkefni[1].nafn, mappa: null, attendees: [], seria: null },
-    { id: "f3", name: "Upphafsfundur sýningar", date: day(6, "13:00"), stadsetning: "Listasafn Suðurlands", fundarhlekkur: null, fundargerd: null, projectId: "p3", verknr: verkefni[2].nafn, mappa: null, attendees: [], seria: null },
+    { id: "f3", name: "Upphafsfundur", date: day(6, "13:00"), stadsetning: "Viðskiptavinur D", fundarhlekkur: null, fundargerd: null, projectId: "p3", verknr: verkefni[2].nafn, mappa: null, attendees: [], seria: null },
     { id: "f4", name: "Vikufundur", date: day(-5, "09:00"), stadsetning: "Skrifstofa", fundarhlekkur: null, fundargerd: null, projectId: null, verknr: null, mappa: null, attendees: [], seria: null }
   ];
   const kostnadur = [
-    { id: "k1", date: day(-4), verkefniId: "p1", undirverkId: null, lysing: "Sýnishorn af ljósgjöfum", upphaed: 18900, starfsmadur: "JJ", kvittun: null, kvittunId: null, stofnad: iso(-4) }
+    { id: "k1", date: day(-4), verkefniId: "p1", undirverkId: null, lysing: "Efniskaup", upphaed: 18900, starfsmadur: "JJ", kvittun: null, kvittunId: null, stofnad: iso(-4) }
   ];
   const reikningar = [
     { id: "r1", nr: 1001, dags: day(-40), gjalddagi: day(-26), verkefniIds: ["p6"], verkefniId: "p6", vskId: "d0000000000000000000000000000c03",
-      kaupandi: { name: "Kaffihúsið Bolli", kennitala: "000000-0003", heimilisfang: "Laugavegur 99", postnumer: "101", stadur: "Reykjavík", netfang: "bolli@bolli.example" },
-      seljandi: { nafn: (window.ORG?.nafn || "AERA Studio") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", vsk: 24, frestur: 14 },
-      linur: [{ lysing: "Ljósastýring veitingasalar", magn: 16, eining: "klst.", verd: 14900 }], vskP: 24, net: 238400, vsk: 57216, tot: 295616,
+      kaupandi: { name: "Viðskiptavinur C", kennitala: "000000-0003", heimilisfang: "Gata 3", postnumer: "101", stadur: "Bær", netfang: "c@vidskiptavinur.example" },
+      seljandi: { nafn: (window.ORG?.nafn || "Fyrirtækið") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", vsk: 24, frestur: 14 },
+      linur: [{ lysing: "Reikningsfært verkefni", magn: 16, eining: "klst.", verd: 14900 }], vskP: 24, net: 238400, vsk: 57216, tot: 295616,
       timaIds: [], kostnIds: [], stada: "Greitt", greitt: day(-28), stofnad: iso(-40) },
     { id: "r2", nr: 1002, dags: day(-10), gjalddagi: day(4), verkefniIds: ["p5"], verkefniId: "p5", vskId: "d0000000000000000000000000000c02",
-      kaupandi: { name: "Fjarðarbyggð arkitektar", kennitala: "000000-0002", heimilisfang: "Hafnarbraut 12", postnumer: "220", stadur: "Hafnarfjörður", netfang: "info@fjardar.example" },
-      seljandi: { nafn: (window.ORG?.nafn || "AERA Studio") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", vsk: 24, frestur: 14 },
-      linur: [{ lysing: "Innréttingar móttöku – teiknivinna", magn: 42, eining: "klst.", verd: 14900 }], vskP: 24, net: 625800, vsk: 150192, tot: 775992,
+      kaupandi: { name: "Viðskiptavinur B", kennitala: "000000-0002", heimilisfang: "Gata 2", postnumer: "220", stadur: "Bær", netfang: "b@vidskiptavinur.example" },
+      seljandi: { nafn: (window.ORG?.nafn || "Fyrirtækið") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", banki: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", vsk: 24, frestur: 14 },
+      linur: [{ lysing: "Afhent verkefni – teiknivinna", magn: 42, eining: "klst.", verd: 14900 }], vskP: 24, net: 625800, vsk: 150192, tot: 775992,
       timaIds: [], kostnIds: [], stada: "Ógreitt", greitt: null, stofnad: iso(-10) }
   ];
   const skjol = [
-    { id: "s1", name: "Tilboð – sýningarlýsing", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p3", mappa: "01 Móttekið", stofnad: iso(-6), breytt: iso(-3) },
-    { id: "s2", name: "Verklýsing anddyri", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p1", mappa: "02 Vinnuskjöl", stofnad: iso(-11), breytt: iso(-1) }
+    { id: "s1", name: "Tilboð – viðburður", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p3", mappa: "01 Móttekið", stofnad: iso(-6), breytt: iso(-3) },
+    { id: "s2", name: "Verklýsing", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p1", mappa: "02 Vinnuskjöl", stofnad: iso(-11), breytt: iso(-1) }
   ];
   // Póstþræðir: aðeins tilvísun í conversationId; póstarnir sjálfir eru sóttir úr pósthólfinu.
   const thraedir = [
-    { id: "t1", conv: "demo-conv-1", verkefniId: "p1", efni: `${yr}-21 Loftaplan anddyris`, tengt: iso(-1), af: "sjálfvirkt" }
+    { id: "t1", conv: "demo-conv-1", verkefniId: "p1", efni: `${yr}-21 Gögn frá viðskiptavini`, tengt: iso(-1), af: "sjálfvirkt" }
   ];
   // Eldri afrit úr gamla pósthólfinu sem fundust ekki
   const postar = [
-    { id: "m1", efni: "Ljósaval í móttöku", fra: "Ólafur Árnason", dags: iso(-40), url: null, verkefniId: "p1", ekkiFannst: true }
+    { id: "m1", efni: "Efnisval", fra: "Tengiliður B", dags: iso(-40), url: null, verkefniId: "p1", ekkiFannst: true }
   ];
-  window.MS_OFL = [{ id: "demo-m2", conversationId: "demo-conv-2", subject: "Fyrirspurn um útilýsingu", from: { emailAddress: { name: "Katrín Jónsdóttir", address: "katrin@example.is" } }, receivedDateTime: iso(0), bodyPreview: "Gætuð þið skoðað lýsingu á bílastæði…" }];
+  window.MS_OFL = [{ id: "demo-m2", conversationId: "demo-conv-2", subject: "Fyrirspurn um nýtt verkefni", from: { emailAddress: { name: "Tengiliður A", address: "tengilidur@example.is" } }, receivedDateTime: iso(0), bodyPreview: "Gætuð þið gert tilboð í nýtt verkefni…" }];
   return {
     uppfaert: new Date().toISOString(),
     verkefni, fundir, vidskiptavinir: vsk, skjol, kostnadur, reikningar, postar, thraedir,
@@ -87,8 +87,9 @@ function sampleState() {
     stillingar: {
       starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }],
       vikumark: 40,
-      reikn: { nafn: (window.ORG?.nafn || "AERA Studio") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
-      undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@aera.example" }
+      thjonusta: ["Hönnun", "Ráðgjöf", "Framkvæmd", "Almennt"],
+      reikn: { nafn: (window.ORG?.nafn || "Fyrirtækið") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
+      undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@demo.example" }
     }
   };
 }
@@ -96,13 +97,13 @@ function sampleState() {
 // Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar), ?demo=bokari = bókari (Sigrún).
 const now = new Date().toISOString();
 const notendur = { notendur: {
-  "jona@aera.example": { nafn: "Jóna Jónsdóttir", sk: "JJ", hlutverk: "admin", virkur: true, stofnad: iso(-30), breytt: iso(-30), sidast: now },
-  "gunnar@aera.example": { nafn: "Gunnar Gunnarsson", sk: "GG", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-20), breytt: iso(-20), sidast: iso(-1) },
-  "helga@aera.example": { nafn: "Helga Sigurðardóttir", sk: "HS", hlutverk: "starfsmadur", virkur: false, stofnad: iso(-60), breytt: iso(-5), sidast: iso(-9) },
-  "sigrun@aera.example": { nafn: "Sigrún Bókari", sk: "SB", hlutverk: "bokari", virkur: true, stofnad: iso(-10), breytt: iso(-10), sidast: iso(-2) }
+  "jona@demo.example": { nafn: "Jóna Jónsdóttir", sk: "JJ", hlutverk: "admin", virkur: true, stofnad: iso(-30), breytt: iso(-30), sidast: now },
+  "gunnar@demo.example": { nafn: "Gunnar Gunnarsson", sk: "GG", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-20), breytt: iso(-20), sidast: iso(-1) },
+  "helga@demo.example": { nafn: "Helga Sigurðardóttir", sk: "HS", hlutverk: "starfsmadur", virkur: false, stofnad: iso(-60), breytt: iso(-5), sidast: iso(-9) },
+  "sigrun@demo.example": { nafn: "Sigrún Bókari", sk: "SB", hlutverk: "bokari", virkur: true, stofnad: iso(-10), breytt: iso(-10), sidast: iso(-2) }
 } };
 const demoRole = new URLSearchParams(location.search).get("demo");
-const email = demoRole === "starfsmadur" ? "gunnar@aera.example" : demoRole === "bokari" ? "sigrun@aera.example" : "jona@aera.example";
+const email = demoRole === "starfsmadur" ? "gunnar@demo.example" : demoRole === "bokari" ? "sigrun@demo.example" : "jona@demo.example";
 const user = { email, ...notendur.notendur[email] };
 
 // Gagnagrunnur í minni: sama viðmót og firebase.js lætur appið fá (get / set / tx / watch / commit / watchCol).
@@ -112,9 +113,9 @@ const store = { "app/state": sampleState(), "app/notendur": notendur };
 // Vörulisti og tilboð (sala.js): sýnigögn þegar einingarnar eru virkar í uppsetningunni (t.d. Sonik)
 if (window.salaPrufa && window.ON && (ON("leiga") || ON("sala"))) { const st = store["app/state"], p = salaPrufa(st.vidskiptavinir); st.vorur = p.vorur; st.tilbod = p.tilbod; }
 // Spjall í sýniútgáfu
-[["s1", "almennt", [], "gunnar@aera.example", "Gunnar Gunnarsson", "Er einhver með lykilinn að sýnishornaskápnum?", -1],
- ["s2", "almennt", [], "jona@aera.example", "Jóna Jónsdóttir", "Hann er á skrifborðinu mínu 👍", -1],
- ["s3", "dm:gunnar@aera.example|jona@aera.example", ["gunnar@aera.example", "jona@aera.example"], "gunnar@aera.example", "Gunnar Gunnarsson", "Geturðu kíkt á loftaplanið fyrir 21 áður en það fer til hótelsins?", 0]
+[["s1", "almennt", [], "gunnar@demo.example", "Gunnar Gunnarsson", "Er einhver með gögnin frá síðasta fundi?", -1],
+ ["s2", "almennt", [], "jona@demo.example", "Jóna Jónsdóttir", "Þau eru í möppu verkefnisins 👍", -1],
+ ["s3", "dm:gunnar@demo.example|jona@demo.example", ["gunnar@demo.example", "jona@demo.example"], "gunnar@demo.example", "Gunnar Gunnarsson", "Geturðu kíkt á teikningarnar áður en þær fara til viðskiptavinar?", 0]
 ].forEach(([id, ras, adilar, af, nafn, texti, off]) => { store["spjall/" + id] = { id, ras, adilar, af, nafn, texti, t: new Date(Date.now() + off * 864e5 - 36e5).toISOString() }; });
 const watchers = {}, colw = {};
 const snap = path => ({ exists: store[path] != null, data: () => structuredClone(store[path]), pending: false, fromCache: false });
@@ -137,8 +138,8 @@ const db = {
 // Starfsmaður/bókari í sýniútgáfu: gögnin eru þegar flutt (admin flytur í raun einu sinni).
 if (user.hlutverk !== "admin") {
   const sk2em = Object.fromEntries(Object.entries(notendur.notendur).map(([e, u]) => [u.sk, e]));
-  const ow = x => sk2em[x.starfsmadur || x.sk] || "jona@aera.example";
-  const go = () => { if (!window.GOGN) return setTimeout(go, 20); for (const o of GOGN.migrate(store["app/state"], "jona@aera.example", ow)) store[o.path] = structuredClone(o.data); window.aeraStart(db); };
+  const ow = x => sk2em[x.starfsmadur || x.sk] || "jona@demo.example";
+  const go = () => { if (!window.GOGN) return setTimeout(go, 20); for (const o of GOGN.migrate(store["app/state"], "jona@demo.example", ow)) store[o.path] = structuredClone(o.data); window.aeraStart(db); };
   go();
 }
 

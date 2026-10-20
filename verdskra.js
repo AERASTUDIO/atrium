@@ -89,5 +89,5 @@
   const on = () => !window.ON || ON("verdskra");
   const W = (n, off) => { const f = window[n]; window[n] = (...a) => on() ? f(...a) : off(...a); };
   W("taxtiOf", () => null); W("svcOf", () => null); W("entryRate", (e, b) => b); W("taxtiSelect", () => "");
-  W("rateOf", p => +(p?.timagjald || 0)); W("vsCard", () => ""); W("dVerdskra", () => null);
+  W("rateOf", p => +(p?.timagjald || (typeof CFG === "function" && CFG().reikn?.timagjald) || 0)); W("vsCard", () => ""); W("dVerdskra", () => null);
 })();

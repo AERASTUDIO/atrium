@@ -127,7 +127,7 @@
     };
     const readPk = () => { inn = inn.map((i, k) => ({ v: sheet.querySelector(`[data-pk="v:${k}"]`)?.value || i.v, m: n0(sheet.querySelector(`[data-pk="m:${k}"]`)?.value) || 1 })); };
     sheet.innerHTML = `<h3 id="sheet-h">${v ? "Breyta" : "Nýtt í " + (D === "leiga" ? "búnaðarlista leigu" : "vörulista sölu")}</h3><form id="vrf" novalidate>
-      <label>Heiti<input id="vr-heiti" value="${esc(x.heiti || "")}" placeholder="${D === "leiga" ? "T.d. d&amp;b E8 hátalari" : "T.d. Genelec 4030C"}"></label>
+      <label>Heiti<input id="vr-heiti" value="${esc(x.heiti || "")}" placeholder="${D === "leiga" ? "T.d. Hátalari" : "T.d. Vegghátalari"}"></label>
       <div class="two"><label>Tegund<select id="vr-teg">${opts(T0.map(k => [k, TEG[k]]), x.tegund)}</select></label><label>Flokkur<select id="vr-fl">${opts(FLOKKAR(D).map(f => [f, f]), x.flokkur)}<option value="__nyr__">+ Nýr flokkur…</option></select></label></div>
       <label id="vr-flnl" style="display:none">Heiti nýs flokks<input id="vr-fln" placeholder="T.d. Rigging"></label>
       <div class="two"><label>Vörunúmer<input id="vr-nr" value="${esc(x.nr || "")}" placeholder="Valfrjálst"></label><label>Eining<select id="vr-ein">${opts(["stk.", "klst.", "dagur", "ferð", "km", "sett", "m", "m²"].map(e => [e, e]), x.eining || "stk.")}</select></label></div>
@@ -175,10 +175,10 @@
   function tbForm(D) {
     const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), L = D === "leiga";
     sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${L ? "leigutilboð" : "sölutilboð"}</h3><form id="tbf" novalidate>
-      <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" placeholder="${L ? "T.d. Árshátíð í Hörpu" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
+      <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" placeholder="${L ? "T.d. Árshátíð" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
       ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
-      <label>${L ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" placeholder="${L ? "T.d. Harpa, Eldborg" : "T.d. Laugavegur 10"}"></label>
+      <label>${L ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
       ${L ? `<div class="two"><label>Frá (afhending)<input id="tb-fra" type="date" value="${d0}"></label><label>Til (skil)<input id="tb-til" type="date" value="${d0}"></label></div>` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
       <label>Tilboð gildir til<input id="tb-gildir" type="date" value="${g0}"></label>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="tb-cancel">Hætta við</button><button class="btn primary" id="tb-save">Búa til og bæta við línum</button></div></form>`;
@@ -344,23 +344,23 @@
     let n = 100; const nr = p => p + "-" + (++n);
     // Leiga – búnaðarlisti
     const l = (...a) => add("leiga", ...a);
-    const e8 = l("d&b E8 hátalari", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 6500, fjoldi: 16, lysing: "2-way passive loudspeaker, 1 x 8\" / 1\" HF. Með festingum." });
-    const b6 = l("d&b B6 bassabox", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 9500, fjoldi: 8, lysing: "1 x 18\" bassabox." });
-    const d20 = l("d&b D20 magnari", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 12000, fjoldi: 6 });
-    const dlive = l("Allen & Heath dLive C1500 mixer", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 35000, fjoldi: 2, lysing: "Stafrænn mixer með CDM32 stagebox." });
-    const sq5 = l("Allen & Heath SQ-5 mixer", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 18000, fjoldi: 3 });
-    const sm58 = l("Shure SM58 hljóðnemi", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 1500, fjoldi: 24 });
-    const ulxd = l("Shure ULXD2/B58 þráðlaus hljóðnemi", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 6000, fjoldi: 12 });
-    const k12 = l("QSC K12.2 hátalari", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 4500, fjoldi: 10 });
-    const mac = l("Martin MAC Aura XB", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 8500, fjoldi: 24 });
+    const e8 = l("Hátalari", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 6500, fjoldi: 16, lysing: "Tvíátta hátalari. Með festingum." });
+    const b6 = l("Bassabox", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 9500, fjoldi: 8, lysing: "18\" bassabox." });
+    const d20 = l("Magnari", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 12000, fjoldi: 6 });
+    const dlive = l("Hljóðborð, stórt", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 35000, fjoldi: 2, lysing: "Stafrænt hljóðborð með stagebox." });
+    const sq5 = l("Hljóðborð, lítið", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 18000, fjoldi: 3 });
+    const sm58 = l("Hljóðnemi", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 1500, fjoldi: 24 });
+    const ulxd = l("Þráðlaus hljóðnemi", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 6000, fjoldi: 12 });
+    const k12 = l("Hátalari með magnara", "Hljóð", "leiga", { nr: nr("HL"), leiguverd: 4500, fjoldi: 10 });
+    const mac = l("Hreyfiljós", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 8500, fjoldi: 24 });
     const parL = l("LED PAR RGBW", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 2000, fjoldi: 48 });
-    const ma3 = l("grandMA3 compact XT ljósaborð", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 45000, fjoldi: 1 });
-    const haze = l("Hazer MDG ATMe", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 9000, fjoldi: 2 });
-    const truss = l("Truss F34, 3 m", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 2500, fjoldi: 30 });
-    const led = l("LED skjáveggur P2.9 (á m²)", "LED", "leiga", { nr: nr("LED"), eining: "m²", leiguverd: 18000, fjoldi: 40, lysing: "Innanhúss LED, 500 × 500 mm einingar." });
-    const nova = l("Novastar VX1000 stýring", "LED", "leiga", { nr: nr("LED"), leiguverd: 15000, fjoldi: 3 });
-    const tv75 = l("Samsung 75\" skjár á standi", "Skjáir", "leiga", { nr: nr("SK"), leiguverd: 15000, fjoldi: 8 });
-    l("Samsung 55\" skjár á standi", "Skjáir", "leiga", { nr: nr("SK"), leiguverd: 9000, fjoldi: 12 });
+    const ma3 = l("Ljósaborð", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 45000, fjoldi: 1 });
+    const haze = l("Reykvél", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 9000, fjoldi: 2 });
+    const truss = l("Truss, 3 m", "Ljós", "leiga", { nr: nr("LJ"), leiguverd: 2500, fjoldi: 30 });
+    const led = l("LED-skjáveggur (á m²)", "LED", "leiga", { nr: nr("LED"), eining: "m²", leiguverd: 18000, fjoldi: 40, lysing: "Innanhúss LED, 50 × 50 cm einingar." });
+    const nova = l("Stýring fyrir LED-vegg", "LED", "leiga", { nr: nr("LED"), leiguverd: 15000, fjoldi: 3 });
+    const tv75 = l("Skjár 75\" á standi", "Skjáir", "leiga", { nr: nr("SK"), leiguverd: 15000, fjoldi: 8 });
+    l("Skjár 55\" á standi", "Skjáir", "leiga", { nr: nr("SK"), leiguverd: 9000, fjoldi: 12 });
     const proj = l("Skjávarpi 10.000 lm með tjaldi", "Skjáir", "leiga", { nr: nr("SK"), leiguverd: 28000, fjoldi: 3 });
     l("Rafmagnsdreifing 63A", "Annað", "leiga", { nr: nr("AN"), leiguverd: 7500, fjoldi: 4 });
     const tech = l("Hljóðmaður", "Annað", "vinna", { nr: nr("VN"), eining: "klst.", soluverd: 9500 });
@@ -371,15 +371,15 @@
     const pkL = l("Ræðupúltpakki", "Hljóð", "pakki", { nr: nr("PK"), leiguverd: 12000, fjoldi: 3, innihald: [{ v: sm58.id, m: 1 }, { v: k12.id, m: 1 }] });
     // Sala – vörulisti (heildsala og install)
     const s = (...a) => add("sala", ...a); n = 500;
-    const g4030 = s("Genelec 4030C hátalari", "Hátalarar", "sala", { nr: nr("SV"), soluverd: 98000, innkaupsverd: 66000, fjoldi: 20, lysing: "Fyrir veitingastaði og hótel, hvítur eða svartur." });
-    s("Genelec 8330A stúdíóhátalari", "Hátalarar", "sala", { nr: nr("SV"), soluverd: 189000, innkaupsverd: 130000, fjoldi: 6 });
+    const g4030 = s("Vegghátalari", "Hátalarar", "sala", { nr: nr("SV"), soluverd: 98000, innkaupsverd: 66000, fjoldi: 20, lysing: "Fyrir veitingastaði og hótel, hvítur eða svartur." });
+    s("Stúdíóhátalari", "Hátalarar", "sala", { nr: nr("SV"), soluverd: 189000, innkaupsverd: 130000, fjoldi: 6 });
     const loft = s("Loftahátalari 6,5\" (hvítur)", "Hátalarar", "sala", { nr: nr("SV"), soluverd: 24900, innkaupsverd: 14500, fjoldi: 60 });
-    s("d&b E8 hátalari", "Hátalarar", "sala", { nr: nr("SV"), soluverd: 489000, innkaupsverd: 352000, fjoldi: 4 });
-    s("Sonos Amp magnari", "Magnarar og stýring", "sala", { nr: nr("SV"), soluverd: 129000, innkaupsverd: 92000, fjoldi: 6 });
-    const spa = s("QSC SPA4-100 magnari", "Magnarar og stýring", "sala", { nr: nr("SV"), soluverd: 149000, innkaupsverd: 101000, fjoldi: 5 });
+    s("Hátalari, fagleg gerð", "Hátalarar", "sala", { nr: nr("SV"), soluverd: 489000, innkaupsverd: 352000, fjoldi: 4 });
+    s("Magnari, lítill", "Magnarar og stýring", "sala", { nr: nr("SV"), soluverd: 129000, innkaupsverd: 92000, fjoldi: 6 });
+    const spa = s("Magnari, 4 rása", "Magnarar og stýring", "sala", { nr: nr("SV"), soluverd: 149000, innkaupsverd: 101000, fjoldi: 5 });
     const dsp = s("Hljóðstýring (DSP) með veggstýringu", "Magnarar og stýring", "sala", { nr: nr("SV"), soluverd: 219000, innkaupsverd: 150000, fjoldi: 3 });
-    const mxa = s("Shure MXA310 borðhljóðnemi", "Hljóðnemar", "sala", { nr: nr("SV"), soluverd: 289000, innkaupsverd: 205000, fjoldi: 2 });
-    const s75 = s("Samsung 75\" fagskjár", "Skjáir", "sala", { nr: nr("SV"), soluverd: 329000, innkaupsverd: 241000, fjoldi: 8 });
+    const mxa = s("Borðhljóðnemi", "Hljóðnemar", "sala", { nr: nr("SV"), soluverd: 289000, innkaupsverd: 205000, fjoldi: 2 });
+    const s75 = s("Fagskjár 75\"", "Skjáir", "sala", { nr: nr("SV"), soluverd: 329000, innkaupsverd: 241000, fjoldi: 8 });
     const vegg = s("Veggfesting fyrir skjá", "Uppsetningarefni", "sala", { nr: nr("SV"), soluverd: 24900, innkaupsverd: 12000, fjoldi: 15 });
     const kap = s("Hátalarakapall 2×2,5 mm²", "Uppsetningarefni", "sala", { nr: nr("SV"), eining: "m", soluverd: 690, innkaupsverd: 310, fjoldi: 500 });
     const uppS = s("Uppsetning (install)", "Annað", "vinna", { nr: nr("VS"), eining: "klst.", soluverd: 11500 });
@@ -390,15 +390,15 @@
     const tb = (deild, nr, o, items) => { const T = { id: gid(), nr, deild, vskId: null, vidskiptavinur: null, tengilidur: null, netfang: null, stadsetning: null, fra: null, til: null, gildir: day(14), dags: day(-2), stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, verkefniId: null, prufa: true, ...o };
       T.linur = items.map(([v, m]) => ({ ...lineFrom(v, T), magn: m })); return T; };
     const T = [
-      tb("leiga", "L-0901", { heiti: "Árshátíð í Hörpu", vskId: cl?.id || null, vidskiptavinur: cl?.name || "Prufufyrirtæki ehf.", tengilidur: "Anna Prufudóttir", stadsetning: "Harpa, Silfurberg", fra: day(12), til: day(13), stada: "Sent", dags: day(-3) },
+      tb("leiga", "L-0901", { heiti: "Árshátíð", vskId: cl?.id || null, vidskiptavinur: cl?.name || "Viðskiptavinur A", tengilidur: "Tengiliður A", stadsetning: "Salur A", fra: day(12), til: day(13), stada: "Sent", dags: day(-3) },
         [[e8, 8], [b6, 4], [d20, 3], [dlive, 1], [ulxd, 4], [mac, 12], [parL, 24], [ma3, 1], [haze, 1], [truss, 10], [led, 24], [nova, 1], [tech, 18], [ljm, 18], [upps, 24], [akst, 4]]),
-      tb("leiga", "L-0902", { heiti: "Ráðstefna – fundarsalur", vidskiptavinur: cl2?.name || "Prufustofnun", vskId: cl2?.id || null, stadsetning: "Hilton Nordica", fra: day(5), til: day(5), stada: "Samþykkt", dags: day(-6), afsl: 5 },
+      tb("leiga", "L-0902", { heiti: "Ráðstefna – fundarsalur", vidskiptavinur: cl2?.name || "Viðskiptavinur B", vskId: cl2?.id || null, stadsetning: "Ráðstefnusalur", fra: day(5), til: day(5), stada: "Samþykkt", dags: day(-6), afsl: 5 },
         [[pkL, 2], [proj, 1], [tv75, 2], [tech, 9], [akst, 2]]),
-      tb("leiga", "L-0903", { heiti: "Útitónleikar – sumarhátíð", vidskiptavinur: "Prufuhátíð", stadsetning: "Klambratún", fra: day(40), til: day(42), dags: day(-10), stada: "Hafnað" },
+      tb("leiga", "L-0903", { heiti: "Útitónleikar", vidskiptavinur: "Viðskiptavinur C", stadsetning: "Útisvæði", fra: day(40), til: day(42), dags: day(-10), stada: "Hafnað" },
         [[e8, 16], [b6, 8], [d20, 6], [dlive, 1], [mac, 24], [truss, 20], [tech, 30]]),
-      tb("sala", "S-0901", { heiti: "Hljóðkerfi fyrir veitingastað", vidskiptavinur: "Prufuveitingar ehf.", stadsetning: "Laugavegur 10", fra: day(20), dags: day(-1) },
+      tb("sala", "S-0901", { heiti: "Hljóðkerfi fyrir veitingastað", vidskiptavinur: "Viðskiptavinur D", stadsetning: "Gata 10", fra: day(20), dags: day(-1) },
         [[loft, 12], [spa, 1], [dsp, 1], [kap, 150], [uppS, 16], [forr, 4], [akS, 2]]),
-      tb("sala", "S-0902", { heiti: "Fundarsalur – hljóð og mynd", vidskiptavinur: cl?.name || "Prufuhótel", vskId: cl?.id || null, stadsetning: "Fundarsalur 2. hæð", fra: day(30), dags: day(-4), stada: "Sent" },
+      tb("sala", "S-0902", { heiti: "Fundarsalur – hljóð og mynd", vidskiptavinur: cl?.name || "Viðskiptavinur A", vskId: cl?.id || null, stadsetning: "Fundarsalur 2. hæð", fra: day(30), dags: day(-4), stada: "Sent" },
         [[s75, 2], [vegg, 2], [mxa, 1], [dsp, 1], [g4030, 4], [kap, 60], [uppS, 20], [forr, 6], [akS, 2]])
     ];
     return { vorur: V, tilbod: T };
