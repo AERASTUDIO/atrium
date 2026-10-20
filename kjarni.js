@@ -26,7 +26,9 @@
     // Frá 2.4.0 (aðskildar deildir frá 2.5.0) – sjálfgefið óvirkar (4. gildi = 1): kveikt á í uppsetningu
     // (fyrirtaeki.js › einingar: { leiga: true, sala: true }) eða af admin. Kóðinn er í sala.js.
     leiga:          ["Leiga", "Búnaðarlisti og leigutilboð með leigudögum og dagstuðlum, pakkar og tæknimenn", null, 1],
-    sala:           ["Sala", "Vörulisti með lagerstöðu og sölutilboð (heildsala og install)", null, 1]
+    sala:           ["Sala", "Vörulisti með lagerstöðu og sölutilboð (heildsala og install)", null, 1],
+    // Frá 2.8.0 – deildarval efst og verkefni, Heim og dagatal síuð eftir deild (deildir.js). Deildirnar = Leiga/Sala sem eru virkar.
+    deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
   const ALLTAF = ["verkefni"];
   // S er skilgreint með let í app-grunnur.js (ekki á window) – lesið við keyrslu

@@ -8,10 +8,10 @@ const DAYL=["sunnudagur","mánudagur","þriðjudagur","miðvikudagur","fimmtudag
 const CALC={fund:"var(--ink)",skil:"#B4532A",vidb:"#7C8896",undir:"#93A0AD",time:"#C9D1D9"}; // merkjahandbók: tónar af stáli; skil fá dempaðan áherslulit
 let _cal={k:null,v:null,m:null};
 function calItems(){
-  if(_cal.k===S) return _cal.m;
+  const dk=window.DEILD?DEILD():""; if(_cal.k===S&&_cal.d===dk) return _cal.m;
   const m=new Map(), add=(iso,it)=>{const k=String(iso).slice(0,10); if(!/^\d{4}-\d\d-\d\d$/.test(k)) return; (m.get(k)||m.set(k,[]).get(k)).push(it);};
-  (S?.fundir||[]).forEach(f=>f.date&&add(f.date,{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||f.verknr,open:"fund:"+f.id,o:f}));
-  verkefni().forEach(p=>{
+  (S?.fundir||[]).filter(f=>!f.projectId||inD(findProj(f.projectId))).forEach(f=>f.date&&add(f.date,{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||f.verknr,open:"fund:"+f.id,o:f}));
+  verkD().forEach(p=>{
     if(p.skiladagur) add(p.skiladagur,{t:"skil",when:p.skiladagur,kind:"Skil verkefnis",title:p.stutt,nr:p.nr,open:"verk:"+p.id,o:p,done:isDone(p)});
     if(p.vidburdur) add(p.vidburdur,{t:"vidb",when:p.vidburdur,kind:"Viðburður",title:p.stutt,nr:p.nr,open:"verk:"+p.id,o:p});
     if(p.timabilFra){const a=d(String(p.timabilFra).slice(0,10)), b=d(String(p.timabilTil||p.timabilFra).slice(0,10)); if(a&&b){const x=new Date(a); let i=0;
@@ -21,7 +21,7 @@ function calItems(){
     (p.undirverk||[]).filter(u=>u.skiladagur&&u.stada!=="Done").forEach(u=>add(u.skiladagur,{t:"undir",when:u.skiladagur,kind:"Skil undirverks",title:subName(u)+" · "+p.stutt,nr:u.nr,open:"sub:"+u.id,o:u}));
   });
   m.forEach(l=>l.sort((a,b)=>(a.span-b.span)||String(hhmm(a.when)||"99").localeCompare(String(hhmm(b.when)||"99"))));
-  _cal={k:S,m}; return m;}
+  _cal={k:S,d:dk,m}; return m;}
 let calMode="m"; try{const m=localStorage.getItem("aera-calmode"); if(["m","v","d"].includes(m)) calMode=m;}catch(e){}
 const calModes=()=>`<div class="seg calseg" role="tablist" aria-label="Sýn">${[["m","Mánuður"],["v","Vika"],["d","Dagur"]].map(([k,l])=>`<button type="button" role="tab" data-act="calmode:${k}" aria-pressed="${calMode===k}">${l}</button>`).join("")}</div>`;
 function calCard(i){return `<div class="card tap${i.done?" compact":""}" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))}><div class="row"><div class="grow"><div class="kind">${esc(i.kind)}${hhmm(i.when)?" · kl. "+hhmm(i.when):""}</div><div class="t">${esc(i.title)}</div>
@@ -132,10 +132,10 @@ function projCard(p){
 let vSort="stada"; try{vSort=localStorage.getItem("aera-vsort")||"stada";}catch(e){}
 const VSORT=[["stada","Stöðu"],["thjonusta","Þjónustu"],["verkkaupi","Viðskiptavini"],["skiladagur","Skiladegi"],["nr","Verknúmeri"],["klst","Klukkutímum"],["starf","Starfsmanni"]];
 function vVerk(){
-  const ps=verkefni().slice().sort((a,b)=>b.nr.localeCompare(a.nr));
+  const ps=verkD().slice().sort((a,b)=>b.nr.localeCompare(a.nr));
   const row=p=>lrow("verk:"+p.id,{title:`<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt)}`,
     sub:esc([vkName(p)||vsName(p),(p.thjonusta||[]).join(", "),p.timar?hrs(p.timar):""].filter(Boolean).join(" · "))+(STARFS().length>1?` <span class="savs">${projStaff(p).map(staffAv).join("")}</span>`:""),
-    right:(isDone(p)?"":budgetPill(p))+(vSort!=="stada"?statusPill(p.stada):"")+(!isDone(p)&&p.skiladagur&&daysTo(p.skiladagur)<=14?relPill(daysTo(p.skiladagur)):"")});
+    right:(window.deildPill&&!DEILD()?deildPill(p):"")+(isDone(p)?"":budgetPill(p))+(vSort!=="stada"?statusPill(p.stada):"")+(!isDone(p)&&p.skiladagur&&daysTo(p.skiladagur)<=14?relPill(daysTo(p.skiladagur)):"")});
   const act=ps.filter(p=>!isDone(p)), done=ps.filter(isDone);
   const grp=(t,xs,closed)=>xs.length?(closed?`<details class="grp"><summary class="viewtitle">${esc(t)} · ${xs.length}</summary>${llist(xs.map(row))}</details>`:`<div class="viewtitle">${esc(t)} · ${xs.length}</div>${llist(xs.map(row))}`):"";
   const by=(xs,key,order)=>{const m=new Map(); xs.forEach(p=>{[].concat(key(p)).forEach(k=>{k=k||"Óflokkað"; if(!m.has(k)) m.set(k,[]); m.get(k).push(p);});});

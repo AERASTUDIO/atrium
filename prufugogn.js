@@ -27,16 +27,16 @@
     const sub = (pnr, k, name, stada, skil, timar) => ({ id: gid(), nr: `${pnr}-${p2(k)}`, heiti: `${pnr}-${p2(k)} ${name}`, stada, skiladagur: skil == null ? null : day(skil), timar, serMappa: null, mappa: null, lysing: null });
     const P = (k, stutt, stada, cl, o) => { const nr = `${yr}-${90 + k}`; return { id: gid(), nr, stutt, nafn: nr + " " + stutt, stada, vskId: cl.id, vidskiptavinur: cl.name, vkId: null, verkkaupi: null, thjonusta: [T1], timar: 0, aklst: null, tilbod: null, skiladagur: null, vidburdur: null, yfirlit: null, mappa: null, starfsmenn: [me], athugasemdir: [], lysing: null, naest: null, athuga: null, undirverk: [], prufa: true, ...(o ? o(nr) : {}) }; };
     const verkefni = leiga ? [
-      P(1, "Árshátíð í Hörpu", "Í vinnslu", v, nr => ({ vkId: v.id, verkkaupi: v.name, thjonusta: [T1, T2], aklst: 60, tilbod: 2850000, skiladagur: day(12), vidburdur: day(12, "18:00"),
+      P(1, "Árshátíð í Hörpu", "Í vinnslu", v, nr => ({ deild: "leiga", vkId: v.id, verkkaupi: v.name, thjonusta: [T1, T2], aklst: 60, tilbod: 2850000, skiladagur: day(12), vidburdur: day(12, "18:00"),
         lysing: "Hljóð, ljós og LED-veggur fyrir árshátíð, 600 gestir. Uppsetning daginn áður.", naest: "Staðfesta sviðsteikningu og keyrsluplan.", athuga: "Aðgengi að hleðslubrú frá kl. 8.",
         athugasemdir: [{ id: gid(), t: "Viðskiptavinur vill bæta við tveimur skjám í anddyri.", d: iso(-1), sk: me }],
         undirverk: [sub(nr, 1, "Vettvangsskoðun", "Done", -8, 3), sub(nr, 2, "Teikning og keyrsluplan", "In progress", 4, 6), sub(nr, 3, "Uppsetning", "Not started", 11, 0), sub(nr, 4, "Viðburður og niðurtaka", "Not started", 12, 0)] })),
-      P(2, "Ráðstefna – fundarsalur", "Tilboð", h, nr => ({ thjonusta: [T1], tilbod: 640000, skiladagur: day(5), vidburdur: day(5, "09:00"), lysing: "Hljóðkerfi, skjávarpi og tveir skjáir fyrir eins dags ráðstefnu.", undirverk: [sub(nr, 1, "Tilboð", "In progress", 1, 1)] })),
-      P(3, "Hljóðkerfi fyrir veitingastað", "Í yfirferð", r, nr => ({ thjonusta: [T2], aklst: 30, tilbod: 1950000, skiladagur: day(20), lysing: "Loftahátalarar, magnari og veggstýring (install).", naest: "Yfirfara teikningu með eiganda.",
+      P(2, "Ráðstefna – fundarsalur", "Tilboð", h, nr => ({ deild: "leiga", thjonusta: [T1], tilbod: 640000, skiladagur: day(5), vidburdur: day(5, "09:00"), lysing: "Hljóðkerfi, skjávarpi og tveir skjáir fyrir eins dags ráðstefnu.", undirverk: [sub(nr, 1, "Tilboð", "In progress", 1, 1)] })),
+      P(3, "Hljóðkerfi fyrir veitingastað", "Í yfirferð", r, nr => ({ deild: "sala", thjonusta: [T2], aklst: 30, tilbod: 1950000, skiladagur: day(20), lysing: "Loftahátalarar, magnari og veggstýring (install).", naest: "Yfirfara teikningu með eiganda.",
         undirverk: [sub(nr, 1, "Mælingar", "Done", -6, 4), sub(nr, 2, "Teikning", "Done", -2, 5), sub(nr, 3, "Uppsetning", "Up next", 18, 0)] })),
-      P(4, "Útitónleikar – sumarhátíð", "Beiðni", s, nr => ({ thjonusta: [T1], skiladagur: null, vidburdur: day(40, "16:00"), lysing: "Fyrirspurn um svið, hljóð og ljós fyrir 3 daga útihátíð." })),
-      P(5, "Jólatónleikar", "Afhent", v, nr => ({ thjonusta: [T1, T2], skiladagur: day(-20), undirverk: [sub(nr, 1, "Uppsetning", "Done", -21, 10), sub(nr, 2, "Tónleikar", "Done", -20, 8)] })),
-      P(6, "Kynning í verslun", "Reikningsfært", r, nr => ({ thjonusta: [T1], skiladagur: day(-45) }))
+      P(4, "Útitónleikar – sumarhátíð", "Beiðni", s, nr => ({ deild: "leiga", thjonusta: [T1], skiladagur: null, vidburdur: day(40, "16:00"), lysing: "Fyrirspurn um svið, hljóð og ljós fyrir 3 daga útihátíð." })),
+      P(5, "Jólatónleikar", "Afhent", v, nr => ({ deild: "leiga", thjonusta: [T1, T2], skiladagur: day(-20), undirverk: [sub(nr, 1, "Uppsetning", "Done", -21, 10), sub(nr, 2, "Tónleikar", "Done", -20, 8)] })),
+      P(6, "Kynning í verslun", "Reikningsfært", r, nr => ({ deild: "sala", thjonusta: [T1], skiladagur: day(-45) }))
     ] : [
       P(1, "Hönnun anddyris", "Í vinnslu", h, nr => ({ aklst: 40, tilbod: 650000, skiladagur: day(9), lysing: "Prufuverkefni.", undirverk: [sub(nr, 1, "Forsendur", "Done", -12, 6), sub(nr, 2, "Teikningar", "In progress", 3, 10), sub(nr, 3, "Útgáfa", "Not started", 9, 0)] })),
       P(2, "Teikningar veitingastaðar", "Í yfirferð", r, nr => ({ tilbod: 380000, skiladagur: day(2), undirverk: [sub(nr, 1, "Módel", "Done", -10, 9), sub(nr, 2, "Yfirferð", "In progress", 2, 2)] })),

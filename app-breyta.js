@@ -18,6 +18,7 @@ function openEdit(type,id){
     f=`<label>Heiti<input id="e-name" value="${esc(p.stutt)}" required></label><p class="hint">Verknúmerið <b class="nr">${esc(p.nr)}</b> helst óbreytt.</p>
     <label>Staða<select id="e-status">${STODUR().map(x=>opt(x.n,x.n,p.stada)).join("")}</select></label>
     ${projFields("e",p)}
+    ${window.deildSelect?deildSelect("e-deild",p.deild||""):""}
     <div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${THJ().map(t=>`<label><input type="checkbox" name="thj" value="${t}"${p.thjonusta?.includes(t)?" checked":""}>${t}</label>`).join("")}</div></div>
     <label>Mappa (slóð)<input id="e-mappa" type="url" value="${esc(p.mappa||"")}" placeholder="https://…"></label>
     <div class="two"><label>Áætlaðir tímar<input id="e-aklst" inputmode="decimal" value="${p.aklst?esc(num(p.aklst)):""}" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="e-tilbod" inputmode="numeric" value="${p.tilbod?esc(String(p.tilbod)):""}" placeholder="t.d. 450000"></label></div>
@@ -90,7 +91,8 @@ async function saveEdit(type,id){
       const thj=[...document.querySelectorAll('#editf input[name="thj"]:checked')].map(i=>i.value), st=val("e-status");
       busy(); const cl=await pickVsk("e","client","Viðskiptavinur"), vk=null;
       const extra={vskId:cl?.id||null,vkId:vk?.id||null,...snap};
-      await saveSnapshot(s=>{const q=sFindP(s,id); if(q) Object.assign(q,{stutt:name,nafn:p.nr+" "+name,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,mappa:mp||null,aklst:parseFloat(String(val("e-aklst")).replace(",","."))||null,tilbod:parseInt(String(val("e-tilbod")).replace(/\D/g,""))||null,...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null,timagjald:parseKr(val("e-gjald"))||null}:{}),yfirlit:val("e-yf")||null,naest:val("e-naest")||null,athuga:val("e-ath")||null,teikningarFra:val("e-tf")||null,lysing:val("e-lys")||null,...extra});});
+      const dl=window.deildVal?deildVal("e-deild"):undefined;
+      await saveSnapshot(s=>{const q=sFindP(s,id); if(q&&dl!==undefined) q.deild=dl; if(q) Object.assign(q,{stutt:name,nafn:p.nr+" "+name,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,mappa:mp||null,aklst:parseFloat(String(val("e-aklst")).replace(",","."))||null,tilbod:parseInt(String(val("e-tilbod")).replace(/\D/g,""))||null,...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null,timagjald:parseKr(val("e-gjald"))||null}:{}),yfirlit:val("e-yf")||null,naest:val("e-naest")||null,athuga:val("e-ath")||null,teikningarFra:val("e-tf")||null,lysing:val("e-lys")||null,...extra});});
     }
     if(type==="vsk"){const old=findVsk(id); const {c}=readVskForm("e",true);
       const dup=vskList().find(x=>!sameId(x.id,id)&&x.name.toLowerCase()===c.name.toLowerCase()); if(dup) return msg(`${esc(dup.name)} er þegar á listanum.`,"err");

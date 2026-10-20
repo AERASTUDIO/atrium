@@ -423,3 +423,10 @@ nav.mbar.tbar{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns
 nav.mbar.tbar:has(>:nth-child(7)) .tab{font-size:9.5px;letter-spacing:-.01em}
 nav.mbar.tbar:has(>:nth-child(8)) .tab{font-size:8.8px;letter-spacing:-.02em;padding-left:0;padding-right:0}
 nav.mbar.tbar:has(>:nth-child(8)) .tab svg{width:21px;height:21px}
+/* Deildarval í haus (deildir.js, 2.8.0) */
+header .deildseg{flex:0 0 auto;padding:2px;margin-right:4px;border-radius:10px}
+header .deildseg button{min-height:30px;padding:0 10px;font-size:12.5px;border-radius:8px}
+@media (max-width:600px){header .deildseg button{padding:0 8px;font-size:12px;min-height:28px}}
+.pill.deildpill{background:var(--raise);color:var(--muted)}
+.deildmob{margin:4px 0 14px}
+.deildmob button{min-height:36px}

@@ -141,6 +141,7 @@ function drawForm(){
   if(kind==="verk") f=`<label>Heiti<input id="f-name" required placeholder="T.d. Árshátíð Arion"></label>
     <label>Staða<select id="f-status">${STODUR().filter(x=>!x.lokid).map(x=>`<option>${esc(x.n)}</option>`).join("")}</select></label>
     ${projFields("f",null)}
+    ${window.deildSelect?deildSelect("f-deild"):""}
     <div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${THJ().map(t=>`<label><input type="checkbox" name="thj" value="${t}">${t}</label>`).join("")}</div></div>
     <label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="f-snid" style="width:auto">Stofna undirverk eftir sniðmáti þjónustu</label>
     ${STARFS().length>1?`<div class="kind" style="margin-top:6px">Starfsfólk á verkefni</div><div class="chks">${STARFS().map(x=>`<label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" name="fstf" value="${esc(x.sk)}" ${x.sk===ME()?"checked":""} style="width:auto">${esc(x.nafn)}</label>`).join("")}</div>`:""}
@@ -369,7 +370,7 @@ async function save(ev){
       const thj=[...document.querySelectorAll('input[name="thj"]:checked')].map(i=>i.value); busy();
       const cl=await pickVsk("f","client","Viðskiptavinur"), vk=null;
       const id=newId();
-      const extra={vskId:cl?.id||null,vkId:vk?.id||null,...snap};
+      const dl=window.deildVal?deildVal("f-deild"):undefined, extra={vskId:cl?.id||null,vkId:vk?.id||null,...snap,...(dl!==undefined?{deild:dl}:{})};
       const snidOn=document.getElementById("f-snid")?.checked, subN=snidOn?[...new Set(thj.flatMap(t=>SNID()[t]||[]))]:[];
       const undir=subN.map((n,k)=>{const snr=nr+"-"+pad(k+1); return {id:newId(),nr:snr,heiti:snr+" "+n,stada:"Not started",skiladagur:null,timar:0,serMappa:null,mappa:null,lysing:null};});
       const aklst=parseFloat(String(val("f-aklst")).replace(",","."))||null, tilbod=parseInt(String(val("f-tilbod")).replace(/\D/g,""))||null;

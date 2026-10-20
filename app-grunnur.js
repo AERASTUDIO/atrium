@@ -166,7 +166,8 @@ function findSub(id){for(const p of verkefni()){const u=(p.undirverk||[]).find(u
 const findFund=id=>(S?.fundir||[]).find(f=>String(f.id)===id);
 const projByNr=nr=>nr?verkefni().filter(p=>nrMatch(nr,p.nr)).sort((a,b)=>b.nr.length-a.nr.length)[0]:null;
 const subRow=u=>`<div class="sub-i tap" ${tapAttr("sub",u.id)}><div class="grow"><div style="overflow-wrap:anywhere;font-weight:500"><span class="nr">${esc(u.nr)}</span>&nbsp; ${esc(subName(u))}</div><div class="pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${statusPill(u.stada)}${u.skiladagur&&u.stada!=="Done"?relPill(daysTo(u.skiladagur)):""}${u.timar?`<span class="kind" style="align-self:center">${hrs(u.timar)}</span>`:""}</div></div>${CHEV}</div>`;
-const active=()=>verkefni().filter(p=>!isDone(p));
+const inD=p=>!window.inDeild||inDeild(p), verkD=()=>verkefni().filter(inD); // deild (deildir.js, 2.8.0)
+const active=()=>verkD().filter(p=>!isDone(p));
 function skjol(){return S?.skjol||[];}
 const vskList=()=>(S?.vidskiptavinir||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),"is"));
 const findVsk=id=>vskList().find(c=>sameId(c.id,id));
@@ -188,8 +189,8 @@ const skjalCard=(x,opts={})=>{const p=opts.noProj?null:skjalProj(x); const ed=x.
 const todo=(act,o)=>`<div class="lrow tap" data-act="${act}" role="button" tabindex="0"><div class="ll">${o.lead}</div><div class="lm"><div class="lt">${esc(o.title)}</div><div class="ls">${esc(o.sub)}</div></div>${CHEV}</div>`;
 function upcoming(){
   const items=[];
-  (S?.fundir||[]).forEach(f=>items.push({kind:"Fundur",open:"fund:"+f.id,when:f.date,title:f.name,nr:f.verknr,extra:[hhmm(f.date)&&"kl. "+hhmm(f.date),f.stadsetning&&""+f.stadsetning].filter(Boolean),o:f}));
-  verkefni().forEach(p=>{
+  (S?.fundir||[]).filter(f=>!f.projectId||inD(findProj(f.projectId))).forEach(f=>items.push({kind:"Fundur",open:"fund:"+f.id,when:f.date,title:f.name,nr:f.verknr,extra:[hhmm(f.date)&&"kl. "+hhmm(f.date),f.stadsetning&&""+f.stadsetning].filter(Boolean),o:f}));
+  verkD().forEach(p=>{
     (p.undirverk||[]).filter(u=>u.stada!=="Done"&&u.skiladagur).forEach(u=>items.push({kind:"Skil undirverks",open:"sub:"+u.id,when:u.skiladagur,title:subName(u),nr:u.nr+" · "+p.stutt,extra:[],o:{...u,mappa:u.mappa||p.mappa}}));
     if(!isDone(p)){ if(p.skiladagur) items.push({kind:p.vidburdur===p.skiladagur?"Skil og viðburður":"Skil verkefnis",open:"verk:"+p.id,when:p.skiladagur,title:p.stutt,nr:p.nr,extra:[hhmm(p.skiladagur)&&"kl. "+hhmm(p.skiladagur)].filter(Boolean),o:p});
       if(p.vidburdur&&p.vidburdur!==p.skiladagur) items.push({kind:"Viðburður",open:"verk:"+p.id,when:p.vidburdur,title:p.stutt,nr:p.nr,extra:[hhmm(p.vidburdur)&&"kl. "+hhmm(p.vidburdur)].filter(Boolean),o:p}); }});
@@ -202,7 +203,7 @@ const upCard=i=>`<div class="card tap" role="button" tabindex="0" data-open="${e
 function vYfirlit(sub="heim"){
   let TODO_N=0;
   const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0);
-  const openSubs=verkefni().flatMap(p=>(p.undirverk||[]).filter(u=>u.stada!=="Done"));
+  const openSubs=verkD().flatMap(p=>(p.undirverk||[]).filter(u=>u.stada!=="Done"));
   const hr=new Date().getHours(), first=(STARFS().find(x=>x.sk===ME())?.nafn||"").split(" ")[0];
   const greet=hr<5?"Góða nótt":hr<11?"Góðan daginn":hr<18?"Góðan dag":"Gott kvöld";
   const goal=+CFG().vikumark||40, wk=weekSum(0,STARFS().length>1?ME():null,true), kH=klukka()?liveWeekH(klukka().start):0, pct=Math.min(1,(wk+kH)/goal), R=44, C=2*Math.PI*R;
@@ -221,7 +222,7 @@ function vYfirlit(sub="heim"){
       <div class="meta" style="margin:0"><span class="nr">${esc(p.nr)}</span>${statusPill(p.stada)}${p.skiladagur?relPill(daysTo(p.skiladagur)):""}</div><div class="t">${esc(p.stutt)}</div>${(p.thjonusta||[]).length?`<div class="pstag">${svcTags(p)}</div>`:""}
       <div class="pm">${esc([vkName(p)||vsName(p),b?`${num(p.timar)} af ${num(b.a)} klst.`:(subs.length?`${done} af ${subs.length} undirverkum lokið`:hrs(p.timar))].filter(Boolean).join(" · "))}</div>
       <div class="pbar ${b?.cls||""}"><i style="width:${Math.round(prog*100)}%"></i></div></div>`;};
-  const waiting=verkefni().filter(p=>p.stada===STODUR()[0]?.n);
+  const waiting=verkD().filter(p=>p.stada===STODUR()[0]?.n);
   const feed=[...faerslur().map(e=>({w:String(e.date||"")+"T"+(e.til||e.fra||"12:00"),ic:"⏱",h:lrow("time:"+e.id,{lead:EI.time,title:esc(cleanLys(e.lysing)),sub:esc([fmtDate(e.date),(findProj(e.verkefniId)||projByNr(e.nr))?.stutt].filter(Boolean).join(" · ")),right:`<span class="lc">${esc(hrs(e.timar))}</span>`})})),
     ...verkefni().flatMap(p=>(p.athugasemdir||[]).map(c=>({w:c.d,h:lrow("verk:"+p.id,{lead:EI.chat,title:esc(c.t.length>70?c.t.slice(0,70)+"…":c.t),sub:esc(p.stutt+" · "+fmtDate(c.d))})}))),
     ...(S?.thraedir||[]).map(t=>({w:t.tengt,h:lrow("verk:"+t.verkefniId,{lead:EI.mail,title:esc(t.efni||"Póstþráður"),sub:esc(["Þráður tengdur",findProj(t.verkefniId)?.stutt,fmtDate(t.tengt)].filter(Boolean).join(" · "))})}))]

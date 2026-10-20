@@ -473,7 +473,7 @@
     if (k === "tbverk") { const T = findT(a); if (!T || T.verkefniId) return; if (!confirm(`Stofna verkefni úr tilboði ${T.nr}?\n\n„${T.heiti}“ fyrir ${T.vidskiptavinur || "–"}, tilboðsupphæð ${krs(totals(T).net)} án VSK.`)) return;
       const id = gid(), nr = nextProjNr(), st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
       saveSnapshot(s => { (s.verkefni = s.verkefni || []).push({ id, nr, stutt: T.heiti, nafn: nr + " " + T.heiti, stada: st, vidskiptavinur: T.vidskiptavinur || null, verkkaupi: null, vskId: T.vskId || null, vkId: null,
-          thjonusta: [], timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: null, tilbod: totals(T).net, tilbodId: T.id, timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
+          thjonusta: [], timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: null, tilbod: totals(T).net, tilbodId: T.id, deild: tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
           lysing: [DL[tDeild(T)].l, T.stadsetning, T.fra ? dRange(T) : ""].filter(Boolean).join(" · ") || null });
         const q = (s.tilbod || []).find(x => x.id === a); if (q) q.verkefniId = id; })
         .then(() => { toast(`Verkefni ${nr} stofnað`); openDetail("verk:" + id); }).catch(e => toast(errText(e))); return; }
