@@ -1,0 +1,25 @@
+/* Útlit uppsetningar party.is – litir af party.is og merkinu: dökkblár #0E1B4D, blár #4770DB, vínrauður #A3195B,
+   grænn #2EAE6B, appelsínugulur #E8501E, ljós #F7F7F7. Kemur á eftir brand.css og gengur framar henni. */
+:root, :root[data-theme="dark"], :root[data-theme="dark"][data-variant]{
+  --bg:#0E1B4D; --surface:#14225A; --ink:#EEF1FB; --muted:#A3AEDA; --line:#22306A;
+  --accent:#8EA8F0; --accent-soft:#1E2D68; --on-accent:#0E1B4D; --hi:#8EA8F0; --on-hi:#0E1B4D;
+  --b0:#17255E; --b1:#1E2D68; --b2:#4770DB; --b3:#A3AEDA; --b4:#EEF1FB;
+  --t0:#C9D3F5; --t1:#EEF1FB; --t2:#FFFFFF; --t3:#0E1B4D; --t4:#0E1B4D;
+  --raise:#17255E; --raise2:#1E2D68; --hover:#152358; --sheet:#132157; --field:#111E52; --border2:#4770DB; --bar0:#1E2D68;
+  --late:#F08AB5; --late-soft:#3A1A3A; --crit:#F08AB5;
+}
+:root[data-theme="light"], :root[data-theme="light"][data-variant]{
+  --bg:#F7F7F7; --surface:#FFFFFF; --ink:#0E1B4D; --muted:#55608C; --line:#E2E5EF;
+  --accent:#4770DB; --accent-soft:#E6ECFB; --on-accent:#FFFFFF; --hi:#4770DB; --on-hi:#FFFFFF;
+  --b0:#EEF1FB; --b1:#E1E7FA; --b2:#AFC0F0; --b3:#4770DB; --b4:#0E1B4D;
+  --t0:#4770DB; --t1:#4770DB; --t2:#0E1B4D; --t3:#FFFFFF; --t4:#FFFFFF;
+  --raise:#EEF1FB; --raise2:#FFFFFF; --hover:#F0F3FC; --sheet:#FFFFFF; --field:#FFFFFF; --border2:#AFC0F0; --bar0:#E1E7FA;
+  --late:#A3195B; --late-soft:#F7E3EC; --crit:#A3195B;
+}
+.fab,.btn.primary.new{background:#A3195B!important;color:#fff!important;border-color:#A3195B!important}
+#login{background:#0E1B4D!important;color:#EEF1FB}
+#login .login-in p{color:#A3AEDA}
+#login .btn.primary{background:#A3195B!important;color:#fff!important;border-color:#A3195B!important}
+#login #login-btn{color:#A3AEDA!important}
+/* Merki party.is er litríkt PNG – hvítur grunnur á dökku þema svo litirnir njóti sín */
+:root[data-theme="dark"] img.colog, :root:not([data-theme="light"]) #login-colog{background:#fff;border-radius:8px;padding:2px}

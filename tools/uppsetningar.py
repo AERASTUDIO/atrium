@@ -13,7 +13,7 @@ svo "./" gæfi öllum uppsetningum sama auðkenni og ein uppsetning kæmi í sta
 import json, os, sys
 
 ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-UPPSETNINGAR = ["aera", "sonik"]  # undirmöppur; sniðmátið er app.html í rótinni
+UPPSETNINGAR = ["aera", "sonik", "party"]  # undirmöppur; sniðmátið er app.html í rótinni
 
 def smida(m, src):
     h = src

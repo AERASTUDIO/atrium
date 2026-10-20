@@ -11,12 +11,16 @@ ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TAKN = {
   "aera":  {"merki": "icons/merki-dokk.svg", "bg": "#121416", "litur": "#2F3742"},
   "sonik": {"merki": "sonik/merki-dokk.svg", "bg": "#0C2127", "litur": "#2A7289"},
+  "party": {"merki": "party/merki.png", "bg": "#0E1B4D", "litur": "#FFFFFF"},
 }
 ATR = "icons/atrium-merki-dokk.svg"
 def inner(p):
   s = open(os.path.join(ROT, p), encoding="utf-8").read(); vb = re.search(r'viewBox="([^"]+)"', s).group(1)
   return vb, s[s.index(">", s.index("<svg")) + 1:s.rindex("</svg>")]
 def nest(p, x, y, w):
+  if p.endswith(".png"):  # PNG-merki (t.d. party.is) – fellt inn sem gögn
+    import base64; d = base64.b64encode(open(os.path.join(ROT, p), "rb").read()).decode()
+    return f'<image x="{x}" y="{y}" width="{w}" height="{w}" href="data:image/png;base64,{d}" preserveAspectRatio="xMidYMid meet"/>'
   vb, b = inner(p); return f'<svg x="{x}" y="{y}" width="{w}" height="{w}" viewBox="{vb}" preserveAspectRatio="xMidYMid meet">{b}</svg>'
 def svg(t, mask):
   # maskable: allt innan miðjuhrings (r = 40%) svo Android klippi ekki merkin
