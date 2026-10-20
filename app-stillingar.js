@@ -8,7 +8,8 @@ const STPAGES={utlit:{l:"Útlit",s:["Útlit"]},ms:{l:"Microsoft 365",s:["Microso
   adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
   einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()},
   tilbod:{l:"Leiga og sala",d:"Flokkar, dagstuðlar, VSK, tilboðsnúmer og skilmálar",s:[],adm:1,fn:()=>window.tbStillingar?tbStillingar():""},
-  vstill:{l:"Verkefnastillingar",d:"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna","Þjónusta","Sniðmát undirverka"],adm:1}};
+  vstill:{l:"Verkefnastillingar",d:"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna","Þjónusta","Sniðmát undirverka"],adm:1},
+  prufa:{l:"Prufugögn",d:"Hlaða inn eða eyða uppspunnum gögnum til prófunar",s:[],adm:1,fn:()=>window.vPrufugogn?vPrufugogn():""}};
 function stChunks(){const h=vStillingarAll(), parts=h.split('<div class="viewtitle">'), m={};
   parts.slice(1).forEach(x=>{const t=x.slice(0,x.indexOf("</div>")).replace(/<[^>]+>/g,"").trim(); m[t]=(m[t]||"")+'<div class="viewtitle">'+x;}); return m;}
 const mrow=(act,label,opts={})=>`<button type="button" class="mrow" ${act.startsWith("js:")?`onclick="${act.slice(3)}"`:`data-act="${act}"`}>${opts.ic||""}<span class="mt">${esc(label)}${opts.d?`<small>${esc(opts.d)}</small>`:""}</span>${opts.v?`<span class="mv">${esc(opts.v)}</span>`:""}${opts.noch?"":`<svg class="mc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`}</button>`;
@@ -16,7 +17,7 @@ function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB];
   if(sub&&(!sub.adm||can("stillingar"))){if(sub.fn) return sub.fn(); const m=stChunks(); return sub.s.map(t=>m[t]||"").join("")||'<div class="empty">Ekkert hér.</div>';}
   const msOn=window.MS&&MS.on?MS.on():false;
   const me=["utlit","ms","sig","amin"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
-  const co=can("stillingar")?["adgangur","folk","einingar","fyrir","vstill",...(window.ON&&(ON("leiga")||ON("sala"))?["tilbod"]:[])].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
+  const co=can("stillingar")?["adgangur","folk","einingar","fyrir","vstill",...(window.ON&&(ON("leiga")||ON("sala"))?["tilbod"]:[]),"prufa"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn</div><div class="mlist">${mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins",noch:1})}</div>`;}
 function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
