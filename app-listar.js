@@ -99,7 +99,7 @@ function dVsk(c){
   const tim=ps.reduce((s,p)=>s+(+p.timar||0),0);
   // Tilboð = verkefni viðskiptavinarins með skráða tilboðsupphæð; reikningar = gefnir út á viðskiptavininn
   const tb=ps.filter(p=>+p.tilbod>0).sort((a,b)=>b.nr.localeCompare(a.nr)), rk=(S?.reikningar||[]).filter(r=>sameId(r.vskId,c.id)||(!r.vskId&&r.kaupandi?.name===c.name));
-  const rkT=rk.reduce((a,r)=>a+(+r.tot||0),0), ogr=rk.filter(r=>r.stada!=="Greitt").reduce((a,r)=>a+(+r.tot||0),0);
+  const rkT=rk.filter(r=>r.stada!=="Ógilt").reduce((a,r)=>a+(+r.tot||0),0), ogr=rk.filter(r=>r.stada!=="Greitt"&&r.stada!=="Ógilt").reduce((a,r)=>a+(+r.tot||0),0);
   const tbRow=p=>lrow("verk:"+p.id,{title:`<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt||p.nafn)}`,sub:esc([p.stada,p.aklst?num(p.aklst)+" klst. áætlaðar":"",p.timar?num(p.timar)+" klst. skráðar":""].filter(Boolean).join(" · ")),right:`<span class="lc">${esc(kr(p.tilbod))}</span>`});
   return backBar()+`<div class="kicker"><span class="kind">Viðskiptavinur</span></div>
   <h2 class="big" style="margin-top:6px">${esc(c.name)}</h2>

@@ -194,7 +194,7 @@ function upcoming(){
     (p.undirverk||[]).filter(u=>u.stada!=="Done"&&u.skiladagur).forEach(u=>items.push({kind:"Skil undirverks",open:"sub:"+u.id,when:u.skiladagur,title:subName(u),nr:u.nr+" · "+p.stutt,extra:[],o:{...u,mappa:u.mappa||p.mappa}}));
     if(!isDone(p)){ if(p.skiladagur) items.push({kind:p.vidburdur===p.skiladagur?"Skil og viðburður":"Skil verkefnis",open:"verk:"+p.id,when:p.skiladagur,title:p.stutt,nr:p.nr,extra:[hhmm(p.skiladagur)&&"kl. "+hhmm(p.skiladagur)].filter(Boolean),o:p});
       if(p.vidburdur&&p.vidburdur!==p.skiladagur) items.push({kind:"Viðburður",open:"verk:"+p.id,when:p.vidburdur,title:p.stutt,nr:p.nr,extra:[hhmm(p.vidburdur)&&"kl. "+hhmm(p.vidburdur)].filter(Boolean),o:p}); }});
-  (S?.reikningar||[]).filter(r=>r.stada!=="Greitt"&&r.gjalddagi).forEach(r=>items.push({kind:"Gjalddagi reiknings",open:"reikn:"+r.id,when:r.gjalddagi,title:"Reikningur "+r.nr+" · "+(r.kaupandi?.name||""),nr:kr(r.tot),extra:[],o:{}}));
+  (S?.reikningar||[]).filter(r=>r.stada!=="Greitt"&&r.stada!=="Ógilt"&&r.gjalddagi).forEach(r=>items.push({kind:"Gjalddagi reiknings",open:"reikn:"+r.id,when:r.gjalddagi,title:"Reikningur "+r.nr+" · "+(r.kaupandi?.name||""),nr:kr(r.tot),extra:[],o:{}}));
   return items.filter(i=>{const n=daysTo(i.when);return n!==null&&(n>=0||i.kind!=="Fundur");}).sort((a,b)=>d(a.when)-d(b.when));
 }
 const upCard=i=>`<div class="card tap" role="button" tabindex="0" data-open="${esc(i.open)}"><div class="row">${dateBlock(i.when)}<div class="grow"><div class="kind">${i.kind}</div><div class="t">${esc(i.title)}</div>
@@ -235,7 +235,7 @@ function vYfirlit(sub="heim"){
   const P_todo=`  ${(()=>{const R=[]; if(window.MS&&MS.hadLogin()&&!MS.on()) R.push(todo("mslogin",{lead:EI.plug,title:"Tenging við Microsoft rann út",sub:"Ýttu hér til að tengjast aftur (skrár, póstur, fundargerðir)"})); const ofl=(S?.skjol||[]).filter(x=>x.snid&&x.stadur==="oflokkad").length; if(ofl) R.push(todo("tab:skjol",{lead:EI.doc,title:`${ofl} óflokkuð skjöl`,sub:"Flokka á verkefni eða í Stofu"}));
     const ob=window.rkUnbilled?[...verkefni().map(p=>p.id),null].map(k=>rkUnbilled(k)):[]; const oh=ob.reduce((a,x)=>a+sumT(x.es),0), ok=ob.reduce((a,x)=>a+sumK(x.ks),0);
     if(oh>=1||ok) R.push(todo("tab:trk",{lead:EI.rk,title:`Óreikningsfært: ${hrs(oh)}${ok?" + "+kr(ok):""}`,sub:"Búa til reikning"}));
-    const og=(S?.reikningar||[]).filter(r=>r.stada!=="Greitt"); if(og.length) R.push(todo("tab:trk",{lead:EI.card,title:`${og.length} ${og.length===1?"ógreiddur reikningur":"ógreiddir reikningar"} · ${kr(og.reduce((a,r)=>a+(+r.tot||0),0))}`,sub:"Sjá reikninga undir Tímum"}));
+    const og=(S?.reikningar||[]).filter(r=>r.stada!=="Greitt"&&r.stada!=="Ógilt"); if(og.length) R.push(todo("tab:trk",{lead:EI.card,title:`${og.length} ${og.length===1?"ógreiddur reikningur":"ógreiddir reikningar"} · ${kr(og.reduce((a,r)=>a+(+r.tot||0),0))}`,sub:"Sjá reikninga undir Tímum"}));
     TODO_N=R.length; return R.length?`<div class="viewtitle">Til að ganga frá</div>${llist(R)}`:"";})()}`;
   const P_act=`  ${act.length?`<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Verkefni í gangi · ${act.length}<a class="plink" data-act="tab:verk" style="margin-left:auto">Sjá öll</a></div><div class="pcards">${act.map(pc).join("")}</div>`:""}`;
   const P_wait=`  ${waiting.length?`<div class="viewtitle">Bíða svars · ${waiting.length}</div>${llist(waiting.map(p=>lrow("verk:"+p.id,{title:`<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt)}`,sub:esc(vkName(p)||vsName(p)||""),right:statusPill(p.stada)})))}`:""}`;
@@ -297,7 +297,7 @@ function homeChartParts(){
   // 4. Reikningar (fjármál)
   if(fj){const R=S.reikningar||[], m6=[...Array(6)].map((_,i)=>{const x=new Date(today.getFullYear(),today.getMonth()-5+i,1); return x;}), MN=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"];
     const mv=m6.map(x=>R.filter(r=>String(r.dags||"").slice(0,7)===x.getFullYear()+"-"+pad(x.getMonth()+1)).reduce((a,r)=>a+(+r.tot||0),0));
-    const og=R.filter(r=>r.stada!=="Greitt"), late=og.filter(r=>r.gjalddagi&&daysTo(r.gjalddagi)<0), sumR=xs=>xs.reduce((a,r)=>a+(+r.tot||0),0);
+    const og=R.filter(r=>r.stada!=="Greitt"&&r.stada!=="Ógilt"), late=og.filter(r=>r.gjalddagi&&daysTo(r.gjalddagi)<0), sumR=xs=>xs.reduce((a,r)=>a+(+r.tot||0),0);
     const unb=faerslur().filter(e=>!e.reikningur&&e.verkefniId).reduce((a,e)=>a+(+e.timar||0),0);
     P.ch_reikn=(`<div class="chart"><div class="chh4"><b>Reikningsfært</b><span>síðustu 6 mánuðir · m.kr.</span></div>${barsV(mv.map(v=>v/1e6),m6.map(x=>MN[x.getMonth()]),{hi:5,fmt:v=>v?num(Math.round(v*100)/100):"",acts:m6.map(()=>"tab:trk")})}
       <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(sumR(og)))}</b><span>ógreitt · ${og.length}</span></a>${late.length?`<a class="tap late" data-act="tab:trk"><b>${esc(kr(sumR(late)))}</b><span>fram yfir gjalddaga</span></a>`:""}<a class="tap" data-act="tab:trk"><b>${esc(kr(window.rkOinnheimt?rkOinnheimt().ub:0))}</b><span>óreikningsfært · ${num(Math.round(unb*10)/10)} klst.</span></a></div></div>`);}
