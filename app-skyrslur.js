@@ -96,7 +96,7 @@ window.blobPreview=blobPreview;
 // PDF birt sem myndir af síðum með PDF.js (lib/, Apache 2.0) – virkar eins í öllum vöfrum, líka Android og iOS
 let _pdfjs=null;
 function loadPdfjs(){return _pdfjs||(_pdfjs=new Promise((ok,no)=>{if(window.pdfjsLib) return ok(window.pdfjsLib); const sc=document.createElement("script"); sc.src="lib/pdfjs.min.js";
-  sc.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc="lib/pdfjs.worker.min.js"; ok(pdfjsLib);}; sc.onerror=()=>{_pdfjs=null; no(new Error("PDF-lesari hlóðst ekki"));}; document.head.appendChild(sc);}));}
+  sc.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc=new URL("lib/pdfjs.worker.min.js",document.baseURI).href; ok(pdfjsLib);}; sc.onerror=()=>{_pdfjs=null; no(new Error("PDF-lesari hlóðst ekki"));}; document.head.appendChild(sc);}));}
 async function renderPdf(blob,box){
   const lib=await loadPdfjs(), doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; if(!box||!box.isConnected) return;
   box.innerHTML=""; const w=Math.max(280,box.clientWidth-16), dpr=Math.min(2,window.devicePixelRatio||1);

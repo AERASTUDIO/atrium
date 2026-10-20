@@ -131,7 +131,7 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (!hadController || reloading) return; reloading = true; location.reload();
   });
-  navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(reg => {
+  navigator.serviceWorker.register(new URL("sw.js", document.baseURI).href, { updateViaCache: "none" }).then(reg => {
     const check = () => reg.update().catch(() => {});
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") check(); });
     setInterval(check, 30 * 60 * 1000);
