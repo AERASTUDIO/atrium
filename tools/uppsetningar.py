@@ -7,8 +7,10 @@ Keyrðu frá rót geymslunnar ÁÐUR en breyting fer á main:   python3 tools/up
 Uppsetning í undirmöppu <m>/ þarf: <m>/fyrirtaeki.js (window.ORG), <m>/manifest.webmanifest og má hafa <m>/utlit.css.
 Allar aðrar skrár (kóði, Atrium-merki, letur) eru sameiginlegar – <base href="../"> vísar á rótina.
 Frá 2.6.0 eru ALLAR uppsetningar í undirmöppu (líka AERA), svo hver fær sitt eigið app á tækinu (PWA-umfang skarast ekki).
-Rót geymslunnar (index.html) er aðeins tilvísun á aera/."""
-import os, sys
+Rót geymslunnar (index.html) er aðeins tilvísun á aera/.
+ATH: "id" í <m>/manifest.webmanifest verður að vera full slóð, t.d. "/atrium/sonik/" – Chrome les id miðað við lénið,
+svo "./" gæfi öllum uppsetningum sama auðkenni og ein uppsetning kæmi í stað annarrar (lagað í 2.6.1)."""
+import json, os, sys
 
 ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPPSETNINGAR = ["aera", "sonik"]  # undirmöppur; sniðmátið er app.html í rótinni
@@ -34,6 +36,8 @@ def main():
     for m in UPPSETNINGAR:
         for f in ("fyrirtaeki.js", "manifest.webmanifest"):
             assert os.path.exists(os.path.join(ROT, m, f)), f"{m}/{f} vantar"
+        mid = json.load(open(os.path.join(ROT, m, "manifest.webmanifest"), encoding="utf-8")).get("id", "")
+        assert mid.startswith("/") and mid.endswith(f"/{m}/"), f"{m}/manifest.webmanifest: id verður að vera full slóð sem endar á /{m}/ (er {mid!r})"
         p = os.path.join(ROT, m, "index.html"); ny = smida(m, src)
         gamalt = open(p, encoding="utf-8").read() if os.path.exists(p) else None
         if gamalt != ny:
