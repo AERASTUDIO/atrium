@@ -11,7 +11,7 @@ ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TAKN = {
   "aera":  {"merki": "icons/merki-dokk.svg", "bg": "#121416", "litur": "#2F3742"},
   "sonik": {"merki": "sonik/merki-dokk.svg", "bg": "#0C2127", "litur": "#2A7289"},
-  "party": {"merki": "party/merki.png", "bg": "#0E1B4D", "litur": "#FFFFFF"},
+  "party": {"merki": "party/merki.png", "bg": "#24418F", "litur": "#FFFFFF"},
 }
 ATR = "icons/atrium-merki-dokk.svg"
 def inner(p):

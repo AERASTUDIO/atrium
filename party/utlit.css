@@ -1,15 +1,15 @@
-/* Útlit uppsetningar party.is – litir af party.is og merkinu: dökkblár #0E1B4D, blár #4770DB, vínrauður #A3195B,
+/* Útlit uppsetningar party.is – litir af party.is og merkinu: grunnblár #24418F, dökkblár #0E1B4D, blár #4770DB, vínrauður #A3195B,
    grænn #2EAE6B, appelsínugulur #E8501E, ljós #F7F7F7. Kemur á eftir brand.css og gengur framar henni. */
 :root, :root[data-theme="dark"], :root[data-theme="dark"][data-variant]{
-  --bg:#0E1B4D; --surface:#14225A; --ink:#EEF1FB; --muted:#A3AEDA; --line:#22306A;
-  --accent:#8EA8F0; --accent-soft:#1E2D68; --on-accent:#0E1B4D; --hi:#8EA8F0; --on-hi:#0E1B4D;
-  --b0:#17255E; --b1:#1E2D68; --b2:#4770DB; --b3:#A3AEDA; --b4:#EEF1FB;
-  --t0:#C9D3F5; --t1:#EEF1FB; --t2:#FFFFFF; --t3:#0E1B4D; --t4:#0E1B4D;
-  --raise:#17255E; --raise2:#1E2D68; --hover:#152358; --sheet:#132157; --field:#111E52; --border2:#4770DB; --bar0:#1E2D68;
-  --late:#F08AB5; --late-soft:#3A1A3A; --crit:#F08AB5;
+  --bg:#24418F; --surface:#2B4A9C; --ink:#F2F5FD; --muted:#BCC8EE; --line:#3A58A8;
+  --accent:#A9BEF5; --accent-soft:#3352A6; --on-accent:#16295E; --hi:#A9BEF5; --on-hi:#16295E;
+  --b0:#2D4C9F; --b1:#3352A6; --b2:#6F8FE6; --b3:#BCC8EE; --b4:#F2F5FD;
+  --t0:#D6DEF8; --t1:#F2F5FD; --t2:#FFFFFF; --t3:#16295E; --t4:#16295E;
+  --raise:#2D4C9F; --raise2:#3352A6; --hover:#2A4797; --sheet:#284594; --field:#223E8A; --border2:#6F8FE6; --bar0:#3352A6;
+  --late:#FFB3D1; --late-soft:#4A2E6E; --crit:#F08AB5;
 }
 :root[data-theme="light"], :root[data-theme="light"][data-variant]{
-  --bg:#F7F7F7; --surface:#FFFFFF; --ink:#0E1B4D; --muted:#55608C; --line:#E2E5EF;
+  --bg:#EEF3FE; --surface:#FFFFFF; --ink:#0E1B4D; --muted:#55608C; --line:#E2E5EF;
   --accent:#4770DB; --accent-soft:#E6ECFB; --on-accent:#FFFFFF; --hi:#4770DB; --on-hi:#FFFFFF;
   --b0:#EEF1FB; --b1:#E1E7FA; --b2:#AFC0F0; --b3:#4770DB; --b4:#0E1B4D;
   --t0:#4770DB; --t1:#4770DB; --t2:#0E1B4D; --t3:#FFFFFF; --t4:#FFFFFF;
@@ -17,9 +17,7 @@
   --late:#A3195B; --late-soft:#F7E3EC; --crit:#A3195B;
 }
 .fab,.btn.primary.new{background:#A3195B!important;color:#fff!important;border-color:#A3195B!important}
-#login{background:#0E1B4D!important;color:#EEF1FB}
-#login .login-in p{color:#A3AEDA}
+#login{background:#24418F!important;color:#F2F5FD}
+#login .login-in p{color:#BCC8EE}
 #login .btn.primary{background:#A3195B!important;color:#fff!important;border-color:#A3195B!important}
-#login #login-btn{color:#A3AEDA!important}
-/* Merki party.is er litríkt PNG – hvítur grunnur á dökku þema svo litirnir njóti sín */
-:root[data-theme="dark"] img.colog, :root:not([data-theme="light"]) #login-colog{background:#fff;border-radius:8px;padding:2px}
+#login #login-btn{color:#BCC8EE!important}

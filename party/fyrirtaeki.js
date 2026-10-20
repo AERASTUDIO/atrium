@@ -13,7 +13,7 @@ window.ORG = {
 
   logo: { ljos: "party/merki.png", dokk: "party/merki.png" },
   merki: { ljos: "party/merki.png", dokk: "party/merki.png" },
-  litir: { ljos: "#F7F7F7", dokk: "#0E1B4D" },   // litur stöðustiku í síma
+  litir: { ljos: "#EEF3FE", dokk: "#24418F" },   // litur stöðustiku í síma
   ms: { appNafn: "Atrium", clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f" },   // til bráðabirgða: Entra-forrit AERA
 
   admin: { email: "dagur@aerastudio.is", nafn: "Dagur Fannar Möller", sk: "DFM", titillIS: "Eigandi", titillEN: "Owner" },   // til bráðabirgða
