@@ -28,7 +28,7 @@ window.ORG = {
   sigLogo: "sonik/sig-logo.png",
   docLogo: "sonik/doc-logo.png",
   // Einingar: true = kveikt á sjálfgefið óvirkri einingu; false = læst (admin getur ekki kveikt)
-  einingar: { leiga: true, sala: true },
+  einingar: { leiga: true, sala: true, verdskra: false },   // verdskra: false = Verðskrá læst (á aðeins við AERA)
   // Firebase-verkefni Sonik (atrium-sonik). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyCxuTQrngLVcptXtatN70I2Lf6S3zEk420",

@@ -84,4 +84,10 @@
   };
   // Tímabundin útgáfa á meðan línum er bætt við/eytt í breytingaham (áður en vistað er)
   let TMP = null; const base = window.VERD; window.VERD = () => (EDIT && TMP) || base();
+  // Einingin Verðskrá óvirk (t.d. læst í uppsetningu, ORG.einingar.verdskra = false – frá 2.7.2): engin verðskrá birtist
+  // og tímagjald kemur aðeins úr verkefninu sjálfu eða Reikningsstillingum.
+  const on = () => !window.ON || ON("verdskra");
+  const W = (n, off) => { const f = window[n]; window[n] = (...a) => on() ? f(...a) : off(...a); };
+  W("taxtiOf", () => null); W("svcOf", () => null); W("entryRate", (e, b) => b); W("taxtiSelect", () => "");
+  W("rateOf", p => +(p?.timagjald || 0)); W("vsCard", () => ""); W("dVerdskra", () => null);
 })();
