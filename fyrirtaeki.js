@@ -35,8 +35,8 @@ window.ORG = {
   // SharePoint-síða fyrirtækisins (frá 1.9.0). Tómt = möppur fyrirtækisins eru í OneDrive þess sem er innskráður (eins og áður).
   // Þegar síðan er tilbúin: sp = "<lén>.sharepoint.com:/sites/<síða>" og AERA-mappan færð í „Documents“ síðunnar (sama uppbygging).
   // Krefst heimildarinnar Files.ReadWrite.All (Delegated, admin consent) í Entra-forritinu.
-  sp: "",
-  spLocal: "",                         // samstillt mappa síðunnar á Windows, t.d. "%UserProfile%\\AERA Studio ehf\\AERA - Documents"
+  sp: "aerastudio.sharepoint.com:/sites/AERA",   // síðan AERA (frá 2.5.1) – AERA-mappan er í Documents › AERA
+  spLocal: "%UserProfile%\\AERA Studio ehf\\AERA - Documents",   // samstillt mappa síðunnar á Windows (Sync)
   // Outlook-mappa sem appið flokkar póst úr (ef ekkert sameiginlegt pósthólf)
   postmappa: "AERA",
   // Sameiginlegt pósthólf fyrir verkefnapóst (frá 1.9.5): allir með Full Access í Exchange sjá tengda þræði í heild og
