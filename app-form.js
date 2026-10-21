@@ -41,7 +41,7 @@ function deleteItem(type,id){
     toast(`${label} eytt`,()=>{S=before; saveSnapshot(s=>{Object.keys(s).forEach(k=>delete s[k]); Object.assign(s,structuredClone(before));}).then(()=>toast("Hætt við að eyða"));});
   }).catch(e=>toast(errText(e)));
 }
-const TAB_KIND={undir:"undir",fundir:"fund",timar:"tima",verk:"verk",lverk:"verk",sverk:"verk",vsk:"vsk",dagatal:"fund"};
+const TAB_KIND={undir:"undir",fundir:"fund",timar:"tima",verk:"verk",lverk:"verk",sverk:"verk",vsk:"vsk",lvsk:"vsk",svsk:"vsk",dagatal:"fund"};
 function openSheet(){sheetwrap.hidden=false;drawForm();}
 function openFab(){if(!DETAIL&&window.FAB_EXT?.[tab]){FAB_EXT[tab](); return;} if(!DETAIL&&tab==="skjol"&&window.skOpenNew){skOpenNew(null); return;} if(!DETAIL&&tab==="postur"&&window.poCompose){poCompose({}); return;}if(!DETAIL&&tab==="dagatal") PREFILL={date:calSel}; if(!DETAIL&&TAB_KIND[tab]) kind=TAB_KIND[tab]; else if(DETAIL?.startsWith("vsk:")) kind="verk"; _ctxRole=vskFilter||null; openSheet();}
 function closeSheet(){sheetwrap.hidden=true; sheet.closest(".sheet").classList.remove("wide","hedsheet"); PREFILL=null; render();}

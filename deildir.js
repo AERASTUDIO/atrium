@@ -24,7 +24,7 @@
   // Deildarval: í haus á tölvu; á síma efst á Heim, Verkefnum og Dagatali (hausinn er of þröngur)
   const MOB = () => window.matchMedia && matchMedia("(max-width:700px)").matches;
   const btns = v => [["", "Allar"], ...DEILDIR()].map(([k, l]) => `<button type="button" role="tab" data-d="${k}" data-act="deild:${k}" aria-selected="${v === k}">${l}</button>`).join("");
-  window.deildMob = t => (MOB() && DEILDIR().length > 1 && ["yfirlit", "verk", "dagatal"].includes(t) ? `<div class="seg deildseg deildmob" role="tablist" aria-label="Deild">${btns(DEILD())}</div>` : "");
+  window.deildMob = t => (MOB() && DEILDIR().length > 1 && ["yfirlit", "dagatal"].includes(t) ? `<div class="seg deildseg deildmob" role="tablist" aria-label="Deild">${btns(DEILD())}</div>` : "");
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { deild: (k, r) => setDeild(r[0] || "") });
   function hdr() {
     const D = DEILDIR(), host = document.querySelector("header .hright"); if (!host) return;
@@ -37,5 +37,5 @@
   }
   window.deildHdr = hdr;
   // Leiga › Verkefni og Sala › Verkefni (2.8.1): verkefni deildarinnar undir hennar eigin hluta
-  Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { lverk: () => vVerk("leiga"), sverk: () => vVerk("sala") });
+  Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { lverk: () => vVerk("leiga"), sverk: () => vVerk("sala"), lvsk: () => vVsk("leiga"), svsk: () => vVsk("sala") });
 })();

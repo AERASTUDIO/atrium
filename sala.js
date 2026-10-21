@@ -172,11 +172,13 @@
   }
 
   /* ---------- Tilboð: nýtt ---------- */
-  function tbForm(D) {
+  function tbForm(D, pre) { // pre (2.12.0): { verkefniId } – nýtt tilboð úr Tilboð-flipa verkefnis
+    const PP = pre?.verkefniId ? findProj(pre.verkefniId) : null;
     const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), L = D === "leiga";
     sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${L ? "leigutilboð" : "sölutilboð"}</h3><form id="tbf" novalidate>
-      <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" placeholder="${L ? "T.d. Árshátíð" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
-      ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", null)}
+      <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" value="${esc(PP?.stutt || "")}" placeholder="${L ? "T.d. Árshátíð" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
+      ${PP ? `<p class="hint" style="margin:0 0 6px">Verkefni: <span class="nr">${esc(PP.nr)}</span> ${esc(PP.stutt || "")}</p>` : ""}
+      ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
       <label>${L ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
       ${L ? `<div class="two"><label>Frá (afhending)<input id="tb-fra" type="date" value="${d0}"></label><label>Til (skil)<input id="tb-til" type="date" value="${d0}"></label></div>` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
@@ -193,7 +195,7 @@
         const cl = await pickVsk("tb", "client", "Viðskiptavinur"), id = gid(), n = +c[nK(D)] || 1001, nr = DL[D].pre + n;
         const T = { id, nr, heiti, deild: D, vskId: cl?.id || null, vidskiptavinur: cl?.name || null,
           tengilidur: val("tb-teng") || null, netfang: val("tb-net") || null, stadsetning: val("tb-stad") || null, fra, til, gildir: val("tb-gildir") || null, dags: d0,
-          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: null };
+          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null };
         await saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(T); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; });
         toast("Tilboð " + nr + " stofnað"); closeSheet(); EDT = structuredClone(T); openDetail("tb:" + id);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
@@ -439,7 +441,7 @@
       if (!confirm(`Eyða öllum prufugögnum í leigu og sölu: ${nv} vörum og ${nt} tilboðum merktum „prufa“?\n\nAnnað helst óbreytt.`)) return;
       saveSnapshot(s => { s.vorur = (s.vorur || []).filter(v => !v.prufa); s.tilbod = (s.tilbod || []).filter(t => !t.prufa); }).then(() => toast("Prufugögnum eytt")).catch(e => toast(errText(e))); return; }
     if (k === "tbs") { TS[r[0]] = r.slice(1).join(":"); render(); return; }
-    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : "leiga"; if (!VRd(D).length && !confirm(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D); return; }
+    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : "leiga"; if (!VRd(D).length && !confirm(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
     if (k === "tbed") { const [op, id] = r;
       if (op === "start") { const T = findT(id); if (T) { EDT = structuredClone(T); render(); window.scrollTo({ top: 0 }); } return; }
       if (op === "cancel") { if (!confirm("Hætta við breytingar á tilboðinu?")) return; EDT = null; render(); return; }
@@ -485,6 +487,13 @@
       saveSnapshot(s => { s.stillingar = s.stillingar || {}; const cur = { ...(s.stillingar.tilbod || {}) }; delete cur.flokkar; delete cur.nastaNr; delete cur.skilmalar; s.stillingar.tilbod = { ...CF(), ...cur, ...o }; delete s.stillingar.tilbod.flokkar; delete s.stillingar.tilbod.nastaNr; delete s.stillingar.tilbod.skilmalar; })
         .then(() => toast("Stillingar vistaðar")).catch(e => toast(errText(e))); return; }
   };
+  // Tilboð-flipi á síðu verkefnis (2.12.0): tilboð tengd verkefninu + nýtt tilboð forfyllt (verkefni, viðskiptavinur)
+  const tbOnD = T => (tDeild(T) === "sala" ? ON("sala") : ON("leiga"));
+  window.tbCountFor = pid => TB().filter(T => T.verkefniId === pid && tbOnD(T)).length;
+  window.tbProjTab = p => { if (!window.ON || !(ON("leiga") || ON("sala"))) return "";
+    const Ds = ["leiga", "sala"].filter(D => ON(D) && (!p.deild || p.deild === D));
+    const btns = MCP ? `<div class="links">${Ds.map(D => `<button type="button" class="btn primary" data-act="tbnew:${D}:${esc(p.id)}">+ ${D === "leiga" ? "Leigutilboð" : "Sölutilboð"}</button>`).join("")}</div>` : "";
+    return btns + (tbFor(T => T.verkefniId === p.id) || `<div class="empty" style="margin-top:16px">Engin tilboð tengd þessu verkefni.</div>`); };
   // Tilboð viðskiptavinar (á síðu viðskiptavinar), báðar deildir
   window.tbFor = pred => { if (!window.ON || !(ON("leiga") || ON("sala"))) return ""; const xs = TB().filter(T => (tDeild(T) === "sala" ? ON("sala") : ON("leiga")) && pred(T)).sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || ""))); return xs.length ? `<div class="viewtitle">Tilboð · ${xs.length}</div>${llist(xs.map(tbRow))}` : ""; };
   // Skrá viðbætur í kjarnann (sjá app-sidur.js: VIEWS_EXT, DETAIL_EXT, ACT_EXT, FAB_EXT)

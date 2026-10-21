@@ -41,8 +41,8 @@ function dVerk(p){
   const tl=faerslur().filter(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr)).sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
   const pending=(S?.odBidrod||[]).some(b=>b.verkefniId===p.id), fold=projFolder(p);
   const nFiles=fold?(fold.atridi||[]).filter(x=>x.s>0).length:0;
-  const tabs=[["yfirlit","Yfirlit"],["undir","Undirverk",openS.length||""],["fundir","Fundir",upF.length||""],["skrar","Skrár",nFiles||""],["timar","Tímar",tl.length?num(sumT(tl)):""],["stillingar","Stillingar"]]
-    .filter(t=>({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]?ON(({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]):t[0]!=="skrar"||ON("skjol")||ON("onedrive"));
+  const tabs=[["yfirlit","Yfirlit"],["undir","Undirverk",openS.length||""],["fundir","Fundir",upF.length||""],["skrar","Skrár",nFiles||""],["timar","Tímar",tl.length?num(sumT(tl)):""],["tilbod","Tilboð",window.tbCountFor?tbCountFor(p.id)||"":""],["stillingar","Stillingar"]]
+    .filter(t=>t[0]==="tilbod"?!!window.tbProjTab&&(ON("leiga")||ON("sala")):({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]?ON(({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]):t[0]!=="skrar"||ON("skjol")||ON("onedrive"));
   fixTab(tabs);
   const head=backBar()+`<div class="kicker"><span class="nr">${esc(p.nr)}</span>${statusPill(p.stada)}${p.skiladagur&&!isDone(p)?relPill(daysTo(p.skiladagur)):""}${svcTags(p)}${taxtiTxt(p)?`<span class="pill ptaxti" title="Þjónusta og tímagjald úr verðskrá">${esc(taxtiTxt(p))}</span>`:""}</div>
   <h2 class="big" style="margin-top:6px">${esc(p.stutt||p.nafn)}</h2>
@@ -73,6 +73,7 @@ function dVerk(p){
     ${fs.length?"":`<div class="empty" style="margin-top:16px">Engir fundir.</div>`}`;
   if(DTAB==="skrar") body=(window.skDocsFor?skDocsFor(p.id):"")+(pending&&!fold&&!(window.MS&&MS.on())?`<div class="empty" style="margin-top:16px">Mappa í OneDrive bíður stofnunar. Hún stofnast sjálfkrafa þegar appið er tengt Microsoft.${window.msMissing?msMissing():""}</div>`:skrarHTML(p));
   if(DTAB==="timar") body=timesPage(tl,"kstart:"+esc(p.id));
+  if(DTAB==="tilbod") body=window.tbProjTab?tbProjTab(p):""; // tilboð verkefnis (Leiga/Sala, 2.12.0)
   if(DTAB==="stillingar") body=`<div class="viewtitle">Staða</div>${statRow("verk",p.id,STODUR().map(x=>x.n),p.stada)}
     <div class="viewtitle" style="margin-top:6px">Upplýsingar</div>${settingsCard([
       ["Verknúmer",`<span class="nr">${esc(p.nr)}</span>`],["Heiti",esc(p.stutt||"")],["Viðskiptavinur",projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")],
@@ -252,7 +253,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="stsub"){window.STSUB=r[0]||null; render(); window.scrollTo({top:0}); return;}
   if(k==="status"){const [type,id,st]=r; quickStatus(type,id,st,el);}}
 viewEl.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ") return; const t=e.target.closest?.("[data-open]"); if(t&&t===e.target){e.preventDefault();openDetail(t.dataset.open);}});
-const NEWBTN={postur:"Póstur",skjol:"Skjal",verk:"Verkefni",lverk:"Verkefni",sverk:"Verkefni",undir:"Undirverk",fundir:"Fundur",timar:"Skrá tíma",tfaer:"Skrá tíma",vsk:"Viðskiptavinur",dagatal:"Fundur",ltilbod:"Leigutilboð",lvorur:"Búnaður",stilbod:"Sölutilboð",svorur:"Vara"};
+const NEWBTN={postur:"Póstur",skjol:"Skjal",verk:"Verkefni",lverk:"Verkefni",sverk:"Verkefni",undir:"Undirverk",fundir:"Fundur",timar:"Skrá tíma",tfaer:"Skrá tíma",vsk:"Viðskiptavinur",lvsk:"Viðskiptavinur",svsk:"Viðskiptavinur",dagatal:"Fundur",ltilbod:"Leigutilboð",lvorur:"Búnaður",stilbod:"Sölutilboð",svorur:"Vara"};
 function pageHead(){if(tab==="yfirlit"||tab==="leit") return "";
   const sec=secOf(tab), cur=sec.tabs.find(x=>x[0]===tab)||sec.tabs[0], hid=!!cur[2], vis=sec.tabs.filter(x=>!x[2]), nb=NEWBTN[tab]&&MCP?NEWBTN[tab]:"";
   if(tab==="stillingar"&&window.STSUB&&STPAGES[STSUB]&&(!STPAGES[STSUB].adm||can("stillingar"))) return `<div class="phead"><a class="pback" data-act="stsub:" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Stillingar</a><div class="phrow"><h2 class="ptitle">${esc(STPAGES[STSUB].l)}</h2></div></div>`;

@@ -81,8 +81,24 @@ function vCal(){
   ${MCP?`<div class="links"><button type="button" class="btn primary" data-act="caladd:fund">+ Fundur</button><button type="button" class="btn" data-act="caladd:verk">+ Verkefni</button><button type="button" class="btn" data-act="caladd:undir">+ Undirverk</button></div>`:""}`;
 }
 let vskFilter="";
-function vVsk(){
-  const all=vskList(), xs=all;
+// dk (2.12.0): Leiga/Sala › Viðskiptavinir – aðeins þeir sem eiga tilboð eða verkefni í deildinni; leitarreitur nær yfir alla.
+const vskInDeild=(c,dk)=>verkefni().some(p=>p.deild===dk&&(sameId(p.vskId,c.id)||sameId(p.vkId,c.id)))||(S?.tilbod||[]).some(T=>(T.deild==="sala"?"sala":"leiga")===dk&&sameId(T.vskId,c.id));
+window.vskQ=el=>{const q=String(el.value||"").trim().toLowerCase(), box=el.closest(".vskwrap"); if(!box) return; let n=0;
+  box.querySelectorAll("[data-vq]").forEach(r=>{const show=q?r.dataset.vq.includes(q):r.dataset.vd==="1"; r.hidden=!show; if(show) n++;});
+  const e=box.querySelector(".vskempty"); if(e) e.hidden=n>0;};
+function vVsk(dk){
+  const all=vskList(), xs=dk?all.filter(c=>vskInDeild(c,dk)):all;
+  if(dk){
+    const DH=esc(window.deildHeiti?deildHeiti(dk):dk);
+    const rows=all.map(c=>{const inn=xs.includes(c), n=vskProjects(c).filter(p=>p.deild===dk).length, tb=(S?.tilbod||[]).filter(T=>(T.deild==="sala"?"sala":"leiga")===dk&&sameId(T.vskId,c.id)).length;
+      const q=[c.name,c.tengilidur,c.netfang,c.kennitala,c.stadur].filter(Boolean).join(" ").toLowerCase();
+      return lrow("vsk:"+c.id,{title:esc(c.name),sub:esc([c.tengilidur,c.stadur].filter(Boolean).join(" · ")),
+        right:`<span class="lc">${inn?[tb?tb+" tilboð":"",n?n+" verkefni":""].filter(Boolean).join(" · "):"Utan deildar"}</span>`})
+        .replace('<div class="lrow tap"',`<div class="lrow tap" data-vd="${inn?1:0}" data-vq="${esc(q)}"${inn?"":" hidden"}`);});
+    return `<div class="vskwrap"><label style="display:block;margin:18px 0 8px"><span class="sr">Leita í öllum viðskiptavinum</span><input type="search" placeholder="Leita í öllum viðskiptavinum…" oninput="vskQ(this)" autocomplete="off"></label>
+      <p class="hint" style="margin:0 0 8px">${xs.length} með tilboð eða verkefni í ${DH} · leitin nær yfir alla ${all.length}</p>
+      ${llist(rows)}<div class="empty vskempty"${xs.length?" hidden":""}>Enginn viðskiptavinur á tilboð eða verkefni í ${DH} ennþá. Leitaðu hér að ofan eða bættu við með +.</div></div>`;
+  }
   let h=`<p class="hint" style="margin:18px 0 8px">${all.length} viðskiptavinir</p>`;
   if(!S?.vidskiptavinir) return h+`<div class="empty">Engir viðskiptavinir ennþá.</div>`;
   if(!xs.length) return h+`<div class="empty">Engir viðskiptavinir.${MCP?" Bættu við með +.":""}</div>`;
@@ -131,11 +147,11 @@ function projCard(p){
 }
 let vSort="stada"; try{vSort=localStorage.getItem("aera-vsort")||"stada";}catch(e){}
 const VSORT=[["stada","Stöðu"],["thjonusta","Þjónustu"],["verkkaupi","Viðskiptavini"],["skiladagur","Skiladegi"],["nr","Verknúmeri"],["klst","Klukkutímum"],["starf","Starfsmanni"]];
-function vVerk(dk){ // dk: deild (Leiga › Verkefni o.s.frv., 2.8.1) – annars valin deild
-  const ps=(dk?verkefni().filter(p=>p.deild===dk):verkD()).slice().sort((a,b)=>b.nr.localeCompare(a.nr));
+function vVerk(dk){ // dk: deild (Leiga › Verkefni o.s.frv., 2.8.1); án dk: öll verkefni óháð deild (2.12.0)
+  const ps=(dk?verkefni().filter(p=>p.deild===dk):verkefni()).slice().sort((a,b)=>b.nr.localeCompare(a.nr));
   const row=p=>lrow("verk:"+p.id,{title:`<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt)}`,
     sub:esc([vkName(p)||vsName(p),(p.thjonusta||[]).join(", "),p.timar?hrs(p.timar):""].filter(Boolean).join(" · "))+(STARFS().length>1?` <span class="savs">${projStaff(p).map(staffAv).join("")}</span>`:""),
-    right:(window.deildPill&&!dk&&!DEILD()?deildPill(p):"")+(isDone(p)?"":budgetPill(p))+(vSort!=="stada"?statusPill(p.stada):"")+(!isDone(p)&&p.skiladagur&&daysTo(p.skiladagur)<=14?relPill(daysTo(p.skiladagur)):"")});
+    right:(window.deildPill&&!dk?deildPill(p):"")+(isDone(p)?"":budgetPill(p))+(vSort!=="stada"?statusPill(p.stada):"")+(!isDone(p)&&p.skiladagur&&daysTo(p.skiladagur)<=14?relPill(daysTo(p.skiladagur)):"")});
   const act=ps.filter(p=>!isDone(p)), done=ps.filter(isDone);
   const grp=(t,xs,closed)=>xs.length?(closed?`<details class="grp"><summary class="viewtitle">${esc(t)} · ${xs.length}</summary>${llist(xs.map(row))}</details>`:`<div class="viewtitle">${esc(t)} · ${xs.length}</div>${llist(xs.map(row))}`):"";
   const by=(xs,key,order)=>{const m=new Map(); xs.forEach(p=>{[].concat(key(p)).forEach(k=>{k=k||"Óflokkað"; if(!m.has(k)) m.set(k,[]); m.get(k).push(p);});});
