@@ -106,6 +106,7 @@ function leitResults(q){const w=fold(q).trim(); if(!w&&!leitF) return `<p class=
     return `<div class="viewtitle">${lab} <span class="cnt">${G[k].length}</span></div>${llist(rows)}${!leitF&&G[k].length>8?`<button type="button" class="btn" style="width:100%;margin-top:8px" data-act="leitf:${k}">Sýna allar ${G[k].length} niðurstöður í ${lab.toLowerCase()}</button>`:""}`;}).join("");
   return out||`<div class="empty" style="margin-top:12px">Ekkert fannst${w?` fyrir „${esc(q)}“`:""}.</div>`;}
 function leitChips(q){const G=leitGroups(q), w=fold(q).trim();
+  if(FSEL()) return `<div class="fsels leitf">${fsel([["","Allt"],...LEITT].filter(([k])=>!k||!w||G[k].length||leitF===k).map(([k,l])=>["leitf:"+k,(k?l:"Allar tegundir")+(k&&w?` · ${G[k].length}`:""),leitF===k]),"Tegund")}</div>`;
   return `<div class="stat-row leitf">${[["","Allt"],...LEITT].filter(([k])=>!k||!w||G[k].length||leitF===k).map(([k,l])=>`<button type="button" class="chipbtn" data-act="leitf:${k}" aria-pressed="${leitF===k}">${l}${k&&w?` · ${G[k].length}`:""}</button>`).join("")}</div>`;}
 function vLeit(){return `<div class="leitbox"><input id="leitq" type="search" placeholder="Leita í verkefnum, skjölum, póstum, reikningum…" value="${esc(leitQ)}" autocomplete="off" enterkeyhint="search"><div id="leitchips">${leitChips(leitQ)}</div></div><div id="leitres">${leitResults(leitQ)}</div>`;}
 document.getElementById("searchbtn").addEventListener("click",()=>{tab="leit"; DETAIL=null; render(); window.scrollTo({top:0}); setTimeout(()=>document.getElementById("leitq")?.focus(),30);});

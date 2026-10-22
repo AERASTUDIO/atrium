@@ -92,14 +92,14 @@
     const nPv = VR().filter(v => v.prufa).length, nPt = TB().filter(t => t.prufa).length;
     const fl = FLOKKAR(D).filter(f => all.some(v => v.flokkur === f));
     const tegs = (D === "leiga" ? [["", "Allt"], ["leiga", "Búnaður"], ["pakki", "Pakkar"], ["vinna", "Vinna og þjónusta"]] : [["", "Allt"], ["sala", "Vörur"], ["vinna", "Vinna og þjónusta"]]).filter(([k]) => !(PV() && k === "vinna"));
-    let h = tegs.length > 2 ? `<div class="chips" style="margin:16px 0 8px">${tegs.map(([k, l]) => chip(`vrf:${D}:${k}`, l, VF[D] === k)).join("")}</div>` : `<div style="height:16px"></div>`;
-    if (fl.length > 1) h += `<div class="chips" style="margin:0 0 10px">${chip(`vrk:${D}:`, "Allir flokkar", !VK[D])}${fl.map(f => chip(`vrk:${D}:${f}`, f, VK[D] === f)).join("")}</div>`;
+    let h = PV() ? `<div class="fsels" style="margin:16px 0 10px">${tegs.length > 2 ? fsel(tegs.map(([k, l]) => [`vrf:${D}:${k}`, k ? l : "Allar tegundir", VF[D] === k]), "Tegund") : ""}${fl.length > 1 ? fsel([[`vrk:${D}:`, "Allir flokkar", !VK[D]], ...fl.map(f => [`vrk:${D}:${f}`, f, VK[D] === f])], "Flokkur") : ""}</div>` : tegs.length > 2 ? `<div class="chips" style="margin:16px 0 8px">${tegs.map(([k, l]) => chip(`vrf:${D}:${k}`, l, VF[D] === k)).join("")}</div>` : `<div style="height:16px"></div>`;
+    if (fl.length > 1 && !PV()) h += `<div class="chips" style="margin:0 0 10px">${chip(`vrk:${D}:`, "Allir flokkar", !VK[D])}${fl.map(f => chip(`vrk:${D}:${f}`, f, VK[D] === f)).join("")}</div>`;
     if (all.length) h += `<input type="search" id="vr-q" placeholder="Leita í ${D === "leiga" ? "búnaði" : "vörum"}…" value="${esc(VQ)}" style="margin:0 0 10px" autocomplete="off">`;
     if (!all.length) h += `<div class="empty">${D === "leiga" ? "Búnaðarlisti leigunnar" : "Vörulisti sölunnar"} er tómur.${MCP ? " Bættu við með +." : ""}${MCP && ADM() && !nPv ? `<div class="links" style="margin-top:12px;justify-content:center"><button type="button" class="btn" data-act="vrprufa:inn">Hlaða inn prufugögnum</button></div><p class="hint" style="margin-top:8px">Prufubúnaður og prufutilboð fyrir bæði leigu og sölu (merkt „prufa“) sem má eyða öllum í einu síðar.</p>` : ""}</div>`;
     else if (!xs.length) h += `<div class="empty">Ekkert passar við síuna.</div>`;
     else h += `<p class="hint" style="margin:0 0 6px" id="vr-n">${xs.length} ${xs.length === 1 ? "lína" : "línur"}</p>` + (VK[D] ? llist(xs.map(vRow)) : grpList(xs, FLOKKAR(D)));
     if (D === "leiga" && window.BUNADARLISTI && MCP && ADM()) { const nL = VR().filter(v => v.listi).length;
-      h += `<div class="card" style="margin-top:16px"><div class="sub-i"><span>${nL ? `Staðlaður búnaðarlisti: ${nL} línur (merktar „listi“). Verð og fjöldi eru viðmið – lagaðu að þínu.` : "Staðlaður búnaðarlisti fyrir tækjaleigu: ${BUNADARLISTI.bunadur.length} tæki í ${BUNADARLISTI.flokkar.length} flokkum, ${BUNADARLISTI.pakkar.length} pakkar og ${BUNADARLISTI.vinna.length} liðir í vinnu og þjónustu."}</span>${nL ? `<button type="button" class="btn danger" data-act="vrlisti:ut">Eyða búnaðarlista</button>` : `<button type="button" class="btn" data-act="vrlisti:inn">Hlaða inn búnaðarlista</button>`}</div></div>`; }
+      h += `<div class="card" style="margin-top:16px"><div class="sub-i"><span>${nL ? `Staðlaður búnaðarlisti: ${nL} línur (merktar „listi“). Verð og fjöldi eru viðmið – lagaðu að þínu.` : "Staðlaður búnaðarlisti fyrir tækjaleigu: " + BUNADARLISTI.bunadur.length + " tæki í " + BUNADARLISTI.flokkar.length + " flokkum, " + BUNADARLISTI.pakkar.length + " pakkar og " + BUNADARLISTI.vinna.length + " liðir í vinnu og þjónustu."}</span>${nL ? `<button type="button" class="btn danger" data-act="vrlisti:ut">Eyða búnaðarlista</button>` : `<button type="button" class="btn" data-act="vrlisti:inn">Hlaða inn búnaðarlista</button>`}</div></div>`; }
     if ((nPv || nPt) && MCP && ADM()) h += `<div class="card" style="margin-top:16px"><div class="sub-i"><span>Prufugögn (leiga og sala): ${nPv} vörur og ${nPt} tilboð merkt „prufa“.</span><button type="button" class="btn danger" data-act="vrprufa:ut">Eyða prufugögnum</button></div></div>`;
     return h;
   }
@@ -183,8 +183,7 @@
     if (PV() && D === "leiga") { const base = TB().filter(T => !window.inDeild || inDeild(T)), all = base.filter(T => !TL.f || hasTeg(T, TL.f));
       const xs = all.filter(T => !TS.leiga || T.stada === TS.leiga).slice().sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || "")) || String(b.nr).localeCompare(String(a.nr)));
       const opin = all.filter(T => ["Drög", "Sent"].includes(T.stada)), sam = all.filter(T => T.stada === "Samþykkt"), sum = a => a.reduce((s, T) => s + totals(T).net, 0);
-      let h = `<div class="chips" style="margin:16px 0 8px">${[["", "Allar línur"], ["leiga", "Leiga"], ["sala", "Sala"], ["vinna", "Vinna"]].map(([k, l]) => chip(`tbf:${k}`, l, TL.f === k)).join("")}</div>`;
-      h += `<div class="chips" style="margin:0 0 12px">${chip(`tbs:leiga:`, "Öll", !TS.leiga)}${STADA.map(s => chip(`tbs:leiga:${s}`, s, TS.leiga === s)).join("")}</div>`;
+      let h = `<div class="fsels" style="margin:16px 0 12px">${fsel([["", "Allar línur"], ["leiga", "Leiga"], ["sala", "Sala"], ["vinna", "Vinna"]].map(([k, l]) => [`tbf:${k}`, l, TL.f === k]), "Línur")}${fsel([[`tbs:leiga:`, "Allar stöður", !TS.leiga], ...STADA.map(s => [`tbs:leiga:${s}`, s, TS.leiga === s])], "Staða")}</div>`;
       if (all.length) h += `<div class="kpis"><div class="card"><b>${opin.length}</b><span>Opin tilboð · ${esc(krs(sum(opin)))}</span></div><div class="card"><b>${sam.length}</b><span>Samþykkt · ${esc(krs(sum(sam)))}</span></div></div>`;
       if (!base.length) h += `<div class="empty">Engin tilboð ennþá.${MCP ? " Búðu til tilboð með +." : ""}</div>`;
       else if (!xs.length) h += `<div class="empty">Engin tilboð passa við síuna.</div>`;
@@ -266,7 +265,7 @@
       ${L ? `<div class="two"><label>Frá<input data-h="fra" type="date" value="${esc(T.fra || "")}"></label><label>Til<input data-h="til" type="date" value="${esc(T.til || "")}"></label></div>
       <p class="hint" id="tb-dg" style="margin:-4px 0 8px">${dagTxt(T)}</p>` : `<label>Áætluð afhending<input data-h="fra" type="date" value="${esc(T.fra || "")}"></label>`}
       <div class="viewtitle">Línur</div>
-      <div class="links" style="margin:0 0 10px">${isMix(T) ? `<button type="button" class="btn primary" data-act="tbl:thj">+ Vinna og þjónusta</button><button type="button" class="btn primary" data-act="tbl:pick">+ Búnaður eða vara</button>` : `<button type="button" class="btn primary" data-act="tbl:pick">+ Úr ${L ? "búnaðarlista" : "vörulista"}</button>`}<button type="button" class="btn" data-act="tbl:custom">+ Sérlína</button></div>
+      <div class="links" style="margin:0 0 10px">${isMix(T) ? `<button type="button" class="btn primary" data-act="tbl:thj">+ Vinna og þjónusta</button>${pickDs(T).map(d => `<button type="button" class="btn primary" data-act="tbl:pick:${d}">+ ${d === "leiga" ? "Búnaður" : "Vara"}</button>`).join("")}` : `<button type="button" class="btn primary" data-act="tbl:pick">+ Úr ${L ? "búnaðarlista" : "vörulista"}</button>`}<button type="button" class="btn" data-act="tbl:custom">+ Sérlína</button></div>
       <div id="tb-tab">${tbTableHTML(T, true)}</div>
       <div class="two" style="margin-top:12px"><label>Afsláttur á tilboð (%)<input data-h="afsl" inputmode="decimal" value="${+T.afsl ? esc(fx(T.afsl)) : ""}" placeholder="0"></label><label>Gildir til<input data-h="gildir" type="date" value="${esc(T.gildir || "")}"></label></div>
       <label>Athugasemd á tilboði<textarea data-h="athugasemd" placeholder="Birtist á tilboðinu">${esc(T.athugasemd || "")}</textarea></label>
@@ -305,19 +304,24 @@
   document.addEventListener("input", onEd); document.addEventListener("change", onEd);
 
   // Velja úr vörulista deildarinnar: sheet með leit og flokkum; hver smellur bætir línu við drögin
-  function picker() {
-    const D = tDeild(EDT), src = () => isMix(EDT) ? VR().filter(v => v.tegund !== "vinna") : VRd(D);
+  // Hvaða hnappar á blönduðu tilboði (2.19.3): eftir þjónustu verkefnis (leiga → Búnaður, sala → Vara), annars báðir
+  function pickDs(T) { const on = ["leiga", "sala"].filter(d => ON(d) && VRd(d).some(v => v.tegund !== "vinna")), p = T?.verkefniId && (S?.verkefni || []).find(x => x.id === T.verkefniId);
+    const pd = p && (p.deild === "leiga" || p.deild === "sala") ? p.deild : null, has = d => (T?.linur || []).some(l => l.teg === d || (d === "leiga" && l.teg === "pakki"));
+    const ds = pd ? on.filter(d => d === pd || has(d)) : on; return ds.length ? ds : on; }
+  function picker(M) {
+    const D = M || tDeild(EDT), src = () => isMix(EDT) ? (M ? VRd(M) : VR()).filter(v => v.tegund !== "vinna") : VRd(D);
     let pf = "", pq = ""; const draw = () => {
       const xs = src().filter(v => (!pf || (pf === "_vinna" ? v.tegund === "vinna" : v.flokkur === pf && v.tegund !== "vinna")) && (!pq || (v.heiti + " " + (v.nr || "")).toLowerCase().includes(pq))).sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || a.heiti.localeCompare(b.heiti, "is"));
       document.getElementById("pk-list").innerHTML = xs.length ? xs.map(v => { const n = (EDT.linur || []).filter(l => l.v === v.id).reduce((a, l) => a + (+l.magn || 0), 0);
         return `<button type="button" class="lrow tap pkrow" data-pick="${esc(v.id)}" style="width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit"><div class="lm"><div class="lt">${esc(v.heiti)}</div><div class="ls">${esc([v.flokkur, v.tegund === "pakki" ? "Pakki · " + pakkiTxt(v) : v.tegund === "vinna" ? "Vinna og þjónusta" : (D === "sala" && +v.fjoldi ? num(v.fjoldi) + " á lager" : "")].filter(Boolean).join(" · "))}</div></div><div class="lr"><span class="lc">${esc(krs(vPrice(v)))}</span>${n ? `<span class="pill">${esc(fx(n))} á tilboði</span>` : ""}</div></button>`; }).join("") : `<div class="empty">Ekkert fannst.</div>`; };
     const fl = FLOKKAR(D).filter(f => src().some(v => v.flokkur === f && v.tegund !== "vinna"));
-    sheet.innerHTML = `<h3 id="sheet-h">Bæta við úr ${D === "leiga" ? "búnaðarlista" : "vörulista"}</h3><input type="search" id="pk-q" placeholder="Leita…" autocomplete="off" style="margin-bottom:8px">
-      <div class="chips" id="pk-f" style="margin-bottom:8px"><button type="button" class="chipbtn" data-pf="" aria-pressed="true">Allt</button>${fl.map(f => `<button type="button" class="chipbtn" data-pf="${esc(f)}" aria-pressed="false">${esc(f)}</button>`).join("")}${src().some(v => v.tegund === "vinna") ? `<button type="button" class="chipbtn" data-pf="_vinna" aria-pressed="false">Vinna og þjónusta</button>` : ""}</div>
+    sheet.innerHTML = `<h3 id="sheet-h">${M ? (M === "leiga" ? "Bæta við búnaði" : "Bæta við vöru") : "Bæta við úr " + (D === "leiga" ? "búnaðarlista" : "vörulista")}</h3><input type="search" id="pk-q" placeholder="Leita…" autocomplete="off" style="margin-bottom:8px">
+      ${PV() ? `<select class="fsel" id="pk-fs" aria-label="Flokkur" style="margin-bottom:8px"><option value="">Allir flokkar</option>${fl.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select>` : ""}<div class="chips" id="pk-f" style="margin-bottom:8px${PV() ? ";display:none" : ""}"><button type="button" class="chipbtn" data-pf="" aria-pressed="true">Allt</button>${fl.map(f => `<button type="button" class="chipbtn" data-pf="${esc(f)}" aria-pressed="false">${esc(f)}</button>`).join("")}${src().some(v => v.tegund === "vinna") ? `<button type="button" class="chipbtn" data-pf="_vinna" aria-pressed="false">Vinna og þjónusta</button>` : ""}</div>
       <div class="llist" id="pk-list"></div><p class="hint" style="margin-top:8px">Smelltu til að bæta við (aftur til að auka magn). Magn${D === "leiga" ? ", daga" : ""} og verð má laga á tilboðinu.</p>
       <div class="actions"><button type="button" class="btn primary" id="pk-done">Lokið</button></div>`;
     sheetwrap.hidden = false; draw();
     document.getElementById("pk-q").oninput = e => { pq = e.target.value.trim().toLowerCase(); draw(); };
+    const fs = document.getElementById("pk-fs"); if (fs) fs.onchange = () => { pf = fs.value; draw(); };
     document.getElementById("pk-f").onclick = e => { const b = e.target.closest("[data-pf]"); if (!b) return; pf = b.dataset.pf; sheet.querySelectorAll("[data-pf]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); };
     document.getElementById("pk-list").onclick = e => { const b = e.target.closest("[data-pick]"); if (!b) return; const v = findV(b.dataset.pick); if (!v) return;
       const ex = (EDT.linur || []).find(l => l.v === v.id && !l.dagar && !+l.afsl); if (ex) ex.magn = (+ex.magn || 0) + 1; else (EDT.linur = EDT.linur || []).push(lineFrom(v, EDT));
@@ -513,7 +517,7 @@
         saveT(D.id, q => { Object.keys(D).forEach(x => { q[x] = D[x]; }); }).then(() => { EDT = null; toast("Tilboð vistað"); render(); }).catch(e => toast(errText(e))); return; } }
     if (k === "tbl") { if (!EDT) return; const [op, id] = r, D = tDeild(EDT);
       if (op === "thj") { thjPicker(); return; }
-      if (op === "pick") { if (!(isMix(EDT) ? VR() : VRd(D)).length) return toast(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – bættu við eða notaðu sérlínu.`); picker(); return; }
+      if (op === "pick") { const M = isMix(EDT) && (id === "leiga" || id === "sala") ? id : null, DD = M || D; if (!(isMix(EDT) && !M ? VR() : VRd(DD)).length) return toast(`${DD === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – bættu við eða notaðu sérlínu.`); picker(M); return; }
       if (op === "custom") { (EDT.linur = EDT.linur || []).push({ id: gid(), v: null, heiti: "Ný lína", teg: isMix(EDT) ? "vinna" : D, hl: groups(EDT).slice(-1)[0]?.[0] || "Annað", magn: 1, ein: "stk.", verd: 0, dagar: null, afsl: 0 }); render(); return; }
       if (op === "del") { EDT.linur = (EDT.linur || []).filter(l => l.id !== id); render(); return; } }
     if (k === "tbst") { const [id, st] = r; saveT(id, q => { q.stada = st; if (st === "Sent" && !q.sent) q.sent = isoDay(new Date()); }).then(() => toast("Staða: " + st)); return; }
