@@ -6,7 +6,8 @@
 (function () {
   const LSK = "atr-deild";
   const LIST = [["leiga", "Leiga"], ["sala", "Sala"]];
-  window.DEILDIR = () => (window.ON && ON("deildir") ? LIST.filter(([k]) => ON(k)) : []);
+  // Pakkaval (2.17.2): ekkert deildaval efst – síun eftir leigu/sölu er í flipum hverrar síðu (Verkefni, Tilboð)
+  window.DEILDIR = () => (window.ON && ON("deildir") && !window.ORG?.pakkaval ? LIST.filter(([k]) => ON(k)) : []);
   const ls = () => { try { return localStorage.getItem(LSK) || ""; } catch (e) { return ""; } };
   // Valin deild ("" = allar). Ógild/óvirk deild telst „allar“.
   window.DEILD = () => { const v = ls(), D = DEILDIR(); return D.length > 1 && D.some(([k]) => k === v) ? v : ""; };
