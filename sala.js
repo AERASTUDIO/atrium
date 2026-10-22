@@ -76,11 +76,18 @@
     return `<span class="lc">${esc(p.join(" · "))}</span>`; };
   const vRow = v => lrow("vara:" + v.id, { title: esc(v.heiti) + (v.prufa ? ' <span class="tag">prufa</span>' : ""), sub: esc([v.nr, v.flokkur, v.tegund === "pakki" ? "Pakki · " + pakkiTxt(v) : v.tegund === "vinna" ? "Vinna og þjónusta" : (+v.fjoldi ? num(v.fjoldi) + " " + (v.eining || "stk.") + (vDeild(v) === "sala" ? " á lager" : " til") : "")].filter(Boolean).join(" · ")), right: vRight(v) })
     .replace('class="lrow tap"', `class="lrow tap" data-s="${esc((v.heiti + " " + (v.nr || "") + " " + (v.flokkur || "") + " " + (v.lysing || "")).toLowerCase())}"`);
+  // Vinna og þjónusta (2.18.3, pakkaval): eigin listi – úr báðum vörulistum (tegund „vinna“); Búnaður og Vörur sýna þá aðeins hluti
+  function vVinna() {
+    const xs = VR().filter(v => v.tegund === "vinna").slice().sort((a, b) => String(a.heiti).localeCompare(String(b.heiti), "is"));
+    return `<p class="hint" style="margin:16px 0 10px">Vinna og þjónusta sem er seld á tilboðum, t.d. tæknimaður, uppsetning eða akstur – verð á einingu (klst., ferð, km).</p>`
+      + (xs.length ? llist(xs.map(vRow)) : `<div class="empty">Engin vinna eða þjónusta skráð.${MCP ? " Bættu við með „+ Nýtt“." : ""}</div>`);
+  }
+  const vinnaForm = () => { const o = VF.leiga; VF.leiga = "vinna"; varaForm("leiga", null); VF.leiga = o; };
   function vVorur(D) {
-    const all = VRd(D), xs = all.filter(vMatch(D)).slice().sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || String(a.heiti).localeCompare(String(b.heiti), "is"));
+    const all = VRd(D).filter(v => !(PV() && v.tegund === "vinna")), xs = all.filter(vMatch(D)).slice().sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || String(a.heiti).localeCompare(String(b.heiti), "is"));
     const nPv = VR().filter(v => v.prufa).length, nPt = TB().filter(t => t.prufa).length;
     const fl = FLOKKAR(D).filter(f => all.some(v => v.flokkur === f));
-    const tegs = D === "leiga" ? [["", "Allt"], ["leiga", "Búnaður"], ["pakki", "Pakkar"], ["vinna", "Vinna og þjónusta"]] : [["", "Allt"], ["sala", "Vörur"], ["vinna", "Vinna og þjónusta"]];
+    const tegs = (D === "leiga" ? [["", "Allt"], ["leiga", "Búnaður"], ["pakki", "Pakkar"], ["vinna", "Vinna og þjónusta"]] : [["", "Allt"], ["sala", "Vörur"], ["vinna", "Vinna og þjónusta"]]).filter(([k]) => !(PV() && k === "vinna"));
     let h = `<div class="chips" style="margin:16px 0 8px">${tegs.map(([k, l]) => chip(`vrf:${D}:${k}`, l, VF[D] === k)).join("")}</div>`;
     if (fl.length > 1) h += `<div class="chips" style="margin:0 0 10px">${chip(`vrk:${D}:`, "Allir flokkar", !VK[D])}${fl.map(f => chip(`vrk:${D}:${f}`, f, VK[D] === f)).join("")}</div>`;
     if (all.length) h += `<input type="search" id="vr-q" placeholder="Leita í ${D === "leiga" ? "búnaði" : "vörum"}…" value="${esc(VQ)}" style="margin:0 0 10px" autocomplete="off">`;
@@ -528,9 +535,9 @@
   // Tilboð viðskiptavinar (á síðu viðskiptavinar), báðar deildir
   window.tbFor = pred => { if (!window.ON || !(ON("leiga") || ON("sala"))) return ""; const xs = TB().filter(T => (tDeild(T) === "sala" ? ON("sala") : ON("leiga")) && pred(T)).sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || ""))); return xs.length ? `<div class="viewtitle">Tilboð · ${xs.length}</div>${llist(xs.map(tbRow))}` : ""; };
   // Skrá viðbætur í kjarnann (sjá app-sidur.js: VIEWS_EXT, DETAIL_EXT, ACT_EXT, FAB_EXT)
-  Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { ltilbod: () => vTilbod("leiga"), lvorur: () => vVorur("leiga"), stilbod: () => vTilbod("sala"), svorur: () => vVorur("sala") });
+  Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { ltilbod: () => vTilbod("leiga"), lvorur: () => vVorur("leiga"), stilbod: () => vTilbod("sala"), svorur: () => vVorur("sala"), vvinna: () => vVinna() });
   Object.assign(window.DETAIL_EXT = window.DETAIL_EXT || {}, { vara: id => { const v = findV(id); return v && dVara(v); }, tb: id => { const T = findT(id); return T && dTilbod(T); } });
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { vr: salaAct, tb: salaAct });
-  Object.assign(window.FAB_EXT = window.FAB_EXT || {}, { lvorur: () => varaForm("leiga", null), svorur: () => varaForm("sala", null), ltilbod: () => salaAct("tbnew", [PV() ? "blandad" : "leiga"]), stilbod: () => salaAct("tbnew", ["sala"]) });
+  Object.assign(window.FAB_EXT = window.FAB_EXT || {}, { vvinna: () => vinnaForm(), lvorur: () => varaForm("leiga", null), svorur: () => varaForm("sala", null), ltilbod: () => salaAct("tbnew", [PV() ? "blandad" : "leiga"]), stilbod: () => salaAct("tbnew", ["sala"]) });
   window.salaEditing = () => !!EDT;
 })();

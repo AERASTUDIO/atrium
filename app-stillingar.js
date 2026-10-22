@@ -147,7 +147,7 @@ function drawMenu(){
     const FL={verkefni:[["+ Nýtt verkefni","kind='verk';openSheet()"],...(ON("undirverk")?[["+ Undirverk","kind='undir';openSheet()"]]:[]),["+ Viðskiptavinur","kind='vsk';openSheet()"]],
       dagatal:[["+ Fundur","kind='fund';openSheet()"],...(ON("undirverk")?[["+ Undirverk","kind='undir';openSheet()"]]:[])],
       timar:[...(klukka()?[]:[["▶ Byrja klukku","kind='tima';PREFILL={timer:true};openSheet()"]]),["+ Skrá tíma","kind='tima';openSheet()"],...(ON("kostnadur")?[["+ Útlagður kostnaður","kind='kostn';openSheet()"]]:[])],
-      tilbod:[["+ Nýtt tilboð","FAB_EXT.ltilbod?.()"]], bunadur:[...(ON("leiga")?[["+ Búnaður","FAB_EXT.lvorur?.()"]]:[]),...(ON("sala")?[["+ Vara","FAB_EXT.svorur?.()"]]:[])],
+      tilbod:[["+ Nýtt tilboð","FAB_EXT.ltilbod?.()"]], bunadur:[...(ON("leiga")?[["+ Búnaður","FAB_EXT.lvorur?.()"]]:[]),...(ON("sala")?[["+ Vara","FAB_EXT.svorur?.()"]]:[]),["+ Vinna eða þjónusta","FAB_EXT.vvinna?.()"]],
       fjarmal:[["Óreikningsfært","doAct('tab:trk')"]], skjol:[["+ Nýtt skjal","window.skOpenNew&&skOpenNew(null)"]], postur:[["✉ Nýr póstur","window.poCompose&&poCompose({})"]], spjall:[]}[cur?.k]||[];
     sn.innerHTML=show?`<div class="snh">${esc(cur.l)}</div>${vis.map(([k,l])=>`<button type="button" class="sni" data-tab="${k}"${k===tab||(DETAIL&&k===vis[0][0]&&!vis.some(v=>v[0]===tab))?' aria-current="page"':""}>${esc(l)}</button>`).join("")}
       ${MCP&&FL.length?`<div class="snh" style="margin-top:18px">Flýtileiðir</div>${FL.map(([l,js])=>`<button type="button" class="snf" onclick="${js}">${esc(l)}</button>`).join("")}`:""}
