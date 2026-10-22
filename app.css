@@ -603,3 +603,23 @@ body:not(.pv) #sfoot2{display:none}
 .h2grid3{display:grid;gap:16px;align-items:start}
 .h2fr{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px;text-decoration:none;color:inherit;cursor:pointer}
 .h2fr .h2fd{flex:none;width:76px;color:var(--muted);font-size:12px;padding-top:2px}
+
+/* Leit efst, + Nýtt neðst til vinstri, útgáfa neðst fyrir miðju, flýtileiðir í vinstri stiku (2.18.2) */
+.topsearch,#pvnew,#pvver{display:none}
+@media (min-width:1024px){
+  body.pv .side .new{display:none}
+  body.pv .topsearch{order:3;display:flex;flex-direction:row;align-items:center;gap:8px;flex:none;width:240px;height:40px;box-sizing:border-box;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--muted);font:inherit;margin:0}
+  body.pv .topsearch svg{width:16px;height:16px;flex:none}
+  body.pv .topsearch input{border:0;outline:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);width:100%;min-height:0;padding:0;box-shadow:none}
+  body.pv .topsearch:focus-within{border-color:var(--ink)}
+  body.pv #sfoot2{order:4}
+  body.pv .leitbox #leitq{display:none}
+  body.pv #pvnew{display:flex;align-items:center;gap:8px;position:fixed;left:16px;bottom:16px;z-index:12;min-height:46px;padding:0 20px;border-radius:14px;font-size:15px;font-weight:500;box-shadow:0 6px 20px rgba(30,36,40,.18)}
+  body.pv #pvnew svg{width:18px;height:18px}
+  body.pv #pvver{display:block;position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);opacity:.8;z-index:5;pointer-events:none;letter-spacing:.02em}
+  body.pv .app{padding-bottom:64px}
+  body.pv #subnav2{padding-bottom:84px}
+  body.pv #subnav2 .snf{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:13.5px;color:var(--ink);padding:7px 12px;border-radius:10px;cursor:pointer}
+  body.pv #subnav2 .snf:hover{background:var(--hover)}
+  body.pv .pnew,body.pv .fab{display:none!important}
+}

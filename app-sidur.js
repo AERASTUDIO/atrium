@@ -265,7 +265,7 @@ function pageHead(){if(tab==="yfirlit"||tab==="leit") return "";
   const seg=!hid&&vis.length>1?`<div class="seg" role="tablist" aria-label="${esc(sec.l)}">${vis.map(([k,l])=>`<button type="button" role="tab" data-act="tab:${k}" aria-selected="${k===tab}">${esc(l)}</button>`).join("")}</div>`:"";
   return `<div class="phead">${back}<div class="phrow"><h2 class="ptitle">${esc(hid?cur[1]:sec.l)}</h2>${nb?`<button type="button" class="btn primary pnew" data-act="fabnew" aria-label="Nýtt: ${esc(nb)}" title="Nýtt: ${esc(nb)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>`:""}</div>${seg}</div>`;}
 function render(){
-  applyEin(); if(!TABS.includes(tab)) tab="yfirlit";
+  applyEin(); if(!TABS.includes(tab)&&tab!=="leit") tab="yfirlit"; // leit er ekki flipi í valmynd (lagað 2.18.2 – leitin opnaðist ekki frá 2.0.0)
   drawMenu(); window.deildHdr?.(); clearTimeout(render._n); render._n=setTimeout(scheduleNotifs,500);
   const v=document.getElementById("view");
   if(!S){v.innerHTML=`<h2 class="big">Hleð gögnum…</h2><div class="empty">Augnablik.</div>`;return;}
