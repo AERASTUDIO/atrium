@@ -20,6 +20,9 @@
   // Pantanir í Kjarna, á eftir Verkefnum
   if (P && V) { SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(P), 1); SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(V) + 1, 0, P); }
   _einSig = null; applyEin();
+  // Merki fyrirtækis í dökku stikunni: dökka útgáfan (ljóst merki) óháð þema
+  const coSide = () => { const l = ORG.merki || ORG.logo || {}, src = l.dokk || l.ljos; const i = document.querySelector(".side .colog"); if (i && src && i.getAttribute("src") !== src) i.src = src; };
+  coSide(); new MutationObserver(coSide).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   const GRP = { heim: "Kjarni", verkefni: "Kjarni", pantanir: "Kjarni", dagatal: "Pakkar", timar: "Pakkar", tilbod: "Pakkar", bunadur: "Pakkar", fjarmal: "Pakkar", skjol: "Tengingar", postur: "Tengingar", spjall: "Tengingar" };
   const desk = () => window.matchMedia("(min-width:1024px)").matches;

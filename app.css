@@ -760,3 +760,8 @@ label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0
   body.pv.ui1 .splist>.phead:first-child{padding-top:18px}
 }
 @media (min-width:1024px){body.pv.ui1 .phead>.spsup{font-size:12px;color:var(--muted);padding:0 0 2px}}
+@media (min-width:1024px){
+  body.pv.ui1 .side .logo,body.pv.ui1 .side .colog{filter:none;opacity:1}
+  body.pv.ui1 .side .logo{background-image:url(icons/atrium-haus-dokk.svg)!important}
+  body.pv.ui1.hasco .side .cobrand .logo{background-image:url(icons/atrium-merki-dokk.svg)!important;aspect-ratio:1/1!important}
+}
