@@ -26,8 +26,8 @@ window.ORG = {
   docLogo: "icons/atrium-doc-logo.png",
   // Nýja einingaskiptingin (2.14.0): kjarni, pakkar og tengingar – flokkuð valmynd og ný Stillingar › Einingar. Prófað hér fyrst.
   pakkaval: true,
-  // Einingar: engar læstar – hér má kveikja á öllu (Stillingar › Einingar) til að þróa og prófa.
-  einingar: {},
+  // Einingar: engar læstar og kveikt á öllum, líka þeim sem eru sjálfgefið óvirkar (Leiga, Sala, Deildir) – til að þróa og prófa.
+  einingar: { leiga: true, sala: true, deildir: true },
   // Firebase-verkefnið atrium (atrium-499a2). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyAGCMEK5HdNqLEHH9UXe8B3zL9m9-bnzu0",
