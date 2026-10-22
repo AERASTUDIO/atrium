@@ -3,6 +3,11 @@
    demo/index.html er búin til sjálfvirkt úr ../app.html með tools/uppsetningar.py – ekki breyta henni beint. */
 window.ORG = {
   nafn: "Fyrirtækið",
+  verdskra: [ // almenn sýnigögn (2.22.0)
+    { id: "honnun", heiti: "Hönnun", verd: 12000, sjalfgefid: true },
+    { id: "radgjof", heiti: "Ráðgjöf", verd: 15000 },
+    { id: "almenn", heiti: "Almenn vinna", verd: 9000, almennt: true }
+  ],
   len: "demo.example",
   vefur: "",
   appUrl: "https://aerastudio.github.io/atrium/demo/",

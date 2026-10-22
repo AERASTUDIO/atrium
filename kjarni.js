@@ -19,6 +19,8 @@
     kostnadur:      ["Útlagður kostnaður", "Kostnaður á verkefni með kvittunum", "timar"],
     reikningar:     ["Reikningar", "Reikningsfærsla tíma og kostnaðar, PDF og Excel, óinnheimt"],
     verdskra:       ["Verðskrá", "Þjónustuliðir og tímagjald á verkefni og færslu"],
+    // Frá 2.22.0 (pakkaval): tilboð óháð Leigu og Sölu – þjónusta og föst upphæð alltaf; leigu- og sölulínur ef Vörulisti og lager er virkur
+    tilbod:         ["Tilboð", "Tilboð með þjónustu og föstu verði (leigu- og sölulínur ef Vörulisti og lager er virkur), útgáfur, PDF og sending"],
     skjol:          ["Skjöl", "Skjalalisti fyrirtækisins (Word, Excel, Canva, tenglar)"],
     onedrive:       ["OneDrive og SharePoint", "Möppur verkefna, Mín skjöl, Nýlegt og forskoðun skráa"],
     postur:         ["Póstur", "Outlook-pósthólf, verkefnapóstur og póstþræðir á verkefnum"],
@@ -40,7 +42,7 @@
   const PAKKAR = {
     verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
     timar:      ["Tímar", "Tímaskráning, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
-    tilbod:     ["Tilboð og verðlisti", "Þjónustuliðir og tímagjald (verðlisti fyrir tilboð og reikninga)", ["verdskra"]],
+    tilbod:     ["Tilboð og þjónustur", "Tilboð og þjónustulisti: þjónusta á tímagjaldi eða föstu verði, tímagjald á verkefnum og færslum", ["tilbod", "verdskra"]],
     bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", ...(window.ORG?.pakkaval ? ["pantanir"] : [])]],
     fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]
   };
@@ -65,6 +67,8 @@
   const LAST = k => (window.ORG?.einingar || {})[k] === false || pakkiLast(PAKKI_AF[k]);
   window.PAKKAR = PAKKAR; window.TENGINGAR = TENGINGAR; window.PAKKI_AF = PAKKI_AF; window.KJARNI = KJARNI;
   window.pakkiOn = pakkiOn; window.pakkiLast = pakkiLast;
+  // Eru tilboð virk? (2.22.0) Pakkaval: einingin Tilboð; annars Leiga eða Sala eins og áður
+  window.tbOK = () => (window.ORG?.pakkaval ? ON("tilbod") : (ON("leiga") || ON("sala")));
   window.EININGAR = EININGAR; window.ON = ON; window.einLast = LAST; window.EIN_ALLTAF = ALLTAF;
   window.einSig = () => Object.keys(EININGAR).map(k => ON(k) ? 1 : 0).join("");
 

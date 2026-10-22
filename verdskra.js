@@ -5,21 +5,15 @@
    3) verkþáttur sem listar verknúmerið, 4) sjálfgefinn verkþáttur, 5) sjálfgefið tímagjald í Reikningsstillingum. */
 (function () {
   const DEF = {
-    lidir: [
-      { id: "ljos", heiti: "Ljósahönnun", verd: 10000 },
-      { id: "honnun", heiti: "Almenn hönnunarvinna", verd: 10000, sjalfgefid: true },
-      { id: "grand", heiti: "Hönnunarvinna – Grand Hótel, stækkun", verd: 12350, verkefni: ["2026-04"] },
-      { id: "sonik", heiti: "Sonik hugbúnaðarþróun", verd: 6000, verkefni: ["2026-12"] },
-      { id: "annad", heiti: "Önnur vinna", verd: 10000 },
-      { id: "almenn", heiti: "Almenn vinna", verd: 8000, almennt: true }
-    ],
+    // 2.22.0: sjálfgefnir liðir koma úr uppsetningunni (ORG.verdskra í <m>/fyrirtaeki.js) – ekki lengur verðskrá AERA hjá öllum
+    lidir: (window.ORG && window.ORG.verdskra) || [],
     v: 2,
     vsk: 24, vskSkra: false,
     athugasemd: "VSK leggst aðeins á reikninga eftir að félagið er komið á VSK-skrá."
   };
   // Vistuð verðskrá eldri en v2 fær nýju línurnar (Sonik, Almenn vinna) bætt við þar til hún er vistuð aftur
   window.VERD = () => { const v = (typeof CFG === "function" && CFG().verdskra) || null; if (!(v && Array.isArray(v.lidir) && v.lidir.length)) return DEF;
-    if ((v.v || 1) < 2) { const lidir = v.lidir.concat(DEF.lidir.filter(l => ["sonik", "almenn"].includes(l.id) && !v.lidir.some(x => x.id === l.id || x.heiti === l.heiti))); return { ...DEF, ...v, lidir }; }
+    if ((v.v || 1) < 2 && DEF.lidir.length) { const lidir = v.lidir.concat(DEF.lidir.filter(l => ["sonik", "almenn"].includes(l.id) && !v.lidir.some(x => x.id === l.id || x.heiti === l.heiti))); return { ...DEF, ...v, lidir }; }
     return { ...DEF, ...v }; };
   const lid = id => VERD().lidir.find(l => l.id === id);
   // Þjónusta (verkþáttur) verkefnis; tímar án verkefnis fá línuna merkta „Án verkefnis“

@@ -8,7 +8,7 @@
 (function () {
   const tag = t => `<span class="h2tag">${esc(t)}</span>`;
   const G = k => (window.PAKKAR?.[k]?.[0]) || (window.TENGINGAR?.[k]?.[0]) || k;
-  const tilbodOn = () => ON("leiga") || ON("sala");
+  const tilbodOn = () => (window.tbOK ? tbOK() : (ON("leiga") || ON("sala")));
   const fjOn = () => ON("reikningar") && !!(window.can && can("fjarmal"));
   const tbAll = () => (S?.tilbod || []).filter(T => !T.deild || ON(T.deild)).filter(T => !window.inDeild || inDeild(T));
   const net = T => { try { return window.tbTotals ? +tbTotals(T).net || 0 : 0; } catch (e) { return 0; } };
@@ -40,7 +40,7 @@
     const late = upcoming().filter(i => daysTo(i.when) < 0); if (late.length) row("tab:hfrag", `${late.length} ${late.length === 1 ? "atriði komið" : "atriði komin"} fram yfir`, G("verkstjorn"));
     const ofl = (window.MS_OFL || []).length; if (ON("postur") && ofl) row("tab:postur", `${ofl} ${ofl === 1 ? "póstur" : "póstar"} til að tengja verkefni`, G("m365postur"));
     if (tilbodOn()) { const old = tbAll().filter(T => T.stada === "Sent" && daysTo(T.sent || T.dags) <= -7);
-      if (old.length) row(`tab:${(old[0].deild || "leiga") === "sala" ? "stilbod" : "ltilbod"}`, old.length === 1 ? `Tilboð ${esc(old[0].nr)} bíður svars í ${-daysTo(old[0].sent || old[0].dags)} daga` : `${old.length} tilboð bíða svars í meira en viku`, G("tilbod")); }
+      if (old.length) row(`tab:${!window.ORG?.pakkaval && (old[0].deild || "leiga") === "sala" ? "stilbod" : "ltilbod"}`, old.length === 1 ? `Tilboð ${esc(old[0].nr)} bíður svars í ${-daysTo(old[0].sent || old[0].dags)} daga` : `${old.length} tilboð bíða svars í meira en viku`, G("tilbod")); }
     if (fjOn()) {
       const ob = window.rkUnbilled ? [...verkefni().map(p => p.id), null].map(k => rkUnbilled(k)) : [];
       const n = ob.filter(x => sumT(x.es) >= 1 || sumK(x.ks)).length; if (n) row("tab:trk", `Óreikningsfærðir tímar í ${n} ${n === 1 ? "verkefni" : "verkefnum"}`, G("fjarmal"));
@@ -60,7 +60,7 @@
     if (ON("timar")) { const goal = +CFG().vikumark || 40, k = klukka(), wk = weekSum(0, STARFS().length > 1 ? ME() : null, true) + (k ? liveWeekH(k.start) : 0);
       tile(G("timar"), "Vikan þín", `${num(Math.round(wk * 10) / 10)} / ${num(goal)} klst.`, `${Math.round(Math.min(1, wk / goal) * 100)} % af markmiði`, "tab:timar"); }
     if (tilbodOn()) { const op = tbAll().filter(T => ["Drög", "Sent"].includes(T.stada));
-      tile(G("tilbod"), "Tilboð í ferli", String(op.length), op.length ? kr(op.reduce((a, T) => a + net(T), 0)) + " samtals" : "engin opin tilboð", `tab:${ON("leiga") ? "ltilbod" : "stilbod"}`); }
+      tile(G("tilbod"), "Tilboð í ferli", String(op.length), op.length ? kr(op.reduce((a, T) => a + net(T), 0)) + " samtals" : "engin opin tilboð", `tab:${window.ORG?.pakkaval || ON("leiga") ? "ltilbod" : "stilbod"}`); }
     if (fjOn()) { const ob = window.rkUnbilledKr ? [...verkefni().map(p => p.id), null].reduce((a, k) => a + (+rkUnbilledKr(k) || 0), 0) : 0, og = (S?.reikningar || []).filter(r => r.stada !== "Greitt" && r.stada !== "Ógilt").reduce((a, r) => a + (+r.tot || 0), 0);
       tile(G("fjarmal"), "Óinnheimt", kr(ob + og), "óreikningsfært + ógreitt", "tab:trk"); }
     if (ON("leiga") && window.utlDocs) { const ti = isoDay(today), ud = utlDocs(), out = ud.filter(u => u.fra <= ti && u.til >= ti), nxt = ud.filter(u => u.fra > ti);

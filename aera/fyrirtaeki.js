@@ -4,7 +4,16 @@
    merki í icons/ og litir/letur í brand.css. Sjá Kerfisskjölun, kafla „Uppsetning fyrir annað fyrirtæki“.
    Engin leyndarmál hér – þetta eru opinber auðkenni. */
 window.ORG = {
-  nafn: "AERA Studio",                 // birtist á reikningum, skýrslum, undirskrift o.fl.
+  nafn: "AERA Studio",
+  // Sjálfgefin verðskrá AERA (gildir þar til verðskrá er vistuð í appinu; kr./klst. án VSK) – var áður í verdskra.js fyrir allar uppsetningar
+  verdskra: [
+    { id: "ljos", heiti: "Ljósahönnun", verd: 10000 },
+    { id: "honnun", heiti: "Almenn hönnunarvinna", verd: 10000, sjalfgefid: true },
+    { id: "grand", heiti: "Hönnunarvinna – Grand Hótel, stækkun", verd: 12350, verkefni: ["2026-04"] },
+    { id: "sonik", heiti: "Sonik hugbúnaðarþróun", verd: 6000, verkefni: ["2026-12"] },
+    { id: "annad", heiti: "Önnur vinna", verd: 10000 },
+    { id: "almenn", heiti: "Almenn vinna", verd: 8000, almennt: true }
+  ],                 // birtist á reikningum, skýrslum, undirskrift o.fl.
   len: "aerastudio.is",                // Microsoft-lén starfsmanna (innskráning)
   vefur: "aerastudio.is",
   appUrl: "https://aerastudio.github.io/atrium/aera/",

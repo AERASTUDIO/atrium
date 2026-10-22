@@ -102,7 +102,7 @@ function enhanceForm(){
 function drawForm(){
   const T=Object.fromEntries(Object.entries({tima:"Tími",fund:"Fundur",undir:"Undirverk",verk:"Verkefni",vsk:"Viðskiptavinur"}).filter(([k])=>kindOn(k)));
   // Pakkaval (2.21.3): Pöntun og Tilboð líka í „+ Nýtt“ – opna eigin form
-  if(window.ORG?.pakkaval){ if(ON("pantanir")&&window.FAB_EXT?.pantanir) T.xpontun="Pöntun"; if((ON("leiga")||ON("sala"))&&window.FAB_EXT?.ltilbod) T.xtilbod="Tilboð"; }
+  if(window.ORG?.pakkaval){ if(ON("pantanir")&&window.FAB_EXT?.pantanir) T.xpontun="Pöntun"; if(window.tbOK&&tbOK()&&window.FAB_EXT?.ltilbod) T.xtilbod="Tilboð"; }
   if(!kindOn(kind)) kind=Object.keys(T)[0]||"verk";
   let f="";
   const subseg=!ON("kostnadur")?"":`<div class="seg seg2" role="group" aria-label="Tegund skráningar"><button type="button" data-k2="tima" aria-pressed="${kind==="tima"}">Vinnutími</button><button type="button" data-k2="kostn" aria-pressed="${kind==="kostn"}">Útlagður kostnaður</button></div>`;
