@@ -48,7 +48,9 @@ const SECTIONS_ALL=[
 // Pakkaval (2.14.2, ORG.pakkaval – fyrst í dev/): valmyndin fylgir pökkunum – Leiga og Sala hverfa sem hlutar og verða
 // Tilboð (leigu- og sölutilboð) og Búnaður (búnaður og vörur); Reikningar fá eigin hluta (Fjármál). Gögnin breytast ekki.
 if(window.ORG?.pakkaval){const by=k=>SECTIONS_ALL.find(x=>x.k===k), L=by("leiga"), Sa=by("sala"), T=by("timar"), V=by("verkefni");
-  V.tabs=V.tabs.filter(t=>!["lverk","sverk"].includes(t[0]));
+  // Verkefni (2.17.1): Öll verkefni · Leiguverkefni · Söluverkefni þegar Leiga/Sala er virk (flokkað eftir tegund og línum tilboða)
+  V.tabs=V.tabs.filter(t=>!["lverk","sverk"].includes(t[0])); V.tabs.splice(1,0,["lverk","Leiguverkefni"],["sverk","Söluverkefni"]); V.tabs[0]=["verk","Öll verkefni"];
+  Object.assign(window.TAB_EIN,{lverk:"leiga",sverk:"sala"});
   T.tabs=T.tabs.filter(t=>t[0]!=="trk");
   const nyir=[
     {k:"tilbod",l:"Tilboð",ic:IC('<path d="M6 3.5h9l3.5 3.5v13.5H6z"/><path d="M9 11h6M9 14.5h6M9 7.5h3"/>'),tabs:[["ltilbod","Tilboð"]]},

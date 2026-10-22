@@ -141,7 +141,7 @@ function drawForm(){
   if(kind==="verk") f=`<label>Heiti<input id="f-name" required placeholder="T.d. Árshátíð Arion"></label>
     <label>Staða<select id="f-status">${STODUR().filter(x=>!x.lokid).map(x=>`<option>${esc(x.n)}</option>`).join("")}</select></label>
     ${projFields("f",null)}
-    ${window.deildSelect&&!window.ORG?.pakkaval?deildSelect("f-deild"):""}
+    ${window.ORG?.pakkaval?(window.tegSelect?tegSelect("f-deild"):""):(window.deildSelect?deildSelect("f-deild"):"")}
     ${thjField([])}
     ${Object.values(SNID()).some(a=>a?.length)?`<label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="f-snid" style="width:auto">Stofna undirverk eftir sniðmáti þjónustu</label>`:""}
     ${STARFS().length>1?`<div class="kind" style="margin-top:6px">Starfsfólk á verkefni</div><div class="chks">${STARFS().map(x=>`<label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" name="fstf" value="${esc(x.sk)}" ${x.sk===ME()?"checked":""} style="width:auto">${esc(x.nafn)}</label>`).join("")}</div>`:""}

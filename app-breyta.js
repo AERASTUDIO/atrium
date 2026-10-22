@@ -18,7 +18,7 @@ function openEdit(type,id){
     f=`<label>Heiti<input id="e-name" value="${esc(p.stutt)}" required></label><p class="hint">Verknúmerið <b class="nr">${esc(p.nr)}</b> helst óbreytt.</p>
     <label>Staða<select id="e-status">${STODUR().filter(x=>!x.falin||x.n===p.stada).map(x=>opt(x.n,x.n,p.stada)).join("")}</select></label>
     ${projFields("e",p)}
-    ${window.deildSelect&&!window.ORG?.pakkaval?deildSelect("e-deild",p.deild||""):""}
+    ${window.ORG?.pakkaval?(window.tegSelect?tegSelect("e-deild",p.deild||""):""):(window.deildSelect?deildSelect("e-deild",p.deild||""):"")}
     ${thjField(p.thjonusta||[])}
     <label>Mappa (slóð)<input id="e-mappa" type="url" value="${esc(p.mappa||"")}" placeholder="https://…"></label>
     <div class="two"><label>Áætlaðir tímar<input id="e-aklst" inputmode="decimal" value="${p.aklst?esc(num(p.aklst)):""}" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="e-tilbod" inputmode="numeric" value="${p.tilbod?esc(String(p.tilbod)):""}" placeholder="t.d. 450000"></label></div>

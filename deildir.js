@@ -12,7 +12,21 @@
   window.DEILD = () => { const v = ls(), D = DEILDIR(); return D.length > 1 && D.some(([k]) => k === v) ? v : ""; };
   window.deildHeiti = k => (LIST.find(x => x[0] === k) || [, ""])[1];
   // Blandað tilboð (2.17.0): telst til deildar ef það hefur línur af þeirri tegund (leiga/sala)
-  window.inDeild = p => { const v = DEILD(); if (!v || !p || !p.deild) return true; if (p.deild === "blandad") return (p.linur || []).some(l => l.teg === v) || !(p.linur || []).length; return p.deild === v; };
+  window.inDeild = p => { const v = DEILD(); if (!v || !p) return true;
+    if (p.linur) { if (!p.deild) return true; if (p.deild === "blandad") return (p.linur || []).some(l => l.teg === v) || !(p.linur || []).length; return p.deild === v; } // tilboð
+    if (window.ORG?.pakkaval && p.nr) { const t = projTegs(p); return !t.size || t.has(v); } // verkefni (2.17.1): tegund + línur tilboða
+    return !p.deild || p.deild === v; };
+  // Tegundir verkefnis (2.17.1, pakkaval): handvirkt val (deild: leiga|sala|baedi) + tegundir lína í tilboðum verkefnisins
+  window.projTegs = p => { const s = new Set(); if (!p) return s;
+    if (p.deild === "leiga" || p.deild === "baedi") s.add("leiga"); if (p.deild === "sala" || p.deild === "baedi") s.add("sala");
+    (typeof S !== "undefined" && S?.tilbod || []).filter(T => T.verkefniId === p.id || (p.tilbodId && T.id === p.tilbodId)).forEach(T => {
+      if (T.deild === "blandad") (T.linur || []).forEach(l => { if (l.teg === "leiga" || l.teg === "sala") s.add(l.teg); }); else s.add(T.deild === "sala" ? "sala" : "leiga"); });
+    return s; };
+  // Val á tegund verkefnis í formi (pakkaval): Leiga · Sala · Bæði – vistast í deild
+  window.tegSelect = (id, cur) => { if (!(ON("leiga") || ON("sala"))) return "";
+    const o = [["", "Ekki skilgreint"], ...(ON("leiga") ? [["leiga", "Leiga"]] : []), ...(ON("sala") ? [["sala", "Sala"]] : []), ...(ON("leiga") && ON("sala") ? [["baedi", "Bæði leiga og sala"]] : [])];
+    const c = cur === undefined ? ({ lverk: "leiga", sverk: "sala" }[typeof tab !== "undefined" ? tab : ""] || "") : (cur || "");
+    return `<label>Tegund verkefnis<select id="${id}">${o.map(([k, l]) => `<option value="${k}"${k === c ? " selected" : ""}>${l}</option>`).join("")}</select></label><p class="hint" style="margin:-4px 0 6px">Valfrjálst – línur í tilboðum verkefnisins bætast sjálfkrafa við.</p>`; };
   window.setDeild = v => { try { localStorage.setItem(LSK, v || ""); } catch (e) {} if (typeof render === "function") render(); };
 
   // Val í formum verkefnis (nýtt / breyta)
@@ -20,7 +34,8 @@
     const c = cur === undefined ? ({ lverk: "leiga", sverk: "sala" }[typeof tab !== "undefined" ? tab : ""] || DEILD()) : (cur || "");
     return `<label>Deild<select id="${id}"><option value=""${c ? "" : " selected"}>Engin (sést í öllum deildum)</option>${D.map(([k, l]) => `<option value="${k}"${k === c ? " selected" : ""}>${l}</option>`).join("")}</select></label>`; };
   window.deildVal = id => { const el = document.getElementById(id); return el ? (el.value || null) : undefined; };
-  window.deildPill = p => (DEILDIR().length > 1 && p?.deild ? `<span class="pill deildpill">${esc(deildHeiti(p.deild))}</span>` : "");
+  window.deildPill = p => { if (window.ORG?.pakkaval && p?.nr && !p.linur) { const t = [...projTegs(p)]; return t.length ? `<span class="pill deildpill">${esc(t.map(deildHeiti).join(" + "))}</span>` : ""; }
+    return DEILDIR().length > 1 && p?.deild ? `<span class="pill deildpill">${esc(deildHeiti(p.deild))}</span>` : ""; };
 
   // Deildarval: í haus á tölvu; á síma efst á Heim, Verkefnum og Dagatali (hausinn er of þröngur)
   const MOB = () => window.matchMedia && matchMedia("(max-width:700px)").matches;
