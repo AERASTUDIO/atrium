@@ -621,5 +621,8 @@ body:not(.pv) #sfoot2{display:none}
   body.pv #subnav2{padding-bottom:84px}
   body.pv #subnav2 .snf{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:13.5px;color:var(--ink);padding:7px 12px;border-radius:10px;cursor:pointer}
   body.pv #subnav2 .snf:hover{background:var(--hover)}
-  body.pv .pnew,body.pv .fab{display:none!important}
+  body.pv .fab{display:none!important}
+  /* + við hliðina á fyrirsögn (2.18.9): þar sem síðan býður upp á að búa til nýjan hlut */
+  body.pv .phrow{justify-content:flex-start}
+  body.pv .phrow .pnew{width:40px;height:40px;min-height:40px;padding:0;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-left:4px}
 }
