@@ -16,7 +16,9 @@ const meetList=(fs,title)=>fs.length?`<div class="viewtitle">${title}</div><div 
 const lokaBtn=p=>{const L=LOKA(); if(!L||isTmp(p.id)) return ""; if(p.stada===L.n){const back=STVAL().filter(x=>!x.lokid).pop()?.n||STVAL()[0]?.n;
   return `<div class="lokabox"><span>Verkefninu er lokað.</span><button type="button" class="btn" data-act="status:verk:${esc(p.id)}:${esc(back)}">Opna aftur</button></div>`;}
   return `<button type="button" class="btn lokabtn" data-act="status:verk:${esc(p.id)}:${esc(L.n)}">✓ Loka verkefni</button>`;};
-const statRow=(type,id,opts,cur,labels)=>MCP&&!isTmp(id)?`<div class="stat-row">${opts.map(s=>`<button type="button" class="chipbtn" data-act="status:${type}:${esc(id)}:${esc(s)}" aria-pressed="${s===cur}">${esc((labels||{})[s]||s)}</button>`).join("")}</div>`:"";
+// Staða sem fellivalmynd í pakkavali (2.19.4); núverandi staða sýnd þótt hún sé ekki valkostur (t.d. Lokið)
+const statSel=(pre,opts,cur,labels,lbl)=>{const o=opts.map(s=>[pre+s,(labels||{})[s]||s,s===cur]); if(cur&&!opts.includes(cur)) o.unshift(["",(labels||{})[cur]||cur,true]); return `<div class="fsels">${fsel(o,lbl||"Staða")}</div>`;};
+const statRow=(type,id,opts,cur,labels)=>MCP&&!isTmp(id)&&FSEL()?statSel(`status:${type}:${id}:`,opts,cur,labels):MCP&&!isTmp(id)?`<div class="stat-row">${opts.map(s=>`<button type="button" class="chipbtn" data-act="status:${type}:${esc(id)}:${esc(s)}" aria-pressed="${s===cur}">${esc((labels||{})[s]||s)}</button>`).join("")}</div>`:"";
 const addRow=(btns)=>MCP?`<div class="links">${btns.map(([k,l])=>`<button type="button" class="btn" data-act="add:${k}">${l}</button>`).join("")}</div>`:"";
 /* ---------- Undirsíður (flipar) á verkefni og undirverki ---------- */
 let DTAB="yfirlit";
@@ -55,7 +57,7 @@ function dVerk(p){
   if(DTAB==="yfirlit"){
     const soon=[...openS.filter(u=>u.skiladagur).map(u=>({w:u.skiladagur,h:subRowL(u)})),...upF.map(f=>({w:f.date,h:meetRowL(f)}))].sort((a,b)=>String(a.w).localeCompare(String(b.w))).slice(0,5);
     body=`${klukkaBanner(p)}
-    ${MCP?`<div class="viewtitle" style="margin-top:14px">Staða verkefnis</div><div class="stat-row pstada" role="group" aria-label="Staða verkefnis">${STVAL().map(x=>`<button type="button" class="chipbtn" data-act="status:verk:${esc(p.id)}:${esc(x.n)}" aria-pressed="${x.n===p.stada}">${esc(x.n)}</button>`).join("")}</div>${lokaBtn(p)}`:""}
+    ${MCP?`<div class="viewtitle" style="margin-top:14px">Staða verkefnis</div>${FSEL()?statSel(`status:verk:${p.id}:`,STVAL().map(x=>x.n),p.stada,null,"Staða verkefnis"):`<div class="stat-row pstada" role="group" aria-label="Staða verkefnis">${STVAL().map(x=>`<button type="button" class="chipbtn" data-act="status:verk:${esc(p.id)}:${esc(x.n)}" aria-pressed="${x.n===p.stada}">${esc(x.n)}</button>`).join("")}</div>`}${lokaBtn(p)}`:""}
     <div class="kpis" style="margin-top:16px"><div class="card"><b>${num(Math.round(((+p.timar||0)+liveProjH(p.id))*10)/10)}</b><span>klst. skráðar${liveProjH(p.id)?" · klukka í gangi":""}</span></div><div class="card"><b>${openS.length}</b><span>opin undirverk</span></div>${(()=>{ // samþykkt tilboð verkefnisins (2.18.10)
       if(!window.tbTotals) return ""; const ts=(S?.tilbod||[]).filter(T=>T.stada==="Samþykkt"&&(T.verkefniId===p.id||(p.tilbodId&&T.id===p.tilbodId))), v=ts.reduce((a,T)=>a+(+tbTotals(T).net||0),0);
       return v>0?`<div class="card tap" ${ts.length===1?`data-open="tb:${esc(ts[0].id)}" role="button" tabindex="0"`:'data-act="dtab:tilbod"'}><b>${esc(kr(v))}</b><span>samþykkt tilboð${ts.length>1?" ("+ts.length+")":" "+esc(ts[0].nr||"")} · án VSK</span></div>`:"";})()}${can("fjarmal")&&window.rkUnbilled&&window.rateOf?(()=>{const v=window.rkUnbilledKr?rkUnbilledKr(p.id):0; return v?`<div class="card tap" data-act="tab:trk"><b>${esc(kr(v))}</b><span>óreikningsfært · ${esc(num(rateOf(p)))} kr./klst.</span></div>`:"";})():""}</div>
