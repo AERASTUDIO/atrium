@@ -74,7 +74,7 @@
     if (D === "leiga" && v.tegund !== "vinna" && +v.leiguverd) p.push(krs(v.leiguverd) + "/dag");
     if ((D === "sala" || v.tegund === "vinna") && +v.soluverd) p.push(krs(v.soluverd) + (v.tegund === "vinna" ? "/" + String(v.eining || "klst.").replace(/\.$/, "") : ""));
     return `<span class="lc">${esc(p.join(" · "))}</span>`; };
-  const vRow = v => lrow("vara:" + v.id, { title: esc(v.heiti) + (v.prufa ? ' <span class="tag">prufa</span>' : ""), sub: esc([v.nr, v.flokkur, v.tegund === "pakki" ? "Pakki · " + pakkiTxt(v) : v.tegund === "vinna" ? "Vinna og þjónusta" : (+v.fjoldi ? num(v.fjoldi) + " " + (v.eining || "stk.") + (vDeild(v) === "sala" ? " á lager" : " til") : "")].filter(Boolean).join(" · ")), right: vRight(v) })
+  const vRow = v => lrow("vara:" + v.id, { title: esc(v.heiti) + (v.prufa ? ' <span class="tag">prufa</span>' : "") + (v.listi ? ' <span class="tag">listi</span>' : ""), sub: esc([v.nr, v.flokkur, v.tegund === "pakki" ? "Pakki · " + pakkiTxt(v) : v.tegund === "vinna" ? "Vinna og þjónusta" : (+v.fjoldi ? num(v.fjoldi) + " " + (v.eining || "stk.") + (vDeild(v) === "sala" ? " á lager" : " til") : "")].filter(Boolean).join(" · ")), right: vRight(v) })
     .replace('class="lrow tap"', `class="lrow tap" data-s="${esc((v.heiti + " " + (v.nr || "") + " " + (v.flokkur || "") + " " + (v.lysing || "")).toLowerCase())}"`);
   // Vinna og þjónusta (2.18.3, pakkaval): eigin listi – úr báðum vörulistum (tegund „vinna“); Búnaður og Vörur sýna þá aðeins hluti
   function vVinna() {
@@ -94,6 +94,8 @@
     if (!all.length) h += `<div class="empty">${D === "leiga" ? "Búnaðarlisti leigunnar" : "Vörulisti sölunnar"} er tómur.${MCP ? " Bættu við með +." : ""}${MCP && ADM() && !nPv ? `<div class="links" style="margin-top:12px;justify-content:center"><button type="button" class="btn" data-act="vrprufa:inn">Hlaða inn prufugögnum</button></div><p class="hint" style="margin-top:8px">Prufubúnaður og prufutilboð fyrir bæði leigu og sölu (merkt „prufa“) sem má eyða öllum í einu síðar.</p>` : ""}</div>`;
     else if (!xs.length) h += `<div class="empty">Ekkert passar við síuna.</div>`;
     else h += `<p class="hint" style="margin:0 0 6px" id="vr-n">${xs.length} ${xs.length === 1 ? "lína" : "línur"}</p>` + llist(xs.map(vRow));
+    if (D === "leiga" && window.BUNADARLISTI && MCP && ADM()) { const nL = VR().filter(v => v.listi).length;
+      h += `<div class="card" style="margin-top:16px"><div class="sub-i"><span>${nL ? `Staðlaður búnaðarlisti: ${nL} línur (merktar „listi“). Verð og fjöldi eru viðmið – lagaðu að þínu.` : "Staðlaður búnaðarlisti fyrir tækjaleigu: ${BUNADARLISTI.bunadur.length} tæki í ${BUNADARLISTI.flokkar.length} flokkum, ${BUNADARLISTI.pakkar.length} pakkar og ${BUNADARLISTI.vinna.length} liðir í vinnu og þjónustu."}</span>${nL ? `<button type="button" class="btn danger" data-act="vrlisti:ut">Eyða búnaðarlista</button>` : `<button type="button" class="btn" data-act="vrlisti:inn">Hlaða inn búnaðarlista</button>`}</div></div>`; }
     if ((nPv || nPt) && MCP && ADM()) h += `<div class="card" style="margin-top:16px"><div class="sub-i"><span>Prufugögn (leiga og sala): ${nPv} vörur og ${nPt} tilboð merkt „prufa“.</span><button type="button" class="btn danger" data-act="vrprufa:ut">Eyða prufugögnum</button></div></div>`;
     return h;
   }
@@ -442,6 +444,18 @@
     ];
     return { vorur: V, tilbod: T };
   }
+  // Staðlaður búnaðarlisti (bunadarlisti.js, 2.19.0): admin hleður inn í Búnað; línur merktar „listi“ svo eyða má þeim í einu lagi
+  function listi() {
+    const L = window.BUNADARLISTI; if (!L) return { vorur: [], flokkar: [] };
+    const til = new Set(VR().map(v => v.nr).filter(Boolean)), V = [], byNr = {};
+    const ein = h => /á m²/.test(h) ? "m²" : /\(á m\)/.test(h) ? "m" : "stk.";
+    const add = o => { if (til.has(o.nr)) return null; const v = { id: gid(), deild: "leiga", eining: "stk.", leiguverd: 0, soluverd: 0, innkaupsverd: 0, fjoldi: 0, lysing: null, innihald: [], listi: true, ...o }; V.push(v); byNr[o.nr] = v; return v; };
+    L.bunadur.forEach(([nr, heiti, flokkur, verd, fjoldi, lysing]) => add({ nr, heiti, flokkur, tegund: "leiga", eining: ein(heiti), leiguverd: verd, fjoldi, lysing }));
+    L.vinna.forEach(([nr, heiti, eining, verd, lysing]) => add({ nr, heiti, flokkur: "Vinna og þjónusta", tegund: "vinna", eining, soluverd: verd, lysing }));
+    L.pakkar.forEach(([nr, heiti, verd, lysing, inn]) => add({ nr, heiti, flokkur: "Pakkar", tegund: "pakki", leiguverd: verd, fjoldi: 2, lysing,
+      innihald: inn.map(([n, m]) => ({ v: (byNr[n] || VR().find(x => x.nr === n) || {}).id, m })).filter(x => x.v) }));
+    return { vorur: V, flokkar: ["Pakkar", ...L.flokkar] };
+  }
   window.salaPrufa = prufa;
 
   /* ---------- Stillingar ---------- */
@@ -472,6 +486,13 @@
     if (k === "vrdel") { const v = findV(a); if (!v) return; const n = TB().filter(t => (t.linur || []).some(l => l.v === a)).length;
       if (!confirm(`Eyða „${v.heiti}“?${n ? `\n\nHún er á ${n} tilboðum – línurnar þar haldast óbreyttar.` : ""}`)) return;
       saveSnapshot(s => { s.vorur = (s.vorur || []).filter(x => x.id !== a); }).then(() => { toast("Eytt"); goBack(); }).catch(e => toast(errText(e))); return; }
+    if (k === "vrlisti") { if (!ADM()) return toast("Aðeins admin.");
+      if (a === "inn") { const p = listi(); if (!p.vorur.length) return toast("Búnaðarlistinn er þegar inni");
+        saveSnapshot(s => { s.vorur = [...(s.vorur || []), ...p.vorur]; s.stillingar = s.stillingar || {}; const t = { ...CF(), ...(s.stillingar.tilbod || {}) }; t.flokkarL = [...new Set([...p.flokkar, ...(t.flokkarL || [])])]; s.stillingar.tilbod = t; })
+          .then(() => toast(`${p.vorur.length} línum bætt í búnaðarlistann`)).catch(e => toast(errText(e))); return; }
+      const n = VR().filter(v => v.listi).length;
+      if (!confirm(`Eyða ${n} línum úr staðlaða búnaðarlistanum?\n\nLínur sem þú bættir við sjálf(ur) haldast. Tilboð sem nota línurnar halda sínum upphæðum.`)) return;
+      saveSnapshot(s => { s.vorur = (s.vorur || []).filter(v => !v.listi); }).then(() => toast("Búnaðarlista eytt")).catch(e => toast(errText(e))); return; }
     if (k === "vrprufa") { if (!ADM()) return toast("Aðeins admin.");
       if (a === "inn") { const p = prufa(); saveSnapshot(s => { s.vorur = [...(s.vorur || []), ...p.vorur]; s.tilbod = [...(s.tilbod || []), ...p.tilbod]; }).then(() => toast(`${p.vorur.length} prufuvörum og ${p.tilbod.length} prufutilboðum bætt við (leiga og sala)`)).catch(e => toast(errText(e))); return; }
       const nv = VR().filter(v => v.prufa).length, nt = TB().filter(t => t.prufa).length;
