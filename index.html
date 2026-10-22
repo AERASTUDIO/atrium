@@ -1,196 +1,24 @@
 <!doctype html>
-<!-- Vefsíða Atrium (frá 2.11.0). Rótin /atrium/ er kynningarsíða – EKKI app: ekkert manifest hér, svo app-umfang
-     uppsetninganna (aera/, sonik/, party/) skarast ekki. Myndir í vefur/ (skjámyndir af hlutlausu Atrium). Engir tenglar í öppin eða sýniútgáfur. -->
-<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Atrium – verkefni, tímar og reikningar á einum stað</title>
-<meta name="description" content="Atrium by AERA Studio: verkefni, tímaskráning, tilboð, reikningsdrög, skjöl og samskipti á einum stað – í tölvu og síma, beintengt Microsoft 365. Hvert fyrirtæki fær sitt eigið app.">
-<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Allt starfið á einum stað – verkefni, tímar, tilboð, reikningsdrög, skjöl og samskipti."><meta property="og:image" content="vefur/heim.webp">
+<!-- Vefsíða Atrium (frá 2.18.4): aðeins myndband í lykkju og „Væntanlegt“. Kynningarsíðan er geymd á kynning.html.
+     Rótin er EKKI app: ekkert manifest hér, svo app-umfang uppsetninganna (aera/, sonik/, party/) skarast ekki. -->
+<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>/* App sem var sett upp áður en AERA flutti í aera/ (2.6.0) opnar rótina – senda það beint inn í AERA-appið */
+(function(){try{if((window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: window-controls-overlay)").matches||matchMedia("(display-mode: minimal-ui)").matches))||navigator.standalone===true)location.replace("aera/"+location.search+location.hash);}catch(e){}})();</script>
+<title>Atrium – væntanlegt</title>
+<meta name="description" content="Atrium by AERA Studio – væntanlegt.">
+<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Væntanlegt."><meta property="og:image" content="vefur/atrium-vaentanlegt.jpg">
 <meta name="theme-color" content="#121416">
 <link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg"><link rel="icon" type="image/png" href="icons/atrium-icon-192.png">
 <style>
 @font-face{font-family:P;src:url(fonts/Poppins-Light.ttf);font-weight:300;font-display:swap}
-@font-face{font-family:P;src:url(fonts/Poppins-Regular.ttf);font-weight:400;font-display:swap}
-@font-face{font-family:P;src:url(fonts/Poppins-Medium.ttf);font-weight:500;font-display:swap}
-:root{--bg:#121416;--s1:#1A1D21;--s2:#1E2227;--line:#262B31;--ink:#F6F7F8;--t:#DFE5EA;--mut:#93A0AD;--dim:#7C8896;--st:#4B5664;--r:20px;--w:1180px}
-*{box-sizing:border-box}html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--t);font:400 16px/1.6 P,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit}img{display:block;max-width:100%;height:auto}
-.w{max-width:var(--w);margin:0 auto;padding:0 24px}
-.k{font-size:12.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);font-weight:400}
-h1,h2,h3{color:var(--ink);font-weight:300;letter-spacing:-.015em;margin:0}
-h1{font-size:clamp(40px,6.4vw,76px);line-height:1.04}
-h2{font-size:clamp(30px,4vw,46px);line-height:1.1}
-h3{font-size:19px;font-weight:500;letter-spacing:0}
-p{margin:0}.lead{font-size:clamp(17px,1.6vw,20px);color:var(--mut);font-weight:300;max-width:620px}
-.btn{display:inline-flex;align-items:center;gap:8px;min-height:50px;padding:0 24px;border-radius:14px;text-decoration:none;font-weight:500;font-size:15px;border:1px solid var(--line);transition:background .2s,border-color .2s}
-.btn.p{background:var(--t);color:var(--bg);border-color:var(--t)}.btn.p:hover{background:#fff}
-.btn:not(.p):hover{border-color:var(--st)}
-/* Haus */
-nav{position:sticky;top:0;z-index:20;background:rgba(18,20,22,.82);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid transparent;transition:border-color .3s}
-nav.sc{border-color:var(--line)}
-nav .w{display:flex;align-items:center;gap:28px;height:72px}
-nav .logo img{height:30px;width:auto}
-nav .ln{display:flex;gap:26px;margin-left:auto;font-size:14.5px;color:var(--mut)}
-nav .ln a{text-decoration:none}nav .ln a:hover{color:var(--ink)}
-nav .btn{min-height:42px;padding:0 18px;font-size:14px}
-@media(max-width:820px){nav .ln{display:none}nav .btn{margin-left:auto}}
-/* Hetja */
-.hero{padding:88px 0 40px;position:relative;overflow:hidden}
-.hero .k{margin-bottom:22px}
-.hero .lead{margin-top:24px}
-.hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
-.hero .ms{margin-top:22px;font-size:13.5px;color:var(--dim);display:flex;align-items:center;gap:10px}
-.hero .ms i{display:inline-grid;grid-template-columns:repeat(2,7px);gap:2px}.hero .ms i b{width:7px;height:7px;background:var(--st)}
-.stage{position:relative;margin-top:64px}
-.frame{border-radius:18px;overflow:hidden;border:1px solid #2F3742;box-shadow:0 50px 120px rgba(0,0,0,.6);background:#0d0f11}
-.frame img{width:100%}
-.phone{position:absolute;right:-12px;bottom:-36px;width:min(25%,250px);border-radius:38px;padding:8px;background:#050607;box-shadow:0 40px 90px rgba(0,0,0,.65),inset 0 0 0 1.5px #2F3742}
-.phone img{border-radius:31px}
-@media(max-width:700px){.phone{display:none}}
-.glow{position:absolute;inset:-20% -10% auto;height:700px;background:radial-gradient(closest-side,rgba(147,160,173,.13),transparent);pointer-events:none}
-/* Kaflar */
-section{padding:120px 0}
-.sh{display:grid;gap:18px;margin-bottom:56px;max-width:760px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){.grid{grid-template-columns:1fr}}
-.card{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:28px}
-.card .ic{width:40px;height:40px;border-radius:12px;background:var(--s2);display:grid;place-items:center;margin-bottom:18px;color:var(--t)}
-.card .ic svg{width:21px;height:21px}
-.card p{color:var(--mut);font-size:15px;margin-top:8px}
-.split{display:grid;grid-template-columns:1fr 1.25fr;gap:64px;align-items:center}
-.split.rev{grid-template-columns:1.25fr 1fr}.split.rev .tx{order:2}
-@media(max-width:900px){.split,.split.rev{grid-template-columns:1fr;gap:36px}.split.rev .tx{order:0}}
-.tx .lead{margin-top:18px}
-ul.ch{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:12px}
-ul.ch li{display:flex;gap:12px;color:var(--t);font-size:15.5px}
-ul.ch li:before{content:"";flex:none;width:18px;height:1px;background:var(--st);margin-top:13px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.two .frame{border-radius:14px}
-.stack{position:relative;padding:0 0 22% 0}.stack .frame{width:82%}.stack .f2{position:absolute;right:0;bottom:0;width:62%;box-shadow:0 40px 90px rgba(0,0,0,.7)}
-/* Einingar */
-.mods{display:flex;flex-wrap:wrap;gap:10px}
-.mods span{border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:14.5px;color:var(--t);background:var(--s1)}
-.mods span.n{border-color:var(--st)}.mods span small{color:var(--dim);margin-left:6px;font-size:12px}
-/* Öpp */
-.apps{display:flex;gap:28px;flex-wrap:wrap;margin-top:8px}
-.apps figure{margin:0;text-align:center}
-.apps img{width:112px;height:112px;border-radius:26px;box-shadow:0 18px 40px rgba(0,0,0,.45)}
-.apps figcaption{font-size:13px;color:var(--mut);margin-top:12px}
-.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:56px}
-.facts div{background:var(--bg);padding:26px}.facts b{display:block;color:var(--ink);font-weight:400;font-size:17px}.facts span{color:var(--mut);font-size:14px}
-@media(max-width:900px){.facts{grid-template-columns:1fr 1fr}}
-.phones{display:flex;justify-content:center;gap:22px;align-items:flex-start}
-.ph{width:min(46%,250px);border-radius:38px;padding:8px;background:#050607;box-shadow:0 40px 90px rgba(0,0,0,.6),inset 0 0 0 1.5px #2F3742}
-.ph img{border-radius:31px;width:100%}.ph2{margin-top:56px}
-@media(max-width:600px){.ph{border-radius:26px;padding:6px}.ph img{border-radius:21px}.ph2{margin-top:36px}.phones{gap:14px}}
-.appic{display:flex;align-items:center;gap:16px;margin-top:30px;color:var(--mut);font-size:14.5px;max-width:420px}
-.appic img{width:60px;height:60px;border-radius:14px;flex:none;box-shadow:0 12px 28px rgba(0,0,0,.45)}
-/* Lok */
-.end{text-align:center;padding:130px 0;border-top:1px solid var(--line)}
-.end img{height:90px;margin:0 auto 34px}
-.end .lead{margin:20px auto 0}.end .cta{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:34px}
-footer{border-top:1px solid var(--line);padding:36px 0;color:var(--dim);font-size:13.5px}
-footer .w{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:center}
-footer .lg{display:flex;gap:16px;margin-left:auto}footer a{text-decoration:none}footer a:hover{color:var(--ink)}
-.rv{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
-</style></head>
-<body>
-<nav id="nav"><div class="w">
-  <a class="logo" href="#" aria-label="Atrium"><img src="icons/atrium-haus-dokk.svg" alt="Atrium"></a>
-  <div class="ln"><a href="#eiginleikar">Eiginleikar</a><a href="#einingar">Einingar</a><a href="#fyrirtaeki">Fyrir þitt fyrirtæki</a><a href="#oryggi">Öryggi</a></div>
-  <a class="btn" href="mailto:aera@aerastudio.is?subject=Atrium">Hafa samband</a>
-</div></nav>
-
-<header class="hero"><div class="glow"></div><div class="w">
-  <div class="k rv">Atrium by AERA Studio</div>
-  <h1 class="rv">Allt starfið<br>á einum stað.</h1>
-  <p class="lead rv">Verkefni, tímar, tilboð, reikningsdrög, skjöl og samskipti – í tölvu og síma. Sniðið að þínu fyrirtæki, með þínu merki og þínum gögnum.</p>
-  <div class="cta rv"><a class="btn p" href="demo/?demo">Prófa sýniútgáfu</a><a class="btn" href="mailto:aera@aerastudio.is?subject=Atrium">Hafa samband</a></div>
-  <div class="ms rv"><i><b></b><b></b><b></b><b></b></i>Beintengt Microsoft 365 – Outlook, OneDrive og SharePoint</div>
-  <div class="stage rv">
-    <div class="frame"><img src="vefur/heim.webp" alt="Heim-skjár Atrium í tölvu" width="2560" height="1600"></div>
-    <div class="phone"><img src="vefur/m-heim.webp" alt="Atrium í síma" width="780" height="1688"></div>
-  </div>
-</div></header>
-
-<section id="eiginleikar"><div class="w">
-  <div class="sh rv"><div class="k">Eiginleikar</div><h2>Frá fyrstu fyrirspurn að greiddum reikningi.</h2><p class="lead">Allt sem teymið þarf í daglegu starfi – á einum stað, alltaf uppfært hjá öllum.</p></div>
-  <div class="grid">
-    <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 7.5h17v11a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M3.5 7.5V5.5A1.5 1.5 0 0 1 5 4h4.5l2 2h7.5"/></svg></div><h3>Verkefni og undirverk</h3><p>Staða, skiladagar, áætlun og starfsfólk á einni síðu. Undirverk eftir sniðmáti og yfirsýn yfir allt sem er í gangi.</p></div>
-    <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M10 2.5h4"/></svg></div><h3>Tímaskráning</h3><p>Skeiðklukka, vikuyfirlit og tímaskýrslur í PDF og Excel – beint á rétt verkefni og undirverk.</p></div>
-    <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3.5h12v17l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 11.5h6"/></svg></div><h3>Tilboð og reikningsdrög</h3><p>Óreikningsfært alltaf á hreinu. Tilboð og reikningsdrög með merki fyrirtækisins, tilbúin fyrir bókhaldskerfið.</p></div>
-    <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg></div><h3>Dagatal og fundir</h3><p>Mánuður, vika eða dagur. Fundargerðir verða til í Word í réttri möppu og áminningar berast á réttum tíma.</p></div>
-    <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 7 20z" transform="translate(-1)"/><path d="M13 3.5v4h4"/></svg></div><h3>Skjöl á SharePoint</h3><p>Hvert verkefni fær möppur á SharePoint-síðu fyrirtækisins. Allt teymið sér sömu skrár – forskoðun beint í appinu.</p></div>
-    <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5.5h16v10H9l-5 4z"/></svg></div><h3>Póstur og spjall</h3><p>Póstþræðir tengdir verkefnum úr Outlook og spjall teymisins – líka í símanum.</p></div>
-  </div>
-</div></section>
-
-<section style="padding-top:0"><div class="w">
-  <div class="split">
-    <div class="tx rv"><div class="k">Verkefni</div><h2 style="margin-top:16px">Yfirsýn yfir hvert verkefni.</h2>
-      <p class="lead">Staðan, tímar á móti áætlun, óreikningsfærð upphæð, undirverk, fundir og skrár – á einni síðu.</p>
-      <ul class="ch"><li>Stöður frá beiðni til reikningsfært</li><li>Áætlun í klukkustundum og tilboðsupphæð</li><li>Klukka, tími, undirverk og fundur með einum smelli</li></ul></div>
-    <div class="frame rv"><img src="vefur/verkefni.webp" alt="Síða verkefnis í Atrium" width="2560" height="1600" loading="lazy"></div>
-  </div>
-</div></section>
-
-<section style="padding-top:0"><div class="w">
-  <div class="split rev">
-    <div class="tx rv"><div class="k">Tímar og reikningsdrög</div><h2 style="margin-top:16px">Frá tíma í reikning.</h2>
-      <p class="lead">Tímar og útlagður kostnaður safnast á verkefnin. Þegar kemur að reikningi eru drögin tilbúin – með sundurliðun, merki og VSK.</p>
-      <ul class="ch"><li>Tímaskýrslur í PDF og Excel</li><li>Óinnheimt og gjalddagar á Heim</li><li>Reikningsdrög færð í bókhaldskerfi – tenging valmöguleiki</li></ul></div>
-    <div class="stack rv"><div class="frame"><img src="vefur/timar.webp" alt="Tímaskráning" width="2560" height="1600" loading="lazy"></div><div class="frame f2"><img src="vefur/reikningur.webp" alt="Reikningsdrög" width="2560" height="1600" loading="lazy"></div></div>
-  </div>
-</div></section>
-
-<section id="einingar" style="background:var(--s1);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="w">
-  <div class="split">
-    <div class="tx rv"><div class="k">Einingar</div><h2 style="margin-top:16px">Veldu það sem þú þarft.</h2>
-      <p class="lead">Atrium er byggt úr einingum. Hvert fyrirtæki kveikir á því sem það notar – og ný virkni bætist við sem eining sem allir geta tekið upp.</p>
-      <div class="mods" style="margin-top:30px"><span>Verkefni</span><span>Undirverk</span><span>Viðskiptavinir</span><span>Dagatal</span><span>Fundir</span><span>Tímaskráning</span><span>Útlagður kostnaður</span><span>Reikningsdrög</span><span>Skjöl</span><span>SharePoint</span><span>Póstur</span><span>Spjall</span><span class="n">Leiga<small>búnaður og leigutilboð</small></span><span class="n">Sala<small>vörulisti og sölutilboð</small></span><span class="n">Deildir</span></div></div>
-    <div class="frame rv"><img src="vefur/leiga.webp" alt="Leigutilboð í Atrium" width="2560" height="1600" loading="lazy"></div>
-  </div>
-</div></section>
-
-<section id="fyrirtaeki"><div class="w">
-  <div class="split rev">
-    <div class="tx rv"><div class="k">Fyrir þitt fyrirtæki</div><h2 style="margin-top:16px">Þitt eigið app.</h2>
-      <p class="lead">Hvert fyrirtæki fær sína eigin uppsetningu af Atrium: sitt merki og liti, sitt app á heimaskjánum, sinn gagnagrunn og sína SharePoint-síðu.</p>
-      <ul class="ch"><li>Merki fyrirtækisins við hlið Atrium – líka á tilboðum, reikningum og skýrslum</li><li>Gögn hvers fyrirtækis alveg aðskilin</li><li>Sama lausn og sömu uppfærslur fyrir alla</li></ul>
-      <div class="appic"><img src="icons/atrium-icon-512.png" alt="" width="512" height="512"><span>Opnast eins og venjulegt app – beint af heimaskjánum, í síma og tölvu.</span></div></div>
-    <div class="phones rv">
-      <div class="ph"><img src="vefur/m-heim.webp" alt="Heim í síma" width="780" height="1688" loading="lazy"></div>
-      <div class="ph ph2"><img src="vefur/m-dagatal.webp" alt="Dagatal í síma" width="780" height="1688" loading="lazy"></div></div>
-  </div>
-</div></section>
-
-<section id="oryggi" style="padding-top:0"><div class="w">
-  <div class="sh rv"><div class="k">Öryggi og Microsoft 365</div><h2>Byggt á því sem þú notar nú þegar.</h2><p class="lead">Starfsfólk skráir sig inn með Microsoft-aðgangi fyrirtækisins. Skrár eru á SharePoint, póstur í Outlook – Atrium tengir það saman.</p></div>
-  <div class="facts rv">
-    <div><b>Microsoft-innskráning</b><span>Aðgangar fyrirtækisins, með tvíþættri auðkenningu</span></div>
-    <div><b>Aðskilin gögn</b><span>Hvert fyrirtæki hefur eigin gagnagrunn í Evrópu</span></div>
-    <div><b>Hlutverk og réttindi</b><span>Admin, bókari og starfsmaður – framfylgt á netþjóni</span></div>
-    <div><b>Vikuleg afrit</b><span>Öll gögn afrituð sjálfkrafa í hverri viku</span></div>
-  </div>
-</div></section>
-
-<div class="end"><div class="w">
-  <img class="rv" src="icons/atrium-lodrett-dokk.svg" alt="Atrium">
-  <h2 class="rv">Atrium fyrir þitt fyrirtæki.</h2>
-  <p class="lead rv">Prófaðu sýniútgáfuna – engin innskráning, tilbúin gögn. Viltu Atrium fyrir þitt fyrirtæki? Hafðu samband.</p>
-  <div class="cta rv"><a class="btn p" href="demo/?demo">Opna sýniútgáfu</a><a class="btn" href="mailto:aera@aerastudio.is?subject=Atrium">aera@aerastudio.is</a></div>
-</div></div>
-
-<footer><div class="w">
-  <span>Atrium by <a href="https://aerastudio.is">AERA Studio ehf.</a></span>
-</div></footer>
-
-<script>
-// Gamlar slóðir með ?demo fara beint í sýniútgáfuna
-if (/[?&]demo\b/.test(location.search)) location.replace("demo/" + location.search + location.hash);
-const nav = document.getElementById("nav"); addEventListener("scroll", () => nav.classList.toggle("sc", scrollY > 10), { passive: true });
-const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" }) : null;
-document.querySelectorAll(".rv").forEach((el, i) => io ? io.observe(el) : el.classList.add("in"));
-</script>
+html,body{margin:0;height:100%;background:#121416;overflow:hidden}
+video{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;background:#121416 url(vefur/atrium-vaentanlegt.jpg) center/cover}
+h1{position:fixed;left:0;right:0;top:calc(50vh - max(3.65vw,6.48vh) + max(13.3vw,23.6vh)); /* fylgir merkinu í myndbandinu (object-fit:cover, 1920×1080, merkið í y=470) */margin:0;text-align:center;font:300 clamp(30px,5vw,64px)/1 P,system-ui,sans-serif;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#DFE5EA;animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both}
+@keyframes inn{from{opacity:0;letter-spacing:.6em;text-indent:.6em}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){h1{animation:none}}
+</style></head><body>
+<video autoplay muted loop playsinline preload="auto" poster="vefur/atrium-vaentanlegt.jpg" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4" type="video/mp4"></video>
+<h1>Væntanlegt</h1>
+<script>/* Spila ekki myndbandið hjá þeim sem biðja um minni hreyfingu – þá stendur kyrrmyndin */
+try{if(matchMedia("(prefers-reduced-motion: reduce)").matches){const v=document.querySelector("video");v.removeAttribute("autoplay");v.pause();}}catch(e){}</script>
 </body></html>
