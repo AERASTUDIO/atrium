@@ -21,7 +21,9 @@ function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB];
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn</div><div class="mlist">${mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins",noch:1})}</div>`;}
 function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
-  return `${U?`<div class="mprof"><div class="mav" aria-hidden="true">${esc(U.sk||ini)}</div><div class="grow"><div style="font-size:16px">${esc(U.nafn||U.email)}</div><div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(U.email||"")} · ${esc((window.ROLES?.[U.hlutverk]?.heiti)||"")}</div></div></div>`:""}
+  const bs=window.ORG?.pakkaval&&window.barSecs?barSecs():null, rest=bs?SECTIONS.filter(x=>!x.nobar&&!bs.includes(x)):[], c=secCounts();
+  const grid=rest.length?`<div class="mgrid">${rest.map(x=>`<button type="button" class="mtile" data-act="tab:${x.tabs[0][0]}">${x.ic}<span>${esc(x.l)}</span>${c[x.k]?`<small>${esc(c[x.k])}</small>`:""}</button>`).join("")}</div>`:"";
+  return `${grid}${U?`<div class="mprof"><div class="mav" aria-hidden="true">${esc(U.sk||ini)}</div><div class="grow"><div style="font-size:16px">${esc(U.nafn||U.email)}</div><div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(U.email||"")} · ${esc((window.ROLES?.[U.hlutverk]?.heiti)||"")}</div></div></div>`:""}
   <div class="mlist" style="margin-top:14px">${mrow("tab:stillingar","Stillingar",{ic:EIC('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>')})}${mrow("js:syncNow()","Sækja afrit af gögnum",{ic:EIC('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),noch:1})}</div>
   <button type="button" class="btn" style="width:100%;min-height:52px;margin-top:14px;border-radius:var(--r)" onclick="aeraSignOut()">Skrá út</button>
   <div class="mfoot"><span class="atr"><img class="atrlogo" src="icons/atrium-haus-${document.documentElement.dataset.theme==="light"?"ljos":"dokk"}.svg" alt="${esc(window.VARA?.nafn||"Atrium")}"><span>${esc((window.VARA?.nafn||"Atrium")+" by "+(window.VARA?.fra||"AERA Studio"))+" · v"+esc(APP_VERSION)}</span></span></div>`;}
@@ -122,6 +124,10 @@ function menuCounts(){if(!S) return {};
   const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0).length;
   return {yfirlit:late?"⚠ "+late:"",dagatal:(()=>{const n=(calItems().get(isoDay(today))||[]).length; return n?n+" í dag":"";})(),verk:active().length+" í gangi",undir:verkefni().flatMap(p=>(p.undirverk||[]).filter(u=>u.stada!=="Done")).length+" opin",
     fundir:(S.fundir||[]).filter(f=>daysTo(f.date)>=0).length+" framundan",timar:ON("timar")?num(periodSum(curPeriod()))+" klst.":"",vsk:String(vskList().length||""),skjol:(()=>{const n=window.skCount?skCount():0, t=(S.skjol||[]).filter(x=>x.snid).length; return n?n+" óflokkuð":t?String(t):"";})()};}
+// Sími (2.21.0, pakkaval): neðsta stikan sýnir fjóra hluta + Meira; hinir hlutarnir eru í Meira
+function barSecs(){const av=SECTIONS.filter(x=>!x.nobar), pick=[]; ["heim","verkefni","pantanir","timar","tilbod","dagatal","bunadur","postur"].forEach(k=>{const x=av.find(y=>y.k===k); if(x&&pick.length<4) pick.push(x);});
+  av.forEach(x=>{if(pick.length<4&&!pick.includes(x)) pick.push(x);}); return pick;}
+window.barSecs=barSecs;
 function drawMenu(){
   const cur=secOf(tab), c=secCounts();
   const html=(cls)=>SECTIONS.filter(x=>!(cls&&x.nobar)).map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
@@ -157,7 +163,10 @@ function drawMenu(){
     return SECTIONS.filter(x=>x.k!=="meira").map(x=>{const g=G[x.k]||""; const hd=g&&g!==last?`<div class="sgrp" role="presentation">${g}</div>`:g?"":'<div class="sgrp" role="presentation"></div>'; last=g;
       return hd+`<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`;}).join("");};
   document.body.classList.toggle("pv",!!window.ORG?.pakkaval);
-  sideExtra(); document.getElementById("sitems").innerHTML=side(); document.getElementById("tbar").innerHTML=html(" tb");
+  const mob=()=>{if(!window.ORG?.pakkaval) return html(" tb"); const bs=barSecs(), inBar=bs.includes(cur), C=x=>`<button type="button" class="tab tb" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`;
+    const M=SECTIONS.find(x=>x.k==="meira"), rest=SECTIONS.filter(x=>!x.nobar&&!bs.includes(x)), dot=rest.some(x=>c[x.k+"!"]);
+    return bs.map(C).join("")+(M?`<button type="button" class="tab tb" data-tab="meira"${(!inBar||cur?.k==="meira")&&tab!=="leit"?' aria-current="page"':""} aria-label="Meira">${M.ic}<span class="tl">${!inBar&&cur&&cur.k!=="meira"?esc(cur.l):"Meira"}</span><span class="tc"></span>${dot?'<span class="tdot" aria-hidden="true"></span>':""}</button>`:"");};
+  sideExtra(); document.getElementById("sitems").innerHTML=side(); document.getElementById("tbar").innerHTML=mob();
   const av=document.getElementById("avbtn"); if(av){const U=window.USER; av.textContent=(U?.sk||String(U?.nafn||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2)).toUpperCase(); av.setAttribute("aria-current",cur?.k==="meira"?"page":"false"); av.hidden=!U;}
 }
 function secCounts(){if(!S) return {}; const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0).length, un=(window.MS_OFL||[]).length;

@@ -27,8 +27,9 @@ window.ORG = {
   postholf: "",
   sigLogo: "sonik/sig-logo.png",
   docLogo: "sonik/doc-logo.png",
-  // Einingar: true = kveikt á sjálfgefið óvirkri einingu; false = læst (admin getur ekki kveikt)
-  einingar: { leiga: true, sala: true, deildir: true, verdskra: false },   // verdskra: false = Verðskrá læst (á aðeins við AERA)
+  // Nýja einingaskiptingin og útlitið (pakkaval, 2.21.0 – eins og Dev) og allar einingar opnar; admin síar í Stillingar › Einingar
+  pakkaval: true,
+  einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
   // Firebase-verkefni Sonik (atrium-sonik). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyCxuTQrngLVcptXtatN70I2Lf6S3zEk420",

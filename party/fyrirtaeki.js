@@ -27,8 +27,9 @@ window.ORG = {
   postholf: "",
   sigLogo: "party/sig-logo.png",
   docLogo: "party/doc-logo.png",
-  // Einingar: true = kveikt á sjálfgefið óvirkri einingu; false = læst (admin getur ekki kveikt)
-  einingar: { leiga: true, verdskra: false },   // partýbúnaður til leigu; Verðskrá á aðeins við AERA
+  // Nýja einingaskiptingin og útlitið (pakkaval, 2.21.0 – eins og Dev) og allar einingar opnar; admin síar í Stillingar › Einingar
+  pakkaval: true,
+  einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
   // Firebase-verkefni party.is (atrium-party). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyBWuSkYZ7vLIKoEfvSTMbUXr18l0JZztDs",
