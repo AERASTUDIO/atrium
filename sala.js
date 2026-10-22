@@ -35,7 +35,7 @@
   const nK = D => D === "sala" ? "nastaNrS" : D === "blandad" ? "nastaNrT" : "nastaNrL";
   const FLOKKAR = D => { const f = (D === "sala" ? CF().flokkarS : CF().flokkarL) || []; const extra = [...new Set(VRd(D).map(v => v.flokkur).filter(Boolean))].filter(x => !f.includes(x)); return f.concat(extra); };
   const TEG = { leiga: "Búnaður til leigu", sala: "Vara til sölu", baedi: "Búnaður til leigu", vinna: "Vinna og þjónusta", pakki: "Pakki" };
-  const LTEG = { leiga: "Leiga", sala: "Sala", vinna: "Vinna" }; const lteg = k => PV() && k === "vinna" ? "Þjónusta" : LTEG[k];
+  const LTEG = { leiga: "Leiga", sala: "Sala", vinna: "Vinna" }; const lteg = k => LTEG[k];
   const STADA = ["Drög", "Sent", "Samþykkt", "Hafnað"], STC = { "Drög": "pc-slate", "Sent": "pc-blue", "Samþykkt": "pc-teal", "Hafnað": "pc-red" };
   const ADM = () => !window.can || can("stillingar");
   const DEL = () => !window.can || can("eyda");
@@ -176,7 +176,7 @@
     if (PV() && D === "leiga") { const base = TB().filter(T => !window.inDeild || inDeild(T)), all = base.filter(T => !TL.f || hasTeg(T, TL.f));
       const xs = all.filter(T => !TS.leiga || T.stada === TS.leiga).slice().sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || "")) || String(b.nr).localeCompare(String(a.nr)));
       const opin = all.filter(T => ["Drög", "Sent"].includes(T.stada)), sam = all.filter(T => T.stada === "Samþykkt"), sum = a => a.reduce((s, T) => s + totals(T).net, 0);
-      let h = `<div class="chips" style="margin:16px 0 8px">${[["", "Allar línur"], ["vinna", "Þjónusta"], ["leiga", "Leiga"], ["sala", "Sala"]].map(([k, l]) => chip(`tbf:${k}`, l, TL.f === k)).join("")}</div>`;
+      let h = `<div class="chips" style="margin:16px 0 8px">${[["", "Allar línur"], ["leiga", "Leiga"], ["sala", "Sala"], ["vinna", "Vinna"]].map(([k, l]) => chip(`tbf:${k}`, l, TL.f === k)).join("")}</div>`;
       h += `<div class="chips" style="margin:0 0 12px">${chip(`tbs:leiga:`, "Öll", !TS.leiga)}${STADA.map(s => chip(`tbs:leiga:${s}`, s, TS.leiga === s)).join("")}</div>`;
       if (all.length) h += `<div class="kpis"><div class="card"><b>${opin.length}</b><span>Opin tilboð · ${esc(krs(sum(opin)))}</span></div><div class="card"><b>${sam.length}</b><span>Samþykkt · ${esc(krs(sum(sam)))}</span></div></div>`;
       if (!base.length) h += `<div class="empty">Engin tilboð ennþá.${MCP ? " Búðu til tilboð með +." : ""}</div>`;
@@ -242,7 +242,7 @@
             <div class="tblr"><b data-ls="${esc(l.id)}">${esc(krs(lSum(l, T)))}</b><button type="button" class="btn" data-act="tbl:del:${esc(l.id)}" aria-label="Eyða línu">×</button></div></div>`; }).join("")}</div>`; }).join("");
   };
   const tbTotHTML = T => { const t = totals(T), r = (k, x, b) => `<div class="sub-i"${b ? ' style="font-size:16px"' : ""}><span>${esc(k)}</span><b>${esc(krs(x))}</b></div>`;
-    return `${t.leiga ? r("Leiga", t.leiga) : ""}${t.sala ? r(tDeild(T) === "sala" ? "Vörur" : "Sala", t.sala) : ""}${t.vinna ? r(PV() ? "Þjónusta" : "Vinna og þjónusta", t.vinna) : ""}
+    return `${t.leiga ? r("Leiga", t.leiga) : ""}${t.sala ? r(tDeild(T) === "sala" ? "Vörur" : "Sala", t.sala) : ""}${t.vinna ? r("Vinna og þjónusta", t.vinna) : ""}
       ${t.afsl ? r("Afsláttur " + fx(T.afsl) + "%", -t.afsl) : ""}${r("Samtals án VSK", t.net)}${r("VSK " + fx(vskP()) + "%", t.vsk)}${r("Samtals með VSK", t.tot, 1)}`; };
   const dagTxt = T => `${tbDagar(T)} ${tbDagar(T) === 1 ? "leigudagur" : "leigudagar"} · dagstuðull ${fx(studull(tbDagar(T)))}`;
 

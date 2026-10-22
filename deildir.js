@@ -25,9 +25,9 @@
     return s; };
   // Val á tegund verkefnis í formi (pakkaval): Leiga · Sala · Bæði – vistast í deild
   window.tegSelect = (id, cur) => { if (!(ON("leiga") || ON("sala"))) return "";
-    const o = [["", "Ekki skilgreint"], ...(ON("leiga") ? [["leiga", "Leiga"]] : []), ...(ON("sala") ? [["sala", "Sala"]] : []), ...(ON("leiga") && ON("sala") ? [["baedi", "Bæði leiga og sala"]] : [])];
+    const o = [["", "Ekki valin"], ...(ON("leiga") ? [["leiga", "Leiga"]] : []), ...(ON("sala") ? [["sala", "Sala"]] : []), ...(ON("leiga") && ON("sala") ? [["baedi", "Leiga og sala"]] : [])];
     const c = cur === undefined ? ({ lverk: "leiga", sverk: "sala" }[typeof tab !== "undefined" ? tab : ""] || "") : (cur || "");
-    return `<label>Tegund verkefnis<select id="${id}">${o.map(([k, l]) => `<option value="${k}"${k === c ? " selected" : ""}>${l}</option>`).join("")}</select></label><p class="hint" style="margin:-4px 0 6px">Valfrjálst – línur í tilboðum verkefnisins bætast sjálfkrafa við.</p>`; };
+    return `<label>Þjónusta<select id="${id}">${o.map(([k, l]) => `<option value="${k}"${k === c ? " selected" : ""}>${l}</option>`).join("")}</select></label><p class="hint" style="margin:-4px 0 6px">Valfrjálst – þjónustutegundir lína í tilboðum verkefnisins bætast sjálfkrafa við.</p>`; };
   window.setDeild = v => { try { localStorage.setItem(LSK, v || ""); } catch (e) {} if (typeof render === "function") render(); };
 
   // Val í formum verkefnis (nýtt / breyta)

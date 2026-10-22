@@ -156,10 +156,10 @@ function vVerk(dk){ // dk: deild (Leiga › Verkefni o.s.frv., 2.8.1); án dk: �
   const grp=(t,xs,closed)=>xs.length?(closed?`<details class="grp"><summary class="viewtitle">${esc(t)} · ${xs.length}</summary>${llist(xs.map(row))}</details>`:`<div class="viewtitle">${esc(t)} · ${xs.length}</div>${llist(xs.map(row))}`):"";
   const by=(xs,key,order)=>{const m=new Map(); xs.forEach(p=>{[].concat(key(p)).forEach(k=>{k=k||"Óflokkað"; if(!m.has(k)) m.set(k,[]); m.get(k).push(p);});});
     const ks=[...m.keys()].sort((a,b)=>order?((order.indexOf(a)+1||999)-(order.indexOf(b)+1||999)):a.localeCompare(b,"is")); return ks.map(k=>[k,m.get(k)]);};
-  const PVs=!!window.ORG?.pakkaval, VS=PVs?VSORT.map(x=>x[0]==="thjonusta"?["tegund","Tegund (leiga/sala)"]:x):VSORT; if(PVs&&vSort==="thjonusta") vSort="tegund";
+  const PVs=!!window.ORG?.pakkaval, VS=PVs?VSORT.map(x=>x[0]==="thjonusta"?["tegund","Þjónustu"]:x):VSORT; if(PVs&&vSort==="thjonusta") vSort="tegund";
   let h=`<div class="sortbar"><span>Raða eftir</span><select id="vsort">${VS.map(([k,l])=>`<option value="${k}"${k===vSort?" selected":""}>${l}</option>`).join("")}</select></div>`;
   if(vSort==="stada") h+=STODUR().map(st=>grp(st.falin?"Lokin verkefni":st.n,ps.filter(p=>p.stada===st.n),st.lokid)).join("")+grp("Önnur staða",ps.filter(p=>!STODUR().some(x=>x.n===p.stada)),false);
-  else if(vSort==="tegund") h+=by(act,p=>{const t=window.projTegs?[...projTegs(p)]:[]; return [t.length===2?"Leiga og sala":t[0]==="leiga"?"Leiga":t[0]==="sala"?"Sala":"Ekki skilgreint"];},["Leiga","Sala","Leiga og sala","Ekki skilgreint"]).map(([k,xs])=>grp(k,xs)).join("")+grp("Lokið",done,true);
+  else if(vSort==="tegund") h+=by(act,p=>{const t=window.projTegs?[...projTegs(p)]:[]; return [t.length===2?"Leiga og sala":t[0]==="leiga"?"Leiga":t[0]==="sala"?"Sala":"Þjónusta ekki valin"];},["Leiga","Sala","Leiga og sala","Þjónusta ekki valin"]).map(([k,xs])=>grp(k,xs)).join("")+grp("Lokið",done,true);
   else if(vSort==="thjonusta") h+=by(act,p=>p.thjonusta?.length?p.thjonusta:["Án þjónustu"],THJ()).map(([k,xs])=>grp(k,xs)).join("")+grp("Lokið",done,true);
   else if(vSort==="verkkaupi") h+=by(act,p=>vsName(p)||vkName(p)||"Án viðskiptavinar").map(([k,xs])=>grp(k,xs)).join("")+grp("Lokið",done,true);
   else if(vSort==="starf") h+=by(act,p=>(p.starfsmenn?.length?p.starfsmenn:[ME()]).map(starfName)).map(([k,xs])=>grp(k,xs)).join("")+grp("Lokið",done,true);
