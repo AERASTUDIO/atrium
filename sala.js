@@ -77,23 +77,27 @@
   const vRow = v => lrow("vara:" + v.id, { title: esc(v.heiti) + (v.prufa ? ' <span class="tag">prufa</span>' : "") + (v.listi ? ' <span class="tag">listi</span>' : ""), sub: esc([v.nr, v.flokkur, v.tegund === "pakki" ? "Pakki · " + pakkiTxt(v) : v.tegund === "vinna" ? "Vinna og þjónusta" : (+v.fjoldi ? num(v.fjoldi) + " " + (v.eining || "stk.") + (vDeild(v) === "sala" ? " á lager" : " til") : "")].filter(Boolean).join(" · ")), right: vRight(v) })
     .replace('class="lrow tap"', `class="lrow tap" data-s="${esc((v.heiti + " " + (v.nr || "") + " " + (v.flokkur || "") + " " + (v.lysing || "")).toLowerCase())}"`);
   // Vinna og þjónusta (2.18.3, pakkaval): eigin listi – úr báðum vörulistum (tegund „vinna“); Búnaður og Vörur sýna þá aðeins hluti
+  // Flokkað eftir tegund/flokki (2.19.2): fyrirsögn á hvern flokk þegar „Allir flokkar“ er valið
+  const grpList = (xs, order) => { const fk = [...new Set(xs.map(v => v.flokkur || "Án flokks"))].sort((a, b) => { const i = order.indexOf(a), j = order.indexOf(b); return (i < 0 ? 999 : i) - (j < 0 ? 999 : j) || a.localeCompare(b, "is"); });
+    return fk.length < 2 ? llist(xs.map(vRow)) : fk.map(f => { const ys = xs.filter(v => (v.flokkur || "Án flokks") === f); return `<div class="vgrp"><div class="viewtitle">${esc(f)} · ${ys.length}</div>${llist(ys.map(vRow))}</div>`; }).join(""); };
+  const VFL = ["Tæknifólk", "Uppsetning", "Akstur", "Álag"];
   function vVinna() {
-    const xs = VR().filter(v => v.tegund === "vinna").slice().sort((a, b) => String(a.heiti).localeCompare(String(b.heiti), "is"));
+    const xs = VR().filter(v => v.tegund === "vinna").slice().sort((a, b) => String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }) || String(a.heiti).localeCompare(String(b.heiti), "is"));
     return `<p class="hint" style="margin:16px 0 10px">Vinna og þjónusta sem er seld á tilboðum, t.d. tæknimaður, uppsetning eða akstur – verð á einingu (klst., ferð, km).</p>`
-      + (xs.length ? llist(xs.map(vRow)) : `<div class="empty">Engin vinna eða þjónusta skráð.${MCP ? " Bættu við með „+ Nýtt“." : ""}</div>`);
+      + (xs.length ? grpList(xs, VFL) : `<div class="empty">Engin vinna eða þjónusta skráð.${MCP ? " Bættu við með „+ Nýtt“." : ""}</div>`);
   }
   const vinnaForm = () => { const o = VF.leiga; VF.leiga = "vinna"; varaForm("leiga", null); VF.leiga = o; };
   function vVorur(D) {
-    const all = VRd(D).filter(v => !(PV() && v.tegund === "vinna")), xs = all.filter(vMatch(D)).slice().sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || String(a.heiti).localeCompare(String(b.heiti), "is"));
+    const all = VRd(D).filter(v => !(PV() && v.tegund === "vinna")), xs = all.filter(vMatch(D)).slice().sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }) || String(a.heiti).localeCompare(String(b.heiti), "is"));
     const nPv = VR().filter(v => v.prufa).length, nPt = TB().filter(t => t.prufa).length;
     const fl = FLOKKAR(D).filter(f => all.some(v => v.flokkur === f));
     const tegs = (D === "leiga" ? [["", "Allt"], ["leiga", "Búnaður"], ["pakki", "Pakkar"], ["vinna", "Vinna og þjónusta"]] : [["", "Allt"], ["sala", "Vörur"], ["vinna", "Vinna og þjónusta"]]).filter(([k]) => !(PV() && k === "vinna"));
-    let h = `<div class="chips" style="margin:16px 0 8px">${tegs.map(([k, l]) => chip(`vrf:${D}:${k}`, l, VF[D] === k)).join("")}</div>`;
+    let h = tegs.length > 2 ? `<div class="chips" style="margin:16px 0 8px">${tegs.map(([k, l]) => chip(`vrf:${D}:${k}`, l, VF[D] === k)).join("")}</div>` : `<div style="height:16px"></div>`;
     if (fl.length > 1) h += `<div class="chips" style="margin:0 0 10px">${chip(`vrk:${D}:`, "Allir flokkar", !VK[D])}${fl.map(f => chip(`vrk:${D}:${f}`, f, VK[D] === f)).join("")}</div>`;
     if (all.length) h += `<input type="search" id="vr-q" placeholder="Leita í ${D === "leiga" ? "búnaði" : "vörum"}…" value="${esc(VQ)}" style="margin:0 0 10px" autocomplete="off">`;
     if (!all.length) h += `<div class="empty">${D === "leiga" ? "Búnaðarlisti leigunnar" : "Vörulisti sölunnar"} er tómur.${MCP ? " Bættu við með +." : ""}${MCP && ADM() && !nPv ? `<div class="links" style="margin-top:12px;justify-content:center"><button type="button" class="btn" data-act="vrprufa:inn">Hlaða inn prufugögnum</button></div><p class="hint" style="margin-top:8px">Prufubúnaður og prufutilboð fyrir bæði leigu og sölu (merkt „prufa“) sem má eyða öllum í einu síðar.</p>` : ""}</div>`;
     else if (!xs.length) h += `<div class="empty">Ekkert passar við síuna.</div>`;
-    else h += `<p class="hint" style="margin:0 0 6px" id="vr-n">${xs.length} ${xs.length === 1 ? "lína" : "línur"}</p>` + llist(xs.map(vRow));
+    else h += `<p class="hint" style="margin:0 0 6px" id="vr-n">${xs.length} ${xs.length === 1 ? "lína" : "línur"}</p>` + (VK[D] ? llist(xs.map(vRow)) : grpList(xs, FLOKKAR(D)));
     if (D === "leiga" && window.BUNADARLISTI && MCP && ADM()) { const nL = VR().filter(v => v.listi).length;
       h += `<div class="card" style="margin-top:16px"><div class="sub-i"><span>${nL ? `Staðlaður búnaðarlisti: ${nL} línur (merktar „listi“). Verð og fjöldi eru viðmið – lagaðu að þínu.` : "Staðlaður búnaðarlisti fyrir tækjaleigu: ${BUNADARLISTI.bunadur.length} tæki í ${BUNADARLISTI.flokkar.length} flokkum, ${BUNADARLISTI.pakkar.length} pakkar og ${BUNADARLISTI.vinna.length} liðir í vinnu og þjónustu."}</span>${nL ? `<button type="button" class="btn danger" data-act="vrlisti:ut">Eyða búnaðarlista</button>` : `<button type="button" class="btn" data-act="vrlisti:inn">Hlaða inn búnaðarlista</button>`}</div></div>`; }
     if ((nPv || nPt) && MCP && ADM()) h += `<div class="card" style="margin-top:16px"><div class="sub-i"><span>Prufugögn (leiga og sala): ${nPv} vörur og ${nPt} tilboð merkt „prufa“.</span><button type="button" class="btn danger" data-act="vrprufa:ut">Eyða prufugögnum</button></div></div>`;
@@ -102,6 +106,7 @@
   // Leit án þess að teikna síðuna upp á nýtt (heldur fókus í reitnum)
   document.addEventListener("input", e => { if (e.target?.id !== "vr-q") return; VQ = e.target.value; const q = VQ.trim().toLowerCase(); let n = 0;
     document.querySelectorAll("#view .lrow[data-s]").forEach(r => { const on = !q || q.split(/\s+/).every(w => r.dataset.s.includes(w)); r.style.display = on ? "" : "none"; if (on) n++; });
+    document.querySelectorAll("#view .vgrp").forEach(g => { g.style.display = [...g.querySelectorAll(".lrow[data-s]")].some(r => r.style.display !== "none") ? "" : "none"; });
     const c = document.getElementById("vr-n"); if (c) c.textContent = n + " " + (n === 1 ? "lína" : "línur"); });
 
   window.dVara = function (v) {
@@ -404,10 +409,10 @@
     l("Skjár 55\" á standi", "Skjáir", "leiga", { nr: nr("SK"), leiguverd: 9000, fjoldi: 12 });
     const proj = l("Skjávarpi 10.000 lm með tjaldi", "Skjáir", "leiga", { nr: nr("SK"), leiguverd: 28000, fjoldi: 3 });
     l("Rafmagnsdreifing 63A", "Annað", "leiga", { nr: nr("AN"), leiguverd: 7500, fjoldi: 4 });
-    const tech = l("Hljóðmaður", "Annað", "vinna", { nr: nr("VN"), eining: "klst.", soluverd: 9500 });
-    const ljm = l("Ljósamaður", "Annað", "vinna", { nr: nr("VN"), eining: "klst.", soluverd: 9500 });
-    const upps = l("Uppsetning og niðurtaka", "Annað", "vinna", { nr: nr("VN"), eining: "klst.", soluverd: 7500 });
-    const akst = l("Akstur, sendibíll", "Annað", "vinna", { nr: nr("VN"), eining: "ferð", soluverd: 15000 });
+    const tech = l("Hljóðmaður", "Tæknifólk", "vinna", { nr: nr("VN"), eining: "klst.", soluverd: 9500 });
+    const ljm = l("Ljósamaður", "Tæknifólk", "vinna", { nr: nr("VN"), eining: "klst.", soluverd: 9500 });
+    const upps = l("Uppsetning og niðurtaka", "Uppsetning", "vinna", { nr: nr("VN"), eining: "klst.", soluverd: 7500 });
+    const akst = l("Akstur, sendibíll", "Akstur", "vinna", { nr: nr("VN"), eining: "ferð", soluverd: 15000 });
     l("Hljóðkerfi lítið (allt að 150 manns)", "Hljóð", "pakki", { nr: nr("PK"), leiguverd: 32000, fjoldi: 2, innihald: [{ v: k12.id, m: 2 }, { v: sq5.id, m: 1 }, { v: sm58.id, m: 2 }, { v: ulxd.id, m: 1 }] });
     const pkL = l("Ræðupúltpakki", "Hljóð", "pakki", { nr: nr("PK"), leiguverd: 12000, fjoldi: 3, innihald: [{ v: sm58.id, m: 1 }, { v: k12.id, m: 1 }] });
     // Sala – vörulisti (heildsala og install)
@@ -423,9 +428,9 @@
     const s75 = s("Fagskjár 75\"", "Skjáir", "sala", { nr: nr("SV"), soluverd: 329000, innkaupsverd: 241000, fjoldi: 8 });
     const vegg = s("Veggfesting fyrir skjá", "Uppsetningarefni", "sala", { nr: nr("SV"), soluverd: 24900, innkaupsverd: 12000, fjoldi: 15 });
     const kap = s("Hátalarakapall 2×2,5 mm²", "Uppsetningarefni", "sala", { nr: nr("SV"), eining: "m", soluverd: 690, innkaupsverd: 310, fjoldi: 500 });
-    const uppS = s("Uppsetning (install)", "Annað", "vinna", { nr: nr("VS"), eining: "klst.", soluverd: 11500 });
-    const forr = s("Forritun og stilling", "Annað", "vinna", { nr: nr("VS"), eining: "klst.", soluverd: 14500 });
-    const akS = s("Akstur", "Annað", "vinna", { nr: nr("VS"), eining: "ferð", soluverd: 15000 });
+    const uppS = s("Uppsetning (install)", "Uppsetning", "vinna", { nr: nr("VS"), eining: "klst.", soluverd: 11500 });
+    const forr = s("Forritun og stilling", "Tæknifólk", "vinna", { nr: nr("VS"), eining: "klst.", soluverd: 14500 });
+    const akS = PV() ? akst : s("Akstur", "Akstur", "vinna", { nr: nr("VS"), eining: "ferð", soluverd: 15000 }); // pakkaval: ein vinnuskrá, enginn tvítekinn akstur
     const CL = cls || S?.vidskiptavinir || [], cl = CL[0] || null, cl2 = CL[1] || cl;
     const day = off => { const x = new Date(); x.setDate(x.getDate() + off); return isoDay(x); };
     const tb = (deild, nr, o, items) => { const T = { id: gid(), nr, deild, vskId: null, vidskiptavinur: null, tengilidur: null, netfang: null, stadsetning: null, fra: null, til: null, gildir: day(14), dags: day(-2), stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, verkefniId: null, prufa: true, ...o };
@@ -451,7 +456,7 @@
     const ein = h => /á m²/.test(h) ? "m²" : /\(á m\)/.test(h) ? "m" : "stk.";
     const add = o => { if (til.has(o.nr)) return null; const v = { id: gid(), deild: "leiga", eining: "stk.", leiguverd: 0, soluverd: 0, innkaupsverd: 0, fjoldi: 0, lysing: null, innihald: [], listi: true, ...o }; V.push(v); byNr[o.nr] = v; return v; };
     L.bunadur.forEach(([nr, heiti, flokkur, verd, fjoldi, lysing]) => add({ nr, heiti, flokkur, tegund: "leiga", eining: ein(heiti), leiguverd: verd, fjoldi, lysing }));
-    L.vinna.forEach(([nr, heiti, eining, verd, lysing]) => add({ nr, heiti, flokkur: "Vinna og þjónusta", tegund: "vinna", eining, soluverd: verd, lysing }));
+    L.vinna.forEach(([nr, heiti, eining, verd, lysing, flokkur]) => add({ nr, heiti, flokkur: flokkur || "Tæknifólk", tegund: "vinna", eining, soluverd: verd, lysing }));
     L.pakkar.forEach(([nr, heiti, verd, lysing, inn]) => add({ nr, heiti, flokkur: "Pakkar", tegund: "pakki", leiguverd: verd, fjoldi: 2, lysing,
       innihald: inn.map(([n, m]) => ({ v: (byNr[n] || VR().find(x => x.nr === n) || {}).id, m })).filter(x => x.v) }));
     return { vorur: V, flokkar: ["Pakkar", ...L.flokkar] };

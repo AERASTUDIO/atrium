@@ -1,6 +1,6 @@
 /* Staðlaður búnaðarlisti fyrir tækjaleigu (frá 2.19.0) – almennur upphafslisti sem admin getur hlaðið inn í Búnað
    (Búnaður › „Hlaða inn búnaðarlista“) og lagað að sínu: verð, fjöldi og lýsingar eru dæmigerð viðmið, án VSK, á dag.
-   Engin fyrirtækjagögn. Línur: [nr, heiti, flokkur, verð á dag, fjöldi, lýsing]; vinna: [nr, heiti, eining, verð, lýsing];
+   Engin fyrirtækjagögn. Línur: [nr, heiti, flokkur, verð á dag, fjöldi, lýsing]; vinna: [nr, heiti, eining, verð, lýsing, flokkur];
    pakkar: [nr, heiti, verð á dag, lýsing, [[nr, magn], …]]. */
 (function () {
   const F = ["Hljóðkerfi", "Hljóðnemar", "Hljóðblöndun", "Ljós", "Ljósastýring og effektar", "LED-skjáir", "Sjónvörp og skjávarpar", "Myndbúnaður og streymi", "Svið og truss", "Rafmagn og snúrur", "Fjarskipti", "Viðburðabúnaður"];
@@ -101,16 +101,16 @@
     ["X-1205", "Upplýstir stafir (á staf)", "Viðburðabúnaður", 3000, 20, "1,2 m háir LED-stafir – t.d. LOVE eða nafn fyrirtækis."]
   ];
   const V = [
-    ["W-01", "Hljóðmaður", "klst.", 9500, "Hljóðmaður sér um uppsetningu og hljóðblöndun á viðburði."],
-    ["W-02", "Ljósamaður", "klst.", 9500, "Ljósamaður hannar og stýrir ljósum á viðburði."],
-    ["W-03", "Myndtæknimaður / streymi", "klst.", 10500, "Myndavélar, myndblöndun og streymi."],
-    ["W-04", "Tæknimaður (almennur)", "klst.", 8500, "Aðstoð á viðburði, umsjón búnaðar."],
-    ["W-05", "Uppsetning og niðurtaka", "klst.", 7500, "Uppsetning búnaðar fyrir viðburð og frágangur á eftir."],
-    ["W-06", "Verkstjórn tæknimála (production manager)", "klst.", 12000, "Skipulag og stjórn tæknihliðar viðburðar."],
-    ["W-07", "Akstur – sendibíll", "ferð", 15000, "Flutningur búnaðar innan höfuðborgarsvæðis, hvor leið."],
-    ["W-08", "Akstur – vörubíll", "ferð", 28000, "Flutningur stærri kerfa (svið, LED-veggur)."],
-    ["W-09", "Akstur utan höfuðborgarsvæðis", "km", 250, "Hver ekinn km utan höfuðborgarsvæðis."],
-    ["W-10", "Næturvinna / helgarálag", "klst.", 4000, "Álag ofan á tímagjald utan dagvinnu."]
+    ["W-01", "Hljóðmaður", "klst.", 9500, "Hljóðmaður sér um uppsetningu og hljóðblöndun á viðburði.", "Tæknifólk"],
+    ["W-02", "Ljósamaður", "klst.", 9500, "Ljósamaður hannar og stýrir ljósum á viðburði.", "Tæknifólk"],
+    ["W-03", "Myndtæknimaður / streymi", "klst.", 10500, "Myndavélar, myndblöndun og streymi.", "Tæknifólk"],
+    ["W-04", "Tæknimaður (almennur)", "klst.", 8500, "Aðstoð á viðburði, umsjón búnaðar.", "Tæknifólk"],
+    ["W-05", "Uppsetning og niðurtaka", "klst.", 7500, "Uppsetning búnaðar fyrir viðburð og frágangur á eftir.", "Uppsetning"],
+    ["W-06", "Verkstjórn tæknimála (production manager)", "klst.", 12000, "Skipulag og stjórn tæknihliðar viðburðar.", "Tæknifólk"],
+    ["W-07", "Akstur – sendibíll", "ferð", 15000, "Flutningur búnaðar innan höfuðborgarsvæðis, hvor leið.", "Akstur"],
+    ["W-08", "Akstur – vörubíll", "ferð", 28000, "Flutningur stærri kerfa (svið, LED-veggur).", "Akstur"],
+    ["W-09", "Akstur utan höfuðborgarsvæðis", "km", 250, "Hver ekinn km utan höfuðborgarsvæðis.", "Akstur"],
+    ["W-10", "Næturvinna / helgarálag", "klst.", 4000, "Álag ofan á tímagjald utan dagvinnu.", "Álag"]
   ];
   const P = [
     ["P-01", "Fundapakki – lítill", 12000, "Fyrir fundi og kynningar allt að 60 manns.", [["H-101", 2], ["H-107", 2], ["N-203", 2], ["M-301", 1], ["T-705", 1], ["T-707", 1], ["T-709", 1]]],
