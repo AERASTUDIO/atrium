@@ -668,3 +668,15 @@ table.utl{border-collapse:collapse;width:100%;font-size:13px}
   body.pv .tbar .tab .tl{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 }
 .utl-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* Smáatriði (2.21.1) */
+label.chk{flex-direction:row;justify-content:flex-start;align-items:center}
+label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0;margin:0}
+@media (min-width:1024px){body.pv .mgrid{display:none}}
+@media (max-width:640px){
+  .h2tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .h2tile{padding:12px 14px;gap:3px}
+  .h2tile .h2tag{display:none}
+  .h2tile .h2tt{font-size:12px;white-space:normal}
+  .h2tile .h2v{font-size:22px}
+  .h2tile small{font-size:11.5px}
+}

@@ -93,6 +93,9 @@
   const arekHTML = T => { const a = arekstrar(T); if (!a.length) return "";
     return `<div class="card arek"><b>⚠ Búnaður ekki laus ${esc(dRange(T))}</b>${a.map(x => `<div class="arek-r"><span><b>${esc(x.v.heiti)}</b>: ${esc(fx(x.need))} ${isP(T) ? "í pöntuninni" : "á tilboðinu"} – ${x.laus ? "aðeins " + esc(fx(x.laus)) + " laus" : "ekkert laust"} af ${esc(fx(x.fj))}</span>${x.docs.length ? `<span class="ls">Frátekið í ${x.docs.map(D => `<a class="plink" data-open="tb:${esc(D.id)}">${esc(D.nr)}</a> ${esc(D.heiti || D.vidskiptavinur || "")} (${esc(dRange(D))})`).join(", ")}</span>` : ""}</div>`).join("")}</div>`; };
   const arekTxt = T => arekstrar(T).map(x => `• ${x.v.heiti}: ${fx(x.need)} þarf, ${fx(x.laus)} laus af ${fx(x.fj)}${x.docs.length ? " (frátekið í " + x.docs.map(D => D.nr).join(", ") + ")" : ""}`).join("\n");
+  // Fyrir Heim (2.21.1): skjöl sem taka frá búnað (samþykkt tilboð, opnar pantanir) og opnar pantanir
+  window.utlDocs = () => [...new Map(bokanir().map(b => [b.T.id, b.T])).values()].map(T => ({ T, fra: T.fra, til: tilOf(T), nr: T.nr, heiti: T.heiti || T.vidskiptavinur || "", vsk: T.vidskiptavinur || T.tengilidur || "", P: isP(T) }));
+  window.pnOpnar = () => PNON() ? PN().filter(P => !["Skilað", "Lokið"].includes(P.stada)) : [];
   // Laust á tímabili skjals (fyrir valglugga): pakki = hve margir heilir pakkar
   const lausFyrir = (v, T) => { if (!T?.fra || vDeild(v) !== "leiga" || v.tegund === "vinna") return null; const til = tilOf(T), mine = tharfir(T);
     const one = (id, per) => { const x = findV(id); if (!x) return 0; return Math.floor((Math.max(0, (+x.fjoldi || 0) - upptekid(id, T.fra, til, T.id).max - (mine[id] || 0))) / (per || 1)); };
@@ -303,9 +306,9 @@
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
   }
   const PF = { s: "opnar", u: "" };
-  function pnRow(P) { const t = totals(P), ar = blokkar(P) && arekstrar(P).length;
+  function pnRow(P, flokkad) { const t = totals(P), ar = blokkar(P) && arekstrar(P).length;
     return lrow("tb:" + P.id, { title: `<span class="nr">${esc(P.nr)}</span>&nbsp; ` + esc(P.vidskiptavinur || P.tengilidur || "Án viðskiptavinar") + (P.heiti && P.heiti !== "Pöntun" ? " · " + esc(P.heiti) : "") + (P.prufa ? ' <span class="tag">prufa</span>' : ""),
-      sub: esc([dRange(P), UPL(P.uppruni), P.ytriNr ? "#" + P.ytriNr : ""].filter(Boolean).join(" · ")) + (ar ? ' · <span class="arek-t">⚠ búnaður ekki laus</span>' : ""), right: `<span class="pill ${STCOL(P)}">${esc(P.stada)}</span><span class="lc">${esc(krs(t.net))}</span>` }); }
+      sub: esc([dRange(P), UPL(P.uppruni), P.ytriNr ? "#" + P.ytriNr : ""].filter(Boolean).join(" · ")) + (ar ? ' · <span class="arek-t">⚠ búnaður ekki laus</span>' : ""), right: `${flokkad ? "" : `<span class="pill ${STCOL(P)}">${esc(P.stada)}</span>`}<span class="lc">${esc(krs(t.net))}</span>` }); }
   function vPantanir() {
     const all = PN(), idag = isoDay(new Date());
     const xs = all.filter(P => (PF.s === "opnar" ? !["Skilað", "Lokið"].includes(P.stada) : !PF.s || P.stada === PF.s) && (!PF.u || P.uppruni === PF.u))
@@ -315,7 +318,7 @@
     if (all.length) h += `<div class="kpis"><div class="card"><b>${afh.length}</b><span>afhendingar í dag</span></div><div class="card"><b>${skil.length}</b><span>skil í dag eða seint</span></div><div class="card"><b>${uti.length}</b><span>úti núna</span></div></div>`;
     if (!all.length) return h + `<div class="empty">Engar pantanir ennþá.${MCP ? " Skráðu pöntun með + – t.d. þegar viðskiptavinur hringir og vantar einn hljóðnema." : ""}</div>`;
     if (!xs.length) return h + `<div class="empty">Engar pantanir passa við síuna.</div>`;
-    return h + PSTADA.map(st => { const ys = xs.filter(P => P.stada === st); return ys.length ? `<div class="viewtitle">${esc(st)} · ${ys.length}</div>${llist(ys.map(pnRow))}` : ""; }).join("");
+    return h + PSTADA.map(st => { const ys = xs.filter(P => P.stada === st); return ys.length ? `<div class="viewtitle">${esc(st)} · ${ys.length}</div>${llist(ys.map(P => pnRow(P, true)))}` : ""; }).join("");
   }
   window.pnFor = pred => { if (!PNON()) return ""; const xs = PN().filter(pred).sort((a, b) => String(b.fra || "").localeCompare(String(a.fra || ""))); return xs.length ? `<div class="viewtitle">Pantanir · ${xs.length}</div>${llist(xs.map(pnRow))}` : ""; };
 
