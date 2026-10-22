@@ -125,9 +125,15 @@ function drawMenu(){
   const cur=secOf(tab), c=secCounts();
   const html=(cls)=>SECTIONS.filter(x=>!(cls&&x.nobar)).map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
   // Tölva (2.14.0, ORG.pakkaval): hliðarvalmyndin flokkuð í Kjarna, Pakka og Tengingar
-  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",dagatal:"Pakkar",timar:"Pakkar",tilbod:"Pakkar",bunadur:"Pakkar",fjarmal:"Pakkar",skjol:"Tengingar",postur:"Tengingar"}; let last=null;
-    return SECTIONS.map(x=>{const g=G[x.k]||""; const hd=g&&g!==last?`<div class="sgrp" role="presentation">${g}</div>`:g?"":'<div class="sgrp" role="presentation"></div>'; last=g;
+  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",dagatal:"Pakkar",timar:"Pakkar",tilbod:"Pakkar",bunadur:"Pakkar",fjarmal:"Pakkar",skjol:"Tengingar",postur:"Tengingar",spjall:"Tengingar"}; let last=null;
+    // Neðst (2.15.1): Stillingar og notandinn – ekkert annað í hliðarstikunni (klukka, Í dag o.fl. falið með body.pv)
+    let ft=document.getElementById("sfoot2"); if(!ft){ft=document.createElement("div"); ft.id="sfoot2"; const sf=document.querySelector(".side .sfoot"); sf?.parentNode.insertBefore(ft,sf);}
+    const U=window.USER, ini=(U?.sk||String(U?.nafn||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2)).toUpperCase(), stc=tab==="stillingar", mec=cur?.k==="meira"&&!stc;
+    ft.innerHTML=`<button type="button" class="tab" data-tab="stillingar"${stc?' aria-current="page"':""} aria-label="Stillingar">${TABDEF.find(t=>t[0]==="stillingar")[2]}<span class="tl">Stillingar</span></button>`+(U?`<button type="button" class="tab sfu" data-tab="meira"${mec?' aria-current="page"':""} aria-label="Notandi og innskráning"><span class="sfav" aria-hidden="true">${esc(ini)}</span><span class="sfn"><span>${esc(U.nafn||U.email||"")}</span><small>${esc(window.ROLES?.[U.hlutverk]?.heiti||U.hlutverk||"")}</small></span></button>`:"");
+    if(!ft._l){ft._l=1; ft.addEventListener("click",e=>pickTab(e));}
+    return SECTIONS.filter(x=>x.k!=="meira").map(x=>{const g=G[x.k]||""; const hd=g&&g!==last?`<div class="sgrp" role="presentation">${g}</div>`:g?"":'<div class="sgrp" role="presentation"></div>'; last=g;
       return hd+`<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`;}).join("");};
+  document.body.classList.toggle("pv",!!window.ORG?.pakkaval);
   sideExtra(); document.getElementById("sitems").innerHTML=side(); document.getElementById("tbar").innerHTML=html(" tb");
   const av=document.getElementById("avbtn"); if(av){const U=window.USER; av.textContent=(U?.sk||String(U?.nafn||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2)).toUpperCase(); av.setAttribute("aria-current",cur?.k==="meira"?"page":"false"); av.hidden=!U;}
 }

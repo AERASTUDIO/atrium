@@ -526,3 +526,25 @@ body.hasdock .fab{bottom:calc(132px + env(safe-area-inset-bottom,0px))}
 .h2tile .h2tt{font-size:13px;color:var(--muted);white-space:nowrap;margin-right:auto}
 .h2tile .h2v{font-size:28px;font-weight:300;font-variant-numeric:tabular-nums}
 .h2tile small{font-size:12px;color:var(--muted)}
+
+/* ---------- Tölva með pakkavali (body.pv, 2.15.1 – tillaga E1): hrein hliðarstika, valið dökkt, Stillingar og notandi neðst ---------- */
+@media (min-width:1024px){
+  body.pv .side{background:var(--raise);gap:10px}
+  body.pv #sextra,body.pv .side .sfoot{display:none}
+  body.pv .side .tab[aria-current="page"]{background:var(--ink);color:var(--bg);font-weight:500}
+  body.pv .side .tab[aria-current="page"] svg{color:var(--bg)}
+  body.pv .side .tab:not([aria-current="page"]):hover{background:var(--hover)}
+  body.pv #sfoot2{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+  body.pv #sfoot2 .tab{padding:10px 12px;font-size:15px}
+  body.pv .sfu{gap:10px}
+  body.pv .sfav{flex:none;width:30px;height:30px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500}
+  body.pv .sfu[aria-current="page"] .sfav{background:var(--bg);color:var(--ink)}
+  body.pv .sfn{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;min-width:0}
+  body.pv .sfn span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+  body.pv .sfn small{font-size:12px;opacity:.7}
+  body.pv .card{background:var(--raise2)}
+  body.pv .side .tab .tc{display:inline-block;margin-left:auto;font-size:11px;line-height:1.6;padding:0 8px;border-radius:999px;background:var(--line);color:var(--muted);font-weight:400}
+  body.pv .side .tab .tc:empty{display:none}
+  body.pv .side .tab[aria-current="page"] .tc{background:rgba(127,127,127,.35);color:var(--bg)}
+}
+body:not(.pv) #sfoot2{display:none}

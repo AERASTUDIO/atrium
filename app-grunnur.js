@@ -55,7 +55,10 @@ if(window.ORG?.pakkaval){const by=k=>SECTIONS_ALL.find(x=>x.k===k), L=by("leiga"
     {k:"bunadur",l:"Búnaður",ic:L.ic,tabs:[["lvorur","Búnaður"],["svorur","Vörur"]]},
     {k:"fjarmal",l:"Reikningar",ic:IC('<rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M3.5 10h17M7 14.5h3"/>'),tabs:[["trk","Reikningar"]]}];
   [L,Sa].forEach(x=>SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(x),1));
-  SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(T)+1,0,...nyir);}
+  SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(T)+1,0,...nyir);
+  // Tengingar (2.15.1): Samskipti skiptist í Póst og Spjall, eins og tengingarnar í Stillingum › Einingar
+  const P=by("postur"); P.l="Póstur"; P.ic=TABDEF.find(t=>t[0]==="postur")[2]; const sp=P.tabs.filter(t=>t[0]!=="postur"); P.tabs=P.tabs.filter(t=>t[0]==="postur");
+  SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(P)+1,0,{k:"spjall",l:"Spjall",ic:IC('<path d="M4 5.5h16v10H9l-4.5 3.5v-3.5H4z"/>'),tabs:sp});}
 // Einingar (kjarni.js): flipar og hlutar sem eru ekki virkir hjá þessari uppsetningu eru faldir. Endurreiknað þegar stillingin breytist.
 const SECTIONS=[], TABS=[]; let _einSig=null;
 function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return false; _einSig=sg;

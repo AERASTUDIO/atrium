@@ -23,7 +23,7 @@
       rows.sort((a, b) => String(a.t || "99").localeCompare(String(b.t || "99"))); }
     const kl = k
       ? `<div class="h2klukka"><div><div class="h2ks">Klukka í gangi · ${esc([findProj(k.pid)?.nr, findProj(k.pid)?.stutt].filter(Boolean).join(" "))}</div><b class="kt" data-start="${esc(k.start)}">${elapsed(k)}</b></div><button type="button" class="btn" onclick="stopKlukka()">Stoppa og skrá</button></div>`
-      : (MCP && ON("timar") ? `<button type="button" class="btn h2start" onclick="kind='tima';PREFILL={timer:true};openSheet()">▶ Byrja klukku</button>` : "");
+      : (MCP && ON("timar") ? `<div class="h2klukka"><div><div class="h2ks">Engin klukka í gangi</div><b>0:00:00</b></div><button type="button" class="btn" onclick="kind='tima';PREFILL={timer:true};openSheet()">▶ Byrja klukku</button></div>` : "");
     const tl = rows.length
       ? rows.map(r => `<a class="h2tl" ${r.attr}><span class="h2t">${esc(r.t || "")}</span><span class="h2b" style="border-color:${r.c}"><span class="h2bt"><b>${esc(r.title)}</b><small>${esc(r.sub)}</small></span>${r.now ? '<span class="h2now">Núna</span>' : ""}</span></a>`).join("")
       : `<p class="hint" style="margin:6px 0 0">Ekkert á dagskrá í dag.</p>`;
