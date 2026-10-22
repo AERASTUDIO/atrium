@@ -259,7 +259,7 @@
       ${L ? `<div class="two"><label>Frá<input data-h="fra" type="date" value="${esc(T.fra || "")}"></label><label>Til<input data-h="til" type="date" value="${esc(T.til || "")}"></label></div>
       <p class="hint" id="tb-dg" style="margin:-4px 0 8px">${dagTxt(T)}</p>` : `<label>Áætluð afhending<input data-h="fra" type="date" value="${esc(T.fra || "")}"></label>`}
       <div class="viewtitle">Línur</div>
-      <div class="links" style="margin:0 0 10px">${isMix(T) ? `<button type="button" class="btn primary" data-act="tbl:thj">+ Þjónusta</button><button type="button" class="btn primary" data-act="tbl:pick">+ Búnaður eða vara</button>` : `<button type="button" class="btn primary" data-act="tbl:pick">+ Úr ${L ? "búnaðarlista" : "vörulista"}</button>`}<button type="button" class="btn" data-act="tbl:custom">+ Sérlína</button></div>
+      <div class="links" style="margin:0 0 10px">${isMix(T) ? `<button type="button" class="btn primary" data-act="tbl:thj">+ Vinna og þjónusta</button><button type="button" class="btn primary" data-act="tbl:pick">+ Búnaður eða vara</button>` : `<button type="button" class="btn primary" data-act="tbl:pick">+ Úr ${L ? "búnaðarlista" : "vörulista"}</button>`}<button type="button" class="btn" data-act="tbl:custom">+ Sérlína</button></div>
       <div id="tb-tab">${tbTableHTML(T, true)}</div>
       <div class="two" style="margin-top:12px"><label>Afsláttur á tilboð (%)<input data-h="afsl" inputmode="decimal" value="${+T.afsl ? esc(fx(T.afsl)) : ""}" placeholder="0"></label><label>Gildir til<input data-h="gildir" type="date" value="${esc(T.gildir || "")}"></label></div>
       <label>Athugasemd á tilboði<textarea data-h="athugasemd" placeholder="Birtist á tilboðinu">${esc(T.athugasemd || "")}</textarea></label>
@@ -299,7 +299,7 @@
 
   // Velja úr vörulista deildarinnar: sheet með leit og flokkum; hver smellur bætir línu við drögin
   function picker() {
-    const D = tDeild(EDT), src = () => isMix(EDT) ? VR() : VRd(D);
+    const D = tDeild(EDT), src = () => isMix(EDT) ? VR().filter(v => v.tegund !== "vinna") : VRd(D);
     let pf = "", pq = ""; const draw = () => {
       const xs = src().filter(v => (!pf || (pf === "_vinna" ? v.tegund === "vinna" : v.flokkur === pf && v.tegund !== "vinna")) && (!pq || (v.heiti + " " + (v.nr || "")).toLowerCase().includes(pq))).sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || a.heiti.localeCompare(b.heiti, "is"));
       document.getElementById("pk-list").innerHTML = xs.length ? xs.map(v => { const n = (EDT.linur || []).filter(l => l.v === v.id).reduce((a, l) => a + (+l.magn || 0), 0);
@@ -320,13 +320,15 @@
 
   // Þjónusta á tilboð (2.17.0): liðir verðskrár (ef virk) eða þjónusta fyrirtækisins á tímagjaldi
   function thjPicker() {
+    // Einn listi (2.18.4): „Vinna og þjónusta“ (vörur af tegund vinna) – ef hann er tómur: verðskrá eða þjónusta á tímagjaldi
+    const vv = VR().filter(v => v.tegund === "vinna").sort((a, b) => String(a.heiti).localeCompare(String(b.heiti), "is"));
     const vl = window.ON && ON("verdskra") && window.VERD ? (VERD().lidir || []) : [], tg = +(CFG().reikn?.timagjald) || 0;
-    const items = vl.length ? vl.map(x => ({ heiti: x.heiti, verd: +x.verd || 0 })) : THJ().map(t => ({ heiti: t, verd: tg }));
-    sheet.innerHTML = `<h3 id="sheet-h">Bæta við þjónustu</h3><div class="llist" id="tj-list">${items.map((x, i) => `<button type="button" class="lrow tap" data-tj="${i}" style="width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit"><div class="lm"><div class="lt">${esc(x.heiti)}</div><div class="ls">${x.verd ? esc(krs(x.verd)) + "/klst." : "Verð skráð á tilboðinu"}</div></div></button>`).join("")}</div>
-      <p class="hint" style="margin-top:8px">Línan fær 1 klst. – breyttu fjölda tíma og verði á tilboðinu.${vl.length ? "" : " Tímagjald kemur úr Stillingum › Reikningar."}</p><div class="actions"><button type="button" class="btn primary" id="tj-done">Lokið</button></div>`;
+    const items = vv.length ? vv.map(v => ({ v: v.id, heiti: v.heiti, verd: +v.soluverd || 0, ein: v.eining || "klst." })) : vl.length ? vl.map(x => ({ heiti: x.heiti, verd: +x.verd || 0, ein: "klst." })) : THJ().map(t => ({ heiti: t, verd: tg, ein: "klst." }));
+    sheet.innerHTML = `<h3 id="sheet-h">Bæta við þjónustu</h3><div class="llist" id="tj-list">${items.map((x, i) => `<button type="button" class="lrow tap" data-tj="${i}" style="width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit"><div class="lm"><div class="lt">${esc(x.heiti)}</div><div class="ls">${x.verd ? esc(krs(x.verd)) + "/" + esc(String(x.ein || "klst.").replace(/\.$/, "")) : "Verð skráð á tilboðinu"}</div></div></button>`).join("")}</div>
+      <p class="hint" style="margin-top:8px">Línan fær 1 ${vv.length ? "einingu" : "klst."} – breyttu magni og verði á tilboðinu.${vv.length ? "" : " Skráðu vinnu og þjónustu með verði undir Búnaður › Vinna og þjónusta, þá birtist hún hér."}</p><div class="actions"><button type="button" class="btn primary" id="tj-done">Lokið</button></div>`;
     sheetwrap.hidden = false;
     document.getElementById("tj-list").onclick = e => { const b = e.target.closest("[data-tj]"); if (!b) return; const x = items[+b.dataset.tj];
-      (EDT.linur = EDT.linur || []).push({ id: gid(), v: null, heiti: x.heiti, teg: "vinna", hl: "Þjónusta", magn: 1, ein: "klst.", verd: x.verd, dagar: null, afsl: 0 }); toast(x.heiti + " bætt við"); };
+      (EDT.linur = EDT.linur || []).push({ id: gid(), v: x.v || null, heiti: x.heiti, teg: "vinna", hl: "Vinna og þjónusta", magn: 1, ein: x.ein || "klst.", verd: x.verd, dagar: null, afsl: 0 }); toast(x.heiti + " bætt við"); };
     document.getElementById("tj-done").onclick = () => { sheetwrap.hidden = true; render(); };
   }
 
