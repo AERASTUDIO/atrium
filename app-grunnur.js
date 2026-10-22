@@ -45,6 +45,17 @@ const SECTIONS_ALL=[
   {k:"skjol",l:"Skjöl",ic:TABDEF.find(t=>t[0]==="skjol")[2],tabs:[["skjolmin","Mín skjöl"],["skjol","Fyrirtækið"],["skjolnyl","Nýlegt"]]},
   {k:"postur",l:"Samskipti",ic:IC('<path d="M4 5.5h11a1.5 1.5 0 0 1 1.5 1.5v6.5A1.5 1.5 0 0 1 15 15H9l-4 3.5V15H4a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 4 5.5z"/><path d="M16.5 9H20a1.5 1.5 0 0 1 1.5 1.5V17a1.5 1.5 0 0 1-1.5 1.5h-1V21l-3.5-2.5H11a1.5 1.5 0 0 1-1.5-1.5v-.5"/>'),tabs:[["postur","Póstur"],["spjall","Spjall"],["teymi","Samstarfsfólk"]]},
   {k:"meira",l:"Meira",ic:IC('<circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>'),tabs:[["meira","Meira"],["stillingar","Stillingar",1]],nobar:1}]; // Meira: í hliðarstiku og sem prófílhnappur í haus (ekki í neðri stiku síma)
+// Pakkaval (2.14.2, ORG.pakkaval – fyrst í dev/): valmyndin fylgir pökkunum – Leiga og Sala hverfa sem hlutar og verða
+// Tilboð (leigu- og sölutilboð) og Búnaður (búnaður og vörur); Reikningar fá eigin hluta (Fjármál). Gögnin breytast ekki.
+if(window.ORG?.pakkaval){const by=k=>SECTIONS_ALL.find(x=>x.k===k), L=by("leiga"), Sa=by("sala"), T=by("timar"), V=by("verkefni");
+  V.tabs=V.tabs.filter(t=>!["lverk","sverk"].includes(t[0]));
+  T.tabs=T.tabs.filter(t=>t[0]!=="trk");
+  const nyir=[
+    {k:"tilbod",l:"Tilboð",ic:IC('<path d="M6 3.5h9l3.5 3.5v13.5H6z"/><path d="M9 11h6M9 14.5h6M9 7.5h3"/>'),tabs:[["ltilbod","Leigutilboð"],["stilbod","Sölutilboð"]]},
+    {k:"bunadur",l:"Búnaður",ic:L.ic,tabs:[["lvorur","Búnaður"],["svorur","Vörur"]]},
+    {k:"fjarmal",l:"Reikningar",ic:IC('<rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M3.5 10h17M7 14.5h3"/>'),tabs:[["trk","Reikningar"]]}];
+  [L,Sa].forEach(x=>SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(x),1));
+  SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(T)+1,0,...nyir);}
 // Einingar (kjarni.js): flipar og hlutar sem eru ekki virkir hjá þessari uppsetningu eru faldir. Endurreiknað þegar stillingin breytist.
 const SECTIONS=[], TABS=[]; let _einSig=null;
 function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return false; _einSig=sg;

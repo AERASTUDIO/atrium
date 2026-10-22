@@ -125,7 +125,7 @@ function drawMenu(){
   const cur=secOf(tab), c=secCounts();
   const html=(cls)=>SECTIONS.filter(x=>!(cls&&x.nobar)).map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
   // Tölva (2.14.0, ORG.pakkaval): hliðarvalmyndin flokkuð í Kjarna, Pakka og Tengingar
-  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",leiga:"Pakkar",sala:"Pakkar",dagatal:"Pakkar",timar:"Pakkar",skjol:"Tengingar",postur:"Tengingar"}; let last=null;
+  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",dagatal:"Pakkar",timar:"Pakkar",tilbod:"Pakkar",bunadur:"Pakkar",fjarmal:"Pakkar",skjol:"Tengingar",postur:"Tengingar"}; let last=null;
     return SECTIONS.map(x=>{const g=G[x.k]||""; const hd=g&&g!==last?`<div class="sgrp" role="presentation">${g}</div>`:g?"":'<div class="sgrp" role="presentation"></div>'; last=g;
       return hd+`<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`;}).join("");};
   sideExtra(); document.getElementById("sitems").innerHTML=side(); document.getElementById("tbar").innerHTML=html(" tb");
