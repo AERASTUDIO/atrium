@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Atrium – þróunaruppsetning (Firebase-verkefnið atrium-499a2). Afrit; virku reglurnar eru í Firebase Console › Firestore › Rules.
+    // Innskráning með Microsoft-aðgangi AERA (@aerastudio.is, fyrsti admin dagur@aerastudio.is).
+    // Notendaskráin er í app/notendur: { notendur: { "<netfang>": { nafn, sk, hlutverk: "admin"|"bokari"|"starfsmadur", virkur } } }
+
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
+    function em() { return request.auth.token.email.lower(); }
+    function provider() { return request.auth.token.firebase.sign_in_provider; }
+
+    // Starfsmenn: Microsoft-aðgangur @aerastudio.is.
+    function msUser() { return signedIn() && provider() == "microsoft.com" && em().matches(".*@aerastudio[.]is"); }
+    // Google-varaleiðin var lögð niður 18.10.2026 (1.6.1). Aðeins Microsoft-aðgangar fyrirtækisins komast inn.
+    function legacy() { return false; }
+    // Fyrsti admin (fyrirtaeki.js) má stofna notendaskrána ef hún er ekki til – aðeins við nýja uppsetningu.
+    function firstAdmin() { return msUser() && em() == "dagur@aerastudio.is"; }
+
+    function usersDoc() { return /databases/$(database)/documents/app/notendur; }
+    function users() { return get(usersDoc()).data.notendur; }
+    function active() { return legacy() || (msUser() && exists(usersDoc()) && em() in users() && users()[em()].virkur == true); }
+    function admin() { return legacy() || (active() && users()[em()].hlutverk == "admin"); }
+
+    // Notendaskrá: virkir notendur lesa; aðeins admin breytir.
+    // Undantekning: notandi má skrá síðustu innskráningu sína (sidast) og ekkert annað.
+    match /app/notendur {
+      allow read: if active();
+      allow create: if admin() || (firstAdmin() && !exists(usersDoc()));
+      allow update: if admin() || (active()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["notendur"])
+        && request.resource.data.notendur.diff(resource.data.notendur).affectedKeys().hasOnly([em()])
+        && request.resource.data.notendur[em()].diff(resource.data.notendur[em()]).affectedKeys().hasOnly(["sidast"]));
+      allow delete: if false;
+    }
+
+    function role() { return legacy() ? "admin" : users()[em()].hlutverk; }
+    // Fjármál: admin og bókari – búa til reikninga og sjá tíma og kostnað allra.
+    function fjarmal() { return active() && (legacy() || role() in ["admin", "bokari"]); }
+
+    // app/state: stillingar, samtölur, netfangaskrá o.fl. (afgangurinn eftir skiptingu í söfn, frá 1.3.0).
+    // Eftir flutning (skipting = 2) má ekki skrifa gömlu fylkin aftur inn – gamlar útgáfur appsins fá villu í stað þess að skrifa yfir.
+    match /app/state {
+      allow read: if active();
+      allow write: if active() && !(resource != null && resource.data.get("skipting", 0) >= 2
+        && (request.resource.data.keys().hasAny(["verkefni", "vidskiptavinir", "fundir", "skjol", "thraedir", "reikningar", "kostnadur", "klukka", "vorur", "tilbod"])
+            || request.resource.data.get("timar", {}).keys().hasAny(["faerslur", "nyjast"])));
+    }
+    match /app/skrar {
+      allow read, write: if active();
+    }
+
+    // Sameiginleg söfn: allir virkir notendur lesa og skrifa.
+    // Verkefnum og viðskiptavinum getur aðeins admin eytt (frá 1.9.0).
+    match /verkefni/{id}       { allow read, create, update: if active(); allow delete: if admin(); }
+    match /vidskiptavinir/{id} { allow read, create, update: if active(); allow delete: if admin(); }
+    match /fundir/{id}         { allow read, write: if active(); }
+    match /skjol/{id}          { allow read, write: if active(); }
+    match /thraedir/{id}       { allow read, write: if active(); }
+    // Vörulisti og tilboð (frá 2.4.0): allir virkir notendur lesa og skrifa; aðeins admin eyðir.
+    match /vorur/{id}          { allow read, create, update: if active(); allow delete: if admin(); }
+    match /tilbod/{id}         { allow read, create, update: if active(); allow delete: if admin(); }
+
+    // Reikningar: allir lesa; aðeins fjármál (admin, bókari) skrifa; aðeins admin eyðir (frá 1.9.0).
+    match /reikningar/{id} {
+      allow read: if active();
+      allow create, update: if fjarmal();
+      allow delete: if admin();
+    }
+
+    // Tímar og útlagður kostnaður: hver sér og skrifar sínar færslur (reiturinn eigandi = netfang); fjármál sjá og skrifa allar.
+    function ownRead() { return fjarmal() || (active() && resource.data.eigandi == em()); }
+    function ownWrite() { return fjarmal() || (active()
+      && (resource == null || resource.data.eigandi == em())
+      && (request.resource == null || request.resource.data.eigandi == em())); }
+    match /timar/{id}     { allow read: if ownRead(); allow write: if ownWrite(); }
+    match /kostnadur/{id} { allow read: if ownRead(); allow write: if ownWrite(); }
+
+    // Spjall (frá 1.4.0): rásin "almennt" sjá allir virkir; bein skilaboð (ras "dm:…") aðeins aðilarnir tveir.
+    // Notandi sendir aðeins í eigin nafni og getur aðeins eytt eigin skilaboðum.
+    match /spjall/{id} {
+      allow read: if active() && (resource.data.ras == "almennt" || em() in resource.data.adilar);
+      allow create: if active() && request.resource.data.af == em()
+        && (request.resource.data.ras == "almennt" || (em() in request.resource.data.adilar && request.resource.data.adilar.size() == 2));
+      allow update: if false;
+      allow delete: if active() && resource.data.af == em();
+    }
+
+    // Persónulegar stillingar notanda (t.d. útlit Heim-skjás), frá 1.5.0: aðeins hann sjálfur.
+    match /notandi/{email} { allow read, write: if active() && email == em(); }
+
+    // Skeiðklukka: eitt skjal á hvern notanda (netfang), aðeins hann sjálfur.
+    match /klukka/{email} { allow read, write: if active() && email == em(); }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Atrium – Dev",
+  "short_name": "Atrium Dev",
+  "description": "Atrium by AERA Studio – þróunaruppsetning.",
+  "lang": "is",
+  "id": "/atrium/dev/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#121416",
+  "theme_color": "#121416",
+  "icons": [
+    {
+      "src": "../icons/atrium-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "../icons/atrium-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "../icons/atrium-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
