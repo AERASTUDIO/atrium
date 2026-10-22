@@ -684,3 +684,79 @@ label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0
 .two>label,.two>div{min-width:0} .two input[type=date],.two input[type=time]{min-width:0;width:100%;box-sizing:border-box}
 .two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 @media (max-width:1023px){html,body{overflow-x:clip}}
+
+/* ---------- Útlit I (2.23.0, body.ui1 – fyrst í dev/): dökk vinstri stika, listi og spjald hlið við hlið ---------- */
+@media (min-width:1024px){
+  body.pv.ui1{padding-top:0;padding-left:248px;--ui1side:#2B3138;--ui1hi:#4B5664;--ui1tx:#E4E8EC;--ui1mu:#AEB7BF}
+  body.pv.ui1 .side{top:0;bottom:0;left:0;right:auto;width:248px;height:auto;flex-direction:column;align-items:stretch;gap:6px;padding:14px 12px 12px;background:var(--ui1side);border:0;color:var(--ui1tx);overflow-y:auto}
+  body.pv.ui1 .side .cobrand{order:0;margin:2px 8px 8px}
+  body.pv.ui1 .side .logo,body.pv.ui1 .side .colog{filter:brightness(0) invert(1);opacity:.92}
+  body.pv.ui1 .topsearch{order:1;position:static;width:auto;margin:0;background:#363D45;border:0;color:var(--ui1mu);min-height:40px;border-radius:10px}
+  body.pv.ui1 .topsearch input{color:var(--ui1tx);background:transparent}
+  body.pv.ui1 .topsearch input::placeholder{color:var(--ui1mu)}
+  body.pv.ui1 .side .new{order:2;display:inline-flex;align-self:flex-start;background:#F4F6F8;color:var(--ui1side);border:0;padding:8px 16px;min-height:38px;margin:2px 0 4px}
+  body.pv.ui1 #pvnew,body.pv.ui1 #subnav2{display:none!important}
+  body.pv.ui1 .side nav#sitems{order:3;flex:none;flex-direction:column;align-items:stretch;gap:1px;overflow:visible}
+  body.pv.ui1 .side .sgrp{display:block!important;width:auto;height:auto;background:none;margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ui1mu);font-weight:500;padding:9px 12px 2px}
+  body.pv.ui1 .side nav#sitems .tab{width:100%;padding:6px 12px;font-size:14px;color:var(--ui1tx);background:none;border-radius:10px;gap:10px}
+  body.pv.ui1 .side nav#sitems .tab svg{display:inline-block;width:18px;height:18px;color:var(--ui1mu)}
+  body.pv.ui1 .side nav#sitems .tab:hover{background:#363D45}
+  body.pv.ui1 .side nav#sitems .tab[aria-current="page"]{background:var(--ui1hi);color:#FFFFFF;font-weight:500}
+  body.pv.ui1 .side nav#sitems .tab[aria-current="page"] svg{color:#FFFFFF}
+  body.pv.ui1 .side .tc,body.pv.ui1 .side .tdot{display:none!important}
+  body.pv.ui1 .tsubs{display:flex;flex-direction:column;margin:2px 0 4px 26px;border-left:2px solid var(--ui1hi)}
+  body.pv.ui1 .side nav#sitems .tab.tsub{padding:4px 12px;font-size:13.5px;color:var(--ui1mu);border-radius:0;margin-left:-2px;border-left:2px solid transparent}
+  body.pv.ui1 .side nav#sitems .tab.tsub[aria-current="true"]{color:#FFFFFF;font-weight:500;border-left-color:#FFFFFF;background:none}
+  body.pv.ui1 #sextra{order:4;display:block!important;margin-top:auto}
+  body.pv.ui1 #sextra>:not(.sx-k):not(.sx-start){display:none}
+  body.pv.ui1 #sextra .sx-k{background:#363D45;border-radius:12px;padding:10px 12px;color:var(--ui1tx)}
+  body.pv.ui1 #sextra .sx-h{color:var(--ui1mu)}
+  body.pv.ui1 #sextra .sx-start{width:100%;background:#363D45;color:var(--ui1tx);border:0}
+  body.pv.ui1 #sfoot2{order:5;margin:0;padding-top:10px;border-top:1px solid var(--ui1hi);flex-direction:column;align-items:stretch}
+  body.pv.ui1 #sfoot2 .tl,body.pv.ui1 #sfoot2 .sfn{display:flex}
+  body.pv.ui1 #sfoot2 .tab{color:var(--ui1tx);padding:7px 12px;width:100%}
+  body.pv.ui1 #sfoot2 .tab[aria-current="page"]{background:var(--ui1hi);color:#FFFFFF}
+  body.pv.ui1 #sfoot2 .tab svg{color:var(--ui1mu)}
+  body.pv.ui1 .sfav{background:#4B5664;color:#FFFFFF}
+  body.pv.ui1 .app{padding-inline:32px}
+  body.pv.ui1 #pvver{left:calc(50% + 124px)}
+  /* Listi og spjald */
+  body.pv.ui1.hassplit .app{padding:0;max-width:none}
+  body.pv.ui1.hassplit .foot,body.pv.ui1.hassplit #pvver{display:none}
+  body.pv.ui1 .split{display:grid;grid-template-columns:470px minmax(0,1fr);height:100vh}
+  body.pv.ui1.spfull .split{grid-template-columns:0 minmax(0,1fr)}
+  body.pv.ui1.spfull .splist{visibility:hidden}
+  body.pv.ui1 .splist{overflow-y:auto;background:var(--bg);border-right:1px solid var(--line);padding:0 0 24px}
+  body.pv.ui1 .splist .phead{margin:0;padding:6px 16px 12px;background:#DDE2E6;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
+  body.pv.ui1 .splist .spsup{background:#DDE2E6;font-size:12px;color:var(--muted);padding:16px 16px 0}
+  body.pv.ui1 .splist .ptitle{font-size:24px;font-weight:300}
+  body.pv.ui1 .splist .phead .seg{display:none}
+  body.pv.ui1 .splist .list{grid-template-columns:minmax(0,1fr)!important;gap:8px;padding:0 12px}
+  body.pv.ui1 .splist>:not(.phead):not(.spsup):not(.spfilt){margin-inline:12px}
+  body.pv.ui1 .splist .spsel{outline:2px solid var(--ink);outline-offset:-2px}
+  body.pv.ui1 .spfilt{display:flex;align-items:center;gap:8px;margin:10px 16px!important;height:36px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted)}
+  body.pv.ui1 .spfilt input{flex:1;border:0;background:transparent;font:inherit;font-size:13.5px;color:var(--ink);outline:none}
+  body.pv.ui1 .spfilt kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-radius:5px;padding:0 5px}
+  body.pv.ui1 .spdet{position:relative;overflow-y:auto;background:var(--surface,#fff);padding:0 32px 32px}
+  body.pv.ui1 .spdet .dtabs{margin-inline:-32px;padding-inline:32px;top:0}
+  body.pv.ui1 .spexp{position:absolute;top:16px;right:20px;z-index:5;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+  body.pv.ui1 .spempty{height:100%;display:grid;place-items:center;color:var(--muted);font-size:14px}
+  /* Heim */
+  body.pv.ui1 .h2tiles{display:none}
+  body.pv.ui1 .h2logo{display:flex;justify-content:center;padding:40px 0 10px;opacity:.85}
+  body.pv.ui1 .h2logo img{max-height:44px;max-width:220px}
+}
+@media (min-width:1024px){
+  body.pv.ui1 .spdet .backrow .back{visibility:hidden}
+  body.pv.ui1 .spdet .backrow{padding-right:48px}
+  body.pv.ui1 .spexp{top:12px}
+  body.pv.ui1 label.spfilt{flex-direction:row;font-size:13.5px;min-height:0}
+  body.pv.ui1 .spfilt svg{flex:none;display:block}
+  body.pv.ui1 .spfilt input{padding:0;margin:0;min-height:0;height:34px;box-shadow:none}
+}
+@media (min-width:1024px){
+  body.pv.ui1 .splist input[type="search"]:not(.spfilt input),body.pv.ui1 .splist input[placeholder^="Leita"]{display:none}
+  body.pv.ui1 .spdet .backrow .newwin{margin-right:44px}
+  body.pv.ui1 .splist>.phead:first-child{padding-top:18px}
+}
+@media (min-width:1024px){body.pv.ui1 .phead>.spsup{font-size:12px;color:var(--muted);padding:0 0 2px}}
