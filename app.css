@@ -680,3 +680,7 @@ label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0
   .h2tile .h2v{font-size:22px}
   .h2tile small{font-size:11.5px}
 }
+@media (max-width:1023px){body.pv nav.mbar{padding-left:4px;padding-right:4px} body.pv nav.mbar .tab{flex:1 1 0;min-width:0;max-width:none}}
+.two>label,.two>div{min-width:0} .two input[type=date],.two input[type=time]{min-width:0;width:100%;box-sizing:border-box}
+.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:1023px){html,body{overflow-x:clip}}
