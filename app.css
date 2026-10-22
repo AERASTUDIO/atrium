@@ -495,3 +495,34 @@ body.hasdock .fab{bottom:calc(132px + env(safe-area-inset-bottom,0px))}
 .dgrid .nowl{position:absolute;left:44px;right:0;border-top:2px solid #d96a6a;z-index:2}
 .allday{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.allday a{font-size:13px;padding:6px 10px;border-radius:99px;background:color-mix(in srgb,var(--c) 22%,var(--surface));border-left:3px solid var(--c);color:var(--ink);text-decoration:none;cursor:pointer}
 .sx-b{display:inline-block;font-size:11px;background:var(--raise);border-radius:99px;padding:1px 7px;margin-left:6px;color:var(--muted)}
+
+/* ---------- Nýtt Heim – Dagurinn minn (heim2.js, 2.15.0, aðeins ORG.pakkaval) ---------- */
+.h2{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+.h2date{font-size:13px;color:var(--muted)}
+.h2grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:start}
+.h2card{display:flex;flex-direction:column;gap:14px;padding:18px 20px}
+.h2hd{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.h2hd h3{margin:0;font-size:16px;font-weight:500}
+.h2tag{font-size:11px;color:var(--muted);background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:2px 9px;white-space:nowrap}
+.h2klukka{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--ink);color:var(--bg);border-radius:16px;padding:14px 16px}
+.h2klukka .h2ks{font-size:12px;opacity:.75}
+.h2klukka b{display:block;font-size:28px;font-weight:300;font-variant-numeric:tabular-nums}
+.h2klukka .btn{background:var(--bg);color:var(--ink);border-color:var(--bg);min-height:44px}
+.h2start{align-self:flex-start}
+.h2tl{display:flex;gap:14px;text-decoration:none;color:inherit;cursor:pointer}
+.h2tl .h2t{flex:none;width:46px;font-size:13px;color:var(--muted);padding-top:2px;font-variant-numeric:tabular-nums}
+.h2tl .h2b{flex:1;min-width:0;display:flex;justify-content:space-between;gap:10px;border-left:2px solid var(--line);padding:0 0 16px 14px}
+.h2tl .h2bt{min-width:0}.h2tl .h2bt b{display:block;font-size:15px;font-weight:400}.h2tl .h2bt small{font-size:12px;color:var(--muted)}
+.h2tl:hover .h2bt b{text-decoration:underline}
+.h2now{font-size:12px;font-weight:500;white-space:nowrap}
+.h2bl{display:flex;flex-direction:column;gap:8px}
+.h2bi{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:var(--bg);color:inherit;text-decoration:none;font-size:14px;cursor:pointer}
+.h2bi:hover{background:var(--hover)}
+.h2br{display:flex;align-items:center;gap:8px;color:var(--muted);flex:none}
+.h2tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.h2tile{display:flex;flex-direction:column;gap:6px;padding:18px 20px;text-decoration:none;color:inherit;cursor:pointer}
+.h2tile:hover{border-color:var(--border2)}
+.h2tile .h2hd{flex-wrap:wrap-reverse;justify-content:flex-start;row-gap:6px}
+.h2tile .h2tt{font-size:13px;color:var(--muted);white-space:nowrap;margin-right:auto}
+.h2tile .h2v{font-size:28px;font-weight:300;font-variant-numeric:tabular-nums}
+.h2tile small{font-size:12px;color:var(--muted)}
