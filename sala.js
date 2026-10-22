@@ -15,23 +15,27 @@
   // Deild vöru (eldri færslur án deildar: sala → sala, annað → leiga)
   const vDeild = v => v.deild || (v.tegund === "sala" ? "sala" : "leiga");
   const tDeild = T => T.deild === "sala" ? "sala" : "leiga";
+  // Ein tilboðsvél (2.17.0, ORG.pakkaval): blandað tilboð (deild „blandad“, T-númer) með þjónustu-, leigu-, sölu-, pakka- og sérlínum.
+  // Hagar sér eins og leigutilboð (frá–til fyrir leigulínur); línur úr báðum vörulistum og þjónusta úr verðskrá.
+  const PV = () => !!window.ORG?.pakkaval, isMix = T => T?.deild === "blandad", DK = T => isMix(T) ? "blandad" : tDeild(T);
   const DL = {
     leiga: { l: "Leiga", pre: "L-", vt: "lvorur", tt: "ltilbod", vl: "Búnaður", vl1: "Búnaður", ein: "leiga", tegs: ["leiga", "pakki", "vinna"] },
-    sala: { l: "Sala", pre: "S-", vt: "svorur", tt: "stilbod", vl: "Vörur", vl1: "Vara", ein: "sala", tegs: ["sala", "vinna"] }
+    sala: { l: "Sala", pre: "S-", vt: "svorur", tt: "stilbod", vl: "Vörur", vl1: "Vara", ein: "sala", tegs: ["sala", "vinna"] },
+    blandad: { l: "Tilboð", pre: "T-", vt: "lvorur", tt: "ltilbod", vl: "Búnaður og vörur", vl1: "Vara", ein: "leiga", tegs: ["leiga", "pakki", "sala", "vinna"] }
   };
   const VRd = D => VR().filter(v => vDeild(v) === D), TBd = D => TB().filter(T => tDeild(T) === D);
   const DEF = {
     flokkarL: ["Hljóð", "Ljós", "LED", "Skjáir", "Annað"], flokkarS: ["Hátalarar", "Magnarar og stýring", "Hljóðnemar", "Skjáir", "Uppsetningarefni", "Annað"],
-    studlar: [1, 1.5, 2, 2.5, 3, 3.25, 3.5], vsk: 24, gildisdagar: 14, nastaNrL: 1001, nastaNrS: 1001,
+    studlar: [1, 1.5, 2, 2.5, 3, 3.25, 3.5], vsk: 24, gildisdagar: 14, nastaNrL: 1001, nastaNrS: 1001, nastaNrT: 1001,
     skilmalarL: "Öll verð eru án VSK. Leiguverð miðast við tímabilið sem tilgreint er. Flutningur, uppsetning og tæknimenn eru aðeins innifalin ef þau koma fram í tilboðinu. Leigutaki ber ábyrgð á búnaði frá afhendingu til skila.",
     skilmalarS: "Öll verð eru án VSK. Afhendingartími er háður lagerstöðu birgja. Uppsetning og frágangur eru aðeins innifalin ef þau koma fram í tilboðinu. Greiðsluskilmálar: 14 dagar frá reikningsdegi."
   };
   // Eldri stillingar (2.4.0: flokkar, nastaNr, skilmalar) gilda fyrir Leigu
   const CF = () => { const c = (typeof CFG === "function" && CFG().tilbod) || {}; return { ...DEF, ...(c.flokkar ? { flokkarL: c.flokkar } : {}), ...(c.nastaNr ? { nastaNrL: c.nastaNr } : {}), ...(c.skilmalar ? { skilmalarL: c.skilmalar } : {}), ...c }; };
-  const nK = D => D === "sala" ? "nastaNrS" : "nastaNrL";
+  const nK = D => D === "sala" ? "nastaNrS" : D === "blandad" ? "nastaNrT" : "nastaNrL";
   const FLOKKAR = D => { const f = (D === "sala" ? CF().flokkarS : CF().flokkarL) || []; const extra = [...new Set(VRd(D).map(v => v.flokkur).filter(Boolean))].filter(x => !f.includes(x)); return f.concat(extra); };
   const TEG = { leiga: "Búnaður til leigu", sala: "Vara til sölu", baedi: "Búnaður til leigu", vinna: "Vinna og þjónusta", pakki: "Pakki" };
-  const LTEG = { leiga: "Leiga", sala: "Sala", vinna: "Vinna" };
+  const LTEG = { leiga: "Leiga", sala: "Sala", vinna: "Vinna" }; const lteg = k => PV() && k === "vinna" ? "Þjónusta" : LTEG[k];
   const STADA = ["Drög", "Sent", "Samþykkt", "Hafnað"], STC = { "Drög": "pc-slate", "Sent": "pc-blue", "Samþykkt": "pc-teal", "Hafnað": "pc-red" };
   const ADM = () => !window.can || can("stillingar");
   const DEL = () => !window.can || can("eyda");
@@ -57,7 +61,7 @@
   // Hlutar tilboðs í þeirri röð sem þeir birtast fyrst
   const groups = T => { const m = new Map(); (T.linur || []).forEach(l => { const k = l.hl || "Annað"; if (!m.has(k)) m.set(k, []); m.get(k).push(l); }); return [...m.entries()]; };
   const vPrice = v => v.tegund === "sala" || v.tegund === "vinna" || vDeild(v) === "sala" ? v.soluverd : v.leiguverd;
-  const lineFrom = (v, T) => { const D = T ? tDeild(T) : vDeild(v), teg = v.tegund === "vinna" ? "vinna" : D === "sala" ? "sala" : "leiga";
+  const lineFrom = (v, T) => { const D = T && !isMix(T) ? tDeild(T) : vDeild(v), teg = v.tegund === "vinna" ? "vinna" : D === "sala" ? "sala" : "leiga";
     return { id: gid(), v: v.id, heiti: v.heiti, teg, hl: v.tegund === "vinna" ? "Vinna og þjónusta" : (v.flokkur || "Annað"), magn: 1, ein: v.eining || (teg === "vinna" ? "klst." : "stk."), verd: +(teg === "leiga" ? v.leiguverd : v.soluverd) || 0, dagar: null, afsl: 0 }; };
   const pakkiTxt = v => (v?.innihald || []).map(i => { const x = findV(i.v); return x ? (+i.m || 1) + " × " + x.heiti : null; }).filter(Boolean).join(", ");
   const dRange = T => !T.fra ? "" : tDeild(T) === "sala" ? "Afhending " + dIS(T.fra) : dIS(T.fra) + (T.til && T.til !== T.fra ? " – " + dIS(T.til) : "");
@@ -159,7 +163,19 @@
     return lrow("tb:" + T.id, { title: `<span class="nr">${esc(T.nr || "")}</span>&nbsp; ` + esc(T.vidskiptavinur || "Án viðskiptavinar") + " · " + esc(T.heiti || "") + (T.prufa ? ' <span class="tag">prufa</span>' : ""),
       sub: esc([T.stada, dRange(T), +T.utgafa > 1 ? "útgáfa " + T.utgafa : ""].filter(Boolean).join(" · ")), right: `<span class="lc">${esc(krs(t.net))}</span>` }); }
   window.tbRowHTML = tbRow;
+  const TL = { f: "" }; // línusía í sameinuðum tilboðalista: "" | leiga | sala | vinna
+  const hasTeg = (T, k) => (T.linur || []).some(l => (k === "leiga" ? ["leiga"] : k === "sala" ? ["sala"] : ["vinna"]).includes(l.teg));
   function vTilbod(D) {
+    if (PV() && D === "leiga") { const base = TB().filter(T => !window.inDeild || inDeild(T)), all = base.filter(T => !TL.f || hasTeg(T, TL.f));
+      const xs = all.filter(T => !TS.leiga || T.stada === TS.leiga).slice().sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || "")) || String(b.nr).localeCompare(String(a.nr)));
+      const opin = all.filter(T => ["Drög", "Sent"].includes(T.stada)), sam = all.filter(T => T.stada === "Samþykkt"), sum = a => a.reduce((s, T) => s + totals(T).net, 0);
+      let h = `<div class="chips" style="margin:16px 0 8px">${[["", "Allar línur"], ["vinna", "Þjónusta"], ["leiga", "Leiga"], ["sala", "Sala"]].map(([k, l]) => chip(`tbf:${k}`, l, TL.f === k)).join("")}</div>`;
+      h += `<div class="chips" style="margin:0 0 12px">${chip(`tbs:leiga:`, "Öll", !TS.leiga)}${STADA.map(s => chip(`tbs:leiga:${s}`, s, TS.leiga === s)).join("")}</div>`;
+      if (all.length) h += `<div class="kpis"><div class="card"><b>${opin.length}</b><span>Opin tilboð · ${esc(krs(sum(opin)))}</span></div><div class="card"><b>${sam.length}</b><span>Samþykkt · ${esc(krs(sum(sam)))}</span></div></div>`;
+      if (!base.length) h += `<div class="empty">Engin tilboð ennþá.${MCP ? " Búðu til tilboð með +." : ""}</div>`;
+      else if (!xs.length) h += `<div class="empty">Engin tilboð passa við síuna.</div>`;
+      else h += `<div class="viewtitle">Tilboð · ${xs.length}</div>` + llist(xs.map(tbRow));
+      return h; }
     const all = TBd(D), xs = all.filter(T => !TS[D] || T.stada === TS[D]).slice().sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || "")) || String(b.nr).localeCompare(String(a.nr)));
     const opin = all.filter(T => ["Drög", "Sent"].includes(T.stada)), sam = all.filter(T => T.stada === "Samþykkt");
     const sum = a => a.reduce((s, T) => s + totals(T).net, 0);
@@ -174,14 +190,14 @@
   /* ---------- Tilboð: nýtt ---------- */
   function tbForm(D, pre) { // pre (2.12.0): { verkefniId } – nýtt tilboð úr Tilboð-flipa verkefnis
     const PP = pre?.verkefniId ? findProj(pre.verkefniId) : null;
-    const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), L = D === "leiga";
-    sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${L ? "leigutilboð" : "sölutilboð"}</h3><form id="tbf" novalidate>
+    const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), L = D !== "sala", M = D === "blandad";
+    sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${M ? "tilboð" : L ? "leigutilboð" : "sölutilboð"}</h3><form id="tbf" novalidate>
       <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" value="${esc(PP?.stutt || "")}" placeholder="${L ? "T.d. Árshátíð" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
       ${PP ? `<p class="hint" style="margin:0 0 6px">Verkefni: <span class="nr">${esc(PP.nr)}</span> ${esc(PP.stutt || "")}</p>` : ""}
       ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
       <label>${L ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
-      ${L ? `<div class="two"><label>Frá (afhending)<input id="tb-fra" type="date" value="${d0}"></label><label>Til (skil)<input id="tb-til" type="date" value="${d0}"></label></div>` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
+      ${L ? `<div class="two"><label>Frá${M ? "" : " (afhending)"}<input id="tb-fra" type="date" value="${M ? "" : d0}"></label><label>Til${M ? "" : " (skil)"}<input id="tb-til" type="date" value="${M ? "" : d0}"></label></div>${M ? `<p class="hint" style="margin:-4px 0 8px">Tímabil verksins – leigulínur reiknast á þessa daga.</p>` : ""}` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
       <label>Tilboð gildir til<input id="tb-gildir" type="date" value="${g0}"></label>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="tb-cancel">Hætta við</button><button class="btn primary" id="tb-save">Búa til og bæta við línum</button></div></form>`;
     sheetwrap.hidden = false; wireVskSelects(sheet);
@@ -214,19 +230,19 @@
             ${l.teg === "leiga" ? `<label>Dagar<input data-l="dagar:${esc(l.id)}" inputmode="numeric" value="${l.dagar ? esc(String(l.dagar)) : ""}" placeholder="${tbDagar(T)}"></label>` : ""}
             <label>Verð${l.teg === "leiga" ? "/dag" : ""}<input data-l="verd:${esc(l.id)}" inputmode="numeric" value="${esc(String(l.verd || 0))}"></label>
             <label>Afsl. %<input data-l="afsl:${esc(l.id)}" inputmode="decimal" value="${+l.afsl ? esc(fx(l.afsl)) : ""}" placeholder="0"></label>
-            ${!l.v ? `<label>Tegund<select data-l="teg:${esc(l.id)}">${(D === "leiga" ? ["leiga", "vinna", "sala"] : ["sala", "vinna"]).map(k => `<option value="${k}"${l.teg === k ? " selected" : ""}>${LTEG[k]}</option>`).join("")}</select></label>` : ""}
+            ${!l.v ? `<label>Tegund<select data-l="teg:${esc(l.id)}">${(D === "leiga" ? ["leiga", "vinna", "sala"] : ["sala", "vinna"]).map(k => `<option value="${k}"${l.teg === k ? " selected" : ""}>${lteg(k)}</option>`).join("")}</select></label>` : ""}
             <label>Hluti<select data-l="hl:${esc(l.id)}">${[...new Set(groups(T).map(g => g[0]).concat(FLOKKAR(D), ["Vinna og þjónusta"]))].map(g => `<option${g === l.hl ? " selected" : ""}>${esc(g)}</option>`).join("")}</select></label></div></div>
             <div class="tblr"><b data-ls="${esc(l.id)}">${esc(krs(lSum(l, T)))}</b><button type="button" class="btn" data-act="tbl:del:${esc(l.id)}" aria-label="Eyða línu">×</button></div></div>`; }).join("")}</div>`; }).join("");
   };
   const tbTotHTML = T => { const t = totals(T), r = (k, x, b) => `<div class="sub-i"${b ? ' style="font-size:16px"' : ""}><span>${esc(k)}</span><b>${esc(krs(x))}</b></div>`;
-    return `${t.leiga ? r("Leiga", t.leiga) : ""}${t.sala ? r(tDeild(T) === "sala" ? "Vörur" : "Sala", t.sala) : ""}${t.vinna ? r("Vinna og þjónusta", t.vinna) : ""}
+    return `${t.leiga ? r("Leiga", t.leiga) : ""}${t.sala ? r(tDeild(T) === "sala" ? "Vörur" : "Sala", t.sala) : ""}${t.vinna ? r(PV() ? "Þjónusta" : "Vinna og þjónusta", t.vinna) : ""}
       ${t.afsl ? r("Afsláttur " + fx(T.afsl) + "%", -t.afsl) : ""}${r("Samtals án VSK", t.net)}${r("VSK " + fx(vskP()) + "%", t.vsk)}${r("Samtals með VSK", t.tot, 1)}`; };
   const dagTxt = T => `${tbDagar(T)} ${tbDagar(T) === 1 ? "leigudagur" : "leigudagar"} · dagstuðull ${fx(studull(tbDagar(T)))}`;
 
   window.dTilbod = function (T0) {
     const ed = EDT && EDT.id === T0.id, T = ed ? EDT : T0, D = tDeild(T), L = D === "leiga", pr = T.verkefniId ? findProj(T.verkefniId) : null;
     const ms = window.MS && MS.on && MS.on();
-    const kick = `<span class="kind">${esc(DL[D].l)} · tilboð ${esc(T.nr)}${+T.utgafa > 1 ? " · útgáfa " + esc(String(T.utgafa)) : ""}</span><span class="pill ${STC[T.stada] || ""}">${esc(T.stada)}</span>${T.prufa ? '<span class="tag">prufa</span>' : ""}`;
+    const kick = `<span class="kind">${isMix(T) ? "Tilboð " + esc(T.nr) : esc(DL[D].l) + " · tilboð " + esc(T.nr)}${+T.utgafa > 1 ? " · útgáfa " + esc(String(T.utgafa)) : ""}</span><span class="pill ${STC[T.stada] || ""}">${esc(T.stada)}</span>${T.prufa ? '<span class="tag">prufa</span>' : ""}`;
     if (ed) return backBar() + `<div class="kicker">${kick}<span class="tag">breytingahamur</span></div>
       <div id="tbed">
       <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input data-h="heiti" value="${esc(T.heiti || "")}"></label>
@@ -236,7 +252,7 @@
       ${L ? `<div class="two"><label>Frá<input data-h="fra" type="date" value="${esc(T.fra || "")}"></label><label>Til<input data-h="til" type="date" value="${esc(T.til || "")}"></label></div>
       <p class="hint" id="tb-dg" style="margin:-4px 0 8px">${dagTxt(T)}</p>` : `<label>Áætluð afhending<input data-h="fra" type="date" value="${esc(T.fra || "")}"></label>`}
       <div class="viewtitle">Línur</div>
-      <div class="links" style="margin:0 0 10px"><button type="button" class="btn primary" data-act="tbl:pick">+ Úr ${L ? "búnaðarlista" : "vörulista"}</button><button type="button" class="btn" data-act="tbl:custom">+ Sérlína</button></div>
+      <div class="links" style="margin:0 0 10px">${isMix(T) ? `<button type="button" class="btn primary" data-act="tbl:thj">+ Þjónusta</button><button type="button" class="btn primary" data-act="tbl:pick">+ Búnaður eða vara</button>` : `<button type="button" class="btn primary" data-act="tbl:pick">+ Úr ${L ? "búnaðarlista" : "vörulista"}</button>`}<button type="button" class="btn" data-act="tbl:custom">+ Sérlína</button></div>
       <div id="tb-tab">${tbTableHTML(T, true)}</div>
       <div class="two" style="margin-top:12px"><label>Afsláttur á tilboð (%)<input data-h="afsl" inputmode="decimal" value="${+T.afsl ? esc(fx(T.afsl)) : ""}" placeholder="0"></label><label>Gildir til<input data-h="gildir" type="date" value="${esc(T.gildir || "")}"></label></div>
       <label>Athugasemd á tilboði<textarea data-h="athugasemd" placeholder="Birtist á tilboðinu">${esc(T.athugasemd || "")}</textarea></label>
@@ -276,7 +292,7 @@
 
   // Velja úr vörulista deildarinnar: sheet með leit og flokkum; hver smellur bætir línu við drögin
   function picker() {
-    const D = tDeild(EDT), src = () => VRd(D);
+    const D = tDeild(EDT), src = () => isMix(EDT) ? VR() : VRd(D);
     let pf = "", pq = ""; const draw = () => {
       const xs = src().filter(v => (!pf || (pf === "_vinna" ? v.tegund === "vinna" : v.flokkur === pf && v.tegund !== "vinna")) && (!pq || (v.heiti + " " + (v.nr || "")).toLowerCase().includes(pq))).sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || a.heiti.localeCompare(b.heiti, "is"));
       document.getElementById("pk-list").innerHTML = xs.length ? xs.map(v => { const n = (EDT.linur || []).filter(l => l.v === v.id).reduce((a, l) => a + (+l.magn || 0), 0);
@@ -293,6 +309,18 @@
       const ex = (EDT.linur || []).find(l => l.v === v.id && !l.dagar && !+l.afsl); if (ex) ex.magn = (+ex.magn || 0) + 1; else (EDT.linur = EDT.linur || []).push(lineFrom(v, EDT));
       toast(v.heiti + (ex ? " – magn " + fx(ex.magn) : " bætt við")); draw(); };
     document.getElementById("pk-done").onclick = () => { sheetwrap.hidden = true; render(); };
+  }
+
+  // Þjónusta á tilboð (2.17.0): liðir verðskrár (ef virk) eða þjónusta fyrirtækisins á tímagjaldi
+  function thjPicker() {
+    const vl = window.ON && ON("verdskra") && window.VERD ? (VERD().lidir || []) : [], tg = +(CFG().reikn?.timagjald) || 0;
+    const items = vl.length ? vl.map(x => ({ heiti: x.heiti, verd: +x.verd || 0 })) : THJ().map(t => ({ heiti: t, verd: tg }));
+    sheet.innerHTML = `<h3 id="sheet-h">Bæta við þjónustu</h3><div class="llist" id="tj-list">${items.map((x, i) => `<button type="button" class="lrow tap" data-tj="${i}" style="width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit"><div class="lm"><div class="lt">${esc(x.heiti)}</div><div class="ls">${x.verd ? esc(krs(x.verd)) + "/klst." : "Verð skráð á tilboðinu"}</div></div></button>`).join("")}</div>
+      <p class="hint" style="margin-top:8px">Línan fær 1 klst. – breyttu fjölda tíma og verði á tilboðinu.${vl.length ? "" : " Tímagjald kemur úr Stillingum › Reikningar."}</p><div class="actions"><button type="button" class="btn primary" id="tj-done">Lokið</button></div>`;
+    sheetwrap.hidden = false;
+    document.getElementById("tj-list").onclick = e => { const b = e.target.closest("[data-tj]"); if (!b) return; const x = items[+b.dataset.tj];
+      (EDT.linur = EDT.linur || []).push({ id: gid(), v: null, heiti: x.heiti, teg: "vinna", hl: "Þjónusta", magn: 1, ein: "klst.", verd: x.verd, dagar: null, afsl: 0 }); toast(x.heiti + " bætt við"); };
+    document.getElementById("tj-done").onclick = () => { sheetwrap.hidden = true; render(); };
   }
 
   /* ---------- PDF ---------- */
@@ -441,21 +469,23 @@
       if (!confirm(`Eyða öllum prufugögnum í leigu og sölu: ${nv} vörum og ${nt} tilboðum merktum „prufa“?\n\nAnnað helst óbreytt.`)) return;
       saveSnapshot(s => { s.vorur = (s.vorur || []).filter(v => !v.prufa); s.tilbod = (s.tilbod || []).filter(t => !t.prufa); }).then(() => toast("Prufugögnum eytt")).catch(e => toast(errText(e))); return; }
     if (k === "tbs") { TS[r[0]] = r.slice(1).join(":"); render(); return; }
-    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : "leiga"; if (!VRd(D).length && !confirm(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
+    if (k === "tbf") { TL.f = r[0] || ""; render(); return; }
+    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : r[0] === "blandad" ? "blandad" : "leiga"; if (D === "blandad") { tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; } if (!VRd(D).length && !confirm(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
     if (k === "tbed") { const [op, id] = r;
       if (op === "start") { const T = findT(id); if (T) { EDT = structuredClone(T); render(); window.scrollTo({ top: 0 }); } return; }
       if (op === "cancel") { if (!confirm("Hætta við breytingar á tilboðinu?")) return; EDT = null; render(); return; }
       if (op === "save") { const D = EDT; if (!D) return; if (D.fra && D.til && D.til < D.fra) return toast("„Til“ getur ekki verið á undan „Frá“.");
         saveT(D.id, q => { Object.keys(D).forEach(x => { q[x] = D[x]; }); }).then(() => { EDT = null; toast("Tilboð vistað"); render(); }).catch(e => toast(errText(e))); return; } }
     if (k === "tbl") { if (!EDT) return; const [op, id] = r, D = tDeild(EDT);
-      if (op === "pick") { if (!VRd(D).length) return toast(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – bættu við eða notaðu sérlínu.`); picker(); return; }
-      if (op === "custom") { (EDT.linur = EDT.linur || []).push({ id: gid(), v: null, heiti: "Ný lína", teg: D, hl: groups(EDT).slice(-1)[0]?.[0] || "Annað", magn: 1, ein: "stk.", verd: 0, dagar: null, afsl: 0 }); render(); return; }
+      if (op === "thj") { thjPicker(); return; }
+      if (op === "pick") { if (!(isMix(EDT) ? VR() : VRd(D)).length) return toast(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – bættu við eða notaðu sérlínu.`); picker(); return; }
+      if (op === "custom") { (EDT.linur = EDT.linur || []).push({ id: gid(), v: null, heiti: "Ný lína", teg: isMix(EDT) ? "vinna" : D, hl: groups(EDT).slice(-1)[0]?.[0] || "Annað", magn: 1, ein: "stk.", verd: 0, dagar: null, afsl: 0 }); render(); return; }
       if (op === "del") { EDT.linur = (EDT.linur || []).filter(l => l.id !== id); render(); return; } }
     if (k === "tbst") { const [id, st] = r; saveT(id, q => { q.stada = st; if (st === "Sent" && !q.sent) q.sent = isoDay(new Date()); }).then(() => toast("Staða: " + st)); return; }
     if (k === "tbutg") { const T = findT(a); if (!T || !confirm(`Búa til útgáfu ${(+T.utgafa || 1) + 1} af tilboði ${T.nr}?\n\nNúverandi útgáfa er skráð í „Fyrri útgáfur“ og staðan fer aftur í Drög.`)) return;
       saveT(a, q => { (q.eldri = q.eldri || []).push({ utgafa: +q.utgafa || 1, dags: q.dags, net: totals(q).net }); q.utgafa = (+q.utgafa || 1) + 1; q.dags = isoDay(new Date()); q.stada = "Drög"; })
         .then(() => { EDT = structuredClone(findT(a)); render(); toast("Ný útgáfa – breyttu og vistaðu"); }); return; }
-    if (k === "tbcopy") { const T = findT(a); if (!T) return; const D = tDeild(T), c = CF(), id = gid(), n = +c[nK(D)] || 1001, nr = DL[D].pre + n;
+    if (k === "tbcopy") { const T = findT(a); if (!T) return; const D = DK(T), c = CF(), id = gid(), n = +c[nK(D)] || 1001, nr = DL[D].pre + n;
       const N = { ...structuredClone(T), id, nr, deild: D, stada: "Drög", utgafa: 1, eldri: [], dags: isoDay(new Date()), verkefniId: null, sent: null, prufa: false, linur: (T.linur || []).map(l => ({ ...l, id: gid() })) };
       delete N.stofnad_af; delete N.stofnad_t; delete N.breytt_af; delete N.breytt_t; delete N._o;
       saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(N); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; })
@@ -475,8 +505,8 @@
     if (k === "tbverk") { const T = findT(a); if (!T || T.verkefniId) return; if (!confirm(`Stofna verkefni úr tilboði ${T.nr}?\n\n„${T.heiti}“ fyrir ${T.vidskiptavinur || "–"}, tilboðsupphæð ${krs(totals(T).net)} án VSK.`)) return;
       const id = gid(), nr = nextProjNr(), st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
       saveSnapshot(s => { (s.verkefni = s.verkefni || []).push({ id, nr, stutt: T.heiti, nafn: nr + " " + T.heiti, stada: st, vidskiptavinur: T.vidskiptavinur || null, verkkaupi: null, vskId: T.vskId || null, vkId: null,
-          thjonusta: [], timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: null, tilbod: totals(T).net, tilbodId: T.id, deild: tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
-          lysing: [DL[tDeild(T)].l, T.stadsetning, T.fra ? dRange(T) : ""].filter(Boolean).join(" · ") || null });
+          thjonusta: [], timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: null, tilbod: totals(T).net, tilbodId: T.id, deild: isMix(T) ? null : tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
+          lysing: [isMix(T) ? null : DL[tDeild(T)].l, T.stadsetning, T.fra ? dRange(T) : ""].filter(Boolean).join(" · ") || null });
         const q = (s.tilbod || []).find(x => x.id === a); if (q) q.verkefniId = id; })
         .then(() => { toast(`Verkefni ${nr} stofnað`); openDetail("verk:" + id); }).catch(e => toast(errText(e))); return; }
     if (k === "tbcfg") { const g = x => (document.getElementById(x)?.value ?? null), gt = x => (g(x) || "").trim(), c = CF(), o = { vsk: n0(gt("ts-vsk")), gildisdagar: Math.round(n0(gt("ts-gd"))) || 14 };
@@ -492,6 +522,7 @@
   window.tbCountFor = pid => TB().filter(T => T.verkefniId === pid && tbOnD(T)).length;
   window.tbProjTab = p => { if (!window.ON || !(ON("leiga") || ON("sala"))) return "";
     const Ds = ["leiga", "sala"].filter(D => ON(D) && (!p.deild || p.deild === D));
+    if (PV()) return (MCP ? `<div class="links"><button type="button" class="btn primary" data-act="tbnew:blandad:${esc(p.id)}">+ Tilboð</button></div>` : "") + (tbFor(T => T.verkefniId === p.id) || `<div class="empty" style="margin-top:16px">Engin tilboð tengd þessu verkefni.</div>`);
     const btns = MCP ? `<div class="links">${Ds.map(D => `<button type="button" class="btn primary" data-act="tbnew:${D}:${esc(p.id)}">+ ${D === "leiga" ? "Leigutilboð" : "Sölutilboð"}</button>`).join("")}</div>` : "";
     return btns + (tbFor(T => T.verkefniId === p.id) || `<div class="empty" style="margin-top:16px">Engin tilboð tengd þessu verkefni.</div>`); };
   // Tilboð viðskiptavinar (á síðu viðskiptavinar), báðar deildir
@@ -500,6 +531,6 @@
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { ltilbod: () => vTilbod("leiga"), lvorur: () => vVorur("leiga"), stilbod: () => vTilbod("sala"), svorur: () => vVorur("sala") });
   Object.assign(window.DETAIL_EXT = window.DETAIL_EXT || {}, { vara: id => { const v = findV(id); return v && dVara(v); }, tb: id => { const T = findT(id); return T && dTilbod(T); } });
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { vr: salaAct, tb: salaAct });
-  Object.assign(window.FAB_EXT = window.FAB_EXT || {}, { lvorur: () => varaForm("leiga", null), svorur: () => varaForm("sala", null), ltilbod: () => salaAct("tbnew", ["leiga"]), stilbod: () => salaAct("tbnew", ["sala"]) });
+  Object.assign(window.FAB_EXT = window.FAB_EXT || {}, { lvorur: () => varaForm("leiga", null), svorur: () => varaForm("sala", null), ltilbod: () => salaAct("tbnew", [PV() ? "blandad" : "leiga"]), stilbod: () => salaAct("tbnew", ["sala"]) });
   window.salaEditing = () => !!EDT;
 })();

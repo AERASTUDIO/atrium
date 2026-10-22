@@ -11,7 +11,8 @@
   // Valin deild ("" = allar). Ógild/óvirk deild telst „allar“.
   window.DEILD = () => { const v = ls(), D = DEILDIR(); return D.length > 1 && D.some(([k]) => k === v) ? v : ""; };
   window.deildHeiti = k => (LIST.find(x => x[0] === k) || [, ""])[1];
-  window.inDeild = p => { const v = DEILD(); return !v || !p || !p.deild || p.deild === v; };
+  // Blandað tilboð (2.17.0): telst til deildar ef það hefur línur af þeirri tegund (leiga/sala)
+  window.inDeild = p => { const v = DEILD(); if (!v || !p || !p.deild) return true; if (p.deild === "blandad") return (p.linur || []).some(l => l.teg === v) || !(p.linur || []).length; return p.deild === v; };
   window.setDeild = v => { try { localStorage.setItem(LSK, v || ""); } catch (e) {} if (typeof render === "function") render(); };
 
   // Val í formum verkefnis (nýtt / breyta)
