@@ -30,14 +30,39 @@
     // Frá 2.8.0 – deildarval efst og verkefni, Heim og dagatal síuð eftir deild (deildir.js). Deildirnar = Leiga/Sala sem eru virkar.
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
-  const ALLTAF = ["verkefni"];
+  // Pakkar og tengingar (frá 2.14.0, einingatillagan 21.10.2026): einingarnar flokkaðar í kjarna, fimm pakka og tengingar.
+  // Pakki er lag OFAN Á einingarnar: slökkt pakki slekkur á öllum einingum hans; kveikt pakki lætur einingarnar ráða sjálfar.
+  // Ekkert breytist hjá uppsetningu sem hefur hvorki ORG.pakkar né S.stillingar.pakkar. Nýja stillingasíðan og flokkuð
+  // valmynd birtast aðeins þar sem ORG.pakkaval = true (fyrst í dev/).
+  // lykill: [heiti, lýsing, einingar pakkans]
+  const PAKKAR = {
+    verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
+    timar:      ["Tímar", "Tímaskráning, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
+    tilbod:     ["Tilboð og verðlisti", "Þjónustuliðir og tímagjald (verðlisti fyrir tilboð og reikninga)", ["verdskra"]],
+    bunadur:    ["Búnaður og lager", "Leiga og sala: búnaður og vörur, lagerstaða, leigu- og sölutilboð", ["leiga", "sala"]],
+    fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]
+  };
+  const TENGINGAR = {
+    m365skrar:  ["Microsoft 365 – skrár", "Möppur verkefna á SharePoint/OneDrive, Mín skjöl, Nýlegt og skjalalisti", ["skjol", "onedrive"]],
+    m365postur: ["Microsoft 365 – póstur", "Pósthólf, verkefnapóstur og póstþræðir á verkefnum", ["postur"]],
+    spjall:     ["Spjall", "Spjallrásir og bein skilaboð milli starfsfólks", ["spjall"]],
+    claude:     ["Claude-aðstoð", "Spurningar og skráningar í mæltu máli", [], "Væntanlegt"]
+  };
+  const PAKKI_AF = {}; [PAKKAR, TENGINGAR].forEach(G => Object.entries(G).forEach(([p, v]) => v[2].forEach(k => { PAKKI_AF[k] = p; })));
+  const KJARNI = ["verkefni", "vidskiptavinir"];
+  const ALLTAF = window.ORG?.pakkaval ? KJARNI.slice() : ["verkefni"];
   // S er skilgreint með let í app-grunnur.js (ekki á window) – lesið við keyrslu
   const st = () => { try { return typeof S !== "undefined" ? S : null; } catch (e) { return null; } };
   const raw = () => ({ ...(window.ORG?.einingar || {}), ...(st()?.stillingar?.einingar || {}) });
   // Er eining virk? (og sú sem hún er háð)
-  const ON = k => { if (ALLTAF.includes(k)) return true; if ((window.ORG?.einingar || {})[k] === false) return false; const r = raw(); if (r[k] === false || r[k] === 0) return false; if (EININGAR[k]?.[3] && r[k] !== true) return false; const dep = EININGAR[k]?.[2]; return dep ? ON(dep) : true; };
+  // Er pakki/tenging virk? false í fyrirtaeki.js = ekki í boði (læst); admin slekkur í S.stillingar.pakkar
+  const pakkiLast = p => (window.ORG?.pakkar || {})[p] === false;
+  const pakkiOn = p => { if (!p) return true; if (pakkiLast(p)) return false; const v = (st()?.stillingar?.pakkar || {})[p]; return v !== false; };
+  const ON = k => { if (ALLTAF.includes(k)) return true; if (!pakkiOn(PAKKI_AF[k])) return false; if ((window.ORG?.einingar || {})[k] === false) return false; const r = raw(); if (r[k] === false || r[k] === 0) return false; if (EININGAR[k]?.[3] && r[k] !== true) return false; const dep = EININGAR[k]?.[2]; return dep ? ON(dep) : true; };
   // Læst í uppsetningu (fyrirtaeki.js) – admin getur þá ekki kveikt á henni í appinu
-  const LAST = k => (window.ORG?.einingar || {})[k] === false;
+  const LAST = k => (window.ORG?.einingar || {})[k] === false || pakkiLast(PAKKI_AF[k]);
+  window.PAKKAR = PAKKAR; window.TENGINGAR = TENGINGAR; window.PAKKI_AF = PAKKI_AF; window.KJARNI = KJARNI;
+  window.pakkiOn = pakkiOn; window.pakkiLast = pakkiLast;
   window.EININGAR = EININGAR; window.ON = ON; window.einLast = LAST; window.EIN_ALLTAF = ALLTAF;
   window.einSig = () => Object.keys(EININGAR).map(k => ON(k) ? 1 : 0).join("");
 

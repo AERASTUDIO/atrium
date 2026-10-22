@@ -170,6 +170,9 @@ textarea{min-height:70px;resize:vertical}
   .side .new svg{width:18px;height:18px}
   .side nav{display:flex;flex-direction:column;gap:2px}
   .side .tab{padding:10px 12px;font-size:15px}
+  .side .sgrp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:14px 12px 4px}
+  .side .sgrp:first-child{padding-top:2px}
+  .side .sgrp:empty{padding:8px 0 0;margin-bottom:6px;border-bottom:1px solid var(--line)}
   .side .tab:hover{background:var(--b0)}
   .side .sfoot{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
   .side .sfoot .syncbtn{margin:0}
@@ -262,6 +265,7 @@ nav.mbar{background:var(--bg);border-top-color:var(--line)}
 .lrow .ll{flex:none;width:34px;text-align:center;line-height:1.1}
 .lrow .ll b{display:block;font-size:19px;font-weight:500;font-variant-numeric:tabular-nums}
 .lrow .ll small{display:block;font-size:11.5px;color:var(--muted)}
+label.lrow{flex-direction:row;align-items:center;gap:14px;text-align:left;font:inherit;color:inherit;letter-spacing:inherit}
 .lrow .lm{flex:1;min-width:0}
 .lrow .lt{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lrow .ls{font-size:12.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

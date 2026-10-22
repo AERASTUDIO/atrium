@@ -24,6 +24,8 @@ window.ORG = {
   postholf: "",
   sigLogo: "icons/atrium-doc-logo.png",
   docLogo: "icons/atrium-doc-logo.png",
+  // Nýja einingaskiptingin (2.14.0): kjarni, pakkar og tengingar – flokkuð valmynd og ný Stillingar › Einingar. Prófað hér fyrst.
+  pakkaval: true,
   // Einingar: engar læstar – hér má kveikja á öllu (Stillingar › Einingar) til að þróa og prófa.
   einingar: {},
   // Firebase-verkefnið atrium (atrium-499a2). Opinber auðkenni vefforrits, ekki leyndarmál.

@@ -124,7 +124,11 @@ function menuCounts(){if(!S) return {};
 function drawMenu(){
   const cur=secOf(tab), c=secCounts();
   const html=(cls)=>SECTIONS.filter(x=>!(cls&&x.nobar)).map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
-  sideExtra(); document.getElementById("sitems").innerHTML=html(""); document.getElementById("tbar").innerHTML=html(" tb");
+  // Tölva (2.14.0, ORG.pakkaval): hliðarvalmyndin flokkuð í Kjarna, Pakka og Tengingar
+  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",leiga:"Pakkar",sala:"Pakkar",dagatal:"Pakkar",timar:"Pakkar",skjol:"Tengingar",postur:"Tengingar"}; let last=null;
+    return SECTIONS.map(x=>{const g=G[x.k]||""; const hd=g&&g!==last?`<div class="sgrp" role="presentation">${g}</div>`:g?"":'<div class="sgrp" role="presentation"></div>'; last=g;
+      return hd+`<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`;}).join("");};
+  sideExtra(); document.getElementById("sitems").innerHTML=side(); document.getElementById("tbar").innerHTML=html(" tb");
   const av=document.getElementById("avbtn"); if(av){const U=window.USER; av.textContent=(U?.sk||String(U?.nafn||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2)).toUpperCase(); av.setAttribute("aria-current",cur?.k==="meira"?"page":"false"); av.hidden=!U;}
 }
 function secCounts(){if(!S) return {}; const up=upcoming(), late=up.filter(i=>daysTo(i.when)<0).length, un=(window.MS_OFL||[]).length;
@@ -153,7 +157,33 @@ document.getElementById("mitems").addEventListener("click",pickTab); document.ge
 
 /* Einingar (2.0.0): admin velur hvaða hlutar eru í notkun. Vistað í S.stillingar.einingar; það sem uppsetningin
    (fyrirtaeki.js › einingar) hefur slökkt á er læst. Sjá kjarni.js. */
-function vEiningar(){const E=window.EININGAR||{}, sv=S?.stillingar?.einingar||{};
+/* Pakkar og tengingar (2.14.0, aðeins þar sem ORG.pakkaval): kjarni (alltaf), fimm pakkar með rofa og einingum
+   pakkans undir, tengingar. Pakkarofi vistast í S.stillingar.pakkar; einingarofar áfram í S.stillingar.einingar. */
+function vPakkar(){const E=window.EININGAR||{}, P=window.PAKKAR||{}, T=window.TENGINGAR||{};
+  const sw=(attr,on,dis,lab)=>`<span class="hsw"><input type="checkbox" ${attr} ${on?"checked":""} ${dis||!MCP?"disabled":""} aria-label="${esc(lab)}"><i></i></span>`;
+  const sub=k=>{const [l,d,dep]=E[k], last=einLast(k), on=ON(k), depOff=dep&&!ON(dep)&&!(window.PAKKI_AF[dep]===window.PAKKI_AF[k]);
+    return `<label class="lrow" style="padding:9px 8px;${last||depOff?"opacity:.6;cursor:default":""}"><div class="lm"><div class="lt" style="font-size:14px">${esc(l)}</div><div class="ls">${esc(d)}${last?" · ekki í boði":depOff?" · krefst "+esc(E[dep][0]):""}</div></div>${sw(`data-ein="${esc(k)}"`,on,last||depOff,l)}</label>`;};
+  const pk=([p,[l,d,ein]])=>{const last=pakkiLast(p), on=pakkiOn(p)&&!last;
+    return `<div class="card" style="display:flex;flex-direction:column;gap:8px;${on?"":"opacity:.75"}">
+      <label style="display:flex;flex-direction:row;align-items:flex-start;gap:12px;text-align:left;font:inherit;color:inherit;cursor:${last?"default":"pointer"}"><div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:500">${esc(l)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">${esc(d)}</div></div>${sw(`data-pakki="${esc(p)}"`,on,last,l)}</label>
+      <div style="font-size:12px;color:var(--muted)">${last?"Ekki í boði í þessari uppsetningu":on&&ein.length&&!ein.some(k=>ON(k))?"Kveikt – en engin eining pakkans er virk":on?"Virkt":"Slökkt"}</div>
+      ${on&&ein.length>1?`<div class="llist">${ein.map(sub).join("")}</div>`:""}</div>`;};
+  const tg=([p,[l,d,ein,soon]])=>{const last=pakkiLast(p)||!!soon, on=!soon&&pakkiOn(p)&&!pakkiLast(p);
+    return `<label class="lrow" style="${last?"opacity:.6;cursor:default":""}"><div class="lm"><div class="lt">${esc(l)}</div><div class="ls">${esc(d)}${soon?" · "+esc(soon):pakkiLast(p)?" · ekki í boði":""}</div></div>${sw(`data-pakki="${esc(p)}"`,on,last,l)}</label>`;};
+  const h2=(t,s)=>`<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin:22px 0 10px"><h3 style="margin:0;font-size:17px;font-weight:500">${t}</h3><span style="font-size:13px;color:var(--muted)">${s}</span></div>`;
+  const kj=(window.KJARNI||[]).map(k=>E[k]?.[0]).filter(Boolean).concat(["Heim","Notendur og hlutverk","Leit","Stillingar"]);
+  const dl=E.deildir&&(ON("leiga")||ON("sala"))?`${h2("Stillingar","Valkostir sem stýra framsetningu")}<div class="llist">${sub("deildir")}</div>`:"";
+  return `<p class="hint" style="margin:14px 0 4px">Atrium skiptist í kjarna sem er alltaf virkur, pakka sem fyrirtækið velur og tengingar við ytri kerfi. Slökktu á því sem fyrirtækið notar ekki – það hverfur úr valmynd, Heim og formum hjá öllum. Gögnin eyðast ekki.</p>
+  ${h2("Kjarni","Alltaf virkur")}<div style="display:flex;flex-wrap:wrap;gap:8px">${kj.map(x=>`<span style="font-size:13px;background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:7px 12px">${esc(x)}</span>`).join("")}</div>
+  ${h2("Pakkar","Admin kveikir og slekkur innan þess sem er í boði")}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${Object.entries(P).map(pk).join("")}</div>
+  ${h2("Tengingar","Ytri kerfi")}<div class="llist">${Object.entries(T).map(tg).join("")}</div>${dl}`;}
+document.addEventListener("change",e=>{const p=e.target?.dataset?.pakki; if(!p) return; if(!can("stillingar")){e.target.checked=!e.target.checked; return toast("Aðeins admin getur breytt einingum.");}
+  const v=e.target.checked, G={...(window.PAKKAR||{}),...(window.TENGINGAR||{})}, ein=G[p]?.[2]||[];
+  saveSnapshot(s=>{s.stillingar=s.stillingar||{}; s.stillingar.pakkar={...(s.stillingar.pakkar||{}),[p]:v};
+    // Kveikt á pakka þar sem allar einingar eru sjálfgefið óvirkar og engin kveikt (t.d. Búnaður og lager): kveikja á þeim öllum
+    if(v&&ein.length&&ein.every(k=>window.EININGAR[k]?.[3])&&!ein.some(k=>(s.stillingar.einingar||{})[k]===true)) s.stillingar.einingar={...(s.stillingar.einingar||{}),...Object.fromEntries(ein.filter(k=>!einLast(k)).map(k=>[k,true]))};
+  }).then(()=>toast((G[p]?.[0]||p)+(v?" virkt":" slökkt"))).catch(err=>toast(errText(err)));});
+function vEiningar(){if(window.ORG?.pakkaval) return vPakkar(); const E=window.EININGAR||{}, sv=S?.stillingar?.einingar||{};
   return `<p class="hint" style="margin:14px 0 10px">Slökktu á því sem fyrirtækið notar ekki – það hverfur úr valmynd, Heim og formum hjá öllum. Gögnin eyðast ekki og birtast aftur ef kveikt er á ný.</p>
   <div class="llist">${Object.entries(E).map(([k,[l,d,dep]])=>{const alltaf=(window.EIN_ALLTAF||[]).includes(k), last=einLast(k), on=ON(k), depOff=dep&&!ON(dep);
     return `<label class="lrow" style="cursor:${alltaf||last?"default":"pointer"};${alltaf||last||depOff?"opacity:.6":""}"><div class="lm"><div class="lt">${esc(l)}</div><div class="ls">${esc(d)}${last?" · óvirkt í þessari uppsetningu":depOff?" · krefst "+esc(E[dep][0]):""}</div></div>
