@@ -765,3 +765,16 @@ label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0
   body.pv.ui1 .side .logo{background-image:url(icons/atrium-haus-dokk.svg)!important}
   body.pv.ui1.hasco .side .cobrand .logo{background-image:url(icons/atrium-merki-dokk.svg)!important;aspect-ratio:1/1!important}
 }
+/* Vörulisti › Yfirlit (2.23.2) */
+.vyk6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:8px 0 16px}
+.vyk{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;background:var(--raise)}.vyk small{font-size:12px;color:var(--muted)}.vyk b{font-size:20px;font-weight:300}
+.vyc{padding:14px 16px}.vyc h3{margin:0;font-size:14px;font-weight:500}.vyh{font-size:12px;color:var(--muted);font-weight:400;margin:2px 0 6px}
+.vyt{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.vyt h3 .vyh{display:inline}
+.vysw{display:inline-flex;align-items:center;gap:5px;margin-left:12px;font-size:12px;color:var(--muted)}.vysw i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.vybars{display:flex;align-items:flex-end;gap:8px;border-bottom:1px solid var(--line);margin-top:8px}
+.vyb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:150px}.vys{width:64%;max-width:40px;display:flex;flex-direction:column;border-radius:4px 4px 0 0;overflow:hidden}.vys i{display:block}
+.vyv{font-size:11px;color:var(--muted)}.vyv.on{color:var(--ink);font-weight:600}.vyl{font-size:11px;color:var(--muted)}
+.vy3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.vyr{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}.vyr span:last-child{color:var(--muted);white-space:nowrap}
+.vyred{color:#C62828!important;font-weight:500}
+@media (max-width:1023px){.vyk6,.vy3{grid-template-columns:repeat(2,minmax(0,1fr))}}

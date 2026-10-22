@@ -16,6 +16,9 @@
     B.tabs = B.tabs.map(t => t[0] === "lvorur" ? ["lvorur", "Leiga"] : t[0] === "svorur" ? ["svorur", "Sala"] : t[0] === "vutl" ? ["vutl", "Útleiga", 1] : t);
     if (vv) B.tabs.push(["vvinna", "Þjónusta"]);
   }
+  if (T) { const i = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i >= 0) T.tabs.splice(i, 1, ["ltilbod", "Öll tilboð"], ["tbl", "Leiga"], ["tbs", "Sala"], ["tbt", "Þjónusta"]); }
+  if (B) B.tabs.unshift(["vyfir", "Yfirlit"]);
+  Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { tbl: ["tilbod", "leiga"], tbs: ["tilbod", "sala"], tbt: "tilbod", vyfir: "bunadur" });
   if (TI) TI.tabs = TI.tabs.map(t => t[0] === "timar" ? ["timar", "Vikan"] : t);
   // Pantanir í Kjarna, á eftir Verkefnum
   if (P && V) { SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(P), 1); SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(V) + 1, 0, P); }
@@ -52,6 +55,7 @@
   const SUPER = () => { const s = secOf(tab), vis = s.tabs.filter(t => !t[2]); return vis.length > 1 && s.k !== "heim" || (s.k === "heim" && tab !== "yfirlit") ? s.l : ""; };
   const EXP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
   const COL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
+  const PH = { verkefni: "verkefni", vsk: "viðskiptavini", tilbod: "tilboð", pantanir: "pantanir", lvorur: "búnað", svorur: "vörur", vvinna: "þjónustu", fundir: "fundi", tfaer: "færslur", trk: "reikninga", fjarmal: "reikninga", undir: "undirverk", heim: "lista" };
   let full = false, flt = "";
   const _render = window.render || render;
   function renderI() {
@@ -73,7 +77,7 @@
     // Sía efst í listanum (síar línur og spjöld eftir texta)
     const sl = v.querySelector(".splist"), ph = sl.querySelector(".phead");
     const f = document.createElement("label"); f.className = "spfilt";
-    f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input type="search" placeholder="Sía ${esc((secOf(tab).tabs.find(t => t[0] === tab) || [, ""])[1].toLowerCase())}…" aria-label="Sía lista" value="${esc(flt)}"><kbd>/</kbd>`;
+    f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input type="search" placeholder="Sía ${esc(PH[tab] || PH[secOf(tab).k] || "lista")}…" aria-label="Sía lista" value="${esc(flt)}"><kbd>/</kbd>`;
     (ph ? ph.after(f) : sl.prepend(f));
     const inp = f.querySelector("input"); inp.addEventListener("input", () => { flt = inp.value; applyFilt(sl); }); applyFilt(sl);
     if (DETAIL) sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel");
@@ -91,6 +95,52 @@
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { const q = document.getElementById("topq"); if (q) { e.preventDefault(); q.focus(); } }
   });
   window.addEventListener("resize", () => { clearTimeout(renderI._r); renderI._r = setTimeout(() => S && render(), 200); });
+
+  /* ---------- Tilboð eftir sviði (síað eftir línutegund) ---------- */
+  const A = () => window.salaAPI;
+  const tbView = f => () => { A()?.tbLina(f); return window.VIEWS_EXT.ltilbod_i(); };
+  if (window.VIEWS_EXT?.ltilbod) {
+    VIEWS_EXT.ltilbod_i = VIEWS_EXT.ltilbod;
+    Object.assign(VIEWS_EXT, { ltilbod: tbView(""), tbl: tbView("leiga"), tbs: tbView("sala"), tbt: tbView("vinna"), vyfir: () => vYfirVL() });
+    ["tbl", "tbs", "tbt"].forEach(k => { if (window.NEWBTN && NEWBTN.ltilbod) NEWBTN[k] = NEWBTN.ltilbod; if (window.FAB_EXT?.ltilbod) FAB_EXT[k] = FAB_EXT.ltilbod; });
+    ["tbl", "tbs", "tbt"].forEach(k => LIST.add(k));
+  }
+
+  /* ---------- Vörulisti › Yfirlit: leiga, sala og þjónusta (úr samþykktum tilboðum og pöntunum) ---------- */
+  const MN = ["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ágú", "sep", "okt", "nóv", "des"];
+  const krM = n => (n / 1e6).toFixed(1).replace(".", ",") + " m.kr.";
+  const krs = n => Math.round(n).toLocaleString("de-DE") + " kr.";
+  function vYfirVL() {
+    const api = A(); if (!api) return `<div class="empty">Vörulistinn er ekki virkur.</div>`;
+    const now = new Date(), mon = []; for (let i = 11; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); mon.push({ k: d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"), l: MN[d.getMonth()], L: 0, S: 0, V: 0 }); }
+    const byK = Object.fromEntries(mon.map(m => [m.k, m]));
+    const docs = [...api.TB().filter(T => T.stada === "Samþykkt"), ...api.PN().filter(P => P.stada !== "Ný")];
+    docs.forEach(T => { const k = String(T.fra || T.dags || "").slice(0, 7), m = byK[k]; if (!m) return;
+      (T.linur || []).forEach(l => { const v = api.lSum(l, T) || 0; if (l.teg === "leiga") m.L += v; else if (l.teg === "sala") m.S += v; else m.V += v; }); });
+    const tot = mon.reduce((a, m) => ({ L: a.L + m.L, S: a.S + m.S, V: a.V + m.V }), { L: 0, S: 0, V: 0 });
+    const opin = api.TB().filter(T => T.stada === "Sent" || T.stada === "Drög"), opinV = opin.reduce((a, T) => a + (T.linur || []).reduce((b, l) => b + (api.lSum(l, T) || 0), 0), 0);
+    const VR = api.VR(), lei = VR.filter(v => api.vDeild(v) === "leiga" && v.tegund !== "vinna" && v.tegund !== "pakki"), sol = VR.filter(v => api.vDeild(v) === "sala" && v.tegund !== "vinna");
+    const lagV = sol.reduce((a, v) => a + (+v.fjoldi || 0) * (+v.innkaupsverd || +v.soluverd || 0), 0);
+    // Nýting næstu 30 daga: frátekið hæsta dagsgildi á móti fjölda
+    const iso = d => d.toISOString().slice(0, 10), f0 = iso(now), f1 = iso(new Date(now.getTime() + 30 * 864e5));
+    const nyt = lei.map(v => { const u = api.upptekid(v.id, f0, f1); return { v, max: u.max, n: u.bs.length, cap: +v.fjoldi || 0 }; });
+    const full = nyt.filter(x => x.cap && x.max >= x.cap).sort((a, b) => b.n - a.n), most = nyt.filter(x => x.n).sort((a, b) => b.n - a.n || b.max / (b.cap || 1) - a.max / (a.cap || 1));
+    const lag = sol.filter(v => (+v.fjoldi || 0) <= 2).sort((a, b) => (+a.fjoldi || 0) - (+b.fjoldi || 0));
+    const mx = Math.max(1, ...mon.map(m => m.L + m.S + m.V)), H = 110;
+    const bars = mon.map((m, i) => { const t = m.L + m.S + m.V, h = v => Math.max(v ? 2 : 0, Math.round(v / mx * H));
+      return `<div class="vyb"><span class="vyv${i === 11 ? " on" : ""}">${t ? (t / 1e6).toFixed(1).replace(".", ",") : ""}</span><div class="vys"><i style="height:${h(m.V)}px;background:#9DB7D3"></i><i style="height:${h(m.S)}px;background:#5E86B3"></i><i style="height:${h(m.L)}px;background:#1F5A96"></i></div><span class="vyl">${m.l}</span></div>`; }).join("");
+    const kpi = (l, v) => `<div class="vyk"><small>${l}</small><b>${v}</b></div>`;
+    const card = (t, hint, rows, empty) => `<section class="card vyc"><h3>${t}</h3><div class="vyh">${hint}</div>${rows.length ? rows.map(([a, b]) => `<div class="vyr"><span>${a}</span><span>${b}</span></div>`).join("") : `<div class="vyh">${empty}</div>`}</section>`;
+    const sw = (c, t) => `<span class="vysw"><i style="background:${c}"></i>${t}</span>`;
+    return `<div class="vyk6">${kpi("Tekjur 12 mán.", krM(tot.L + tot.S + tot.V))}${kpi("Leiga", krM(tot.L))}${kpi("Sala", krM(tot.S))}${kpi("Þjónusta", krM(tot.V))}${kpi("Opin tilboð", krM(opinV))}${kpi("Lagervirði sölu", krM(lagV))}</div>
+      <section class="card vyc"><div class="vyt"><h3>Tekjur á mánuði <span class="vyh">· m.kr. · samþykkt tilboð og pantanir</span></h3><span>${sw("#1F5A96", "Leiga")}${sw("#5E86B3", "Sala")}${sw("#9DB7D3", "Þjónusta")}</span></div><div class="vybars">${bars}</div></section>
+      <div class="vy3">${card("Mest bókað", "Næstu 30 dagar", most.slice(0, 4).map(x => [esc(x.v.heiti), `${x.n} bókanir · ${x.max} af ${x.cap}`]), "Engar bókanir framundan.")}
+      ${card("Uppbókað", "Íhuga að kaupa fleiri", full.slice(0, 4).map(x => [esc(x.v.heiti), `<span class="vyred">${x.max} af ${x.cap}</span>`]), "Ekkert uppbókað næstu 30 daga.")}
+      ${card("Lítið á lager", "Söluvörur með 2 eða færri", lag.slice(0, 4).map(v => [esc(v.heiti), `<span class="${(+v.fjoldi || 0) === 0 ? "vyred" : ""}">${+v.fjoldi || 0} stk.</span>`]), "Allt í lagi.")}
+      ${card("Opin tilboð", "Send eða í drögum", opin.slice(0, 4).map(T => [`<span class="nr">${esc(T.nr || "")}</span> ${esc(T.heiti || "")}`, krs((T.linur || []).reduce((b, l) => b + (api.lSum(l, T) || 0), 0))]), "Engin opin tilboð.")}
+      ${card("Leigubúnaður", "Í vörulista", [["Tæki", lei.length], ["Stykki alls", lei.reduce((a, v) => a + (+v.fjoldi || 0), 0)], ["Pakkar", VR.filter(v => v.tegund === "pakki").length]], "")}
+      ${card("Söluvörur", "Í vörulista", [["Vörur", sol.length], ["Á lager alls", sol.reduce((a, v) => a + (+v.fjoldi || 0), 0) + " stk."], ["Lagervirði", krs(lagV)]], "")}</div>`;
+  }
 
   /* ---------- Heim: samantekt án spjaldanna efst, merki fyrirtækisins neðst ---------- */
   const _heim = window.vHeim2;
