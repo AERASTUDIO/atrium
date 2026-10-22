@@ -629,3 +629,24 @@ body:not(.pv) #sfoot2{display:none}
 /* Síur sem fellivalmynd (2.19.3, pakkaval) */
 .fsels{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 select.fsel{width:auto;min-width:180px;max-width:100%;margin:0}
+/* Pantanir og útleiga (2.20.0) – bláir/gráir tónar; „meira en til er“ = röndótt */
+.card.arek{border:2px solid var(--accent);background:var(--accent-soft);margin:10px 0}
+.arek-r{display:flex;flex-direction:column;gap:2px;margin-top:8px;font-size:14px}
+.arek-t{color:var(--accent);font-weight:600}
+.pkrow.uppb .lt{opacity:.6}
+.utl-per{margin:0 8px;font-weight:500}
+.utl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table.utl{border-collapse:collapse;width:100%;font-size:13px}
+.utl th,.utl td{border-bottom:1px solid var(--line);padding:7px 4px;text-align:center;min-width:36px;font-weight:400}
+.utl thead th{font-weight:500}
+.utl thead th small,.utl th.utl-h small{display:block;color:var(--muted);font-size:11px}
+.utl th.utl-h{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;min-width:190px;padding-left:12px}
+.utl .helg{background:var(--hover)}
+.utl thead th.idag{color:var(--accent);font-weight:700}
+.utl td.idag{box-shadow:inset 2px 0 0 var(--accent),inset -2px 0 0 var(--accent)}
+.utl td.hluti,.utl-k.hluti{background:var(--accent-soft)}
+.utl td.full,.utl-k.full{background:var(--accent);color:var(--on-accent)}
+.utl td.yfir,.utl-k.yfir{background:repeating-linear-gradient(135deg,var(--accent) 0 5px,var(--hi) 5px 10px);color:var(--on-hi);font-weight:700;outline:2px dashed var(--on-accent);outline-offset:-4px}
+.utl td[data-open]{cursor:pointer}
+.utl-hint{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.utl-k{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-2px;border:1px solid var(--line)}

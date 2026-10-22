@@ -28,6 +28,8 @@
     leiga:          ["Leiga", "Búnaðarlisti og leigutilboð með leigudögum og dagstuðlum, pakkar og tæknimenn", null, 1],
     sala:           ["Sala", "Vörulisti með lagerstöðu og sölutilboð (heildsala og install)", null, 1],
     // Frá 2.8.0 – deildarval efst og verkefni, Heim og dagatal síuð eftir deild (deildir.js). Deildirnar = Leiga/Sala sem eru virkar.
+    // Frá 2.20.0 (aðeins með pakkavali): pantanir og erindi án verkefnis – sami ritill og tilboð, frátekning leigubúnaðar
+    ...(window.ORG?.pakkaval ? { pantanir: ["Pantanir", "Pantanir og erindi án verkefnis: viðskiptavinur, línur úr vörulista, afhending og skil, uppruni (sími, tölvupóstur, Shopify …)", null, 1] } : {}),
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
   // Pakkar og tengingar (frá 2.14.0, einingatillagan 21.10.2026): einingarnar flokkaðar í kjarna, fimm pakka og tengingar.
@@ -39,7 +41,7 @@
     verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
     timar:      ["Tímar", "Tímaskráning, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
     tilbod:     ["Tilboð og verðlisti", "Þjónustuliðir og tímagjald (verðlisti fyrir tilboð og reikninga)", ["verdskra"]],
-    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala"]],
+    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", ...(window.ORG?.pakkaval ? ["pantanir"] : [])]],
     fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]
   };
   const TENGINGAR = {

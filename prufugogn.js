@@ -10,7 +10,7 @@
   const d0 = new Date(); d0.setHours(0, 0, 0, 0);
   const day = (off, hm) => { const x = new Date(d0); x.setDate(x.getDate() + off); const s = isoDay(x); return hm ? s + "T" + hm + ":00" : s; };
   const iso = off => new Date(d0.getTime() + off * 864e5 + 10 * 36e5).toISOString();
-  const KEYS = ["vidskiptavinir", "verkefni", "fundir", "kostnadur", "reikningar", "vorur", "tilbod"];
+  const KEYS = ["vidskiptavinir", "verkefni", "fundir", "kostnadur", "reikningar", "vorur", "tilbod", "pantanir"];
   const fx = s => ({ ...Object.fromEntries(KEYS.map(k => [k, s[k] || []])), timar: s.timar?.faerslur || [] });
 
   function gogn() {
@@ -66,14 +66,14 @@
     const kaup = c => ({ name: c.name, kennitala: c.kennitala, heimilisfang: c.heimilisfang, postnumer: c.postnumer, stadur: c.stadur, netfang: c.netfang });
     const RK = (nr, off, p, cl, lys, magn, verd, stada) => { const net = magn * verd, vs = Math.round(net * 0.24); return { id: gid(), nr, dags: day(off), gjalddagi: day(off + 14), verkefniIds: [p.id], verkefniId: p.id, vskId: cl.id, kaupandi: kaup(cl), seljandi: sel, linur: [{ lysing: lys, magn, eining: "klst.", verd }], vskP: 24, net, vsk: vs, tot: net + vs, timaIds: [], kostnIds: [], stada, greitt: stada === "Greitt" ? day(off + 10) : null, stofnad: iso(off), prufa: true }; };
     const reikningar = [RK(9001, -40, a6, r, a6.nafn, 12, 14900, "Greitt"), RK(9002, -10, a5, v, a5.nafn, 18, 14900, "Ógreitt")];
-    let vorur = [], tilbod = [];
-    if (window.salaPrufa && window.ON && (ON("leiga") || ON("sala")) && !(S?.vorur || []).some(x => x.prufa)) { const sp = salaPrufa([v, h]); vorur = sp.vorur; tilbod = sp.tilbod; const t1 = tilbod.find(t => t.deild === "leiga"); if (t1) t1.verkefniId = a1.id; }
-    return { vidskiptavinir: vsk, verkefni, fundir, kostnadur, reikningar, timar, vorur, tilbod };
+    let vorur = [], tilbod = [], pantanir = [];
+    if (window.salaPrufa && window.ON && (ON("leiga") || ON("sala")) && !(S?.vorur || []).some(x => x.prufa)) { const sp = salaPrufa([v, h]); vorur = sp.vorur; tilbod = sp.tilbod; pantanir = sp.pantanir || []; const t1 = tilbod.find(t => t.deild === "leiga"); if (t1) t1.verkefniId = a1.id; }
+    return { vidskiptavinir: vsk, verkefni, fundir, kostnadur, reikningar, timar, vorur, tilbod, pantanir };
   }
 
   const kjarni = () => ["vidskiptavinir", "verkefni"].some(k => (S?.[k] || []).some(x => x && x.prufa));
   const count = () => { const f = fx(S || {}); return Object.fromEntries(Object.entries(f).map(([k, a]) => [k, a.filter(x => x && x.prufa).length])); };
-  const HEITI = { vidskiptavinir: "viðskiptavinir", verkefni: "verkefni", fundir: "fundir", timar: "tímafærslur", kostnadur: "kostnaður", reikningar: "reikningar", vorur: "vörur", tilbod: "tilboð" };
+  const HEITI = { vidskiptavinir: "viðskiptavinir", verkefni: "verkefni", fundir: "fundir", timar: "tímafærslur", kostnadur: "kostnaður", reikningar: "reikningar", vorur: "vörur", tilbod: "tilboð", pantanir: "pantanir" };
 
   window.vPrufugogn = function () {
     const n = count(), tot = Object.values(n).reduce((a, b) => a + b, 0);

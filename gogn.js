@@ -10,7 +10,7 @@
   // Söfn: lykill í Firestore, hvar fylkið býr í S, og hvort færslur eiga eiganda (aðeins eigandi + fjármál sjá þær).
   const COLS = [
     { k: "verkefni" }, { k: "vidskiptavinir" }, { k: "fundir" }, { k: "skjol" }, { k: "thraedir" },
-    { k: "reikningar" }, { k: "vorur" }, { k: "tilbod" },
+    { k: "reikningar" }, { k: "vorur" }, { k: "tilbod" }, { k: "pantanir" },
     { k: "timar", get: s => s.timar?.faerslur, set: (s, v) => { s.timar = s.timar || {}; s.timar.faerslur = v; }, eigandi: true,
       sort: (a, b) => String(b.date + (b.fra || "")).localeCompare(String(a.date + (a.fra || ""))) },
     { k: "kostnadur", eigandi: true }

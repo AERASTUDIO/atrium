@@ -50,11 +50,12 @@ const SECTIONS_ALL=[
 if(window.ORG?.pakkaval){const by=k=>SECTIONS_ALL.find(x=>x.k===k), L=by("leiga"), Sa=by("sala"), T=by("timar"), V=by("verkefni");
   // Verkefni (2.17.1): Öll verkefni · Leiguverkefni · Söluverkefni þegar Leiga/Sala er virk (flokkað eftir tegund og línum tilboða)
   V.tabs=V.tabs.filter(t=>!["lverk","sverk"].includes(t[0])); V.tabs.splice(1,0,["lverk","Leiguverkefni"],["sverk","Söluverkefni"]); V.tabs[0]=["verk","Öll verkefni"];
-  Object.assign(window.TAB_EIN,{lverk:"leiga",sverk:"sala",vvinna:"leiga"});
+  Object.assign(window.TAB_EIN,{lverk:"leiga",sverk:"sala",vvinna:"leiga",vutl:"leiga",pantanir:"pantanir"});
   T.tabs=T.tabs.filter(t=>t[0]!=="trk");
   const nyir=[
     {k:"tilbod",l:"Tilboð",ic:IC('<path d="M6 3.5h9l3.5 3.5v13.5H6z"/><path d="M9 11h6M9 14.5h6M9 7.5h3"/>'),tabs:[["ltilbod","Tilboð"]]},
-    {k:"bunadur",l:"Vörulisti",ic:L.ic,tabs:[["lvorur","Leigubúnaður"],["svorur","Söluvörur"],["vvinna","Vinna og þjónusta"]]},
+    {k:"pantanir",l:"Pantanir",ic:IC('<path d="M5 7.5h14l-1.3 11a1.5 1.5 0 0 1-1.5 1.3H7.8a1.5 1.5 0 0 1-1.5-1.3z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/>'),tabs:[["pantanir","Pantanir"]]},
+    {k:"bunadur",l:"Vörulisti",ic:L.ic,tabs:[["lvorur","Leigubúnaður"],["vutl","Útleiga"],["svorur","Söluvörur"],["vvinna","Vinna og þjónusta"]]},
     {k:"fjarmal",l:"Reikningar",ic:IC('<rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M3.5 10h17M7 14.5h3"/>'),tabs:[["trk","Reikningar"]]}];
   [L,Sa].forEach(x=>SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(x),1));
   SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(T)+1,0,...nyir);

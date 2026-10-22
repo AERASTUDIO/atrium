@@ -126,7 +126,7 @@ function drawMenu(){
   const cur=secOf(tab), c=secCounts();
   const html=(cls)=>SECTIONS.filter(x=>!(cls&&x.nobar)).map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
   // Tölva (2.14.0, ORG.pakkaval): hliðarvalmyndin flokkuð í Kjarna, Pakka og Tengingar
-  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",dagatal:"Pakkar",timar:"Pakkar",tilbod:"Pakkar",bunadur:"Pakkar",fjarmal:"Pakkar",skjol:"Tengingar",postur:"Tengingar",spjall:"Tengingar"}; let last=null;
+  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",dagatal:"Pakkar",timar:"Pakkar",tilbod:"Pakkar",pantanir:"Pakkar",bunadur:"Pakkar",fjarmal:"Pakkar",skjol:"Tengingar",postur:"Tengingar",spjall:"Tengingar"}; let last=null;
     // Neðst (2.15.1): Stillingar og notandinn – ekkert annað í hliðarstikunni (klukka, Í dag o.fl. falið með body.pv)
     let ft=document.getElementById("sfoot2"); if(!ft){ft=document.createElement("div"); ft.id="sfoot2"; const sf=document.querySelector(".side .sfoot"); sf?.parentNode.insertBefore(ft,sf);}
     const U=window.USER, ini=(U?.sk||String(U?.nafn||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2)).toUpperCase(), stc=tab==="stillingar", mec=cur?.k==="meira"&&!stc;
@@ -148,7 +148,7 @@ function drawMenu(){
     const FL={verkefni:[["+ Nýtt verkefni","kind='verk';openSheet()"],...(ON("undirverk")?[["+ Undirverk","kind='undir';openSheet()"]]:[]),["+ Viðskiptavinur","kind='vsk';openSheet()"]],
       dagatal:[["+ Fundur","kind='fund';openSheet()"],...(ON("undirverk")?[["+ Undirverk","kind='undir';openSheet()"]]:[])],
       timar:[...(klukka()?[]:[["▶ Byrja klukku","kind='tima';PREFILL={timer:true};openSheet()"]]),["+ Skrá tíma","kind='tima';openSheet()"],...(ON("kostnadur")?[["+ Útlagður kostnaður","kind='kostn';openSheet()"]]:[])],
-      tilbod:[["+ Nýtt tilboð","FAB_EXT.ltilbod?.()"]], bunadur:[...(ON("leiga")?[["+ Leigubúnaður","FAB_EXT.lvorur?.()"]]:[]),...(ON("sala")?[["+ Söluvara","FAB_EXT.svorur?.()"]]:[]),["+ Vinna eða þjónusta","FAB_EXT.vvinna?.()"]],
+      tilbod:[["+ Nýtt tilboð","FAB_EXT.ltilbod?.()"]], pantanir:[["+ Ný pöntun","FAB_EXT.pantanir?.()"],["Útleiguyfirlit","doAct('tab:vutl')"]], bunadur:[...(ON("leiga")?[["+ Leigubúnaður","FAB_EXT.lvorur?.()"]]:[]),...(ON("sala")?[["+ Söluvara","FAB_EXT.svorur?.()"]]:[]),["+ Vinna eða þjónusta","FAB_EXT.vvinna?.()"]],
       fjarmal:[["Óreikningsfært","doAct('tab:trk')"]], skjol:[["+ Nýtt skjal","window.skOpenNew&&skOpenNew(null)"]], postur:[["✉ Nýr póstur","window.poCompose&&poCompose({})"]], spjall:[]}[cur?.k]||[];
     sn.innerHTML=show?`<div class="snh">${esc(cur.l)}</div>${vis.map(([k,l])=>`<button type="button" class="sni" data-tab="${k}"${k===tab||(DETAIL&&k===vis[0][0]&&!vis.some(v=>v[0]===tab))?' aria-current="page"':""}>${esc(l)}</button>`).join("")}
       ${MCP&&FL.length?`<div class="snh" style="margin-top:18px">Flýtileiðir</div>${FL.map(([l,js])=>`<button type="button" class="snf" onclick="${js}">${esc(l)}</button>`).join("")}`:""}
