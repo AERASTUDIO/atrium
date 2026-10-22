@@ -39,7 +39,7 @@
     verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
     timar:      ["Tímar", "Tímaskráning, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
     tilbod:     ["Tilboð og verðlisti", "Þjónustuliðir og tímagjald (verðlisti fyrir tilboð og reikninga)", ["verdskra"]],
-    bunadur:    ["Búnaður og lager", "Leiga og sala: búnaður og vörur, lagerstaða, leigu- og sölutilboð", ["leiga", "sala"]],
+    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala"]],
     fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]
   };
   const TENGINGAR = {
