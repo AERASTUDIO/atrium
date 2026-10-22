@@ -553,3 +553,6 @@ body.hasdock .fab{bottom:calc(132px + env(safe-area-inset-bottom,0px))}
   body.pv .side .tab[aria-current="page"] .tc{background:rgba(127,127,127,.35);color:var(--bg)}
 }
 body:not(.pv) #sfoot2{display:none}
+
+.lokabtn{margin-top:10px}
+.lokabox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:10px 14px;border-radius:12px;background:var(--raise);font-size:14px}

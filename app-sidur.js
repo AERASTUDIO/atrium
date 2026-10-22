@@ -12,6 +12,10 @@ const timeList=(match,title="Tímaskráning")=>{const es=faerslur().filter(match
   const tot=es.reduce((s,e)=>s+(+e.timar||0),0);
   return es.length?`<div class="viewtitle">${title} · ${hrs(tot)}</div><div class="list">${es.map(timeCard).join("")}</div>`:"";};
 const meetList=(fs,title)=>fs.length?`<div class="viewtitle">${title}</div><div class="list">${fs.map(f=>`<div class="card tap" ${tapAttr("fund",f.id)}><div class="row">${dateBlock(f.date)}<div class="grow"><div class="t">${esc(f.name)}</div><div class="meta">${hhmm(f.date)?`<span>kl. ${hhmm(f.date)}</span>`:""}${f.stadsetning?`<span>${esc(f.stadsetning)}</span>`:""}${daysTo(f.date)>=0?relPill(daysTo(f.date)):""}${f.fundargerd?`<span>Fundargerð</span>`:""}</div></div>${CHEV}</div></div>`).join("")}</div>`:"";
+// Loka verkefni / Opna aftur (2.15.4) – aðeins þar sem falin lokastaða er skilgreind (ORG.stodur eða Stillingar)
+const lokaBtn=p=>{const L=LOKA(); if(!L||isTmp(p.id)) return ""; if(p.stada===L.n){const back=STVAL().filter(x=>!x.lokid).pop()?.n||STVAL()[0]?.n;
+  return `<div class="lokabox"><span>Verkefninu er lokað.</span><button type="button" class="btn" data-act="status:verk:${esc(p.id)}:${esc(back)}">Opna aftur</button></div>`;}
+  return `<button type="button" class="btn lokabtn" data-act="status:verk:${esc(p.id)}:${esc(L.n)}">✓ Loka verkefni</button>`;};
 const statRow=(type,id,opts,cur,labels)=>MCP&&!isTmp(id)?`<div class="stat-row">${opts.map(s=>`<button type="button" class="chipbtn" data-act="status:${type}:${esc(id)}:${esc(s)}" aria-pressed="${s===cur}">${esc((labels||{})[s]||s)}</button>`).join("")}</div>`:"";
 const addRow=(btns)=>MCP?`<div class="links">${btns.map(([k,l])=>`<button type="button" class="btn" data-act="add:${k}">${l}</button>`).join("")}</div>`:"";
 /* ---------- Undirsíður (flipar) á verkefni og undirverki ---------- */
@@ -51,7 +55,7 @@ function dVerk(p){
   if(DTAB==="yfirlit"){
     const soon=[...openS.filter(u=>u.skiladagur).map(u=>({w:u.skiladagur,h:subRowL(u)})),...upF.map(f=>({w:f.date,h:meetRowL(f)}))].sort((a,b)=>String(a.w).localeCompare(String(b.w))).slice(0,5);
     body=`${klukkaBanner(p)}
-    ${MCP?`<div class="viewtitle" style="margin-top:14px">Staða verkefnis</div><div class="stat-row pstada" role="group" aria-label="Staða verkefnis">${STODUR().map(x=>`<button type="button" class="chipbtn" data-act="status:verk:${esc(p.id)}:${esc(x.n)}" aria-pressed="${x.n===p.stada}">${esc(x.n)}</button>`).join("")}</div>`:""}
+    ${MCP?`<div class="viewtitle" style="margin-top:14px">Staða verkefnis</div><div class="stat-row pstada" role="group" aria-label="Staða verkefnis">${STVAL().map(x=>`<button type="button" class="chipbtn" data-act="status:verk:${esc(p.id)}:${esc(x.n)}" aria-pressed="${x.n===p.stada}">${esc(x.n)}</button>`).join("")}</div>${lokaBtn(p)}`:""}
     <div class="kpis" style="margin-top:16px"><div class="card"><b>${num(Math.round(((+p.timar||0)+liveProjH(p.id))*10)/10)}</b><span>klst. skráðar${liveProjH(p.id)?" · klukka í gangi":""}</span></div><div class="card"><b>${openS.length}</b><span>opin undirverk</span></div>${can("fjarmal")&&window.rkUnbilled&&window.rateOf?(()=>{const v=window.rkUnbilledKr?rkUnbilledKr(p.id):0; return v?`<div class="card tap" data-act="tab:trk"><b>${esc(kr(v))}</b><span>óreikningsfært · ${esc(num(rateOf(p)))} kr./klst.</span></div>`:"";})():""}</div>
     ${MCP?`<div class="links">${ON("timar")?`${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button>`:""}${ON("undirverk")?`<button type="button" class="btn" data-act="add:undir">+ Undirverk</button>`:""}${ON("fundir")?`<button type="button" class="btn" data-act="add:fund">+ Fundur</button>`:""}</div>`:""}
     <div class="viewtitle" style="display:flex;align-items:center;gap:8px">Starfsfólk á verkefni · ${projStaff(p).length}${MCP?`<a class="plink" data-act="pstaff:${esc(p.id)}" style="margin-left:auto">+ Skrá starfsmann</a>`:""}</div>
@@ -74,7 +78,7 @@ function dVerk(p){
   if(DTAB==="skrar") body=(window.skDocsFor?skDocsFor(p.id):"")+(pending&&!fold&&!(window.MS&&MS.on())?`<div class="empty" style="margin-top:16px">Mappa í OneDrive bíður stofnunar. Hún stofnast sjálfkrafa þegar appið er tengt Microsoft.${window.msMissing?msMissing():""}</div>`:skrarHTML(p));
   if(DTAB==="timar") body=timesPage(tl,"kstart:"+esc(p.id));
   if(DTAB==="tilbod") body=window.tbProjTab?tbProjTab(p):""; // tilboð verkefnis (Leiga/Sala, 2.12.0)
-  if(DTAB==="stillingar") body=`<div class="viewtitle">Staða</div>${statRow("verk",p.id,STODUR().map(x=>x.n),p.stada)}
+  if(DTAB==="stillingar") body=`<div class="viewtitle">Staða</div>${statRow("verk",p.id,STVAL().map(x=>x.n),p.stada)}${MCP?lokaBtn(p):""}
     <div class="viewtitle" style="margin-top:6px">Upplýsingar</div>${settingsCard([
       ["Verknúmer",`<span class="nr">${esc(p.nr)}</span>`],["Heiti",esc(p.stutt||"")],["Viðskiptavinur",projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")],
       ["Þjónusta",p.thjonusta?.length?p.thjonusta.map(esc).join(", "):""],

@@ -61,7 +61,7 @@ function vStillingarAll(){
   ${window.nuStillingarHTML?nuStillingarHTML():""}`:""}
   <div class="viewtitle">Gögn</div><div class="links"><button type="button" class="btn" onclick="syncNow()">Sækja afrit af gögnum</button>${window.USER?"":'<button type="button" class="btn" onclick="aeraSignOut()">Skrá út</button>'}</div>`;
 }
-const cfgSave=mut=>saveSnapshot(s=>{s.stillingar=s.stillingar||{}; const c=s.stillingar; if(!c.stodur?.length) c.stodur=structuredClone(DEF_STODUR); if(!c.thjonusta?.length) c.thjonusta=DEF_THJ.slice(); if(!c.starfsmenn?.length) c.starfsmenn=structuredClone(DEF_STARF); mut(c,s);});
+const cfgSave=mut=>saveSnapshot(s=>{s.stillingar=s.stillingar||{}; const c=s.stillingar; if(!c.stodur?.length) c.stodur=structuredClone(window.ORG?.stodur?.length?ORG.stodur:DEF_STODUR); if(!c.thjonusta?.length) c.thjonusta=DEF_THJ.slice(); if(!c.starfsmenn?.length) c.starfsmenn=structuredClone(DEF_STARF); mut(c,s);});
 function cfgAct(a,i){if(!can("stillingar")) return toast("Aðeins admin getur breytt stillingum fyrirtækisins."); i=+i; const ask=(q,d)=>{const v=prompt(q,d||""); return v==null?null:v.trim();};
   if(a==="stadd"){const n=ask("Heiti nýrrar stöðu:"); if(n&&!STODUR().some(x=>x.n===n)) cfgSave(c=>c.stodur.splice(c.stodur.findIndex(x=>x.lokid)<0?c.stodur.length:c.stodur.findIndex(x=>x.lokid),0,{n,c:"blue"}));}
   if(a==="stren"){const o=STODUR()[i]; const n=ask("Nýtt heiti á stöðunni „"+o.n+"“:",o.n); if(n&&n!==o.n&&!STODUR().some(x=>x.n===n)) cfgSave((c,s)=>{c.stodur[i].n=n; s.verkefni.forEach(p=>{if(p.stada===o.n) p.stada=n;});});}

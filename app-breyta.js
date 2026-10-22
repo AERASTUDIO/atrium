@@ -16,7 +16,7 @@ function openEdit(type,id){
   let f="",title="Breyta";
   if(type==="verk"){const p=findProj(id); if(!p) return; title="Breyta verkefni";
     f=`<label>Heiti<input id="e-name" value="${esc(p.stutt)}" required></label><p class="hint">Verknúmerið <b class="nr">${esc(p.nr)}</b> helst óbreytt.</p>
-    <label>Staða<select id="e-status">${STODUR().map(x=>opt(x.n,x.n,p.stada)).join("")}</select></label>
+    <label>Staða<select id="e-status">${STODUR().filter(x=>!x.falin||x.n===p.stada).map(x=>opt(x.n,x.n,p.stada)).join("")}</select></label>
     ${projFields("e",p)}
     ${window.deildSelect?deildSelect("e-deild",p.deild||""):""}
     <div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${THJ().map(t=>`<label><input type="checkbox" name="thj" value="${t}"${p.thjonusta?.includes(t)?" checked":""}>${t}</label>`).join("")}</div></div>

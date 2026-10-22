@@ -83,7 +83,8 @@ const DEF_SNID={"Teiknivinna":["Gögn móttekin og yfirfarin","Módel","Teikning
 const SNID=()=>CFG().snidmat||DEF_SNID;
 const budgetOf=p=>{const a=+p?.aklst||0; if(!a) return null; const pct=(+p.timar||0)/a; return {a,pct,cls:pct>1?"over":pct>=.8?"warn":""};};
 const budgetPill=p=>{const b=budgetOf(p); return b&&b.cls?`<span class="pill ${b.cls}">${Math.round(b.pct*100)}% af áætlun</span>`:"";};
-const STODUR=()=>CFG().stodur?.length?CFG().stodur:DEF_STODUR;
+// Sjálfgefnar stöður: stillingar fyrirtækisins › uppsetningin (ORG.stodur, frá 2.15.4) › DEF_STODUR
+const STODUR=()=>CFG().stodur?.length?CFG().stodur:(window.ORG?.stodur?.length?ORG.stodur:DEF_STODUR);
 const THJ=()=>CFG().thjonusta?.length?CFG().thjonusta:DEF_THJ;
 const STARFS=()=>CFG().starfsmenn?.length?CFG().starfsmenn:DEF_STARF;
 // Innskráður notandi skráir á sig (skammstöfun úr notendaskrá); annars sá sem merktur er „ég“ í Starfsmönnum.
@@ -94,6 +95,8 @@ const starfName=sk=>STARFS().find(x=>x.sk===sk)?.nafn||sk||"";
 // Starfsfólk skráð á verkefni (p.starfsmenn = skammstafanir; tómt = sá sem stofnaði/ME eins og áður)
 const projStaff=p=>p?.starfsmenn?.length?p.starfsmenn:[ME()];
 const staffAv=sk=>`<span class="sav" title="${esc(starfName(sk))}">${esc(sk)}</span>`;
+// Stöður sem má velja (2.15.4): falin staða (t.d. „Lokið“) er aðeins sett með „Loka verkefni“
+const STVAL=()=>STODUR().filter(x=>!x.falin), LOKA=()=>STODUR().find(x=>x.falin&&x.lokid);
 const isDone=p=>!!STODUR().find(x=>x.n===p?.stada)?.lokid;
 const stColor=n=>STODUR().find(x=>x.n===n)?.c||"slate";
 const MON=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"], DAY=["sun","mán","þri","mið","fim","fös","lau"];
