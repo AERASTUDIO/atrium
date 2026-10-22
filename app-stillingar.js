@@ -174,7 +174,7 @@ function vPakkar(){const E=window.EININGAR||{}, P=window.PAKKAR||{}, T=window.TE
       <label style="display:flex;flex-direction:row;align-items:flex-start;gap:12px;text-align:left;font:inherit;color:inherit;cursor:${last?"default":"pointer"}"><div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:500">${esc(l)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">${esc(d)}</div></div>${sw(`data-pakki="${esc(p)}"`,on,last,l)}</label>
       <div style="font-size:12px;color:var(--muted)">${last?"Ekki í boði í þessari uppsetningu":on&&ein.length&&!ein.some(k=>ON(k))?"Kveikt – en engin eining pakkans er virk":on?"Virkt":"Slökkt"}</div>
       ${on&&ein.length>1?`<div class="llist">${ein.map(sub).join("")}</div>`:""}</div>`;};
-  const tg=([p,[l,d,ein,soon]])=>{const last=pakkiLast(p)||!!soon, on=!soon&&pakkiOn(p)&&!pakkiLast(p);
+  const tg=([p,[l,d,ein,soon]])=>{const last=pakkiLast(p)||!!soon, on=!soon&&pakkiOn(p)&&!pakkiLast(p)&&ein.some(k=>ON(k));
     return `<label class="lrow" style="${last?"opacity:.6;cursor:default":""}"><div class="lm"><div class="lt">${esc(l)}</div><div class="ls">${esc(d)}${soon?" · "+esc(soon):pakkiLast(p)?" · ekki í boði":""}</div></div>${sw(`data-pakki="${esc(p)}"`,on,last,l)}</label>`;};
   const h2=(t,s)=>`<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin:22px 0 10px"><h3 style="margin:0;font-size:17px;font-weight:500">${t}</h3><span style="font-size:13px;color:var(--muted)">${s}</span></div>`;
   const kj=(window.KJARNI||[]).map(k=>E[k]?.[0]).filter(Boolean).concat(["Heim","Notendur og hlutverk","Leit","Stillingar"]);
@@ -188,6 +188,8 @@ document.addEventListener("change",e=>{const p=e.target?.dataset?.pakki; if(!p) 
   saveSnapshot(s=>{s.stillingar=s.stillingar||{}; s.stillingar.pakkar={...(s.stillingar.pakkar||{}),[p]:v};
     // Kveikt á pakka þar sem allar einingar eru sjálfgefið óvirkar og engin kveikt (t.d. Búnaður og lager): kveikja á þeim öllum
     if(v&&ein.length&&ein.every(k=>window.EININGAR[k]?.[3])&&!ein.some(k=>(s.stillingar.einingar||{})[k]===true)) s.stillingar.einingar={...(s.stillingar.einingar||{}),...Object.fromEntries(ein.filter(k=>!einLast(k)).map(k=>[k,true]))};
+    // Tenging (2.15.3): kveikt = allar einingar hennar virkar líka (eldri stillingar úr gamla einingalistanum gátu slökkt á þeim stökum)
+    if(v&&window.TENGINGAR?.[p]) s.stillingar.einingar={...(s.stillingar.einingar||{}),...Object.fromEntries(ein.filter(k=>!einLast(k)).map(k=>[k,true]))};
   }).then(()=>toast((G[p]?.[0]||p)+(v?" virkt":" slökkt"))).catch(err=>toast(errText(err)));});
 function vEiningar(){if(window.ORG?.pakkaval) return vPakkar(); const E=window.EININGAR||{}, sv=S?.stillingar?.einingar||{};
   return `<p class="hint" style="margin:14px 0 10px">Slökktu á því sem fyrirtækið notar ekki – það hverfur úr valmynd, Heim og formum hjá öllum. Gögnin eyðast ekki og birtast aftur ef kveikt er á ný.</p>
