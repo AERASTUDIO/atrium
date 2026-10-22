@@ -187,8 +187,20 @@ function vskSelect(pre,key,label,role,selId){
     <div class="two"><label>Nafn fyrirtækis<input id="${pre}-${key}-nn" placeholder="T.d. Arion banki"></label><label>Kennitala<input id="${pre}-${key}-kt" inputmode="numeric" placeholder="000000-0000"></label></div>
     <p class="hint" style="margin:8px 0 0">Fleiri upplýsingar má bæta við á síðu viðskiptavinarins.</p></div>`;}
 function dtPair(pre,key,label,iso){return `<div class="two"><label>${label}<input id="${pre}-${key}" type="date" value="${dOnly(iso)}"></label><label>Klukkan<input id="${pre}-${key}t" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label></div>`;}
+// Einföld tímasetning (2.15.5, ORG.pakkaval): Byrjar (valfrjálst) → Skil / lýkur; klukka falin þar til beðið er um hana;
+// Viðburður aðeins ef Búnaður og lager er virkt. Sömu reitir í gögnunum: timabilFra, skiladagur (og timabilTil = skil ef byrjar er valið).
+function projDatesPv(pre,p){
+  const hid=(k,v)=>`<input type="hidden" id="${pre}-${k}" value="${esc(v||"")}">`, tm=(k,lab,iso)=>`<label>${lab}<input id="${pre}-${k}" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label>`;
+  const showT=!!(hhmm(p?.timabilFra)||hhmm(p?.skiladagur)), sepTil=!!(p?.timabilTil&&dOnly(p.timabilTil)!==dOnly(p.skiladagur)), ev=window.pakkiOn&&pakkiOn("bunadur")&&(ON("leiga")||ON("sala"));
+  return `<div class="kind" style="margin-top:6px">Tímasetning</div>
+    <div class="two"><label>Byrjar (valfrjálst)<input id="${pre}-ps" type="date" value="${dOnly(p?.timabilFra)}"></label><label>Skil / lýkur<input id="${pre}-date" type="date" value="${dOnly(p?.skiladagur)}"></label></div>
+    <div class="two" id="${pre}-kl" ${showT?"":"hidden"}>${tm("pst","Byrjar kl.",p?.timabilFra)}${tm("datet","Skil kl.",p?.skiladagur)}</div>
+    ${sepTil?`<div class="two"><label>Verki lýkur<input id="${pre}-pe" type="date" value="${dOnly(p.timabilTil)}"></label>${tm("pet","Klukkan",p.timabilTil)}</div>`:hid("pe","")+hid("pet","")}
+    ${showT?"":`<button type="button" style="align-self:flex-start;margin:-4px 0 6px;padding:4px 0;border:0;background:none;font:inherit;font-size:13px;color:var(--muted);text-decoration:underline;cursor:pointer" onclick="document.getElementById('${pre}-kl').hidden=false;this.remove()">+ Bæta við klukkutíma</button>`}
+    ${ev||p?.vidburdur?dtPair(pre,"event","Viðburður",p?.vidburdur):hid("event","")+hid("eventt","")}`;}
 function projFields(pre,p){
   const cv=ctxVsk(), defClient=p?(projVsk(p)||projVk(p))?.id:(cv?cv.id:null);
+  if(window.ORG?.pakkaval) return `${vskSelect(pre,"client","Viðskiptavinur","Viðskiptavinur",defClient)}${projDatesPv(pre,p)}`;
   return `${vskSelect(pre,"client","Viðskiptavinur","Viðskiptavinur",defClient)}
     <div class="kind" style="margin-top:6px">Tímasetningar · klukka er valfrjáls</div>
     ${dtPair(pre,"date","Skiladagur",p?.skiladagur)}
@@ -217,7 +229,9 @@ async function pickVsk(pre,key,role){const v=val(`${pre}-${key}`);
     return await createVsk(n,kt,role);}
   const c=v?findVsk(v):null; if(c) await ensureRole(c,role); return c;}
 function readProjDates(pre,p){
-  const g=k=>val(`${pre}-${k}`);
+  const g0=k=>val(`${pre}-${k}`);
+  // Einföld tímasetning: ef „Byrjar“ er valið og enginn sér lokadagur nær tímabilið að skilum
+  const g=k=>(window.ORG?.pakkaval&&(k==="pe"||k==="pet")&&!g0("pe")&&g0("ps"))?g0(k==="pe"?"date":"datet"):g0(k);
   dateCheck("Tímabil verks",g("ps"),g("pst"),g("pe"),g("pet"));
   return {skiladagur:isoOf(g("date"),g("datet")),vidburdur:isoOf(g("event"),g("eventt")),timabilFra:isoOf(g("ps"),g("pst")),timabilTil:g("pe")?isoOf(g("pe"),g("pet")||((g("pst")||g("pet"))?"23:59":"")):null};}
 function vskFormHTML(pre,c){c=c||{}; const r=c.hlutverk||(ctxRole()?[ctxRole()]:["Viðskiptavinur"]);
