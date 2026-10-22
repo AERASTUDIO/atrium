@@ -101,6 +101,8 @@ function enhanceForm(){
 }
 function drawForm(){
   const T=Object.fromEntries(Object.entries({tima:"Tími",fund:"Fundur",undir:"Undirverk",verk:"Verkefni",vsk:"Viðskiptavinur"}).filter(([k])=>kindOn(k)));
+  // Pakkaval (2.21.3): Pöntun og Tilboð líka í „+ Nýtt“ – opna eigin form
+  if(window.ORG?.pakkaval){ if(ON("pantanir")&&window.FAB_EXT?.pantanir) T.xpontun="Pöntun"; if((ON("leiga")||ON("sala"))&&window.FAB_EXT?.ltilbod) T.xtilbod="Tilboð"; }
   if(!kindOn(kind)) kind=Object.keys(T)[0]||"verk";
   let f="";
   const subseg=!ON("kostnadur")?"":`<div class="seg seg2" role="group" aria-label="Tegund skráningar"><button type="button" data-k2="tima" aria-pressed="${kind==="tima"}">Vinnutími</button><button type="button" data-k2="kostn" aria-pressed="${kind==="kostn"}">Útlagður kostnaður</button></div>`;
@@ -150,7 +152,7 @@ function drawForm(){
   if(kind==="vsk") f=vskFormHTML("f",null);
   sheet.innerHTML=`<h3 id="sheet-h">Bæta við</h3><div class="seg">${Object.entries(T).map(([k,v])=>`<button type="button" data-k="${k}" aria-pressed="${k===kind||(k==="tima"&&kind==="kostn")}">${v}</button>`).join("")}</div>
     <form id="addf" novalidate>${f}<div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="f-cancel">Hætta við</button><button class="btn primary" id="f-save">Vista</button></div></form>`;
-  sheet.querySelectorAll(".seg button[data-k]").forEach(b=>b.onclick=()=>{kind=b.dataset.k;drawForm();});
+  sheet.querySelectorAll(".seg button[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k; if(k==="xpontun"){FAB_EXT.pantanir(); return;} if(k==="xtilbod"){FAB_EXT.ltilbod(); return;} kind=k;drawForm();});
   sheet.querySelectorAll(".seg2 button").forEach(b=>b.onclick=()=>{kind=b.dataset.k2;drawForm();});
   document.getElementById("f-cancel").onclick=closeSheet;
   const ps=document.getElementById("f-proj");
