@@ -6,18 +6,25 @@
 (function(){try{if((window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: window-controls-overlay)").matches||matchMedia("(display-mode: minimal-ui)").matches))||navigator.standalone===true)location.replace("aera/"+location.search+location.hash);}catch(e){}})();</script>
 <title>Atrium – væntanlegt</title>
 <meta name="description" content="Atrium by AERA Studio – væntanlegt.">
-<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Væntanlegt."><meta property="og:image" content="vefur/atrium-vaentanlegt.jpg?v=3">
+<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Væntanlegt."><meta property="og:image" content="vefur/atrium-vaentanlegt.jpg?v=4">
 <meta name="theme-color" content="#121416">
 <link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg"><link rel="icon" type="image/png" href="icons/atrium-icon-192.png">
 <style>
 @font-face{font-family:P;src:url(fonts/Poppins-Light.ttf);font-weight:300;font-display:swap}
 html,body{margin:0;height:100%;background:#121416;overflow:hidden}
-video{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;background:#121416 url(vefur/atrium-vaentanlegt.jpg?v=3) center/cover}
-h1{position:fixed;left:0;right:0;top:calc(50vh - max(3.65vw,6.48vh) + max(15.6vw,27.8vh)); /* fylgir merkinu í myndbandinu (object-fit:cover, 1920×1080, merkið í y=470) */margin:0;text-align:center;font:300 clamp(30px,5vw,64px)/1 P,system-ui,sans-serif;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#DFE5EA;animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both}
+video{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;background:#121416 url(vefur/atrium-vaentanlegt.jpg?v=4) center/cover}
+h1{position:fixed;left:0;right:0;top:calc(50vh - max(3.65vw,6.48vh) + max(20vw,35.5vh)); /* fylgir merkinu í myndbandinu (object-fit:cover, 1920×1080, merkið í y=470) */margin:0;text-align:center;font:300 clamp(30px,5vw,64px)/1 P,system-ui,sans-serif;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#DFE5EA;animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both}
+/* Sími og aðrir háir skjáir: myndbandið minna og fjarar út upp og niður, svo merkið passi og VÆNTANLEGT sitji neðar */
+@media (max-aspect-ratio:4/5){
+  html,body{background:#0f1012}
+  video{top:50%;left:50%;width:auto;height:min(64vh,130vw);transform:translate(-50%,-55%);background:none;
+    -webkit-mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent)}
+  h1{top:calc(50vh + 0.435 * min(64vh,130vw));font-size:clamp(24px,7vw,40px)}
+}
 @keyframes inn{from{opacity:0;letter-spacing:.6em;text-indent:.6em}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){h1{animation:none}}
 </style></head><body>
-<video autoplay muted loop playsinline preload="auto" poster="vefur/atrium-vaentanlegt.jpg?v=3" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4?v=3" type="video/mp4"></video>
+<video autoplay muted loop playsinline preload="auto" poster="vefur/atrium-vaentanlegt.jpg?v=4" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4?v=4" type="video/mp4"></video>
 <h1>Væntanlegt</h1>
 <script>/* Spila ekki myndbandið hjá þeim sem biðja um minni hreyfingu – þá stendur kyrrmyndin */
 try{if(matchMedia("(prefers-reduced-motion: reduce)").matches){const v=document.querySelector("video");v.removeAttribute("autoplay");v.pause();}}catch(e){}</script>
