@@ -18,8 +18,8 @@ function openEdit(type,id){
     f=`<label>Heiti<input id="e-name" value="${esc(p.stutt)}" required></label><p class="hint">Verknúmerið <b class="nr">${esc(p.nr)}</b> helst óbreytt.</p>
     <label>Staða<select id="e-status">${STODUR().filter(x=>!x.falin||x.n===p.stada).map(x=>opt(x.n,x.n,p.stada)).join("")}</select></label>
     ${projFields("e",p)}
-    ${window.deildSelect?deildSelect("e-deild",p.deild||""):""}
-    <div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${THJ().map(t=>`<label><input type="checkbox" name="thj" value="${t}"${p.thjonusta?.includes(t)?" checked":""}>${t}</label>`).join("")}</div></div>
+    ${window.deildSelect&&!window.ORG?.pakkaval?deildSelect("e-deild",p.deild||""):""}
+    ${thjField(p.thjonusta||[])}
     <label>Mappa (slóð)<input id="e-mappa" type="url" value="${esc(p.mappa||"")}" placeholder="https://…"></label>
     <div class="two"><label>Áætlaðir tímar<input id="e-aklst" inputmode="decimal" value="${p.aklst?esc(num(p.aklst)):""}" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="e-tilbod" inputmode="numeric" value="${p.tilbod?esc(String(p.tilbod)):""}" placeholder="t.d. 450000"></label></div>
     ${window.VERD?`<div class="two"><label>Verkþáttur (verðskrá)<select id="e-taxti"><option value="">Sjálfvirkt${(()=>{const l=VERD().lidir.find(l=>(l.verkefni||[]).includes(p.nr))||VERD().lidir.find(l=>l.sjalfgefid); return l?" – "+esc(l.heiti):"";})()}</option>${VERD().lidir.map(l=>`<option value="${esc(l.id)}"${p.taxti===l.id?" selected":""}>${esc(l.heiti)} · ${esc(num(l.verd))} kr.</option>`).join("")}</select></label><label>Eigið tímagjald (kr./klst.)<input id="e-gjald" inputmode="numeric" value="${p.timagjald?esc(String(p.timagjald)):""}" placeholder="Autt = eftir verðskrá"></label></div>`:""}

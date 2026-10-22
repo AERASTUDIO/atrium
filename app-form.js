@@ -141,9 +141,9 @@ function drawForm(){
   if(kind==="verk") f=`<label>Heiti<input id="f-name" required placeholder="T.d. Árshátíð Arion"></label>
     <label>Staða<select id="f-status">${STODUR().filter(x=>!x.lokid).map(x=>`<option>${esc(x.n)}</option>`).join("")}</select></label>
     ${projFields("f",null)}
-    ${window.deildSelect?deildSelect("f-deild"):""}
-    <div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${THJ().map(t=>`<label><input type="checkbox" name="thj" value="${t}">${t}</label>`).join("")}</div></div>
-    <label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="f-snid" style="width:auto">Stofna undirverk eftir sniðmáti þjónustu</label>
+    ${window.deildSelect&&!window.ORG?.pakkaval?deildSelect("f-deild"):""}
+    ${thjField([])}
+    ${Object.values(SNID()).some(a=>a?.length)?`<label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="f-snid" style="width:auto">Stofna undirverk eftir sniðmáti þjónustu</label>`:""}
     ${STARFS().length>1?`<div class="kind" style="margin-top:6px">Starfsfólk á verkefni</div><div class="chks">${STARFS().map(x=>`<label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" name="fstf" value="${esc(x.sk)}" ${x.sk===ME()?"checked":""} style="width:auto">${esc(x.nafn)}</label>`).join("")}</div>`:""}
     <div class="two"><label>Áætlaðir tímar<input id="f-aklst" inputmode="decimal" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="f-tilbod" inputmode="numeric" placeholder="t.d. 450000"></label></div>
     <p class="hint">Fær verknúmerið <b class="nr">${nextProjNr()}</b>.</p>`;
@@ -189,6 +189,9 @@ function vskSelect(pre,key,label,role,selId){
 function dtPair(pre,key,label,iso){return `<div class="two"><label>${label}<input id="${pre}-${key}" type="date" value="${dOnly(iso)}"></label><label>Klukkan<input id="${pre}-${key}t" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label></div>`;}
 // Einföld tímasetning (2.15.5, ORG.pakkaval): Byrjar (valfrjálst) → Skil / lýkur; klukka falin þar til beðið er um hana;
 // Viðburður aðeins ef Búnaður og lager er virkt. Sömu reitir í gögnunum: timabilFra, skiladagur (og timabilTil = skil ef byrjar er valið).
+// Þjónusta á verkefni (2.16.0): falin og valin sjálfkrafa ef aðeins ein þjónusta er til
+function thjField(sel){const T=THJ(); if(T.length<=1) return T.length?`<input type="checkbox" name="thj" value="${esc(T[0])}" checked hidden>`:"";
+  return `<div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${T.map(t=>`<label><input type="checkbox" name="thj" value="${esc(t)}"${(sel||[]).includes(t)?" checked":""}>${esc(t)}</label>`).join("")}</div></div>`;}
 function projDatesPv(pre,p){
   const hid=(k,v)=>`<input type="hidden" id="${pre}-${k}" value="${esc(v||"")}">`, tm=(k,lab,iso)=>`<label>${lab}<input id="${pre}-${k}" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label>`;
   const showT=!!(hhmm(p?.timabilFra)||hhmm(p?.skiladagur)), sepTil=!!(p?.timabilTil&&dOnly(p.timabilTil)!==dOnly(p.skiladagur)), ev=window.pakkiOn&&pakkiOn("bunadur")&&(ON("leiga")||ON("sala"));

@@ -74,18 +74,20 @@ const DTYPES=["Draft","Spec","PRD","RFC","Design Review","Decision","Strategy","
 const DTL={"Draft":"Drög","Spec":"Lýsing","PRD":"Kröfulýsing","RFC":"Tillaga","Design Review":"Hönnunarrýni","Decision":"Ákvörðun","Strategy":"Stefna","Guideline":"Leiðbeiningar","Runbook":"Verklag","Postmortem":"Eftirá-greining","OKRs":"Markmið"};
 /* ---------- Stillingar appsins (S.stillingar) ---------- */
 const DEF_STODUR=[{n:"Beiðni",c:"slate"},{n:"Tilboð",c:"violet"},{n:"Í vinnslu",c:"blue"},{n:"Í bið",c:"amber"},{n:"Í yfirferð",c:"teal"},{n:"Afhent",c:"green",lokid:true},{n:"Reikningsfært",c:"gray",lokid:true}];
-const noFolder=p=>{const t=(p?.thjonusta||[]); return t.length>0&&t.every(x=>x==="Almennt");};
-const DEF_THJ=["Teiknivinna","Lýsing","Almennt","Hönnun & ráðgjöf","Sala"];
-const DEF_STARF=[{sk:"DFM",nafn:"Dagur Fannar Möller",eg:true}];
+// Þjónusta án möppu (2.16.0): úr uppsetningu (ORG.anMoppu, t.d. AERA: ["Almennt"]); sjálfgefið fá öll verkefni möppu
+const noFolder=p=>{const t=(p?.thjonusta||[]), A=window.ORG?.anMoppu||[]; return A.length>0&&t.length>0&&t.every(x=>A.includes(x));};
+// Sjálfgefin þjónusta, sniðmát og starfsmaður (2.16.0): hlutlaus í kjarnanum; uppsetning setur sín gildi (ORG.thjonusta, ORG.snidmat)
+const DEF_THJ=["Almennt"];
+const DEF_STARF=window.ORG?.admin?.sk?[{sk:ORG.admin.sk,nafn:ORG.admin.nafn,eg:true}]:[];
 const COLORS=[["blue","Sterkt (Grafít)"],["teal","Miðtónn"],["violet","Stál"],["amber","Stál með útlínu"],["slate","Ljóst (Þoka)"],["green","Útlína"],["gray","Hlutlaust"],["red","Áhersla"]];
 const CFG=()=>S?.stillingar||{};
-const DEF_SNID={"Teiknivinna":["Gögn móttekin og yfirfarin","Módel","Teikningar","Yfirferð","Útgáfa"],"Lýsing":["Forsendur","Ljósateikning","Capture-módel","Útgáfa"],"Hönnun & ráðgjöf":["Hugmyndavinna","3D render","Kynning"],"Almennt":[],"Sala":["Tilboð","Eftirfylgni"]};
-const SNID=()=>CFG().snidmat||DEF_SNID;
+const DEF_SNID={};
+const SNID=()=>CFG().snidmat||window.ORG?.snidmat||DEF_SNID;
 const budgetOf=p=>{const a=+p?.aklst||0; if(!a) return null; const pct=(+p.timar||0)/a; return {a,pct,cls:pct>1?"over":pct>=.8?"warn":""};};
 const budgetPill=p=>{const b=budgetOf(p); return b&&b.cls?`<span class="pill ${b.cls}">${Math.round(b.pct*100)}% af áætlun</span>`:"";};
 // Sjálfgefnar stöður: stillingar fyrirtækisins › uppsetningin (ORG.stodur, frá 2.15.4) › DEF_STODUR
 const STODUR=()=>CFG().stodur?.length?CFG().stodur:(window.ORG?.stodur?.length?ORG.stodur:DEF_STODUR);
-const THJ=()=>CFG().thjonusta?.length?CFG().thjonusta:DEF_THJ;
+const THJ=()=>CFG().thjonusta?.length?CFG().thjonusta:(window.ORG?.thjonusta?.length?ORG.thjonusta:DEF_THJ);
 const STARFS=()=>CFG().starfsmenn?.length?CFG().starfsmenn:DEF_STARF;
 // Innskráður notandi skráir á sig (skammstöfun úr notendaskrá); annars sá sem merktur er „ég“ í Starfsmönnum.
 const ME=()=>window.VIEWAS?.sk||window.USER?.sk||(STARFS().find(x=>x.eg)||STARFS()[0]).sk;

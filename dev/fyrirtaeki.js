@@ -26,6 +26,8 @@ window.ORG = {
   docLogo: "icons/atrium-doc-logo.png",
   // Nýja einingaskiptingin (2.14.0): kjarni, pakkar og tengingar – flokkuð valmynd og ný Stillingar › Einingar. Prófað hér fyrst.
   pakkaval: true,
+  // Þjónusta (2.16.0): sýnishorn – admin breytir í Stillingum › Verkefnastillingar
+  thjonusta: ["Hönnun", "Ráðgjöf", "Tæknivinna", "Almennt"],
   // Stöður verkefna (2.15.4): fjórar stöður sem lýsa hvar verkið stendur; „Lokið“ er falin staða sem aðeins hnappurinn
   // „Loka verkefni“ setur (verkefnið fer þá úr verkefnum í gangi). Admin getur breytt í Stillingum.
   stodur: [{ n: "Fyrirspurn", c: "slate" }, { n: "Í vinnslu", c: "blue" }, { n: "Í bið", c: "amber" }, { n: "Afhent", c: "teal" }, { n: "Lokið", c: "green", lokid: true, falin: true }],

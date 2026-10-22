@@ -55,5 +55,9 @@ window.ORG = {
     storageBucket: "aera-app-cfdb3.firebasestorage.app",
     messagingSenderId: "476747764052",
     appId: "1:476747764052:web:396030a039ee790aeb78c1"
-  }
+  },
+  // Þjónusta og sniðmát undirverka AERA (fært úr kjarnanum 2.16.0 – áður sjálfgefið fyrir allar uppsetningar)
+  thjonusta: ["Teiknivinna", "Lýsing", "Almennt", "Hönnun & ráðgjöf", "Sala"],
+  snidmat: { "Teiknivinna": ["Gögn móttekin og yfirfarin", "Módel", "Teikningar", "Yfirferð", "Útgáfa"], "Lýsing": ["Forsendur", "Ljósateikning", "Capture-módel", "Útgáfa"], "Hönnun & ráðgjöf": ["Hugmyndavinna", "3D render", "Kynning"], "Almennt": [], "Sala": ["Tilboð", "Eftirfylgni"] },
+  anMoppu: ["Almennt"],   // verkefni sem eru aðeins „Almennt“ fá ekki eigin möppu
 };
