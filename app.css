@@ -556,3 +556,37 @@ body:not(.pv) #sfoot2{display:none}
 
 .lokabtn{margin-top:10px}
 .lokabox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:10px 14px;border-radius:12px;background:var(--raise);font-size:14px}
+
+/* ---------- Ný leiðsögn (2.18.0, tillaga E4/E5, body.pv á tölvu): stika efst, fljótandi undirflipar vinstra megin ---------- */
+#subnav2{display:none}
+@media (min-width:1024px){
+  body.pv{padding-left:0;padding-top:64px}
+  body.pv .app>header{display:none}
+  body.pv .side{top:0;left:0;right:0;bottom:auto;width:auto;height:64px;flex-direction:row;align-items:center;gap:10px;padding:0 20px;border-right:0;border-bottom:1px solid var(--line);background:var(--raise2);overflow:visible}
+  body.pv .side .cobrand{order:0;flex:none;margin:0 8px 0 0}
+  body.pv .side .logo{height:30px;margin:0}
+  body.pv .side nav#sitems{order:1;flex:1;min-width:0;flex-direction:row;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
+  body.pv .side nav#sitems::-webkit-scrollbar{display:none}
+  body.pv .side .sgrp{font-size:0;padding:0;margin:0 6px;width:1px;height:22px;flex:none;background:var(--line);border:0}
+  body.pv .side .sgrp:first-child{display:none}
+  body.pv .side .tab,body.pv #sfoot2 .tab{flex:none;padding:8px 12px;font-size:14px;white-space:nowrap;gap:6px}
+  body.pv .side nav#sitems .tab svg{display:none}
+  body.pv .side .tab,body.pv #sfoot2 .tab{width:auto;max-width:none}
+  body.pv .side nav#sitems .tab .tl{flex:none}
+  body.pv .side nav#sitems .tab .tc{display:none}
+  body.pv .side nav#sitems .tab{padding:8px 10px}
+  @media (max-width:1300px){body.pv .side nav#sitems .tab{padding:8px 8px;font-size:13.5px} body.pv .side .cobrand .logo{width:110px}}
+  body.pv .side .new{order:2;flex:none;margin:0;padding:0 16px;min-height:40px;width:auto}
+  body.pv #sfoot2{order:3;margin:0;padding:0;border:0;flex-direction:row;align-items:center;gap:2px;flex:none}
+  body.pv #sfoot2 .tl,body.pv #sfoot2 .sfn{display:none}
+  body.pv #sfoot2 .tab{padding:8px 9px}
+  body.pv #subnav2{display:block;position:fixed;top:88px;left:max(20px,calc(50% - 760px));width:210px;box-sizing:border-box;padding:12px 8px;background:var(--raise2);border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 18px rgba(30,36,40,.06);z-index:8}
+  body.pv:not(.hassub) #subnav2{display:none}
+  body.pv #subnav2 .snh{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:2px 12px 8px}
+  body.pv #subnav2 .sni{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:14px;color:var(--muted);padding:9px 12px;border-radius:10px;cursor:pointer}
+  body.pv #subnav2 .sni:hover{background:var(--hover);color:var(--ink)}
+  body.pv #subnav2 .sni[aria-current="page"]{background:var(--raise);color:var(--ink);font-weight:500}
+  body.pv.hassub .app{padding-left:max(270px,calc(50% - 760px + 250px))}
+  body.pv.hassub .phead .seg{display:none}
+  body.pv .toast{left:50%}
+}
