@@ -134,9 +134,13 @@ function drawMenu(){
     if(!ft._l){ft._l=1; ft.addEventListener("click",e=>pickTab(e));}
     // Fljótandi undirflipar (2.18.0, tölva): flipar þess hluta sem er valinn, vinstra megin
     let sn=document.getElementById("subnav2"); if(!sn){sn=document.createElement("nav"); sn.id="subnav2"; sn.setAttribute("aria-label","Undirflipar"); document.body.appendChild(sn); sn.addEventListener("click",e=>{const b=e.target.closest("[data-tab]"); if(!b) return; tab=b.dataset.tab; DETAIL=null; window.STSUB=null; try{localStorage.setItem("aera-tab",tab)}catch(x){} render(); window.scrollTo({top:0});});}
-    const vis=(cur?.tabs||[]).filter(t=>!t[2]), show=vis.length>1&&tab!=="leit"&&cur?.k!=="meira";
+    // Föst vinstri stika (2.18.1, tillaga E6): allir hlutar nema Heim, Leit og Meira – undirflipar + nýlega opnuð verkefni
+    const vis=(cur?.tabs||[]).filter(t=>!t[2]), show=!!cur&&cur.k!=="heim"&&cur.k!=="meira"&&tab!=="leit";
     document.body.classList.toggle("hassub",show);
-    sn.innerHTML=show?`<div class="snh">${esc(cur.l)}</div>${vis.map(([k,l])=>`<button type="button" class="sni" data-tab="${k}"${k===tab||(DETAIL&&k===vis[0][0]&&!vis.some(v=>v[0]===tab))?' aria-current="page"':""}>${esc(l)}</button>`).join("")}`:"";
+    let rec=[]; try{rec=JSON.parse(localStorage.getItem("aera-recent")||"[]");}catch(x){} const rp=rec.map(findProj).filter(Boolean).slice(0,5);
+    sn.innerHTML=show?`<div class="snh">${esc(cur.l)}</div>${vis.map(([k,l])=>`<button type="button" class="sni" data-tab="${k}"${k===tab||(DETAIL&&k===vis[0][0]&&!vis.some(v=>v[0]===tab))?' aria-current="page"':""}>${esc(l)}</button>`).join("")}
+      ${rp.length?`<div class="snh" style="margin-top:18px">Nýlega opnað</div>${rp.map(p=>`<a class="snl" data-open="verk:${esc(p.id)}" role="button" tabindex="0"><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt||"")}</a>`).join("")}`:""}`:"";
+    if(!sn._o){sn._o=1; sn.addEventListener("click",e=>{const a=e.target.closest("[data-open]"); if(a){e.preventDefault(); DETAIL=null; openDetail(a.dataset.open);}});}
     return SECTIONS.filter(x=>x.k!=="meira").map(x=>{const g=G[x.k]||""; const hd=g&&g!==last?`<div class="sgrp" role="presentation">${g}</div>`:g?"":'<div class="sgrp" role="presentation"></div>'; last=g;
       return hd+`<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`;}).join("");};
   document.body.classList.toggle("pv",!!window.ORG?.pakkaval);

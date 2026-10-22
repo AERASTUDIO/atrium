@@ -580,13 +580,26 @@ body:not(.pv) #sfoot2{display:none}
   body.pv #sfoot2{order:3;margin:0;padding:0;border:0;flex-direction:row;align-items:center;gap:2px;flex:none}
   body.pv #sfoot2 .tl,body.pv #sfoot2 .sfn{display:none}
   body.pv #sfoot2 .tab{padding:8px 9px}
-  body.pv #subnav2{display:block;position:fixed;top:88px;left:max(20px,calc(50% - 760px));width:210px;box-sizing:border-box;padding:12px 8px;background:var(--raise2);border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 18px rgba(30,36,40,.06);z-index:8}
+  body.pv #subnav2{display:block;position:fixed;top:64px;bottom:0;left:0;width:240px;box-sizing:border-box;padding:20px 12px;background:var(--raise);border-right:1px solid var(--line);overflow-y:auto;z-index:8}
   body.pv:not(.hassub) #subnav2{display:none}
   body.pv #subnav2 .snh{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:2px 12px 8px}
-  body.pv #subnav2 .sni{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:14px;color:var(--muted);padding:9px 12px;border-radius:10px;cursor:pointer}
-  body.pv #subnav2 .sni:hover{background:var(--hover);color:var(--ink)}
-  body.pv #subnav2 .sni[aria-current="page"]{background:var(--raise);color:var(--ink);font-weight:500}
-  body.pv.hassub .app{padding-left:max(270px,calc(50% - 760px + 250px))}
+  body.pv #subnav2 .sni{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:14px;color:var(--ink);padding:9px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px}
+  body.pv #subnav2 .sni:hover{background:var(--hover)}
+  body.pv #subnav2 .sni[aria-current="page"]{background:var(--ink);color:var(--bg);font-weight:500}
+  body.pv #subnav2 .snl{display:block;padding:7px 12px;border-radius:10px;font-size:13.5px;color:var(--muted);text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.pv #subnav2 .snl:hover{background:var(--hover);color:var(--ink)}
+  body.pv .app{max-width:none;padding-inline:32px}
+  body.pv.hassub .app{padding-left:272px}
   body.pv.hassub .phead .seg{display:none}
   body.pv .toast{left:50%}
 }
+
+/* Heim á heilum skjá (2.18.1, tillaga E6): spjöld efst, svo Dagurinn · Bíður þín · Framundan */
+@media (min-width:1024px){
+  body.pv .h2tiles{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  body.pv .h2{margin-top:24px}
+  body.pv .h2grid3{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+}
+.h2grid3{display:grid;gap:16px;align-items:start}
+.h2fr{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px;text-decoration:none;color:inherit;cursor:pointer}
+.h2fr .h2fd{flex:none;width:76px;color:var(--muted);font-size:12px;padding-top:2px}

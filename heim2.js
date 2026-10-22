@@ -63,10 +63,16 @@
     return `<div class="h2tiles">${T.join("")}</div>`;
   }
 
+  function framundan() {
+    const ti = isoDay(today), xs = upcoming().filter(i => daysTo(i.when) >= 0 && String(i.when).slice(0, 10) !== ti).sort((a, b) => String(a.when).localeCompare(String(b.when))).slice(0, 7);
+    const d = w => { const n = daysTo(w); return n === 1 ? "Á morgun" : dIS(String(w).slice(0, 10)).replace(/\.\d{4}$/, ""); };
+    return `<section class="card h2card" aria-label="Framundan"><div class="h2hd"><h3>Framundan</h3></div>${xs.length ? `<div>${xs.map(i => `<a class="h2fr" ${tapAttr(i.open.split(":")[0], i.open.slice(i.open.indexOf(":") + 1))}><span class="h2fd">${esc(d(i.when))}</span><span style="flex:1;min-width:0">${esc(i.title)}</span>${tag(i.kind)}</a>`).join("")}</div>` : `<p class="hint" style="margin:6px 0 0">Ekkert framundan næstu daga.</p>`}</section>`;
+  }
+
   window.vHeim2 = function () {
     const hr = new Date().getHours(), first = (STARFS().find(x => x.sk === ME())?.nafn || window.USER?.nafn || "").split(" ")[0];
     const greet = hr < 5 ? "Góða nótt" : hr < 11 ? "Góðan daginn" : hr < 18 ? "Góðan dag" : "Gott kvöld";
     return `<div class="h2"><div class="h2top"><div><div class="h2date">${esc(dayTitle(today))}</div><h2 class="hello" style="margin:2px 0 0">${greet}${first ? ", " + esc(first) : ""}</h2></div></div>
-      <div class="h2grid">${dagurinn()}${bidur()}</div>${spjold()}</div>`;
+      ${spjold()}<div class="h2grid3">${dagurinn()}${bidur()}${framundan()}</div></div>`;
   };
 })();
