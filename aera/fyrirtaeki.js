@@ -59,5 +59,6 @@ window.ORG = {
   // Þjónusta og sniðmát undirverka AERA (fært úr kjarnanum 2.16.0 – áður sjálfgefið fyrir allar uppsetningar)
   thjonusta: ["Teiknivinna", "Lýsing", "Almennt", "Hönnun & ráðgjöf", "Sala"],
   snidmat: { "Teiknivinna": ["Gögn móttekin og yfirfarin", "Módel", "Teikningar", "Yfirferð", "Útgáfa"], "Lýsing": ["Forsendur", "Ljósateikning", "Capture-módel", "Útgáfa"], "Hönnun & ráðgjöf": ["Hugmyndavinna", "3D render", "Kynning"], "Almennt": [], "Sala": ["Tilboð", "Eftirfylgni"] },
-  anMoppu: ["Almennt"],   // verkefni sem eru aðeins „Almennt“ fá ekki eigin möppu
+  anMoppu: ["Almennt"],
+  undirmoppur: ["01 Móttekið", "02 Vinnuskjöl", "03 Módel", "04 Teikningar", "05 Lýsing", "06 3D Render", "07 Útgefin Gögn", "08 Samskipti og fundir"],   // undirmöppur nýs verkefnis   // verkefni sem eru aðeins „Almennt“ fá ekki eigin möppu
 };

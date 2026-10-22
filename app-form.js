@@ -191,7 +191,7 @@ function dtPair(pre,key,label,iso){return `<div class="two"><label>${label}<inpu
 // Einföld tímasetning (2.15.5, ORG.pakkaval): Byrjar (valfrjálst) → Skil / lýkur; klukka falin þar til beðið er um hana;
 // Viðburður aðeins ef Búnaður og lager er virkt. Sömu reitir í gögnunum: timabilFra, skiladagur (og timabilTil = skil ef byrjar er valið).
 // Þjónusta á verkefni (2.16.0): falin og valin sjálfkrafa ef aðeins ein þjónusta er til
-function thjField(sel){const T=THJ(); if(T.length<=1) return T.length?`<input type="checkbox" name="thj" value="${esc(T[0])}" checked hidden>`:"";
+function thjField(sel){const T=THJ(); if(window.ORG?.pakkaval) return ""; /* 2.18.7: engin þjónusta á verkefni í Dev – tegund (leiga/sala) flokkar */ if(T.length<=1) return T.length?`<input type="checkbox" name="thj" value="${esc(T[0])}" checked hidden>`:"";
   return `<div><div class="kind" style="margin-bottom:6px">Þjónusta</div><div class="chips">${T.map(t=>`<label><input type="checkbox" name="thj" value="${esc(t)}"${(sel||[]).includes(t)?" checked":""}>${esc(t)}</label>`).join("")}</div></div>`;}
 function projDatesPv(pre,p){
   const hid=(k,v)=>`<input type="hidden" id="${pre}-${k}" value="${esc(v||"")}">`, tm=(k,lab,iso)=>`<label>${lab}<input id="${pre}-${k}" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label>`;

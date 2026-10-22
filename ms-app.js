@@ -3,7 +3,8 @@
 (function () {
   if (!window.MS || window.__aeraPopup) return;
   const ROOT = ORG.od.verkefni, OFLOKKAD = ORG.od.oflokkad, FUNDAMAPPA = "08 Samskipti og fundir";
-  const STD = ["01 Móttekið", "02 Vinnuskjöl", "03 Módel", "04 Teikningar", "05 Lýsing", "06 3D Render", "07 Útgefin Gögn", "08 Samskipti og fundir"];
+  // Undirmöppur verkefnis (2.18.7): aðeins ef uppsetningin skilgreinir þær (ORG.undirmoppur – AERA); annars ein mappa á verkefni
+  const STD = ORG.undirmoppur || [];
   const encP = s => s.split("/").map(encodeURIComponent).join("/");
   const safe = s => String(s || "").replace(/["*:<>?/\\|]/g, "-").replace(/\s+/g, " ").trim().replace(/[. ]+$/, "");
   const SEL = "$select=id,name,size,folder,file,webUrl,webDavUrl,parentReference,lastModifiedDateTime";
@@ -222,6 +223,7 @@
     if (!k && noFolder(p)) { await mkFolder(ROOT, OFLOKKAD); return ROOT + "/" + OFLOKKAD; }
     if (!k) { await mkProj(p.nafn); await verkMoppur(true); k = keyOf(p); }
     if (!k) return ROOT + "/" + OFLOKKAD;
+    if (!STD.length) return ROOT + "/" + k; // engar undirmöppur: skjöl í möppu verkefnisins
     const kids = await all(`/me/drive/items/${VK[k].id}/children?$select=name,folder&$top=999`);
     const fm = kids.find(i => i.folder && new RegExp("^" + prefix + "\\b").test(i.name));
     if (!fm) await mkFolder(ROOT + "/" + k, fallbackName);
