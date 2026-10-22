@@ -185,6 +185,7 @@ function vskSelect(pre,key,label,role,selId){
   return `<label>${label}<select id="${pre}-${key}" data-newfor="${pre}-${key}-new"><option value="">Enginn</option>${mine.map(o).join("")}${other.length?`<optgroup label="Aðrir">${other.map(o).join("")}</optgroup>`:""}<option value="${NEWV}">+ Nýr ${label.toLowerCase()}…</option></select></label>
   <div id="${pre}-${key}-new" class="card" style="display:none;padding:12px;background:var(--b0);border-color:var(--b1)"><div class="kind" style="margin-bottom:8px">Nýr ${label.toLowerCase()} – fer líka í Viðskiptavini</div>
     <div class="two"><label>Nafn fyrirtækis<input id="${pre}-${key}-nn" placeholder="T.d. Arion banki"></label><label>Kennitala<input id="${pre}-${key}-kt" inputmode="numeric" placeholder="000000-0000"></label></div>
+    <div class="two"><label>Sími<input id="${pre}-${key}-simi" type="tel" inputmode="tel" autocomplete="off" placeholder="Valfrjálst"></label><label>Netfang<input id="${pre}-${key}-net" type="email" autocomplete="off" placeholder="Valfrjálst"></label></div>
     <p class="hint" style="margin:8px 0 0">Fleiri upplýsingar má bæta við á síðu viðskiptavinarins.</p></div>`;}
 function dtPair(pre,key,label,iso){return `<div class="two"><label>${label}<input id="${pre}-${key}" type="date" value="${dOnly(iso)}"></label><label>Klukkan<input id="${pre}-${key}t" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label></div>`;}
 // Einföld tímasetning (2.15.5, ORG.pakkaval): Byrjar (valfrjálst) → Skil / lýkur; klukka falin þar til beðið er um hana;
@@ -220,8 +221,8 @@ function dateCheck(name,d,t,ed,et){
   const dt=!!(t||et), st=dt?d+"T"+(t||"00:00")+":00":d;
   if(ed){const e=dt?ed+"T"+(et||"23:59")+":00":ed; if(e<st) throw {code:"form",message:"Verki getur ekki lokið áður en það hefst."};}}
 const isoOf=(d,t)=>d?(t?d+"T"+t+":00":d):null;
-async function createVsk(name,kt,role){
-  const id=newId(); const c={id,name,hlutverk:[role],kennitala:kt?ktFmt(kt):""};
+async function createVsk(name,kt,role,extra={}){
+  const id=newId(); const c={id,name,hlutverk:[role],kennitala:kt?ktFmt(kt):"",...(extra.simi?{simi:extra.simi}:{}),...(extra.netfang?{netfang:extra.netfang}:{})};
   await saveSnapshot(s=>{(s.vidskiptavinir=s.vidskiptavinir||[]).push(c);}); return c;}
 async function ensureRole(c,role){if(!c||(c.hlutverk||[]).includes(role)||isTmp(c.id)) return; const h=[...(c.hlutverk||[]),role];
   await saveSnapshot(s=>{const q=(s.vidskiptavinir||[]).find(x=>sameId(x.id,c.id)); if(q) q.hlutverk=h;});}
@@ -229,7 +230,9 @@ async function pickVsk(pre,key,role){const v=val(`${pre}-${key}`);
   if(v===NEWV){const n=val(`${pre}-${key}-nn`), kt=val(`${pre}-${key}-kt`); if(!n) throw {code:"form",message:`Skrifaðu nafn nýja ${role==="Verkkaupi"?"verkkaupans":"viðskiptavinarins"}.`};
     if(!ktOk(kt)) throw {code:"form",message:"Kennitala á að vera 10 tölustafir."};
     const dup=vskList().find(c=>c.name.toLowerCase()===n.toLowerCase()); if(dup){await ensureRole(dup,role); return dup;}
-    return await createVsk(n,kt,role);}
+    const simi=val(`${pre}-${key}-simi`), netfang=val(`${pre}-${key}-net`);
+    if(netfang&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(netfang)) throw {code:"form",message:"Netfang lítur ekki rétt út."};
+    return await createVsk(n,kt,role,{simi,netfang});}
   const c=v?findVsk(v):null; if(c) await ensureRole(c,role); return c;}
 function readProjDates(pre,p){
   const g0=k=>val(`${pre}-${k}`);
