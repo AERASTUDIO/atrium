@@ -529,13 +529,18 @@ body.hasdock .fab{bottom:calc(132px + env(safe-area-inset-bottom,0px))}
 
 /* ---------- Tölva með pakkavali (body.pv, 2.15.1 – tillaga E1): hrein hliðarstika, valið dökkt, Stillingar og notandi neðst ---------- */
 @media (min-width:1024px){
-  body.pv .side{background:var(--raise);gap:10px}
+  body.pv .side{background:var(--raise);gap:8px;padding-top:18px;padding-bottom:14px}
+  body.pv .side .logo,body.pv .side .cobrand{margin-bottom:2px}
+  body.pv .side .new{padding:9px 14px}
+  body.pv .side nav{gap:1px}
+  body.pv .side .tab,body.pv #sfoot2 .tab{padding:7px 12px;font-size:14.5px}
+  body.pv .side .sgrp{padding:10px 12px 3px}
+  @media (max-height:760px){body.pv .side .tab,body.pv #sfoot2 .tab{padding:5px 12px} body.pv .side .sgrp{padding:7px 12px 2px} body.pv .side{gap:6px;padding-top:12px}}
   body.pv #sextra,body.pv .side .sfoot{display:none}
   body.pv .side .tab[aria-current="page"]{background:var(--ink);color:var(--bg);font-weight:500}
   body.pv .side .tab[aria-current="page"] svg{color:var(--bg)}
   body.pv .side .tab:not([aria-current="page"]):hover{background:var(--hover)}
   body.pv #sfoot2{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
-  body.pv #sfoot2 .tab{padding:10px 12px;font-size:15px}
   body.pv .sfu{gap:10px}
   body.pv .sfav{flex:none;width:30px;height:30px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500}
   body.pv .sfu[aria-current="page"] .sfav{background:var(--bg);color:var(--ink)}
