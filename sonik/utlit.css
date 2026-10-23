@@ -21,3 +21,6 @@
 #login .login-in p{color:#8DBBC8}
 #login .btn.primary{background:#B2597D!important;color:#fff!important;border-color:#B2597D!important}
 #login #login-btn{color:#8DBBC8!important}
+
+/* Útlit C (2.51.0): áherslulitur fyrirtækisins */
+html body.kerfi{--kacc:var(--hi);--on-kacc:var(--on-hi)}

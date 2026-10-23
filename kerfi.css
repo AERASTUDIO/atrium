@@ -250,3 +250,33 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
 @media (min-width:1024px){
   :root body.kerfi.pv.ui1 .side .new{order:0!important;align-self:stretch!important;justify-content:center;min-height:44px!important;margin:4px 0 8px!important;border-radius:12px;font-weight:500}
 }
+
+/* ---------- Útlit C · Verkfæri (2.51.0) ----------
+    – þétt og nákvæmt: flöt kort með 1 px ramma, 6 px horn, staða sem litaður punktur, einlitur blár fyrir val, tölur í jöfnu letri.
+   Áherslulitur --kacc (blár); Sonik og party.is nota sinn eigin (utlit.css). */
+body.kerfi{--kacc:#2F6FB3;--on-kacc:#FFFFFF}
+html:not([data-theme="light"]) body.kerfi{--kacc:#5B9BD8;--on-kacc:#0B1622}
+body.kerfi #view .phead .spsup{background:none!important}
+
+:root body.kerfi{--rad:6px}
+body.kerfi #view :is(.card,.ucard,.dcard,.sdk,.sdp,.qrbox,.wkday,.cal,.ukp,.kp,.utile){border-radius:6px!important;box-shadow:none!important;border:1px solid var(--line)!important;background:var(--surface)!important}
+body.kerfi #view :is(.ukp,.kp,.utile){padding:10px 12px!important}
+body.kerfi #view :is(.ukp b,.kp b,.utile b){font-weight:500!important;font-variant-numeric:tabular-nums;font-size:18px!important}
+body.kerfi #view :is(.ukp small,.kp small,.ukp>span,.kp>span){text-transform:uppercase;letter-spacing:.06em;font-size:10px!important}
+body.kerfi #view :is(.upill,.pill,.dbadge){background:none!important;border:0!important;padding:0 0 0 12px!important;position:relative;font-size:12px!important;font-weight:400!important;color:var(--ink)!important}
+body.kerfi #view :is(.upill,.pill,.dbadge)::before{content:"";position:absolute;left:0;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:#7C8A97}
+body.kerfi #view :is(.upill.dark,.upill.on,.pill.on)::before{background:var(--kacc)}
+body.kerfi #view :is(.uchip,.chip,.chipbtn){border-radius:6px!important;background:transparent!important;border:1px solid var(--line)!important;font-size:12.5px!important;min-height:28px!important}
+body.kerfi #view :is(.uchip.on,.chipbtn[aria-pressed="true"]){background:color-mix(in srgb,var(--kacc) 14%,transparent)!important;border-color:var(--kacc)!important;color:var(--ink)!important}
+body.kerfi #view .btn{border-radius:6px!important;min-height:32px!important;font-size:13px!important;box-shadow:none!important}
+body.kerfi #view .btn.primary{background:var(--kacc)!important;border-color:var(--kacc)!important;color:var(--on-kacc)!important}
+body.kerfi :is(.phead,.uhead){background:var(--bg)!important;border-bottom:1px solid var(--line)!important}
+body.kerfi #view .ptitle{font-size:20px!important;font-weight:500!important;letter-spacing:-.01em!important}
+body.kerfi #view .urow{min-height:40px!important}
+body.kerfi #view :is(.nr,.urow>span:first-child){font-variant-numeric:tabular-nums;font-size:12px!important;letter-spacing:.02em}
+
+/* Sími: blaðið (Skrá tíma o.fl.) hylur neðri stikuna og Vista er alltaf sýnilegt neðst */
+@media (max-width:1023px){
+  body:has(#sheetwrap:not([hidden])) #tbar,body:has(#sheetwrap:not([hidden])) .simact{display:none!important}
+  #sheetwrap .sheet #addf>.actions,#sheetwrap .sheet .actions:last-child{position:sticky;bottom:0;z-index:3;background:var(--sheet,var(--surface));margin:12px -20px 0!important;padding:10px 20px calc(10px + env(safe-area-inset-bottom,0px))!important;border-top:1px solid var(--line)}
+}
