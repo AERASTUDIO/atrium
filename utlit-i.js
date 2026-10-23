@@ -343,7 +343,16 @@
     const btn = `<button type="button" class="uback" data-ui1="back" title="Til baka${lab ? " – " + esc(lab) : ""} (Alt+←)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Til baka</button>`;
     const det = DETAIL && document.querySelector("#view .spdet"), ph = document.querySelector("#view .phead, #view .uhead > div:first-child");
     if (det) det.insertAdjacentHTML("afterbegin", btn); else if (ph) ph.insertAdjacentHTML("afterbegin", btn); else document.getElementById("view")?.insertAdjacentHTML("afterbegin", btn); };
-  window.u1Back = () => { const prev = NAV.pop(); if (!prev) return false; navBusy = true; tab = prev.tab; DETAIL = prev.o; if (prev.d && typeof DTAB !== "undefined") DTAB = prev.d; window.STSUB = prev.st; full = false; render(); return true; };
+  // Skrunstaða (2.50.7): hver staður í sögunni man hvar var skrunað – „Til baka“ fer þangað aftur, ekki efst
+  document.addEventListener("scroll", e => { if (!navLast || navBusy) return; const t = e.target;
+    if (t === document || t === document.documentElement || t === document.scrollingElement) navLast.y = window.scrollY;
+    else if (t?.classList?.contains("splist")) navLast.ly = t.scrollTop;
+    else if (t?.id === "view" || t?.classList?.contains("spdet")) navLast.vy = t.scrollTop; }, { capture: true, passive: true });
+  const navRestore = p => { const go = () => { if (p.y != null) window.scrollTo(0, p.y);
+      const sl = document.querySelector("#view .splist"); if (sl && p.ly != null) sl.scrollTop = p.ly;
+      const sd = document.querySelector("#view .spdet") || document.getElementById("view"); if (sd && p.vy != null) sd.scrollTop = p.vy; };
+    requestAnimationFrame(() => { go(); requestAnimationFrame(go); }); setTimeout(go, 120); };
+  window.u1Back = () => { const prev = NAV.pop(); if (!prev) return false; navBusy = true; tab = prev.tab; DETAIL = prev.o; if (prev.d && typeof DTAB !== "undefined") DTAB = prev.d; window.STSUB = prev.st; full = false; render(); navRestore(prev); return true; };
   document.addEventListener("click", e => { if (!e.target.closest?.('[data-ui1="back"]')) return; e.preventDefault(); u1Back(); });
   document.addEventListener("keydown", e => { if (e.altKey && e.key === "ArrowLeft" && document.body.classList.contains("ui1") && desk() && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) { if (u1Back()) e.preventDefault(); } });
   document.addEventListener("mouseup", e => { if (e.button === 3 && document.body.classList.contains("ui1") && desk() && NAV.length) { e.preventDefault(); u1Back(); } });

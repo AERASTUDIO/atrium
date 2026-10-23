@@ -215,17 +215,28 @@
       else if (!sp.querySelector(".spdet .simback")) sp.querySelector(".spdet .spdetin, .spdet")?.insertAdjacentHTML("afterbegin", `<button type="button" class="uback simback" data-simtm="0">${ico("chev", 14).replace("M9 6l6 6-6 6", "M15 6l-6 6 6 6")}Samstarfsfólk</button>`);
     }
   }
+  // Spjall í síma: rásalistinn fyrst; samtalið opnast þegar rás er valin, með „Til baka“ í listann
+  function spjallFix() {
+    if (cur() !== "spjall") return; const w = document.querySelector("#view .spwrap"); if (!w) return;
+    w.classList.add("simsp");
+    if (!window.SIMSP) { w.querySelector(".spconv")?.remove(); return; }
+    w.classList.add("simspc");
+    const c = w.querySelector(".spconv"); if (c && !c.querySelector(".simback")) c.insertAdjacentHTML("afterbegin", `<button type="button" class="uback simback" data-simsp="0">${ico("chev", 14).replace("M9 6l6 6-6 6", "M15 6l-6 6 6 6")}Spjall</button>`);
+    const m = w.querySelector(".spmsgs"); if (m) m.scrollTop = m.scrollHeight;
+  }
   document.addEventListener("click", e => {
     if (!phone()) return;
+    if (e.target.closest('[data-act^="spras:"],[data-act^="spto:"],[data-act^="spopen:"]')) window.SIMSP = true;
+    else if (e.target.closest('[data-simsp="0"]')) { window.SIMSP = false; render(); }
     if (e.target.closest('[data-act^="u1tm:"]')) window.SIMTM = true;
     else if (e.target.closest('[data-simtm="0"]')) { window.SIMTM = false; render(); }
-    else if (e.target.closest('[data-act^="tab:"],[data-tab],[data-simtab]')) window.SIMTM = false;
+    else if (e.target.closest('[data-act^="tab:"],button[data-tab],a[data-tab],[data-simtab]')) { window.SIMTM = false; if (!e.target.closest('[data-act^="spto:"],[data-act^="spopen:"]')) window.SIMSP = false; }
   }, true);
   function decorate() {
     document.body.classList.toggle("simidet", !!det());
     if (!phone()) { document.getElementById("simact")?.remove(); document.body.classList.remove("simhasact"); return; }
     document.body.classList.remove("simdag");
-    views(); splitFix(); secChips(); actBar(); bar();
+    views(); splitFix(); spjallFix(); secChips(); actBar(); bar();
     // Hlutar sem neðri stikan opnar beint (Í dag, Leita, Tímar, Meira) eru efsta stig – enginn „Til baka“
     if (!det() && /^(yfirlit|leit|meira|timar|tfaer|tskyr|timyf)$/.test(cur())) document.querySelectorAll("#view .uback:not(.simback)").forEach(b => b.remove());
     // „Meira“ í neðri stiku: virkt þegar opinn hluti er ekki í stikunni

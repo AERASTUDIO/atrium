@@ -219,3 +219,18 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
   html,body,body *{scrollbar-width:none!important}
   html::-webkit-scrollbar,body::-webkit-scrollbar,body *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;background:transparent!important}
 }
+
+/* Spjall í síma (2.50.7): listi í fullri breidd; samtal á eigin skjá. Skýringartexti undir haus í spássíu. */
+@media (max-width:1023px){
+  :root body.kerfi.simi1 #view .spwrap.simsp{margin:0!important;display:block!important;height:auto!important;border:0!important;border-radius:0!important}
+  :root body.kerfi.simi1 #view .spwrap.simsp .spchans{width:auto!important;border:0!important;background:none!important;display:block!important}
+  :root body.kerfi.simi1 #view .spwrap.simsp .spchans>.phead{margin:0!important;padding:var(--s3) 16px!important}
+  :root body.kerfi.simi1 #view .spwrap.simsp .spch{width:100%!important;box-sizing:border-box;padding:var(--s2) 16px!important;min-height:56px;border-radius:0!important}
+  :root body.kerfi.simi1 #view .spwrap.simspc .spchans{display:none!important}
+  :root body.kerfi.simi1 #view .spwrap.simspc .spconv{display:flex!important;flex-direction:column;padding:var(--s2) 16px 0!important;min-height:calc(100dvh - 200px);border:0!important}
+  :root body.kerfi.simi1 #view .spwrap.simspc .spconv .udh2{padding:var(--s2) 0!important;margin:0!important}
+  :root body.kerfi.simi1 #view .spwrap.simspc .spmsgs{flex:1;padding:var(--s2) 0!important;overflow:visible!important}
+  :root body.kerfi.simi1 #view .spwrap.simspc .spform{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:var(--s2) 0!important;margin:0!important;display:flex;gap:var(--s2)}
+  :root body.kerfi.simi1 #view .spwrap.simspc .spform :is(input,textarea){flex:1;min-width:0}
+  :root body.kerfi.simi1 main#view>:is(p.sub,p.hint,.sub){margin-inline:16px!important}
+}
