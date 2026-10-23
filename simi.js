@@ -58,7 +58,8 @@
   window.simiDrawer = drawer;
   document.addEventListener("click", e => {
     if (!phone()) return;
-    const m = e.target.closest('#tbar [data-tab="meira"], #avbtn'); if (m) { e.preventDefault(); e.stopImmediatePropagation(); drawer(!document.body.classList.contains("simdrw")); return; }
+    // Meira (2.47.1): síða í stíl „Í dag“ í stað dökku skúffunnar; JJ-hnappurinn opnar hana líka
+    const m = e.target.closest("#avbtn"); if (m) { e.preventDefault(); e.stopImmediatePropagation(); try { DETAIL = null; tab = "meira"; } catch (x) {} render(); window.scrollTo({ top: 0 }); return; }
     if (document.body.classList.contains("simdrw") && e.target.closest(".side .tab, .side .btn, .side .syncbtn, .side [data-act]")) setTimeout(() => drawer(false), 0);
   }, true);
   document.addEventListener("keydown", e => { if (e.key === "Escape" && document.body.classList.contains("simdrw")) drawer(false); });
@@ -133,6 +134,22 @@
     if (onlyRes) return res;
     return `<div class="sd"><div class="sdh"><h1>Leita</h1></div><label class="sdq">${ico("leit", 17)}<input type="search" id="simq" placeholder="Verkefni, pöntun, viðskiptavinur eða sími" value="${E(Q)}" autocomplete="off" enterkeyhint="search" aria-label="Leita"></label><div id="simres">${res}</div></div>`;
   }
+  // Meira: allir hlutar flokkaðir eins og í tölvunni (Kjarni / Verkfæri / Tengingar), prófíll og stillingar neðst
+  const GRP = { heim: "", verkefni: "Kjarni", vidsk: "Kjarni", pantanir: "Kjarni", dagatal: "Verkfæri", timar: "Verkfæri", tilbod: "Verkfæri", bunadur: "Verkfæri", fjarmal: "Verkfæri", skjol: "Tengingar", postur: "Tengingar", spjall: "Tengingar" };
+  function meiraHTML() {
+    let c = {}; try { c = secCounts(); } catch (e) {}
+    const S0 = secs().filter(x => x.k !== "meira" && x.k !== "heim" && !x.nobar && x.tabs.some(t => ok(t[0])));
+    const groups = [];
+    S0.forEach(x => { const g = GRP[x.k] ?? "Annað"; let G = groups.find(y => y.g === g); if (!G) groups.push(G = { g, xs: [] }); G.xs.push(x); });
+    const first = x => (x.tabs.find(t => !YF[t[0]] && ok(t[0])) || x.tabs[0])[0];
+    const U = window.USER || {}, nm = U.nafn || (typeof starfName === "function" ? starfName(me()) : "") || me();
+    const rows = groups.map(G => `${G.g ? `<div class="sdsec">${E(G.g)}</div>` : ""}<section class="sdlist">${G.xs.map(x => `<div class="sdrow"><a class="sdmain sdnav" data-act="tab:${E(first(x))}" role="button" tabindex="0"><span class="sdico">${x.ic || ""}</span><span class="sdtx"><b>${E(x.l)}</b></span><span class="sdcnt">${E(c[x.k] || "")}</span>${ico("chev", 15)}</a></div>`).join("")}</section>`).join("");
+    return `<div class="sd"><div class="sdh"><h1>Meira</h1></div>${rows}<div class="sdsec">Þú</div><section class="sdlist">
+      <div class="sdrow"><div class="sdmain"><span class="sdav">${E(String(me() || "?").slice(0, 2))}</span><span class="sdtx"><b>${E(nm)}</b><small>${E(U.email || "")}</small></span></div></div>
+      <div class="sdrow"><a class="sdmain sdnav" data-act="tab:stillingar" role="button" tabindex="0"><span class="sdtx"><b>Stillingar</b></span>${ico("chev", 15)}</a></div>
+      <div class="sdrow"><a class="sdmain sdnav" role="button" tabindex="0" onclick="document.getElementById('themebtn')?.click()"><span class="sdtx"><b>Útlit</b><small>Ljóst · dökkt · eftir tæki</small></span></a></div>
+      <div class="sdrow"><a class="sdmain sdnav" role="button" tabindex="0" onclick="window.aeraSignOut&&aeraSignOut()"><span class="sdtx"><b>Skrá út</b></span></a></div></section></div>`;
+  }
   function bar() {
     const tb = document.getElementById("tbar"); if (!tb) return;
     const t = cur(), D = det(), inDag = t === "yfirlit" && !D, inLeit = t === "leit" && !D, inTim = /^(timar|tfaer|tskyr|timyf|trk)$/.test(t) && !D;
@@ -145,6 +162,7 @@
     const t = cur();
     if (t === "yfirlit") { v.innerHTML = dagHTML(); document.body.classList.add("simdag"); }
     else if (t === "leit") { v.innerHTML = leitHTML(); document.body.classList.add("simdag"); }
+    else if (t === "meira") { v.innerHTML = meiraHTML(); document.body.classList.add("simdag"); }
   }
   document.addEventListener("input", e => { if (e.target.id !== "simq") return; Q = e.target.value; const r = document.getElementById("simres"); if (r) r.innerHTML = leitHTML(true); });
   // Mynd og athugasemd á verkefni
