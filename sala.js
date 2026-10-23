@@ -96,7 +96,12 @@
   // Fyrir Heim (2.21.1): skjöl sem taka frá búnað (samþykkt tilboð, opnar pantanir) og opnar pantanir
   window.utlDocs = () => [...new Map(bokanir().map(b => [b.T.id, b.T])).values()].map(T => ({ T, fra: T.fra, til: tilOf(T), nr: T.nr, heiti: T.heiti || T.vidskiptavinur || "", vsk: T.vidskiptavinur || T.tengilidur || "", P: isP(T) }));
   // Útlit I (2.23.2): aðgangur fyrir Vörulisti › Yfirlit og undirflipa tilboða (Leiga · Sala · Þjónusta)
-  window.salaAPI = { TB, VR, PN, lSum, totals, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; } };
+  // Sala sem hefur átt sér stað (2.38.1): samþykkt tilboð sem ekki urðu að pöntun + staðfestar/afhentar/skilaðar/lokið pantanir – hver sala talin einu sinni.
+  // Upphæðir án VSK og eftir afslátt (líka afslátt á öllu skjalinu).
+  const PSELD = ["Staðfest", "Afhent", "Skilað", "Lokið"];
+  const seld = () => [...TB().filter(T => T.stada === "Samþykkt" && !PN().some(P => P.tilbodId === T.id)), ...PN().filter(P => PSELD.includes(P.stada))];
+  const netLine = (l, T) => Math.round(lSum(l, T) * (1 - (+T.afsl || 0) / 100));
+  window.salaAPI = { TB, VR, PN, lSum, totals, seld, netLine, netOf: T => totals(T).net, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; } };
   window.pnOpnar = () => PNON() ? PN().filter(P => !["Skilað", "Lokið"].includes(P.stada)) : [];
   // Laust á tímabili skjals (fyrir valglugga): pakki = hve margir heilir pakkar
   const lausFyrir = (v, T) => { if (!T?.fra || vDeild(v) !== "leiga" || v.tegund === "vinna") return null; const til = tilOf(T), mine = tharfir(T);
