@@ -1195,3 +1195,30 @@ body.pv.ui1 .spdet .spexp{right:62px!important}
 body.pv.ui1 .spwin{right:104px!important}
 body.pv.ui1 .udh2 .uact{padding-right:138px}
 @container (max-width:760px){body.pv.ui1 .udh2 .udl{padding-right:138px}}
+/* 2.37.0 – Þéttur tilboðs- og pöntunarritill (útlit I á tölvu) */
+#tbed .tbmore{border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff);margin:4px 0 12px;padding:0 14px}
+#tbed .tbmore>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;padding:11px 0;font-size:14px;font-weight:500;min-width:0}
+#tbed .tbmore>summary::-webkit-details-marker{display:none}
+#tbed .tbmore>summary::before{content:"›";display:inline-block;width:10px;color:var(--muted);transition:transform .15s}
+#tbed .tbmore[open]>summary::before{transform:rotate(90deg)}
+#tbed .tbmore>summary small{font-weight:400;color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#tbed .tbmore[open]{padding-bottom:10px}
+#tbed .tbcg{padding-bottom:4px}
+#tbed .tbcr{display:grid;grid-template-columns:minmax(0,1fr) 62px 54px 90px 56px 96px 58px;gap:6px;align-items:center;padding:5px 12px}
+#tbed .tbch{padding-top:8px;padding-bottom:2px}
+#tbed .tbch span{font-size:11.5px;color:var(--muted)}
+#tbed .tbch span:nth-child(n+2):nth-child(-n+5){text-align:right}#tbed .tbch span:nth-child(6){text-align:right}
+#tbed .tbc{border-top:1px solid var(--line)}
+#tbed .tbc input,#tbed .tbc select{height:34px;min-height:0;padding:4px 8px;font-size:13.5px;border-radius:8px;width:100%;box-sizing:border-box}
+#tbed .tbcr>input{text-align:right}
+#tbed .tbcn{min-width:0;display:flex;flex-direction:column;gap:2px}
+#tbed .tbcn input{font-weight:500}
+#tbed .tbcn small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px}
+#tbed .tbcx{text-align:right;color:var(--muted);padding-right:8px}
+#tbed .tbcr>b{text-align:right;font-size:13.5px;font-weight:500;white-space:nowrap}
+#tbed .tbcb{display:flex;gap:4px;justify-content:flex-end}
+#tbed .tbcm{width:26px;height:28px;border:1px solid var(--line);border-radius:8px;background:var(--surface,#fff);color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:0}
+#tbed .tbcm:hover{color:var(--ink)}
+#tbed .tbcmore{display:none;gap:10px;padding:2px 12px 10px;flex-wrap:wrap}
+#tbed .tbc.open .tbcmore{display:flex}
+#tbed .tbcmore label{font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px;min-width:180px}
