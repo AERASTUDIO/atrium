@@ -142,7 +142,9 @@
   const fjL = T => (T.linur || []).length;
   const totK = T => { try { return window.tbTotals ? kr(tbTotals(T).tot) : ""; } catch (e) { return ""; } };
   const pnr = id => { const p = id ? findProj(id) : null; return p ? p.nr : ""; };
-  const nbtn = l => `<button type="button" class="btn primary" data-act="fabnew">+ ${E(l)}</button>`;
+  // „+ Pöntun“, „+ Verkefni“ … opna beint rétta tegund, óháð því á hvaða undirsíðu (yfirliti, sviði) maður er (2.50.9)
+  const NBT = { "Verkefni": "verk", "Viðskiptavinur": "vsk", "Tilboð": "ltilbod", "Pöntun": "pantanir", "Búnaður": "lvorur", "Vara": "svorur", "Þjónusta": "vvinna", "Fundur": "fundir" };
+  const nbtn = l => `<button type="button" class="btn primary" data-act="fabnew${NBT[l] ? ":" + NBT[l] : ""}">+ ${E(l)}</button>`;
   st.vf = { verk: "gangi", lverk: "gangi", sverk: "gangi" };
   const mineP = p => (p.starfsfolk || p.starfsmenn || []).some(x => (x.sk || x) === ME()) || (window.projStaff && projStaff(p).some(x => (x.sk || x) === ME()));
   function vlist(key, title, pf, vfl) {
@@ -728,7 +730,7 @@
     const rowU = x => `<div class="urow uf5" ${tapAttr("verk", x.p.id)}><span class="m">Óreikn.</span><span class="t">${E(x.p.nr)} ${E(x.p.stutt || "")}</span><span class="m">${H(x.h)} klst.</span><span class="m"></span><span class="r">${E(kr(x.kr))}</span></div>`;
     const rowR = r => { const p = findProj(r.verkefniId), late = r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0;
       return `<div class="urow uf5" ${tapAttr("reikn", r.id)}><span class="m">${E(String(r.nr).padStart(3, "0"))}</span><span class="t">${E(r.kaupandi?.name || "")}${late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""}</span><span class="m">${E(p?.nr || "")}</span><span class="m">${E(String(r.dags || "").slice(5).split("-").reverse().join("."))}</span><span class="r">${E(kr(r.tot))}</span></div>`; };
-    const top = lhead("", "Reikningar", nbtn("Reikningur").replace('data-act="fabnew"', 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length]], f, "u1vf:trk")}</div>`;
+    const top = lhead("", "Reikningar", nbtn("Reikningur").replace(/data-act="fabnew[^"]*"/, 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length]], f, "u1vf:trk")}</div>`;
     if (WIDE()) { const dI = x => x ? dateIS(d(x)) : "";
       const wU = x => wrow(tapAttr("verk", x.p.id), [wc("Óreikn."), wc(E(x.p.vidskiptavinur || ""), "t"), wc(E(x.p.nr + " " + (x.p.stutt || ""))), wc(E(H(x.h) + " klst.")), wc(""), wc(pill("Óreikningsfært")), wc(E(kr(x.kr)), "r")]);
       const wR = r => { const p = findProj(r.verkefniId), late = r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0;
@@ -949,7 +951,7 @@
   };
   U.hfrag = () => { const xs = oklItems(); return hlist("Óklárað", xs, [...new Set(xs.map(x => x.k))], "hfrag"); };
   U.hfram = () => { const xs = framItems(14), w7 = xs.filter(x => daysTo(x.date) <= 7);
-    return hlist("Framundan", xs, [], "hfram", { def: "7", btn: nbtn("Fundur").replace('data-act="fabnew"', 'data-act="add:fund"'), cols: ["Dags.", "Atriði · Verkefni", "Kl.", "Tegund"],
+    return hlist("Framundan", xs, [], "hfram", { def: "7", btn: nbtn("Fundur").replace(/data-act="fabnew[^"]*"/, 'data-act="add:fund"'), cols: ["Dags.", "Atriði · Verkefni", "Kl.", "Tegund"],
       chips: [["7", "7 dagar · " + w7.length], ["Fundur", "Fundir"], ["Skil", "Skil"], ["Afhending", "Afhendingar"], ["", "14 dagar · " + xs.length]],
       flt: (it, f) => f === "7" ? daysTo(it.date) <= 7 : it.pill === f || it.k === f,
       row: it => `<div class="urow uh" ${att(it)}><span class="m">${E(fmtD(it.date))}</span><span class="t">${E(it.title)}${it.sub ? `<span class="m"> · ${E(it.sub.replace(/^(Fundur|Skil[^·]*|Afhending) · ?/, ""))}</span>` : ""}</span><span class="m">${E(it.time || "")}</span><span class="r">${pill(it.pill)}</span></div>` }); };

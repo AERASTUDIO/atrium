@@ -252,7 +252,7 @@
     const hr = document.querySelector("header .hright"); let b = document.getElementById("qrhbtn");
     if (!on()) { b?.remove(); document.getElementById("qrsbtn")?.remove(); return; }
     if (hr && !b) { b = document.createElement("button"); b.type = "button"; b.id = "qrhbtn"; b.className = "iconbtn qrhbtn"; b.setAttribute("aria-label", "Skanna QR-merki"); b.title = "Skanna QR-merki"; b.innerHTML = ICON; b.onclick = scanFree; const sb = hr.querySelector("#searchbtn"); sb ? sb.before(b) : hr.prepend(b); }
-    const nw = document.querySelector(".side .new"); if (nw && !document.getElementById("qrsbtn")) { const s = document.createElement("button"); s.type = "button"; s.id = "qrsbtn"; s.className = "btn qrsbtn"; s.innerHTML = ICON + "Skanna"; s.onclick = scanFree; nw.after(s); }
+    document.getElementById("qrsbtn")?.remove(); // 2.50.9: enginn Skanna-hnappur í hliðarstiku í tölvu – „Nýtt“ er þar efst
   }
   function decorate() {
     headerBtn(); if (!on()) return;

@@ -375,7 +375,7 @@
     const cur = rows.findIndex(r => r.classList.contains("spsel"));
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const i = Math.max(0, Math.min(rows.length - 1, cur + (e.key === "ArrowDown" ? 1 : -1))); rows[i].click(); setTimeout(() => document.querySelector(".splist .spsel")?.scrollIntoView({ block: "nearest" }), 30); }
     else if (e.key === "Enter" && cur < 0) { e.preventDefault(); rows[0].click(); }
-    else if ((e.key === "n" || e.key === "N") && document.querySelector('.splist .phead [data-act="fabnew"], .splist .phead .pnew')) { e.preventDefault(); document.querySelector('.splist .phead [data-act="fabnew"], .splist .phead .pnew').click(); }
+    else if ((e.key === "n" || e.key === "N") && document.querySelector('.splist .phead [data-act^="fabnew"], .splist .phead .pnew')) { e.preventDefault(); document.querySelector('.splist .phead [data-act^="fabnew"], .splist .phead .pnew').click(); }
   });
   document.addEventListener("keydown", e => {
     if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.querySelector(".spfilt input")) { e.preventDefault(); const i = document.querySelector(".spfilt input"); i.focus(); i.select?.(); }

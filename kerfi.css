@@ -245,3 +245,8 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
   :root body.kerfi #view .wke{font-size:var(--t-sm)!important;color:var(--muted);opacity:.6}
   :root body.kerfi #view .wkcal+.links{margin-top:var(--s3)}
 }
+
+/* Hliðarstika í tölvu (2.50.9): „Nýtt“ efst í fullri breidd þar sem Skanna var */
+@media (min-width:1024px){
+  :root body.kerfi.pv.ui1 .side .new{order:0!important;align-self:stretch!important;justify-content:center;min-height:44px!important;margin:4px 0 8px!important;border-radius:12px;font-weight:500}
+}
