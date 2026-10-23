@@ -272,7 +272,7 @@ function render(){
   applyEin(); if(!TABS.includes(tab)&&tab!=="leit") tab="yfirlit"; // leit er ekki flipi í valmynd (lagað 2.18.2 – leitin opnaðist ekki frá 2.0.0)
   drawMenu(); window.deildHdr?.(); clearTimeout(render._n); render._n=setTimeout(scheduleNotifs,500);
   const v=document.getElementById("view");
-  if(!S){v.innerHTML=`<h2 class="big">Hleð gögnum…</h2><div class="empty">Augnablik.</div>`;return;}
+  if(!S){v.innerHTML="";return;} /* opnunarskjárinn (app.html) birtist þar til gögnin eru komin */
   const det=DETAIL?detailHTML():null; if(DETAIL&&!det) DETAIL=null;
   document.body.classList.toggle("haspnew",!det&&!!NEWBTN[tab]&&!!MCP);
   document.body.classList.toggle("onchat",!det&&tab==="spjall");

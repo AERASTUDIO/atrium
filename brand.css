@@ -430,3 +430,9 @@ header .deildseg button{min-height:30px;padding:0 10px;font-size:12.5px;border-r
 .pill.deildpill{background:var(--raise);color:var(--muted)}
 .deildmob{margin:4px 0 14px}
 .deildmob button{min-height:36px}
+/* 2.40.0 – Opnunarskjár: sama Atrium-teikning og á innskráningu */
+#splash{position:fixed;inset:0;z-index:100;background:#121416;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
+#splash.out{opacity:0;pointer-events:none}
+#splash .spl-in{display:flex;align-items:center;justify-content:center;gap:18px}
+#splash .lword{width:190px;height:auto;display:block}
+@media (prefers-reduced-motion: no-preference){#splash .lword{animation:aIn .6s var(--ease,cubic-bezier(.2,.7,.2,1)) 1.7s both}}
