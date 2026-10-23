@@ -1,30 +1,86 @@
-/* Símaútlit I (2.45.0, simi.js – ORG.simi === "I", fyrst í dev/). Aðeins á skjám mjórri en 1024 px. */
+/* Símaútlit I (2.46.0, simi.js – ORG.simi === "I", fyrst í dev/). Aðeins á skjám mjórri en 1024 px.
+   simi-ui1.css (sjálfvirkt) gefur símanum útlit tölvunnar; hér er uppröðunin löguð að mjóum skjá. */
 @media (max-width:1023px){
-  /* Haus: dagsetningin fer (hún er efst á Heim), táknin jafnt dreifð */
-  body.simi1 header #today{display:none}
-  body.simi1 header .hright{gap:4px}
-  body.simi1 header .hright .iconbtn,body.simi1 header .avbtn{flex:none}
-  /* Pláss neðst svo síðasta lína hverfi ekki undir stikuna og plús-hnappinn */
-  body.simi1 .app{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
-  /* Plús-hnappurinn: ekki á spjöldum (þar eru aðgerðirnar) */
-  body.simi1.simidet .fab{display:none!important}
-  /* Heim: lykiltölur í jöfnum reitum, síðasti reitur fyllir línuna ef þeir eru oddatala; engin tvítekin „Vikan þín“ */
-  body.simi1 .h2tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  body.simi1 .h2tiles>.h2tile:last-child:nth-child(odd){grid-column:1/-1}
-  body.simi1 .h2tile{padding:14px}
-  body.simi1 .h2tile .h2v{font-size:24px;line-height:1.2;overflow-wrap:anywhere}
-  body.simi1 .h2>.usum{display:none}
-  body.simi1 .h2card .h2hd{flex-wrap:wrap;row-gap:4px}
-  body.simi1 .h2card .h2hd .h2tag{display:none}
-  body.simi1 .h2klukka{margin-bottom:6px}
-  /* Undirflipar: renna lárétt ef þeir komast ekki fyrir, merkt val skýrt */
-  body.simi1 .phead .seg{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
-  body.simi1 .phead .seg::-webkit-scrollbar{display:none}
-  body.simi1 .phead .seg button{flex:1 0 auto;min-height:40px;padding:8px 14px;scroll-snap-align:start;white-space:nowrap}
-  /* Spjöld: næsta skref á pöntun */
-  body.simi1 .simnx{margin:12px 0 4px}
-  body.simi1 .simnx .btn{width:100%;min-height:48px;justify-content:center;font-size:16px}
-  /* Langir textar brjóta ekki skjáinn */
+  /* Rammi: engin föst vinstri stika, haus og neðri stika eins og áður */
+  body.simi1.pv,body.simi1.pv.ui1{padding-left:0!important;padding-top:0!important}
+  body.simi1.pv .app{max-width:none;padding:0 0 calc(84px + env(safe-area-inset-bottom,0px))!important;margin:0}
+  body.simi1.pv .app>header{display:block!important;position:sticky;top:0;z-index:20;margin:0;padding:10px 16px 8px;background:var(--bg);border-bottom:1px solid var(--line)}
+  body.simi1.pv .app>header .brand h1{visibility:visible}
+  body.simi1.pv header #today{display:none}
+  body.simi1.pv header .hright{gap:2px}
+  body.simi1.pv .avbtn{display:grid!important}
+  body.simi1.pv nav.mbar.tbar{display:flex!important;z-index:25}
+  body.simi1.pv .fab{display:none!important}
+  body.simi1.pv .foot{padding:12px 16px}
+  /* Vinstri stikan sem skúffa (Meira) */
+  body.simi1.pv .side{display:flex!important;position:fixed!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;width:min(300px,84vw)!important;height:auto!important;z-index:40!important;transform:translateX(-102%)!important;transition:transform .22s ease;box-shadow:none!important;padding-top:calc(14px + env(safe-area-inset-top,0px))!important;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))!important;visibility:hidden!important}
+  body.simi1.pv.simdrw .side{transform:none!important;visibility:visible!important;box-shadow:12px 0 40px rgba(0,0,0,.35)!important}
+  .simscrim{display:none}
+  body.simi1.simdrw .simscrim{display:block;position:fixed;inset:0;z-index:35;background:rgba(18,20,22,.45)}
+  body.simi1.simdrw{overflow:hidden}
+  @media (prefers-reduced-motion:reduce){body.simi1.pv .side{transition:none}}
+  /* Listi og spjald: hvort á eftir öðru, ekki hlið við hlið */
+  body.simi1 #view{padding:0;margin:0}
+  body.simi1 .split{display:block!important;height:auto!important;min-height:0!important;grid-template-columns:none!important;margin:0!important}
+  body.simi1 .split .splist{position:static!important;height:auto!important;max-height:none!important;overflow:visible!important;border:0!important;width:auto!important}
+  body.simi1 .split:not(.nodet) .splist{display:none!important}
+  body.simi1 .split .spdet{position:static!important;height:auto!important;max-height:none!important;overflow:visible!important;border:0!important;padding:4px 16px 24px!important;width:auto!important}
+  body.simi1 .splist .phead{position:sticky!important;top:calc(57px + env(safe-area-inset-top,0px))!important;z-index:6;margin:0!important;padding:12px 16px 12px!important}
+  body.simi1 .splist>.spsup{display:none}
+  body.simi1 .splist>:not(.phead):not(.spsup):not(.spfilt){margin-inline:0!important}
+  body.simi1 .splist .spfilt{margin:10px 16px!important}
+  body.simi1 .spfoot,body.simi1 .spfilt kbd,body.simi1 .srchnote{display:none!important}
+  body.simi1 .spx,body.simi1 .spwin,body.simi1 [data-ui1="exp"]{display:none!important}
+  /* Undirflipar hlutans sem flögur */
+  body.simi1 .simsub{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px;scroll-snap-type:x proximity}
+  body.simi1 .simsub::-webkit-scrollbar{display:none}
+  body.simi1 .simsub button{flex:none;border:0;border-radius:99px;padding:7px 14px;min-height:36px;font:inherit;font-size:13px;background:rgba(255,255,255,.65);color:var(--ink);white-space:nowrap;scroll-snap-align:start}
+  body.simi1 .simsub button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+  body.simi1 .splist .phead .ulbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  body.simi1 .splist .phead .ulbar::-webkit-scrollbar{display:none}
+  /* Línur: tvær línur í stað dálka – númer, heiti og staða */
+  body.simi1 .splist .ucols{display:none!important}
+  body.simi1 .splist .urow{display:grid!important;grid-template-columns:62px minmax(0,1fr) auto!important;grid-auto-rows:auto;column-gap:10px;row-gap:0;padding:11px 16px!important;min-height:52px;align-items:center}
+  body.simi1 .splist .urow>*{min-width:0}
+  body.simi1 .splist .urow>:nth-child(n+3):not(:last-child){display:none}
+  body.simi1 .splist .urow>:last-child{justify-self:end}
+  /* Spjald */
+  body.simi1 .spdet .udh2{flex-direction:column;align-items:stretch;gap:10px;padding:8px 0 12px!important;margin:0!important}
+  body.simi1 .spdet .udh2 .ptitle{font-size:24px;white-space:normal;text-wrap:balance}
+  body.simi1 .spdet .uact{flex-wrap:wrap;gap:8px}
+  body.simi1 .spdet .simmoved{display:none!important}
+  body.simi1 .spdet .udh2>*{min-width:0;max-width:100%}
+  body.simi1 .spdet .ukps,body.simi1 .spdet .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.simi1 .spdet .dtabs,body.simi1 .spdet .uvt{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap;margin-inline:-16px;padding-inline:16px}
+  body.simi1 .spdet .dtabs::-webkit-scrollbar,body.simi1 .spdet .uvt::-webkit-scrollbar{display:none}
+  body.simi1 .spdet .dtabs button,body.simi1 .spdet .uvt button{flex:none;white-space:nowrap}
+  body.simi1 .spdet table{display:block;overflow-x:auto}
+  body.simi1 .uback{margin:8px 0 2px!important}
+  /* Aðgerðastika neðst á spjaldi */
+  body.simi1 .simact{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:22;display:flex;gap:8px;padding:10px 16px;background:var(--bg);border-top:1px solid var(--line)}
+  body.simi1 .simact .btn{flex:1 1 0;min-width:0;justify-content:center;min-height:46px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.simi1 .simact .btn.primary{flex:1.6 1 0}
+  body.simi1.simhasact .app{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))!important}
+  /* Heim og yfirlit: einn dálkur */
+  body.simi1 #view [class*="grid"],body.simi1 #view .ukpis,body.simi1 #view .vyk6,body.simi1 #view .vy3{grid-template-columns:minmax(0,1fr)!important}
+  body.simi1 #view .ukps{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   body.simi1 #view{overflow-wrap:anywhere}
-  body.simi1 #view .pill{white-space:nowrap}
+  body.simi1 #view .pill,body.simi1 #view .upill{white-space:nowrap}
+  /* Hausar og raðir úr tölvunni sem þurfa að brotna */
+  body.simi1.ui1 .uhead{margin:0!important;padding:12px 16px 14px!important;min-height:0!important;flex-wrap:wrap;align-items:flex-end;gap:10px}
+  body.simi1.ui1 .uhead .ptitle{font-size:24px}
+  body.simi1.ui1 .uhr{flex-wrap:wrap;gap:6px;justify-content:flex-start}
+  body.simi1 #view>:not(.uhead):not(.split):not(.simact):not(.uback){margin-inline:16px}
+  body.simi1 .uhtop,body.simi1 .uh3{grid-template-columns:minmax(0,1fr)!important;display:grid!important;gap:12px!important}
+  body.simi1 .uminis.m5{grid-template-columns:repeat(3,minmax(0,1fr))!important;row-gap:10px}
+  body.simi1 .spdet .dtabs,body.simi1 .spdet .uvt{margin-inline:0!important;padding-inline:0!important}
+  /* Vikan: dagar hver undir öðrum */
+  body.simi1 .uweek{display:flex!important;flex-direction:column;gap:14px;grid-template-columns:none!important}
+  body.simi1 .uweek .uday{width:auto!important;min-width:0;display:flex!important;flex-direction:column;gap:8px;align-self:stretch}
+  body.simi1 .uweek .uday>*{width:auto!important;max-width:none!important}
+  body.simi1 .spdet .ucalrow{grid-template-columns:minmax(0,1fr)!important}
+  body.simi1 .spdet .ucal{width:auto!important}
+  body.simi1 .spdet .ucal .ucalg>*{min-height:40px}
+  body.simi1 .uweek .udh{min-height:0!important;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  body.simi1 .uweek .uent{min-height:0!important}
 }

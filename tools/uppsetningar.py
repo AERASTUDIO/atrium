@@ -35,6 +35,10 @@ def smida(m, src):
 
 def main():
     athuga = "--athuga" in sys.argv
+    # Símaútlit I (2.46.0): tölvureglurnar afritaðar fyrir síma (simi-ui1.css) – alltaf í takt við app.css/brand.css
+    if not athuga:
+        import importlib.util
+        sp = importlib.util.spec_from_file_location("simi_css", os.path.join(ROT, "tools", "simi_css.py")); mod = importlib.util.module_from_spec(sp); sp.loader.exec_module(mod); mod.main()
     src = open(os.path.join(ROT, "app.html"), encoding="utf-8").read()
     urelt = []
     for m in UPPSETNINGAR:

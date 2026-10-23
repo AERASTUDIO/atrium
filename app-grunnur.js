@@ -10,7 +10,7 @@ const THEME_L={auto:"Sjálfvirkt þema (ljóst á tölvu, dökkt í síma)",ligh
 let LVAR="aera", DVAR="aera"; // eitt ljóst (Pappír) og eitt dökkt (Nótt) þema eftir merkjahandbók
 const VARIANTS={light:[["aera","Pappír","#F6F7F8","#2F3742"]],dark:[["aera","Nótt","#121416","#DFE5EA"]]};
 function setVariant(kind,v){if(kind==="light") LVAR=v; else DVAR=v; try{localStorage.setItem(kind==="light"?"aera-lvar":"aera-dvar",v);}catch(e){} applyTheme(); if(typeof render==="function"&&S) render();}
-function applyTheme(){const eff=THEME==="auto"?(matchMedia("(min-width:1024px)").matches?"light":"dark"):THEME;
+function applyTheme(){const eff=THEME==="auto"?(matchMedia("(min-width:1024px)").matches||window.ORG?.simi==="I"?"light":"dark"):THEME;
   document.documentElement.dataset.theme=eff; document.documentElement.dataset.variant=eff==="light"?LVAR:DVAR; const m=document.getElementById("themecolor"); if(m) m.content=(ORG.litir||{})[eff==="light"?"ljos":"dokk"]||(VARIANTS[eff].find(x=>x[0]===(eff==="light"?LVAR:DVAR))||VARIANTS[eff][0])[2];
   const lg=ORG.merki||ORG.logo||{}, cu=eff==="light"?(lg.ljos||lg.dokk):(lg.dokk||lg.ljos); if(cu) document.querySelectorAll("img.colog").forEach(i=>{if(i.getAttribute("src")!==cu){i.src=cu;i.alt=ORG.nafn||"";}}); // merki fyrirtækis við hlið Atrium
   const b=document.getElementById("themebtn"); if(b){b.innerHTML=THEME_IC[THEME]; b.setAttribute("aria-label",THEME_L[THEME]+" – ýttu til að skipta"); b.title=THEME_L[THEME];}}

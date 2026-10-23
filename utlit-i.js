@@ -41,7 +41,11 @@
   coSide(); new MutationObserver(coSide).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   const GRP = { heim: "Kjarni", verkefni: "Kjarni", vidsk: "Kjarni", pantanir: "Kjarni", dagatal: "Verkfæri", timar: "Verkfæri", tilbod: "Verkfæri", bunadur: "Verkfæri", fjarmal: "Verkfæri", skjol: "Tengingar", postur: "Tengingar", spjall: "Tengingar" };
-  const desk = () => window.matchMedia("(min-width:1024px)").matches;
+  // Símaútlit I (2.46.0, ORG.simi === "I"): síminn notar sama útlit og tölvan (listi og spjald, simi-ui1.css + simi.css);
+  // wideScr() = raunverulegur breiður skjár, desk() = tölvuútlitið er í notkun
+  const SIMI = window.ORG?.simi === "I";
+  const wideScr = () => window.matchMedia("(min-width:1024px)").matches;
+  const desk = () => wideScr() || SIMI;
 
   /* ---------- Vinstri stika: hlutar í hópum, undirflipar valins hluta, engar tölur ---------- */
   const _draw = window.drawMenu || drawMenu;
@@ -76,7 +80,7 @@
     if (fltTab !== tab) { flt = ""; window.u1Q = ""; fltTab = tab; }
     const v = document.getElementById("view");
     if (tab === "upphaf") {
-      if (!desk()) { tab = "yfirlit"; return renderI(); }
+      if (!wideScr()) { tab = "yfirlit"; return renderI(); }
       document.body.classList.remove("hassplit", "spfull"); document.body.classList.add("onstart"); drawMenu();
       if (!v.querySelector(".ustart")) v.innerHTML = startHTML();
       return;
@@ -113,7 +117,7 @@
     else if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); }
     else { full = false; _render(); }
     // Ekkert valið (2.36.0): listinn nær yfir allan skjáinn með fleiri dálkum; spjaldið birtist fyrst þegar atriði er valið (ekki í Pósti)
-    const wide = !DETAIL && tab !== "postur"; window.u1Wide = wide;
+    const wide = !DETAIL && tab !== "postur"; window.u1Wide = wide && wideScr();
     const list = window.UI1V?.[tab] ? UI1V[tab]() : v.innerHTML, sup = window.UI1V?.[tab] ? "" : SUPER();
     document.body.classList.add("hassplit"); document.body.classList.toggle("spfull", !!DETAIL && full); document.body.classList.toggle("spwide", wide);
     v.innerHTML = `<div class="split${wide ? " nodet" : ""}"><section class="splist" aria-label="Listi">${sup ? `<div class="spsup">${esc(sup)}</div>` : ""}${list}</section>`
@@ -318,10 +322,10 @@
   document.addEventListener("click", winClick, true); document.addEventListener("auxclick", e => { if (e.button === 1) winClick(e); }, true);
   document.addEventListener("mousedown", e => { if (e.button === 1 && e.target.closest?.("[data-open]")) e.preventDefault(); }, true);
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="win"]'); if (!b) return; u1OpenWin(tab, DETAIL, DTAB); });
-  if (!(desk() && fromHash()) && desk()) { tab = "upphaf"; }
+  if (!(desk() && fromHash()) && wideScr()) { tab = "upphaf"; }
   // Smellt aftur á opinn yfirflokk: hann lokast og upphafsskjárinn birtist
-  document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
-  document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo"); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
+  document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
+  document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo"); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   // Til baka (2.38.0): saga yfir skjái og spjöld sem opnuð eru (flipi, atriði, undirflipi, stillingasíða); ← Til baka, Alt+← og bakhnappur músar
   const NAV = []; let navLast = null, navBusy = false;
   const navNow = () => ({ tab, o: DETAIL || null, d: (typeof DTAB !== "undefined" && DETAIL ? DTAB : null) || null, st: window.STSUB || null });

@@ -229,7 +229,8 @@
       }
     }
     // Vara á síma: eintakalisti (í tölvu er hann í flipanum Eintök)
-    if (D && String(D).startsWith("vara:") && !desk() && !root.querySelector(".qreint")) {
+    if (D && String(D).startsWith("vara:") && !desk() && !document.body.classList.contains("simi1") && !root.querySelector(".qreint")) {  // símaútlit I: flipinn Eintök úr tölvunni
+
       const v = VR().find(x => String(x.id) === String(D).slice(5));
       if (v && (v.tegund === "leiga" || (v.eintok || []).length) && v.tegund !== "pakki" && window.u1VaraEintok) {
         const at = [...root.querySelectorAll(".viewtitle")].find(x => /^(Útleiga|Lýsing)/.test(x.textContent.trim()));

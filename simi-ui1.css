@@ -1,0 +1,305 @@
+/* SJÁLFVIRKT BÚIÐ TIL með tools/simi_css.py úr app.css og brand.css – ekki breyta hér. Tölvuútlitið (≥1024 px) fyrir símaútlit I. */
+@media (max-width:1023px){
+/* app.css: @media (min-width:1024px) */
+body.simi1{padding-left:248px}
+body.simi1 .side{display:flex;flex-direction:column;gap:14px;position:fixed;left:0;top:0;bottom:0;width:248px;box-sizing:border-box;z-index:9;background:var(--surface);border-right:1px solid var(--line);padding:22px 14px 18px;overflow:auto}
+body.simi1 .side .logo{height:40px;margin:0 10px 6px}
+body.simi1 .side .new{justify-content:center;padding:11px 14px;font-size:14.5px}
+body.simi1 .side .new svg{width:18px;height:18px}
+body.simi1 .side nav{display:flex;flex-direction:column;gap:2px}
+body.simi1 .side .tab{padding:10px 12px;font-size:15px}
+body.simi1 .side .sgrp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:14px 12px 4px}
+body.simi1 .side .sgrp:first-child{padding-top:2px}
+body.simi1 .side .sgrp:empty{padding:8px 0 0;margin-bottom:6px;border-bottom:1px solid var(--line)}
+body.simi1 .side .tab:hover{background:var(--b0)}
+body.simi1 .side .sfoot{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+body.simi1 .side .sfoot .syncbtn{margin:0}
+body.simi1 .app{max-width:1120px;padding-inline:40px;padding-block:0 48px}
+body.simi1 header{margin-inline:-40px;padding:16px 40px 14px}
+body.simi1 header .brand h1{visibility:hidden}
+body.simi1 h2.big{font-size:30px;margin-top:26px}
+body.simi1 .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+body.simi1 .kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+body.simi1 .card{padding:16px 18px}
+body.simi1 nav.mbar,body.simi1 #menuwrap,body.simi1 .fab,body.simi1 .foot .syncbtn{display:none!important}
+body.simi1 .sheet{top:50%;bottom:auto;left:50%;right:auto;transform:translate(-50%,-50%);width:min(600px,calc(100vw - 48px));max-height:86vh;border-radius:20px;padding:22px 26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+body.simi1 .grab{display:none}
+body.simi1 .toast{bottom:32px;left:calc(50% + 124px)}
+body.simi1 .cday{min-height:92px;align-items:stretch;padding:6px;gap:3px}
+body.simi1 .cday .n{align-self:flex-start}
+body.simi1 .cday .dots{display:none}
+body.simi1 .clab{display:flex;flex-direction:column;gap:2px;min-width:0}
+body.simi1 .clab em{font:500 11.5px/1.35 var(--f-label);font-style:normal;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 5px;border-radius:5px;border-left:3px solid var(--c);background:var(--b0);color:var(--ink)}
+body.simi1 .clab em.more{border-left:0;background:none;color:var(--muted)}
+body.simi1 .cday[aria-pressed="true"] .clab em{background:rgba(255,255,255,.16);color:var(--on-accent);border-left-color:var(--on-accent)}
+body.simi1 .side .tc{white-space:nowrap}
+body.simi1 .cal{padding:12px;gap:6px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .side{background:var(--bg);border-right-color:var(--line)}
+body.simi1 .side .new{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+body.simi1 .side .tab:hover{background:var(--raise)}
+body.simi1 .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+body.simi1 .clab em{background:var(--raise)}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .dtabs{margin:14px -40px 0;padding:10px 40px;top:71px}
+body.simi1 .dtabs button{min-height:44px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .wkcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+body.simi1 .wkday{flex-direction:column;min-height:240px}
+body.simi1 .wkh{width:auto}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .sheet.wide{width:min(980px,calc(100vw - 80px))}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .phead{margin-inline:-40px;padding-inline:40px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 #dock{left:auto;right:24px;bottom:20px;justify-content:flex-end;max-width:60vw}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .hero{grid-template-columns:auto minmax(0,1fr) minmax(0,1fr)}
+body.simi1 .ring{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:14px}
+body.simi1 .ring svg{width:104px;height:104px}
+body.simi1 .ring .rl{text-align:center!important}
+body.simi1 .pcards{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;margin:0;padding:0}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .cday .clab em{font-size:11.5px;padding:1px 5px}
+body.simi1 .cday .clab em:nth-child(n+3):not(.more){display:block}
+body.simi1 .cday .clab em:nth-child(n+4):not(.more){display:none}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv .side{background:var(--raise);gap:8px;padding-top:18px;padding-bottom:14px}
+body.simi1.pv .side .logo,body.simi1.pv .side .cobrand{margin-bottom:2px}
+body.simi1.pv .side .new{padding:9px 14px}
+body.simi1.pv .side nav{gap:1px}
+body.simi1.pv .side .tab,body.simi1.pv #sfoot2 .tab{padding:7px 12px;font-size:14.5px}
+body.simi1.pv .side .sgrp{padding:10px 12px 3px}
+@media (max-height:760px){body.simi1.pv .side .tab,body.simi1.pv #sfoot2 .tab{padding:5px 12px}
+body.simi1.pv .side .sgrp{padding:7px 12px 2px}
+body.simi1.pv .side{gap:6px;padding-top:12px}
+}
+body.simi1.pv #sextra,body.simi1.pv .side .sfoot{display:none}
+body.simi1.pv .side .tab[aria-current="page"]{background:var(--ink);color:var(--bg);font-weight:500}
+body.simi1.pv .side .tab[aria-current="page"] svg{color:var(--bg)}
+body.simi1.pv .side .tab:not([aria-current="page"]):hover{background:var(--hover)}
+body.simi1.pv #sfoot2{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+body.simi1.pv .sfu{gap:10px}
+body.simi1.pv .sfav{flex:none;width:30px;height:30px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500}
+body.simi1.pv .sfu[aria-current="page"] .sfav{background:var(--bg);color:var(--ink)}
+body.simi1.pv .sfn{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;min-width:0}
+body.simi1.pv .sfn span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+body.simi1.pv .sfn small{font-size:12px;opacity:.7}
+body.simi1.pv .card{background:var(--raise2)}
+body.simi1.pv .side .tab .tc{display:inline-block;margin-left:auto;font-size:11px;line-height:1.6;padding:0 8px;border-radius:999px;background:var(--line);color:var(--muted);font-weight:400}
+body.simi1.pv .side .tab .tc:empty{display:none}
+body.simi1.pv .side .tab[aria-current="page"] .tc{background:rgba(127,127,127,.35);color:var(--bg)}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv{padding-left:0;padding-top:64px}
+body.simi1.pv .app>header{display:none}
+body.simi1.pv .side{top:0;left:0;right:0;bottom:auto;width:auto;height:64px;flex-direction:row;align-items:center;gap:10px;padding:0 20px;border-right:0;border-bottom:1px solid var(--line);background:var(--raise2);overflow:visible}
+body.simi1.pv .side .cobrand{order:0;flex:none;margin:0 8px 0 0}
+body.simi1.pv .side .logo{height:30px;margin:0}
+body.simi1.pv .side nav#sitems{order:1;flex:1;min-width:0;flex-direction:row;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
+body.simi1.pv .side nav#sitems::-webkit-scrollbar{display:none}
+body.simi1.pv .side .sgrp{font-size:0;padding:0;margin:0 6px;width:1px;height:22px;flex:none;background:var(--line);border:0}
+body.simi1.pv .side .sgrp:first-child{display:none}
+body.simi1.pv .side .tab,body.simi1.pv #sfoot2 .tab{flex:none;padding:8px 12px;font-size:14px;white-space:nowrap;gap:6px}
+body.simi1.pv .side nav#sitems .tab svg{display:none}
+body.simi1.pv .side .tab,body.simi1.pv #sfoot2 .tab{width:auto;max-width:none}
+body.simi1.pv .side nav#sitems .tab .tl{flex:none}
+body.simi1.pv .side nav#sitems .tab .tc{display:none}
+body.simi1.pv .side nav#sitems .tab{padding:8px 10px}
+@media (max-width:1300px){body.simi1.pv .side nav#sitems .tab{padding:8px 8px;font-size:13.5px}
+body.simi1.pv .side .cobrand .logo{width:110px}
+}
+body.simi1.pv .side .new{order:2;flex:none;margin:0;padding:0 16px;min-height:40px;width:auto}
+body.simi1.pv #sfoot2{order:3;margin:0;padding:0;border:0;flex-direction:row;align-items:center;gap:2px;flex:none}
+body.simi1.pv #sfoot2 .tl,body.simi1.pv #sfoot2 .sfn{display:none}
+body.simi1.pv #sfoot2 .tab{padding:8px 9px}
+body.simi1.pv #subnav2{display:block;position:fixed;top:64px;bottom:0;left:0;width:240px;box-sizing:border-box;padding:20px 12px;background:var(--raise);border-right:1px solid var(--line);overflow-y:auto;z-index:8}
+body.simi1.pv:not(.hassub) #subnav2{display:none}
+body.simi1.pv #subnav2 .snh{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:2px 12px 8px}
+body.simi1.pv #subnav2 .sni{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:14px;color:var(--ink);padding:9px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px}
+body.simi1.pv #subnav2 .sni:hover{background:var(--hover)}
+body.simi1.pv #subnav2 .sni[aria-current="page"]{background:var(--ink);color:var(--bg);font-weight:500}
+body.simi1.pv #subnav2 .snl{display:block;padding:7px 12px;border-radius:10px;font-size:13.5px;color:var(--muted);text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.simi1.pv #subnav2 .snl:hover{background:var(--hover);color:var(--ink)}
+body.simi1.pv .app{max-width:none;padding-inline:32px}
+body.simi1.pv.hassub .app{padding-left:272px}
+body.simi1.pv.hassub .phead .seg{display:none}
+body.simi1.pv .toast{left:50%}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv .h2tiles{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+body.simi1.pv .h2{margin-top:24px}
+body.simi1.pv .h2grid3{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv .side .new{display:none}
+body.simi1.pv .topsearch{order:3;display:flex;flex-direction:row;align-items:center;gap:8px;flex:none;width:240px;height:40px;box-sizing:border-box;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--muted);font:inherit;margin:0}
+body.simi1.pv .topsearch svg{width:16px;height:16px;flex:none}
+body.simi1.pv .topsearch input{border:0;outline:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);width:100%;min-height:0;padding:0;box-shadow:none}
+body.simi1.pv .topsearch:focus-within{border-color:var(--ink)}
+body.simi1.pv #sfoot2{order:4}
+body.simi1.pv .leitbox #leitq{display:none}
+body.simi1.pv #pvnew{display:flex;align-items:center;gap:8px;position:fixed;left:16px;bottom:16px;z-index:12;min-height:46px;padding:0 20px;border-radius:14px;font-size:15px;font-weight:500;box-shadow:0 6px 20px rgba(30,36,40,.18)}
+body.simi1.pv #pvnew svg{width:18px;height:18px}
+body.simi1.pv #pvver{display:block;position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);opacity:.8;z-index:5;pointer-events:none;letter-spacing:.02em}
+body.simi1.pv .app{padding-bottom:64px}
+body.simi1.pv #subnav2{padding-bottom:84px}
+body.simi1.pv #subnav2 .snf{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:13.5px;color:var(--ink);padding:7px 12px;border-radius:10px;cursor:pointer}
+body.simi1.pv #subnav2 .snf:hover{background:var(--hover)}
+body.simi1.pv .fab{display:none!important}
+body.simi1.pv .phrow{justify-content:flex-start}
+body.simi1.pv .phrow .pnew{width:40px;height:40px;min-height:40px;padding:0;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-left:4px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1 .mgrid{grid-template-columns:repeat(6,minmax(0,1fr))}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv .mgrid{display:none}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv.ui1{padding-top:0;padding-left:248px;--ui1side:#2B3138;--ui1hi:#4B5664;--ui1tx:#E4E8EC;--ui1mu:#AEB7BF}
+body.simi1.pv.ui1 .side{top:0;bottom:0;left:0;right:auto;width:248px;height:auto;flex-direction:column;align-items:stretch;gap:6px;padding:14px 12px 12px;background:var(--ui1side);border:0;color:var(--ui1tx);overflow-y:auto}
+body.simi1.pv.ui1 .side .cobrand{order:0;margin:2px 8px 8px}
+body.simi1.pv.ui1 .side .logo,body.simi1.pv.ui1 .side .colog{filter:brightness(0) invert(1);opacity:.92}
+body.simi1.pv.ui1 .topsearch{order:1;position:static;width:auto;margin:0;background:#363D45;border:0;color:var(--ui1mu);min-height:40px;border-radius:10px}
+body.simi1.pv.ui1 .topsearch input{color:var(--ui1tx);background:transparent}
+body.simi1.pv.ui1 .topsearch input::placeholder{color:var(--ui1mu)}
+body.simi1.pv.ui1 .side .new{order:2;display:inline-flex;align-self:flex-start;background:#F4F6F8;color:var(--ui1side);border:0;padding:8px 16px;min-height:38px;margin:2px 0 4px}
+body.simi1.pv.ui1 #pvnew,body.simi1.pv.ui1 #subnav2{display:none!important}
+body.simi1.pv.ui1 .side nav#sitems{order:3;flex:none;flex-direction:column;align-items:stretch;gap:1px;overflow:visible}
+body.simi1.pv.ui1 .side .sgrp{display:block!important;width:auto;height:auto;background:none;margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ui1mu);font-weight:500;padding:9px 12px 2px}
+body.simi1.pv.ui1 .side nav#sitems .tab{width:100%;padding:6px 12px;font-size:14px;color:var(--ui1tx);background:none;border-radius:10px;gap:10px}
+body.simi1.pv.ui1 .side nav#sitems .tab svg{display:inline-block;width:18px;height:18px;color:var(--ui1mu)}
+body.simi1.pv.ui1 .side nav#sitems .tab:hover{background:#363D45}
+body.simi1.pv.ui1 .side nav#sitems .tab[aria-current="page"]{background:var(--ui1hi);color:#FFFFFF;font-weight:500}
+body.simi1.pv.ui1 .side nav#sitems .tab[aria-current="page"] svg{color:#FFFFFF}
+body.simi1.pv.ui1 .side .tc,body.simi1.pv.ui1 .side .tdot{display:none!important}
+body.simi1.pv.ui1 .tsubs{display:flex;flex-direction:column;margin:2px 0 4px 26px;border-left:2px solid var(--ui1hi)}
+body.simi1.pv.ui1 .side nav#sitems .tab.tsub{padding:4px 12px;font-size:13.5px;color:var(--ui1mu);border-radius:0;margin-left:-2px;border-left:2px solid transparent}
+body.simi1.pv.ui1 .side nav#sitems .tab.tsub[aria-current="true"]{color:#FFFFFF;font-weight:500;border-left-color:#FFFFFF;background:none}
+body.simi1.pv.ui1 #sextra{order:4;display:block!important;margin-top:auto}
+body.simi1.pv.ui1 #sextra>:not(.sx-k):not(.sx-start){display:none}
+body.simi1.pv.ui1 #sextra .sx-k{background:#363D45;border-radius:12px;padding:10px 12px;color:var(--ui1tx)}
+body.simi1.pv.ui1 #sextra .sx-h{color:var(--ui1mu)}
+body.simi1.pv.ui1 #sextra .sx-start{width:100%;background:#363D45;color:var(--ui1tx);border:0}
+body.simi1.pv.ui1 #sfoot2{order:5;margin:0;padding-top:10px;border-top:1px solid var(--ui1hi);flex-direction:column;align-items:stretch}
+body.simi1.pv.ui1 #sfoot2 .tl,body.simi1.pv.ui1 #sfoot2 .sfn{display:flex}
+body.simi1.pv.ui1 #sfoot2 .tab{color:var(--ui1tx);padding:7px 12px;width:100%}
+body.simi1.pv.ui1 #sfoot2 .tab[aria-current="page"]{background:var(--ui1hi);color:#FFFFFF}
+body.simi1.pv.ui1 #sfoot2 .tab svg{color:var(--ui1mu)}
+body.simi1.pv.ui1 .sfav{background:#4B5664;color:#FFFFFF}
+body.simi1.pv.ui1 .app{padding-inline:32px}
+body.simi1.pv.ui1 #pvver{left:calc(50% + 124px)}
+body.simi1.pv.ui1.hassplit .app{padding:0;max-width:none}
+body.simi1.pv.ui1.hassplit .foot,body.simi1.pv.ui1.hassplit #pvver{display:none}
+body.simi1.pv.ui1 .split{display:grid;grid-template-columns:470px minmax(0,1fr);height:100vh}
+body.simi1.pv.ui1.spfull .split{grid-template-columns:0 minmax(0,1fr)}
+body.simi1.pv.ui1.spfull .splist{visibility:hidden}
+body.simi1.pv.ui1 .splist{overflow-y:auto;background:var(--bg);border-right:1px solid var(--line);padding:0 0 24px}
+body.simi1.pv.ui1 .splist .phead{margin:0;padding:6px 16px 12px;background:#DDE2E6;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
+body.simi1.pv.ui1 .splist .spsup{background:#DDE2E6;font-size:12px;color:var(--muted);padding:16px 16px 0}
+body.simi1.pv.ui1 .splist .ptitle{font-size:24px;font-weight:300}
+body.simi1.pv.ui1 .splist .phead .seg{display:none}
+body.simi1.pv.ui1 .splist .list{grid-template-columns:minmax(0,1fr)!important;gap:8px;padding:0 12px}
+body.simi1.pv.ui1 .splist>:not(.phead):not(.spsup):not(.spfilt){margin-inline:12px}
+body.simi1.pv.ui1 .splist .spsel{outline:2px solid var(--ink);outline-offset:-2px}
+body.simi1.pv.ui1 .spfilt{display:flex;align-items:center;gap:8px;margin:10px 16px!important;height:36px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted)}
+body.simi1.pv.ui1 .spfilt input{flex:1;border:0;background:transparent;font:inherit;font-size:13.5px;color:var(--ink);outline:none}
+body.simi1.pv.ui1 .spfilt kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-radius:5px;padding:0 5px}
+body.simi1.pv.ui1 .spdet{position:relative;overflow-y:auto;background:var(--surface,#fff);padding:0 32px 32px}
+body.simi1.pv.ui1 .spdet .dtabs{margin-inline:-32px;padding-inline:32px;top:0}
+body.simi1.pv.ui1 .spexp{position:absolute;top:16px;right:20px;z-index:5;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+body.simi1.pv.ui1 .spempty{height:100%;display:grid;place-items:center;color:var(--muted);font-size:14px}
+body.simi1.pv.ui1 .h2tiles{display:none}
+body.simi1.pv.ui1 .h2logo{display:flex;justify-content:center;padding:40px 0 10px;opacity:.85}
+body.simi1.pv.ui1 .h2logo img{max-height:44px;max-width:220px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv.ui1 .spdet .backrow .back{visibility:hidden}
+body.simi1.pv.ui1 .spdet .backrow{padding-right:48px}
+body.simi1.pv.ui1 .spexp{top:12px}
+body.simi1.pv.ui1 label.spfilt{flex-direction:row;font-size:13.5px;min-height:0}
+body.simi1.pv.ui1 .spfilt svg{flex:none;display:block}
+body.simi1.pv.ui1 .spfilt input{padding:0;margin:0;min-height:0;height:34px;box-shadow:none}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv.ui1 .splist input[type="search"]:not(.spfilt input),body.simi1.pv.ui1 .splist input[placeholder^="Leita"]{display:none}
+body.simi1.pv.ui1 .spdet .backrow .newwin{margin-right:44px}
+body.simi1.pv.ui1 .splist>.phead:first-child{padding-top:18px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv.ui1 .phead>.spsup{font-size:12px;color:var(--muted);padding:0 0 2px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.pv.ui1 .side .logo,body.simi1.pv.ui1 .side .colog{filter:none;opacity:1}
+body.simi1.pv.ui1 .side .logo{background-image:url(icons/atrium-haus-dokk.svg)!important}
+body.simi1.pv.ui1.hasco .side .cobrand .logo{background-image:url(icons/atrium-merki-dokk.svg)!important;aspect-ratio:1/1!important}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.ui1 .uhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:-24px -32px 22px;padding:22px 32px 16px;min-height:86px;background:#DDE2E6;border-bottom:1px solid var(--line)}
+body.simi1.ui1 .uhead .ptitle{margin:2px 0 0;font-size:28px;font-weight:300}
+body.simi1.ui1 .uhr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+body.simi1.ui1 .uhr select,body.simi1.ui1 .ubulk select{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:0 10px;min-height:36px;background:var(--surface,#fff);color:var(--ink)}
+body.simi1.ui1 .uhead .btn,body.simi1.ui1 .uhr .btn{min-height:36px;padding:0 12px;font-size:13.5px}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.ui1 .udh2{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin:0 -32px 0;padding:22px 72px 12px 32px;border-bottom:1px solid var(--line);background:var(--surface,#fff)}
+body.simi1.ui1 .udh2 .udl{min-width:0;flex:1}
+body.simi1.ui1 .udh2 .ptitle{margin:2px 0 0;font-size:24px;font-weight:300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.simi1.ui1 .udh2 .usub{font-size:13px;color:var(--muted);margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+body.simi1.ui1 .udh2 .usub a{color:var(--muted)}
+body.simi1.ui1 .udh2 .upills .pill{font-size:11.5px}
+body.simi1.ui1 .uact{display:flex;gap:8px;align-items:center}
+body.simi1.ui1 .uact .btn{min-height:36px;padding:0 14px;font-size:13.5px}
+body.simi1.ui1 .ustsel{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+body.simi1.ui1 .ustsel select{font:inherit;font-size:13px;min-height:36px;border-radius:10px;padding:0 10px}
+body.simi1.ui1 .usvid{flex-basis:100%;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);padding-top:6px}
+body.simi1.ui1 .spdet .dtabs{background:var(--surface,#fff);border-bottom:1px solid var(--line);margin-top:0}
+body.simi1.ui1 .spdet .dtabs button[aria-selected="true"]{background:none;box-shadow:inset 0 -2px 0 var(--ink);border-radius:0}
+body.simi1.ui1 .spdet .kpis .card{background:var(--raise,#EEF1F4);border:0;box-shadow:none}
+body.simi1.ui1 .spdet .kpis .card b{font-weight:300}
+
+/* app.css: @media (min-width:1024px) */
+body.simi1.ui1.onstart .app{padding:0;max-width:none}
+body.simi1.ui1.onstart .foot,body.simi1.ui1.onstart #pvver{display:none}
+
+/* app.css: @media (min-width:1024px) and (max-width:1360px) */
+@media (max-width:1360px){body.simi1.pv.ui1:not(.spfull) .split{grid-template-columns:400px minmax(0,1fr)}
+}
+/* brand.css: @media (min-width:1024px) */
+body.simi1 nav.mbar.tbar{display:none}
+
+/* brand.css: @media (min-width:1024px) */
+body.simi1 .htiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+/* brand.css: @media (min-width:1024px) */
+body.simi1 .spwrap{grid-template-columns:260px minmax(0,1fr)}
+body.simi1 .spchans{flex-direction:column;overflow:visible}
+body.simi1 .spch{max-width:none}
+body.simi1 .spcm small{max-width:170px}
+body.simi1 .spconv{height:calc(100dvh - 260px)}
+
+/* brand.css: @media (min-width:1024px) */
+body.simi1 .spwrap{grid-template-columns:260px minmax(0,1fr)}
+
+/* brand.css: @media (min-width:1024px) */
+body.simi1 .hw-s{grid-column:span 4}
+body.simi1 .hw-m{grid-column:span 6}
+body.simi1 .hw-l{grid-column:span 12}
+
+/* brand.css: @media (min-width:1024px) */
+body.simi1 .avbtn{display:none!important}
+
+/* brand.css: @media (min-width:1024px) */
+body.simi1 .backrow{margin-inline:-40px;padding-inline:40px}
+
+}
