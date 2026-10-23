@@ -96,7 +96,7 @@
   // Fyrir Heim (2.21.1): skjöl sem taka frá búnað (samþykkt tilboð, opnar pantanir) og opnar pantanir
   window.utlDocs = () => [...new Map(bokanir().map(b => [b.T.id, b.T])).values()].map(T => ({ T, fra: T.fra, til: tilOf(T), nr: T.nr, heiti: T.heiti || T.vidskiptavinur || "", vsk: T.vidskiptavinur || T.tengilidur || "", P: isP(T) }));
   // Útlit I (2.23.2): aðgangur fyrir Vörulisti › Yfirlit og undirflipa tilboða (Leiga · Sala · Þjónusta)
-  window.salaAPI = { TB, VR, PN, lSum, totals, bokanir, upptekid, vDeild, tbLina: f => { TL.f = f || ""; } };
+  window.salaAPI = { TB, VR, PN, lSum, totals, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; } };
   window.pnOpnar = () => PNON() ? PN().filter(P => !["Skilað", "Lokið"].includes(P.stada)) : [];
   // Laust á tímabili skjals (fyrir valglugga): pakki = hve margir heilir pakkar
   const lausFyrir = (v, T) => { if (!T?.fra || vDeild(v) !== "leiga" || v.tegund === "vinna") return null; const til = tilOf(T), mine = tharfir(T);
@@ -264,7 +264,7 @@
       ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
       <label>${L || SV ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
-      ${L ? `<div class="two"><label>Frá${M ? "" : " (afhending)"}<input id="tb-fra" type="date" value="${M ? "" : d0}"></label><label>Til${M ? "" : " (skil)"}<input id="tb-til" type="date" value="${M ? "" : d0}"></label></div>${M ? `<p class="hint" style="margin:-4px 0 8px">Tímabil verksins – leigulínur reiknast á þessa daga.</p>` : ""}` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
+      ${L ? `<div class="two"><label>Frá${M ? "" : " (afhending)"}<input id="tb-fra" type="date" value="${pre?.fra || (M ? "" : d0)}"></label><label>Til${M ? "" : " (skil)"}<input id="tb-til" type="date" value="${pre?.til || pre?.fra || (M ? "" : d0)}"></label></div>${M ? `<p class="hint" style="margin:-4px 0 8px">Tímabil verksins – leigulínur reiknast á þessa daga.</p>` : ""}` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
       <label>Tilboð gildir til<input id="tb-gildir" type="date" value="${g0}"></label>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="tb-cancel">Hætta við</button><button class="btn primary" id="tb-save">Búa til og bæta við línum</button></div></form>`;
     sheetwrap.hidden = false; wireVskSelects(sheet);
@@ -279,6 +279,7 @@
         const T = { id, nr, heiti, deild: D, vskId: cl?.id || null, vidskiptavinur: cl?.name || null,
           tengilidur: val("tb-teng") || null, netfang: val("tb-net") || null, stadsetning: val("tb-stad") || null, fra, til, gildir: val("tb-gildir") || null, dags: d0,
           stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null };
+        if (pre?.vara) { const v = findV(pre.vara); if (v) T.linur = [{ ...lineFrom(v, T), magn: +pre.magn || 1 }]; } // „+ Á tilboð“ af vöruspjaldi (2.30.0)
         await saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(T); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; });
         toast("Tilboð " + nr + " stofnað"); closeSheet(); EDT = structuredClone(T); openDetail("tb:" + id);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
@@ -292,7 +293,7 @@
       <div class="two"><label>Sá sem pantar<input id="pn-teng" placeholder="Nafn"></label><label>Sími<input id="pn-simi" type="tel" inputmode="tel"></label></div>
       <div class="two"><label>Netfang<input id="pn-net" type="email" placeholder="nafn@dæmi.is"></label><label>Uppruni<select id="pn-upp">${UPPRUNI.filter(x => x[0] !== "tilbod").map(([k, l]) => `<option value="${k}"${k === "simi" ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
       <label>Lýsing<input id="pn-heiti" value="${esc(PP?.stutt || "")}" placeholder="T.d. Hljóðnemi fyrir afmæli"></label>
-      <div class="two"><label>Afhending<input id="pn-fra" type="date" value="${d0}"></label><label>Skil<input id="pn-til" type="date" value="${d0}"></label></div>
+      <div class="two"><label>Afhending<input id="pn-fra" type="date" value="${pre?.fra || d0}"></label><label>Skil<input id="pn-til" type="date" value="${pre?.til || pre?.fra || d0}"></label></div>
       <p class="hint" style="margin:-4px 0 8px">Leigubúnaður er frátekinn frá afhendingu til skila.</p>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="pn-cancel">Hætta við</button><button class="btn primary" id="pn-save">Búa til og bæta við línum</button></div></form>`;
     sheetwrap.hidden = false; wireVskSelects(sheet);
@@ -306,6 +307,7 @@
         const id = gid(), n = +CF().nastaNrP || 1001, nr = "P-" + n;
         const P = { id, pontun: true, nr, deild: "blandad", heiti: val("pn-heiti") || "Pöntun", vskId: cl?.id || null, vidskiptavinur: cl?.name || null, tengilidur: teng, simi: val("pn-simi") || null, netfang: val("pn-net") || null,
           uppruni: val("pn-upp") || "simi", ytriNr: null, stadsetning: null, fra, til, dags: isoDay(new Date()), stada: "Ný", afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null, tilbodId: null };
+        if (pre?.vara) { const v = findV(pre.vara); if (v) P.linur = [{ ...lineFrom(v, P), magn: +pre.magn || 1 }]; } // „Taka frá“ af vöruspjaldi (2.30.0)
         await saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; });
         toast("Pöntun " + nr + " stofnuð"); closeSheet(); EDT = structuredClone(P); openDetail("tb:" + id);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
@@ -628,6 +630,10 @@
       v.hreyfingar = H;
       v.innkaup = [{ id: gid(), nr: "IP-001", birgir: v.birgir, magn: Math.round((+v.fjoldi || 4) * 0.8), vaent: iso(-100).slice(0, 10), dags: iso(-110), stada: "Móttekið", mott: iso(-102) }];
     });
+    // Hillur, innkaupsverð leigubúnaðar og taxtar þjónustu (sýnigögn)
+    V.filter(v => v.deild === "sala" && v.tegund === "sala").forEach((v, i) => { v.hilla = "D" + (1 + (i % 4)); });
+    V.filter(v => v.deild === "leiga" && v.tegund === "leiga").forEach(v => { v.innkaupsverd = Math.round((+v.leiguverd || 0) * 14 / 1000) * 1000; });
+    V.filter(v => v.tegund === "vinna" && /klst/.test(v.eining || "")).forEach(v => { v.alag = 40; v.lagmarkMagn = 4; v.innkaupsverd = Math.round((+v.soluverd || 0) * 0.65 / 100) * 100; });
     o.loft.fjoldi = 14; o.loft.lagmark = 20; // undir lágmarki
     o.mxa.fjoldi = 1;
     o.loft.innkaup.push({ id: gid(), nr: "IP-014", birgir: o.loft.birgir, magn: 48, vaent: iso(6).slice(0, 10), dags: iso(-3), stada: "Pantað" });

@@ -984,3 +984,45 @@ body.pv.ui1 .splist .pofolds,body.pv.ui1 .splist .pofilt{gap:6px;padding:0 16px}
 body.pv.ui1 .splist .pofolds .chipbtn,body.pv.ui1 .splist .pofilt .chipbtn{min-height:30px;padding:4px 11px;font-size:12.5px}
 body.pv.ui1 .splist .pofolds .posel select{min-height:30px;font-size:12.5px;padding:2px 8px}
 body.pv.ui1 .splist #poq{padding:0 16px}
+/* 2.30.0: vöruspjöld eftir útlitsborðinu */
+body.pv.ui1 .uvh{padding-right:72px}
+body.pv.ui1 .uvh .uact{align-items:center}
+body.pv.ui1 .umore{position:relative}
+body.pv.ui1 .umore summary{list-style:none;cursor:pointer;width:38px;height:38px;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted);background:var(--surface,#fff)}
+body.pv.ui1 .umore summary::-webkit-details-marker{display:none}
+body.pv.ui1 .umore>div{position:absolute;right:0;top:44px;z-index:20;background:var(--surface,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(18,20,22,.12);padding:6px;display:flex;flex-direction:column;min-width:150px}
+body.pv.ui1 .umore>div button{border:0;background:none;font:inherit;font-size:14px;text-align:left;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--ink)}
+body.pv.ui1 .umore>div button:hover{background:#EEF1F4}body.pv.ui1 .umore>div button.danger{color:#B4232A}
+body.pv.ui1 .uvb{padding-top:14px}
+body.pv.ui1 .uminis.m5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:14px 2px 6px}
+body.pv.ui1 .ucalrow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start}
+body.pv.ui1 .ucalt{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+body.pv.ui1 .ucalt b{font-weight:500;font-size:14px}
+body.pv.ui1 .ucalt span{display:flex;gap:6px}
+body.pv.ui1 .btn.sm{min-height:32px;padding:4px 10px;font-size:13px}
+body.pv.ui1 .ucal{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface,#fff);position:relative}
+body.pv.ui1 .urng{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#E3ECF5;border-radius:10px;padding:10px 12px;margin-top:10px}
+body.pv.ui1 .urng small{display:block;color:var(--muted);font-size:12px}
+body.pv.ui1 .urng span{display:flex;gap:8px}
+body.pv.ui1 .ucd.sel{box-shadow:inset 0 0 0 2px #1F5A96}
+body.pv.ui1 .ufrb{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px;align-items:start}
+body.pv.ui1 .ufrb .ukps{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 0 10px}
+body.pv.ui1 .uln-r{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}
+body.pv.ui1 .uln-r small{font-size:11.5px;color:var(--muted)}
+body.pv.ui1 .uln b.t{font-weight:500;display:block}
+body.pv.ui1 .u2c.w{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+body.pv.ui1 .uchart{margin-top:16px}
+body.pv.ui1 .ueh.s4,body.pv.ui1 .uer2.s4{grid-template-columns:110px minmax(0,1fr) 70px 110px}
+body.pv.ui1 .uer2.e5{grid-template-columns:24px 110px minmax(0,1fr) 150px 70px}
+body.pv.ui1 .uer2.s4{text-decoration:none;color:var(--ink)}
+body.pv.ui1 .uqr{color:var(--muted)}
+body.pv.ui1 .udmg.open{border:1px solid #E7B7B9}
+body.pv.ui1 .uflsel select{min-height:30px;font-size:12.5px;padding:2px 8px;border-radius:999px}
+body.pv.ui1 .ulbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+body.pv.ui1 .uvh{flex-wrap:nowrap;align-items:flex-start}
+body.pv.ui1 .uvh .udl{flex:1 1 0;min-width:0}
+body.pv.ui1 .uvh .uact{flex:none;flex-wrap:nowrap;padding-top:6px}
+body.pv.ui1 .uwarn>span:not(.m){flex:1;min-width:0}
+body.pv.ui1 .uwarn>.m{flex:none;white-space:nowrap}
+body.pv.ui1 .u2c.w{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
+body.pv.ui1 .u2c.w .uer2.h4>span:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

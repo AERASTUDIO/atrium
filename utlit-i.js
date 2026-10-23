@@ -69,7 +69,7 @@
   const EXP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
   const COL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
   const PH = { verkefni: "verkefni", vsk: "viðskiptavini", vidsk: "viðskiptavini", tilbod: "tilboð", pantanir: "pantanir", lvorur: "búnað", svorur: "vörur", vvinna: "þjónustu", fundir: "fundi", tfaer: "færslur", trk: "reikninga", fjarmal: "reikninga", undir: "undirverk", heim: "lista" };
-  let full = false, flt = "";
+  let full = false, flt = "", DETAIL_K = null;
   const _render = window.render || render;
   function renderI() {
     const v = document.getElementById("view");
@@ -91,7 +91,9 @@
       return;
     }
     let det = "";
-    if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); }
+    const vp = DETAIL && String(DETAIL).startsWith("vara:") && window.u1VaraPanel ? u1VaraPanel(String(DETAIL).slice(5)) : null;
+    if (vp) { DETAIL_K = DETAIL; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); det = vp; }
+    else if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); }
     else { full = false; _render(); }
     const list = window.UI1V?.[tab] ? UI1V[tab]() : v.innerHTML, sup = window.UI1V?.[tab] ? "" : SUPER();
     document.body.classList.add("hassplit"); document.body.classList.toggle("spfull", !!DETAIL && full);
@@ -105,7 +107,7 @@
     (ph ? ph.after(f) : sl.prepend(f));
     const inp = f.querySelector("input"); inp.addEventListener("input", () => { flt = inp.value; applyFilt(sl); }); applyFilt(sl);
     if (DETAIL) sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel");
-    if (DETAIL) fixDet(v.querySelector(".spdet"));
+    if (DETAIL && !vp) fixDet(v.querySelector(".spdet"));
     const tl = sl.querySelector(".ptitle"), lab = (secOf(tab).tabs.find(t => t[0] === tab) || [])[1]; if (tl && lab && sup) tl.textContent = lab;
   }
   // Stillingar: listi vinstra megin og valin undirsíða hægra megin (eins og á útlitsborðinu)
