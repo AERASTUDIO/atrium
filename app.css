@@ -1026,3 +1026,127 @@ body.pv.ui1 .uwarn>span:not(.m){flex:1;min-width:0}
 body.pv.ui1 .uwarn>.m{flex:none;white-space:nowrap}
 body.pv.ui1 .u2c.w{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
 body.pv.ui1 .u2c.w .uer2.h4>span:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 2.31.0: hausar, síuflipar og flýtilyklar eins og á útlitsborðinu */
+body.pv.ui1 #view .splist .ptitle,body.pv.ui1 #view .spdet .ptitle,body.pv.ui1 #view .uhead .ptitle,body.pv.ui1 #view .udh2 .ptitle{font-size:24px;font-weight:400;letter-spacing:-.01em;line-height:1.2}
+body.pv.ui1 .splist .phead .phrow{display:flex;justify-content:space-between;align-items:center;width:100%;gap:10px}
+body.pv.ui1 .splist .phead{display:block;padding:14px 16px 12px}
+body.pv.ui1 .splist .phead>.spsup{padding:0 0 2px}
+body.pv.ui1 .splist .phead .ulbar{margin:10px 0 0;padding:0}
+body.pv.ui1 .splist .phead .uchip{background:rgba(255,255,255,.55)}
+body.pv.ui1 .splist .phead .uchip.on{background:#121416;color:#fff}
+body.pv.ui1 .splist .spfilt{margin:12px 12px 6px}
+body.pv.ui1 .splist{display:flex;flex-direction:column}
+body.pv.ui1 .spfoot{margin-top:auto;position:sticky;bottom:0;padding:8px 16px;font-size:11.5px;color:var(--muted);background:var(--bg);border-top:1px solid var(--line)}
+body.pv.ui1 .udh2{flex-wrap:nowrap;align-items:flex-start;padding-top:18px}
+body.pv.ui1 .udh2 .udl{flex:1 1 0;min-width:0}
+body.pv.ui1 .udh2 .uact{flex:none;display:flex;gap:8px;align-items:center;flex-wrap:nowrap;padding-right:52px}
+body.pv.ui1 .udh2 .usub{font-size:13px;color:var(--muted);margin-top:6px}
+body.pv.ui1 .udh2 .spsup{font-size:11.5px;color:var(--muted)}
+body.pv.ui1 .udh2 .uact .btn{min-height:36px;padding:6px 14px;font-size:13.5px}
+body.pv.ui1 .udh2 .ustsel{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+body.pv.ui1 .udh2 .ustsel select{min-height:36px;font-size:13.5px;padding:4px 10px;width:auto}
+body.pv.ui1 .spdet .spexp{top:18px}
+body.pv.ui1 .usvid .usvp{margin-left:auto;font-size:12.5px;color:var(--muted);text-decoration:none}
+body.pv.ui1 .usvid{display:flex;align-items:center;gap:6px;width:100%}
+body.pv.ui1 .utbt{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+body.pv.ui1 .udh2{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16px;row-gap:8px}
+body.pv.ui1 .udh2>.usvid,body.pv.ui1 .udh2>:not(.udl):not(.uact){grid-column:1/-1}
+body.pv.ui1 #view .udh2 .ptitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.pv.ui1 .udh2 .ustsel select{width:auto!important;min-width:0;max-width:150px}
+body.pv.ui1 .udh2 .uact .btn{white-space:nowrap}
+/* 2.31.0: spjöld – fundur, tímafærsla, reikningur, undirverk, samskipti */
+body.pv.ui1 .ubot{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+body.pv.ui1 .ukv{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+body.pv.ui1 .ukv small{color:var(--muted);font-size:12px}
+body.pv.ui1 .ukv .usel{min-height:32px;font-size:13px;padding:2px 8px;width:auto;border:0;background:transparent;text-align:right}
+body.pv.ui1 .usw{position:relative;display:inline-block;width:40px;height:24px}
+body.pv.ui1 .usw input{opacity:0;width:0;height:0;position:absolute}
+body.pv.ui1 .usw i{position:absolute;inset:0;border-radius:12px;background:#C9D0D6;cursor:pointer;transition:.2s}
+body.pv.ui1 .usw i::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+body.pv.ui1 .usw input:checked+i{background:#121416}body.pv.ui1 .usw input:checked+i::after{left:19px}
+body.pv.ui1 .utbr.r4{grid-template-columns:minmax(0,1fr) 70px 100px 110px}
+body.pv.ui1 .usrow{display:grid;grid-template-columns:28px minmax(0,1fr) 40px 64px 64px 92px;gap:8px;align-items:center;padding:10px 8px;border-bottom:1px solid var(--line);font-size:14px}
+body.pv.ui1 .usrow .t{cursor:pointer}
+body.pv.ui1 .usrow.on{background:#EEF1F4;border-radius:8px}
+body.pv.ui1 .usrow.done .t{text-decoration:line-through;color:var(--muted)}
+body.pv.ui1 .usrow>.upill{justify-self:end}
+body.pv.ui1 .ucb{position:relative;width:18px;height:18px;display:inline-block}
+body.pv.ui1 .ucb input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+body.pv.ui1 .ucb i{position:absolute;inset:0;border:1.5px solid #9AA5B0;border-radius:4px;background:#fff;pointer-events:none}
+body.pv.ui1 .ucb input:checked+i{background:#121416;border-color:#121416}
+body.pv.ui1 .ucb input:checked+i::after{content:"✓";color:#fff;font-size:12px;position:absolute;left:3px;top:-1px}
+body.pv.ui1 .usdet{margin-top:14px}
+body.pv.ui1 .utl{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:flex-start;padding:12px 8px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14px}
+body.pv.ui1 .utl .ic{font-style:normal;width:28px;height:28px;border-radius:50%;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
+body.pv.ui1 .utl b{font-weight:500;display:block}body.pv.ui1 .utl small{color:var(--muted);font-size:12.5px}
+body.pv.ui1 .utlr{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+/* 2.31.0: Heim eftir borðinu */
+body.pv.ui1 .uhh{margin:-24px -32px 16px;padding:18px 32px 16px;background:#DDE2E6}
+body.pv.ui1 .uwkb{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;height:68px;margin-top:12px}
+body.pv.ui1 .uwkb>div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+body.pv.ui1 .uwkb i{display:block;width:60%;border-radius:4px}
+body.pv.ui1 .uwkb span{font-size:11.5px;color:var(--muted)}
+body.pv.ui1 .card.ucard.uklk{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:18px}
+body.pv.ui1 .uklk small{color:#AEB7BF;font-size:12px}
+body.pv.ui1 .uklr{display:flex;justify-content:space-between;align-items:center;gap:12px}
+body.pv.ui1 .uklr b{font-size:34px;font-weight:300}
+body.pv.ui1 .uklp{display:flex;flex-direction:column;gap:4px}
+body.pv.ui1 .uklp select{background:#3A424B;color:#E4E8EC;border:0;border-radius:10px;min-height:38px;font:inherit;font-size:13.5px;padding:4px 10px}
+body.pv.ui1 .uklk .m2{color:#AEB7BF}
+body.pv.ui1 .ucnt{display:inline-block;min-width:20px;padding:1px 7px;border-radius:999px;background:#EEF1F4;font-size:12px;color:var(--muted);font-weight:400;margin-left:4px}
+body.pv.ui1 .uhrow.s1 span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
+body.pv.ui1 .h2logo.txt{text-align:center;letter-spacing:.3em;font-size:12px;color:var(--muted);text-transform:uppercase;margin-top:40px}
+body.pv.ui1 #view .splist .ptitle,body.pv.ui1 #view .spdet .ptitle,body.pv.ui1 #view .uhead .ptitle,body.pv.ui1 #view .udh2 .ptitle,body.pv.ui1 #view .phead .ptitle{font-size:24px!important;font-weight:400!important}
+body.pv.ui1 .splist>*{flex:none}
+/* 2.31.0: Dagatal eins og á borðinu */
+body.pv.ui1[data-tab="dagatal"] #view>.phead{margin:-24px -32px 16px;padding:18px 32px 16px;background:#DDE2E6;position:static}
+body.pv.ui1[data-tab="dagatal"] .phead .phrow{display:flex;justify-content:space-between;align-items:center;width:100%}
+body.pv.ui1 .ucalctl{display:flex;gap:8px;align-items:center}
+body.pv.ui1 .ucalctl .seg.calseg{margin:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden;display:inline-flex}
+body.pv.ui1 .ucalctl .seg.calseg button{border-radius:0;padding:7px 12px;font-size:13px;min-height:0;background:transparent;box-shadow:none}
+body.pv.ui1 .ucalctl .seg.calseg button[aria-selected="true"]{background:#121416;color:#fff}
+body.pv.ui1 .ucalctl .btn.sm{background:#fff;border:1px solid var(--line)}
+body.pv.ui1 .ucalctl .btn.sm svg{width:14px;height:14px}
+body.pv.ui1 .ucalctl .u1pn{min-height:36px;padding:6px 14px;font-size:13.5px;width:auto}
+body.pv.ui1[data-tab="dagatal"] .cal{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface,#fff);gap:0}
+body.pv.ui1[data-tab="dagatal"] .cal .dow{text-align:left;padding:8px 10px;font-size:12px;color:var(--muted)}
+body.pv.ui1[data-tab="dagatal"] .cal .cday{border-top:1px solid #EEF1F4;border-left:1px solid #EEF1F4;border-radius:0;min-height:96px;padding:6px 8px;align-items:stretch;text-align:left;background:transparent}
+body.pv.ui1[data-tab="dagatal"] .cal .cday .n{font-size:12px;color:var(--muted);text-align:left;align-self:flex-start;font-weight:400;background:none;width:auto;height:auto}
+body.pv.ui1[data-tab="dagatal"] .cal .cday.today{background:#E3ECF5}
+body.pv.ui1[data-tab="dagatal"] .cal .cday.today .n{font-weight:600;color:var(--ink)}
+body.pv.ui1[data-tab="dagatal"] .cal .clab{background:#EEF1F4!important;color:#2B3138!important;border:0!important;border-radius:6px;font-size:11.5px;padding:2px 6px;margin-top:3px;box-shadow:none!important}
+body.pv.ui1[data-tab="dagatal"] #view>.phead{margin-top:0}
+body.pv.ui1[data-tab="dagatal"] .cal .cday.today .clab{color:#2B3138!important}
+body.pv.ui1[data-tab="dagatal"] .cal .clab *{color:inherit!important}
+body.pv.ui1 .ulink{border:0;background:none;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;padding:6px 8px}
+body.pv.ui1 .ulink:hover{color:var(--ink)}
+body.pv.ui1 .uct{display:flex;justify-content:space-between;align-items:center}
+/* Stillingar: flatur listi eins og á borðinu */
+body.pv.ui1[data-tab="stillingar"] .splist .viewtitle{display:none}
+body.pv.ui1[data-tab="stillingar"] .splist .llist,body.pv.ui1[data-tab="stillingar"] .splist .card{background:var(--surface,#fff);border:0;border-radius:0;margin:0!important;box-shadow:none}
+body.pv.ui1[data-tab="stillingar"] .splist .lrow{border-radius:0!important;border:0;border-top:1px solid var(--line);margin:0;padding:12px 16px;min-height:0;box-shadow:none}
+body.pv.ui1[data-tab="stillingar"] .splist .lrow .lt{font-size:14px;font-weight:400}
+body.pv.ui1[data-tab="stillingar"] .splist .lrow .ls{font-size:12px}
+body.pv.ui1[data-tab="stillingar"] .splist .lrow svg{display:none}
+body.pv.ui1[data-tab="stillingar"] .splist .spsel{background:#E3ECF5!important;box-shadow:inset 3px 0 0 #1F5A96!important;outline:0!important;border-color:var(--line)!important}
+/* 2.31.0: Spjall eins og á borðinu */
+body.pv.ui1[data-tab="spjall"] #view{padding:0}
+body.pv.ui1[data-tab="spjall"] .spwrap{display:grid;grid-template-columns:470px minmax(0,1fr);gap:0;height:100vh;margin:0}
+body.pv.ui1[data-tab="spjall"] .spchans{display:flex;flex-direction:column;gap:0;border-right:1px solid var(--line);background:var(--bg);overflow:auto;padding:0}
+body.pv.ui1[data-tab="spjall"] .spchans .phead{position:sticky;top:0;margin:0;padding:14px 16px 12px;background:#DDE2E6;display:block;z-index:2}
+body.pv.ui1[data-tab="spjall"] .spchans .phead .ulbar{margin-top:10px}
+body.pv.ui1[data-tab="spjall"] .spch{border-radius:0;border:0;border-bottom:1px solid var(--line);background:var(--surface,#fff);margin:0;padding:10px 16px;box-shadow:none;outline:0}
+body.pv.ui1[data-tab="spjall"] .spch.on{background:#E3ECF5;box-shadow:inset 3px 0 0 #1F5A96}
+body.pv.ui1[data-tab="spjall"] .spconv{border:0;border-radius:0;height:100vh;display:flex;flex-direction:column;background:var(--surface,#fff)}
+body.pv.ui1[data-tab="spjall"] .spconv .udh2{margin:0;padding:18px 32px 12px;border-bottom:1px solid var(--line)}
+body.pv.ui1[data-tab="spjall"] .spmsgs{flex:1;padding:16px 32px}
+body.pv.ui1[data-tab="spjall"] .spform{padding:12px 32px 18px;border-top:0}
+body.pv.ui1[data-tab="spjall"] #view>.sync,body.pv.ui1[data-tab="spjall"] .lastsync{display:none}
+body.pv.ui1[data-tab="stillingar"] .splist .mgroup{display:none}
+body.pv.ui1[data-tab="stillingar"] .splist .mlist{background:var(--surface,#fff);border:0;border-radius:0!important;margin:0!important;box-shadow:none;overflow:visible}
+body.pv.ui1[data-tab="stillingar"] .splist .mrow{border-radius:0!important;border:0;border-top:1px solid var(--line);padding:11px 16px;min-height:0;background:transparent;box-shadow:none!important;outline:0!important}
+body.pv.ui1[data-tab="stillingar"] .splist .mrow>svg{display:none}
+body.pv.ui1[data-tab="stillingar"] .splist .mrow .mt{font-size:14px}
+body.pv.ui1[data-tab="stillingar"] .splist .mrow .mt small{display:block;font-size:12px;color:var(--muted)}
+body.pv.ui1[data-tab="stillingar"] .splist .mrow .mv{font-size:12.5px;color:var(--muted)}
+body.pv.ui1[data-tab="stillingar"] .splist .mrow.spsel{background:#E3ECF5!important;box-shadow:inset 3px 0 0 #1F5A96!important}

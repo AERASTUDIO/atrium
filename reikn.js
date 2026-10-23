@@ -12,7 +12,7 @@
   const kaupandi = p => findVsk(p?.vskId) || findVsk(p?.vkId) || null; // greiðandi = viðskiptavinur (verkkaupi aflagður 1.4.0)
   const fx = n => String(n).replace(".", ",");
   const keyOf = x => x.verkefniId || NONE;
-  const obilled = pid => ({ es: faerslur().filter(e => keyOf(e) === (pid || NONE) && !e.reikningur && e.id && !isTmp(e.id)), ks: kostn().filter(k => keyOf(k) === (pid || NONE) && !k.reikningur) });
+  const obilled = pid => ({ es: faerslur().filter(e => keyOf(e) === (pid || NONE) && !e.reikningur && !e.ekkiRk && e.id && !isTmp(e.id)), ks: kostn().filter(k => keyOf(k) === (pid || NONE) && !k.reikningur) });
   // Öll verkefni (og „án verkefnis“) sem eiga eitthvað óreikningsfært
   const openGroups = () => [...verkefni().map(p => p.id), NONE].map(k => ({ k, p: k === NONE ? null : findProj(k), ...obilled(k === NONE ? null : k) })).filter(g => g.es.length || g.ks.length);
   window.rkUnbilled = obilled;

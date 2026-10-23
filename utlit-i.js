@@ -88,10 +88,25 @@
       // Yfirflokkur í smáu letri fyrir ofan heiti undirsíðu (t.d. Tímar › Vikan)
       const sup = desk() && S && !DETAIL ? SUPER() : "", ph = v.querySelector(".phead"), tl = ph?.querySelector(".ptitle"), lab = (secOf(tab).tabs.find(t => t[0] === tab) || [])[1];
       if (sup && tl && lab) { tl.textContent = lab; ph.insertAdjacentHTML("afterbegin", `<div class="spsup">${esc(sup)}</div>`); }
+      // Spjall eins og á borðinu: listi vinstra megin með haus og síum, samtal hægra megin með haus
+      if (desk() && S && !DETAIL && tab === "spjall") { const w = v.querySelector(".spwrap"), ch = v.querySelector(".spchans"), hd0 = v.querySelector(".sphead"), ph = v.querySelector(".phead");
+        if (w && ch && ph) { const f = window._spf || ""; ch.prepend(ph); ph.insertAdjacentHTML("beforeend", `<div class="ulbar">${[["", "Allt"], ["r", "Rásir"], ["d", "Bein skilaboð"]].map(([k, l]) => `<button type="button" class="uchip${k === f ? " on" : ""}" onclick="window._spf='${k}';render()">${l}</button>`).join("")}</div>`);
+          ch.querySelectorAll(".spch").forEach(b => { const r = (b.getAttribute("data-act") || "").slice(6); if (f === "r" && r !== "almennt" || f === "d" && r === "almennt") b.style.display = "none"; });
+          ch.insertAdjacentHTML("afterbegin", ""); ch.insertAdjacentHTML("beforeend", `<div class="spfoot">↑↓ fletta · Enter opna · N nýtt</div>`);
+          if (hd0) { const t = hd0.querySelector("b")?.textContent || "", sb = hd0.querySelector("span")?.textContent || "", gen = /^#/.test(t);
+            hd0.outerHTML = `<div class="udh2"><div class="udl"><div class="spsup">${gen ? "Rás · " + esc(sb) : "Bein skilaboð"}</div><h2 class="ptitle">${esc(t)}</h2><div class="usub">${gen ? "Allir starfsmenn" : esc(sb)}</div></div><div class="uact">${gen ? "" : `<a class="btn" href="https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(sb.split(" ")[0])}" target="_blank" rel="noopener">Teams</a>`}</div></div>`; }
+          document.body.classList.add("hassplit"); } }
+      // Dagatal eins og á borðinu: mánuður sem heiti; Mánuður/Vika/Dagur, flettingar og + Fundur hægra megin í hausnum
+      if (desk() && S && !DETAIL && tab === "dagatal") { const ch = v.querySelector(".cal-head"), seg = v.querySelector(".seg.calseg"), h2 = ph?.querySelector(".ptitle");
+        if (ch && ph && h2) { const m = ch.querySelector("h2")?.textContent.trim() || ""; h2.textContent = m + (/\d{4}/.test(m) ? "" : " " + (window.calY || new Date().getFullYear()));
+          const nb = ph.querySelector(".pnew"); if (nb) { nb.innerHTML = "+ Fundur"; nb.classList.add("u1pn"); }
+          const box = document.createElement("div"); box.className = "ucalctl"; if (seg) box.append(seg); const [td, pv, nx] = [ch.querySelector(".chipbtn"), ...ch.querySelectorAll(".iconbtn")];
+          [pv, td, nx].filter(Boolean).forEach(b => { b.className = "btn sm"; box.append(b); }); if (nb) box.append(nb); ph.querySelector(".phrow")?.append(box); ch.remove(); v.querySelector(".legend")?.remove(); } }
       return;
     }
     let det = "";
-    const vp = DETAIL && String(DETAIL).startsWith("vara:") && window.u1VaraPanel ? u1VaraPanel(String(DETAIL).slice(5)) : null;
+    const dk = String(DETAIL || ""), dkk = dk.split(":")[0], dki = dk.slice(dkk.length + 1);
+    const vp = !DETAIL ? null : dkk === "vara" && window.u1VaraPanel ? u1VaraPanel(dki) : window.UI1D?.[dkk] ? UI1D[dkk](dki) : null;
     if (vp) { DETAIL_K = DETAIL; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); det = vp; }
     else if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); }
     else { full = false; _render(); }
@@ -101,6 +116,9 @@
       + `<section class="spdet" aria-label="Nánar">${DETAIL ? `<button type="button" class="spexp" data-ui1="exp" aria-label="${full ? "Minnka" : "Stækka"} glugga" title="${full ? "Minnka" : "Stækka"}">${full ? COL : EXP}</button>${det}` : `<div class="spempty">Veldu atriði úr listanum</div>`}</section></div>`;
     // Sía efst í listanum (síar línur og spjöld eftir texta)
     const sl = v.querySelector(".splist"), ph = sl.querySelector(".phead");
+    // Síuflipar inn í gráa hausinn (eins og á útlitsborðinu) og flýtilyklar neðst
+    if (ph) { const lb = sl.querySelector(":scope > .ulbar"); if (lb) ph.append(lb); }
+    if (!sl.querySelector(".spfoot")) sl.insertAdjacentHTML("beforeend", `<div class="spfoot">/ sía · ↑↓ fletta · Enter opna · N nýtt</div>`);
     if (tab === "postur") { if (DETAIL) { sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel"); fixDet(v.querySelector(".spdet")); } return; }
     const f = document.createElement("label"); f.className = "spfilt";
     f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input type="search" placeholder="Sía ${esc(PH[tab] || PH[secOf(tab).k] || "lista")}…" aria-label="Sía lista" value="${esc(flt)}"><kbd>/</kbd>`;
@@ -115,6 +133,12 @@
     const sub = window.STSUB || null; window.STSUB = null; _render(); window.STSUB = sub;
     if (typeof STPAGES !== "undefined" && STPAGES.svid && can("stillingar")) { const r = v.querySelector('[data-act="stsub:einingar"]'); if (r && !v.querySelector('[data-act="stsub:svid"]')) r.insertAdjacentHTML("afterend", mrow("stsub:svid", "Svið", { d: STPAGES.svid.d })); }
     v.querySelector(".pback")?.remove();
+    // Flatur listi: hópur (Ég/Admin) undir heiti, síuflipar Allt/Ég/Fyrirtækið
+    let grp = ""; const f0 = window._stf || "";
+    v.querySelectorAll(".mgroup, .mrow").forEach(n => { if (n.matches(".mgroup")) { grp = /admin|fyrirt/i.test(n.textContent) ? "Admin" : /^ég/i.test(n.textContent.trim()) ? "Ég" : n.textContent.trim(); return; }
+      const mt = n.querySelector(".mt"); if (mt) { mt.querySelectorAll("small").forEach(x => x.remove()); mt.insertAdjacentHTML("beforeend", `<small>${esc(grp)}</small>`); }
+      if (f0 && !(f0 === "eg" ? grp === "Ég" : grp === "Admin")) n.style.display = "none"; });
+    const ph0 = v.querySelector(".phead"); if (ph0) ph0.insertAdjacentHTML("beforeend", `<div class="ulbar">${[["", "Allt"], ["eg", "Ég"], ["fyr", "Fyrirtækið"]].map(([k, l]) => `<button type="button" class="uchip${k === f0 ? " on" : ""}" onclick="window._stf='${k}';render()">${l}</button>`).join("")}</div>`);
     const list = v.innerHTML;
     const cur = sub;  // ekkert valið þegar Stillingar eru opnaðar
     let det = `<div class="spempty">Veldu stillingu úr listanum</div>`;
@@ -138,7 +162,8 @@
     const act = hd.querySelector(".uact");
     const [kind, id] = String(DETAIL).split(":");
     if (kind === "verk") {
-      const ks = el.querySelector('[data-act^="kstart:"]'); if (ks) act.append(ks);
+      const ks = el.querySelector('[data-act^="kstart:"]'); if (ks) act.append(ks); else if (MCP && ON("timar") && !klukka()) act.insertAdjacentHTML("beforeend", `<button type="button" class="btn primary" data-act="kstart:${esc(id)}">▶ Byrja klukku</button>`);
+      if (!el.querySelector('select[aria-label="Staða verkefnis"]') && MCP && findProj(id)) { const pp = findProj(id); act.insertAdjacentHTML("beforeend", `<label class="ustsel">Staða<select aria-label="Staða" onchange="doAct('status:verk:${esc(id)}:'+this.value,this)">${STODUR().filter(x => !x.falin || x.n === pp.stada).map(x => `<option${x.n === pp.stada ? " selected" : ""}>${esc(x.n)}</option>`).join("")}</select></label>`); }
       const ss = el.querySelector('select[aria-label="Staða verkefnis"]'); if (ss) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(ss); act.append(w); ss.closest(".fsels")?.remove(); }
       [...el.querySelectorAll(".viewtitle")].find(x => x.textContent.trim() === "Staða verkefnis")?.remove();
       const p = findProj(id);
@@ -146,13 +171,24 @@
       if (DTAB === "fundir" && p) { const th = (S?.thraedir || []).filter(t => t.verkefniId === p.id), po = (S?.postar || []).filter(t => t.verkefniId === p.id);
         const body = el.querySelector(".dbody"); if (body) body.insertAdjacentHTML("afterbegin", `<div class="viewtitle" style="margin-top:14px">Póstar · ${th.length + po.length}</div>` + ([...th.map(t => `<a class="ucpr" href="#" data-act="tab:postur"><span><b>✉ ${esc(t.efni || "Póstþráður")}</b><small>tengt ${esc(String(t.tengt || "").slice(0, 10).split("-").reverse().join("."))}${t.af ? " · " + esc(t.af) : ""}</small></span><span class="upill">Póstur</span></a>`), ...po.map(t => `<div class="ucpr"><span><b>✉ ${esc(t.efni || "")}</b><small>${esc(t.fra || "")} · ${esc(String(t.dags || "").slice(0, 10).split("-").reverse().join("."))}</small></span><span class="upill">Eldri póstur</span></div>`)].join("") || `<div class="usub" style="padding:6px 0">Engir póstar tengdir verkefninu. Tengdu póst úr Pósti.</div>`) + `<div class="viewtitle">Fundir</div>`); }
       if ((!DTAB || DTAB === "yfirlit") && p && window.u1VerkYfir) { const kp = el.querySelector(".dbody > .kpis"); if (kp) { const ub = [...kp.children].find(c => /óreikn/i.test(c.textContent)); const v = ub ? (ub.querySelector("b,strong,.n,.kv") || ub.firstElementChild)?.textContent.trim() : ""; kp.outerHTML = u1VerkYfir(p.id, v); } }
+      if (p) {
+        // Lýsingarlína án merkja (eins og á borðinu): viðskiptavinur · tímabil/skil · staður
+        const T = (window.salaAPI?.TB() || []).filter(t => t.verkefniId === p.id && t.fra && t.stada !== "Hafnað").sort((a, b) => String(a.fra).localeCompare(String(b.fra)))[0];
+        const parts = [p.vidskiptavinur, T ? u1D.rngIS(T.fra, T.til) : p.skiladagur ? "skil " + u1D.dIS(p.skiladagur) : "", T?.stadsetning].filter(Boolean);
+        const us = hd.querySelector(".usub"); if (us) us.textContent = parts.join(" · ");
+        const lb = el.querySelector(".lokabtn")?.getAttribute("data-act"); el.querySelector(".lokabtn")?.remove();
+        if (MCP) act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div><button type="button" data-act="edit:verk:${esc(p.id)}">✎ Breyta verkefni</button><button type="button" data-act="dtab:stillingar">Stillingar verkefnis</button>${lb ? `<button type="button" data-act="${esc(lb)}">✓ Loka verkefni</button>` : ""}</div></details>`);
+      }
       const nav = el.querySelector(".dtabs");
-      if (nav) { const by = k => nav.querySelector(`[data-act="dtab:${k}"]`); const f = by("fundir"); if (f) { const nth = (S?.thraedir || []).filter(t => t.verkefniId === p?.id).length + (S?.postar || []).filter(t => t.verkefniId === p?.id).length, dc = f.querySelector(".dc"), nf = +(dc?.textContent || 0); f.firstChild.textContent = "Samskipti "; if (dc) dc.textContent = nf + nth; else if (nth) f.insertAdjacentHTML("beforeend", `<span class="dc">${nth}</span>`); }
+      const ct = p && window.u1VerkTab && (DTAB === "undir" || DTAB === "fundir") ? u1VerkTab(p, DTAB) : null;
+      if (ct !== null && ct !== undefined) { const body = el.querySelector(".dbody"); if (body) body.innerHTML = ct; }
+      if (nav) { if (DTAB !== "stillingar") nav.querySelector('[data-act="dtab:stillingar"]')?.remove(); const by = k => nav.querySelector(`[data-act="dtab:${k}"]`); const f = by("fundir"); if (f) { const nth = (S?.thraedir || []).filter(t => t.verkefniId === p?.id).length + (S?.postar || []).filter(t => t.verkefniId === p?.id).length, dc = f.querySelector(".dc"), nf = +(dc?.textContent || 0); f.firstChild.textContent = "Samskipti "; if (dc) dc.textContent = nf + nth; else if (nth) f.insertAdjacentHTML("beforeend", `<span class="dc">${nth}</span>`); }
         ["yfirlit", "undir", "fundir", "tilbod", "timar", "skrar", "stillingar"].map(by).filter(Boolean).forEach(b => nav.append(b)); }
     }
     if (kind === "vsk" && window.u1VskTabs) {
       const r = u1VskTabs(id);
-      if (r) {
+      if (r) { const c = (S?.vidskiptavinir || []).find(x => String(x.id) === String(id));
+        if (c) { hd.querySelector(".spsup").textContent = "Viðskiptavinur" + (c.kennitala ? " · kt. " + c.kennitala : ""); const us = hd.querySelector(".usub"); if (us) us.textContent = [c.heimilisfang, [c.postnumer, c.stadur].filter(Boolean).join(" "), c.netfang].filter(Boolean).join(" · "); }
         const ed = el.querySelector('[data-act^="edit:vsk:"]'), nv = [...el.querySelectorAll("button")].find(b => /\+ Verkefni/.test(b.textContent));
         if (ed) act.append(ed); if (nv) { nv.classList.add("primary"); act.append(nv); }
         const kp = el.querySelector(".kpis"), body = el.querySelector(".dbody") || kp?.parentElement;
@@ -185,6 +221,20 @@
         const lk = [...el.querySelectorAll(".links")]; const bottom = lk.find(x => x.querySelector('[data-act^="tbutg:"],[data-act^="tbverk:"],[data-act^="tbdel:"]'));
         const dl = lk.find(x => x.querySelector('[data-act^="tbpdf:dl"]')); if (dl && bottom) { bottom.prepend(...dl.querySelectorAll("button")); dl.remove(); }
         const sumc = el.querySelector(".rksum"); if (bottom && sumc) sumc.after(bottom);
+        // Lýsingarlína án merkja; verkefni sem tengill í sviðslínunni; samtölur í einni línu; næsta skref neðst
+        const isP2 = !!T.pontun, nD = T.fra ? Math.max(1, Math.round((new Date(T.til || T.fra) - new Date(T.fra)) / 864e5) + 1) : 0;
+        const parts = isP2 ? [T.tengilidur || T.vidskiptavinur, T.simi, T.fra ? u1D.rngIS(T.fra, T.til) : ""] : [T.vidskiptavinur || T.tengilidur, T.fra ? u1D.rngIS(T.fra, T.til) : "", has("leiga") && nD ? nD + (nD === 1 ? " dagur" : " dagar") : "", T.stadsetning];
+        const us = hd.querySelector(".usub"); if (us) us.textContent = parts.filter(Boolean).join(" · ");
+        const pj = [...el.querySelectorAll("p.sub")].find(x => /Verkefni:/.test(x.textContent)); if (pj) { const a = pj.querySelector("a"); const sv = hd.querySelector(".usvid"); if (a && sv) { a.classList.add("usvp"); a.textContent = "Verkefni " + a.textContent + " →"; sv.append(a); } pj.remove(); }
+        const sumc2 = el.querySelector(".rksum"); if (sumc2) sumc2.outerHTML = `<div class="utbt"><span>Samtals með VSK</span><b>${(Math.round(tt.tot || 0)).toLocaleString("de-DE")} kr.</b></div>`;
+        const bot = [...el.querySelectorAll(".links")].find(x => x.querySelector('[data-act^="tbutg:"],[data-act^="tbverk:"],[data-act^="tbdel:"]'));
+        if (bot && MCP) {
+          if (isP2) { const NX = { "Ný": ["Staðfesta", "Staðfest"], "Staðfest": ["Afhenda →", "Afhent"], "Afhent": ["Skila →", "Skilað"], "Skilað": ["Loka pöntun", "Lokið"] }[T.stada];
+            const conf = T.netfang && window.poCompose ? `<button type="button" class="btn" data-act="u1pnconf:${esc(T.id)}">Senda staðfestingu</button>` : "";
+            bot.insertAdjacentHTML("afterbegin", (NX ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:${esc(NX[1])}">${esc(NX[0])}</button>` : "") + conf); }
+          else { const sd = bot.querySelector('[data-act^="tbsend:"]'); if (sd) { sd.classList.add("primary"); bot.prepend(sd); } }
+          const del = bot.querySelector('[data-act^="tbdel:"]'); if (del) { act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div></div></details>`); act.querySelector(".umore>div").append(del); }
+        }
         hd._top = kpis;
       }
     }
@@ -224,6 +274,15 @@
   window.render = renderI; try { render = renderI; } catch (e) {}
 
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="exp"]'); if (!b) return; full = !full; render(); });
+  // Flýtilyklar í listum: ↑↓ fletta, Enter opna, N nýtt
+  document.addEventListener("keydown", e => {
+    if (!document.body.classList.contains("hassplit") || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") || e.metaKey || e.ctrlKey || e.altKey) return; const sw = document.getElementById("sheetwrap"); if (sw && !sw.hidden) return;
+    const rows = [...document.querySelectorAll(".splist [data-open]")].filter(r => r.offsetParent); if (!rows.length) return;
+    const cur = rows.findIndex(r => r.classList.contains("spsel"));
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const i = Math.max(0, Math.min(rows.length - 1, cur + (e.key === "ArrowDown" ? 1 : -1))); rows[i].click(); setTimeout(() => document.querySelector(".splist .spsel")?.scrollIntoView({ block: "nearest" }), 30); }
+    else if (e.key === "Enter" && cur < 0) { e.preventDefault(); rows[0].click(); }
+    else if ((e.key === "n" || e.key === "N") && document.querySelector('.splist .phead [data-act="fabnew"], .splist .phead .pnew')) { e.preventDefault(); document.querySelector('.splist .phead [data-act="fabnew"], .splist .phead .pnew').click(); }
+  });
   document.addEventListener("keydown", e => {
     if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.querySelector(".spfilt input")) { e.preventDefault(); document.querySelector(".spfilt input").focus(); }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { const q = document.getElementById("topq"); if (q) { e.preventDefault(); q.focus(); } }
