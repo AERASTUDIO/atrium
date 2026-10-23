@@ -148,7 +148,7 @@ body.kerfi #view .cfgrow .ctl{gap:var(--s2)}
   :root body.kerfi #view .list{display:flex!important;flex-direction:column;gap:var(--s2)}
   :root body.kerfi #view .list{align-items:stretch!important}
   :root body.kerfi #view .list>*{width:auto!important;max-width:none!important}
-  :root body.kerfi .anim>.phead{padding-inline:0!important}
+  :root body.kerfi.simi1 .anim>.phead{padding-inline:0!important}
   :root body.kerfi #view .ucalctl .calseg{max-width:none!important}
   :root body.kerfi #view .fsels select,:root body.kerfi #view .uchips select{height:36px!important;min-height:36px!important;border-radius:999px;width:auto!important;max-width:100%}
   /* Dagatal: sýnarval í heilli línu, svo flakk og + Fundur */

@@ -23,5 +23,7 @@ window.ORG = {
   docLogo: "icons/atrium-doc-logo.png",
   // Allar einingar sýndar; Verðskrá læst (verðlisti AERA)
   einingar: { leiga: true, sala: true, verdskra: false },
+  // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
+  kerfi: true,
   firebase: null
 };

@@ -61,6 +61,8 @@ window.ORG = {
   pakkaval: true,
   utlit: "I",                          // tölvuútlit I (frá 2.43.0, eins og Dev og party.is); síminn óbreyttur
   einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
+  // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
+  kerfi: true,
   // Firebase-verkefni uppsetningarinnar (aera-app-cfdb3). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyAUyV3MyuFrgpQ2pNMAsQIYnqYnp32hTFs",
