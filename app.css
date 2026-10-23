@@ -1174,4 +1174,4 @@ body.pv.ui1 .spdet{container-type:inline-size}
 .vsopt b{display:block;font-weight:500;font-size:14.5px}.vsopt small{display:block;color:var(--muted);font-size:12.5px}
 .vsopt:has(input:checked){border-color:#1F5A96;background:#EEF3F9}
 body.pv.ui1[data-tab="stillingar"] .splist .stq{margin:12px 12px 8px}
-body.pv.ui1 .splist .spfilt input#u1stq{display:block!important}
+body.pv.ui1 .splist .spfilt input{display:block!important}

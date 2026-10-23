@@ -69,7 +69,8 @@
   const EXP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
   const COL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
   const PH = { verkefni: "verkefni", vsk: "viðskiptavini", vidsk: "viðskiptavini", tilbod: "tilboð", pantanir: "pantanir", lvorur: "búnað", svorur: "vörur", vvinna: "þjónustu", fundir: "fundi", tfaer: "færslur", trk: "reikninga", fjarmal: "reikninga", undir: "undirverk", heim: "lista" };
-  let full = false, flt = "", DETAIL_K = null;
+  let full = false, flt = "", DETAIL_K = null, fltTab = "";
+  const SPH = { verkefni: "heiti eða verknr.", vsk: "nafni eða tengilið", vidsk: "nafni eða tengilið", tilbod: "heiti, nr. eða viðskiptavini", pantanir: "heiti, nr. eða viðskiptavini", lvorur: "heiti eða vnr.", svorur: "heiti eða vnr.", vvinna: "heiti eða vnr.", bunadur: "heiti eða vnr.", fundir: "heiti fundar", tfaer: "lýsingu eða verknr.", timar: "lýsingu eða verknr.", trk: "nafni eða nr.", fjarmal: "nafni eða nr.", heim: "heiti", postur: "sendanda eða efni" };
   const _render = window.render || render;
   function renderI() {
     const v = document.getElementById("view");
@@ -120,8 +121,9 @@
     if (ph) { const lb = sl.querySelector(":scope > .ulbar"); if (lb) ph.append(lb); }
     if (!sl.querySelector(".spfoot")) sl.insertAdjacentHTML("beforeend", `<div class="spfoot">/ sía · ↑↓ fletta · Enter opna · N nýtt</div>`);
     if (tab === "postur") { if (DETAIL) { sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel"); fixDet(v.querySelector(".spdet")); } return; }
+    if (fltTab !== tab) { flt = ""; fltTab = tab; }
     const f = document.createElement("label"); f.className = "spfilt";
-    f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input type="search" placeholder="Sía ${esc(PH[tab] || PH[secOf(tab).k] || "lista")}…" aria-label="Sía lista" value="${esc(flt)}"><kbd>/</kbd>`;
+    f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input type="search" placeholder="Leita eftir ${esc(SPH[tab] || SPH[secOf(tab).k] || "nafni eða númeri")}…" aria-label="Leita í lista" value="${esc(flt)}"><kbd>/</kbd>`;
     (ph ? ph.after(f) : sl.prepend(f));
     const inp = f.querySelector("input"); inp.addEventListener("input", () => { flt = inp.value; applyFilt(sl); }); applyFilt(sl);
     if (DETAIL) sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel");
@@ -264,10 +266,22 @@
     (kick || h).before(hd); kick?.remove(); h.remove(); sub?.remove();
     if (hd._top) { const sb = hd.nextElementSibling?.matches?.("p.sub") ? hd.nextElementSibling : hd; sb.insertAdjacentHTML("afterend", hd._top); }
   }
+  // Leit í listum: aðeins eftir númeri og heiti (heiti, viðskiptavinur, tengiliður) – ekki dagsetningum, stöðum eða upphæðum
+  const keyText = n => {
+    if (n.matches(".urow")) { const c = n.children; const t = n.querySelector(".t"); return [c[0]?.matches(".t") ? "" : c[0]?.textContent, t?.textContent].filter(Boolean).join(" "); }
+    if (n.matches(".lrow")) return [n.querySelector(".nr")?.textContent, n.querySelector(".lt")?.textContent].filter(Boolean).join(" ");
+    if (n.matches(".porow")) return [n.querySelector(".pofrom")?.textContent, n.querySelector(".ls")?.textContent].filter(Boolean).join(" ");
+    return n.textContent;
+  };
   function applyFilt(sl) {
-    const q = fold(flt.trim()); const items = sl.querySelectorAll(".card,.lrow,.vrow,.row,.item,li,tr");
-    items.forEach(n => { if (n.closest(".phead,.spfilt")) return; n.style.display = !q || fold(n.textContent).includes(q) ? "" : "none"; });
+    const q = fold(flt.trim()), rows = sl.querySelectorAll(".urow,.lrow,.vrow,.row,.item,.porow,tr");
+    rows.forEach(n => { if (n.closest(".phead,.spfilt") || n.matches(".ucols")) return; n.style.display = !q || fold(keyText(n)).includes(q) ? "" : "none"; });
+    // fela hópfyrirsagnir sem standa eftir tómar
+    sl.querySelectorAll(".ugrp").forEach(g => { let x = g.nextElementSibling, any = false; while (x && !x.matches(".ugrp")) { if (x.style.display !== "none" && (x.matches(".urow,.lrow,.porow"))) { any = true; break; } x = x.nextElementSibling; } g.style.display = !q || any ? "" : "none"; });
+    let e0 = sl.querySelector(".fltnone"), vis = [...rows].some(n => n.style.display !== "none" && !n.closest(".phead"));
+    if (q && !vis) { if (!e0) sl.querySelector(".spfoot")?.insertAdjacentHTML("beforebegin", `<div class="uempty fltnone">Ekkert fannst fyrir „${esc(flt.trim())}“.</div>`); } else e0?.remove();
   }
+
   // Upphafsskjár: ekkert valið í vinstri stiku – aðeins merkið, þrívítt og snýst (CSS 3D, engin aukasöfn)
   function startHTML() {
     // Atrium-merkið sem vírmynd (sömu fletir og í merkinu, aðeins útlínur), kyrrt
