@@ -34,7 +34,7 @@
   /* Undirflipar hlutans sem flögur */
   body.simi1 .simsub{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px;scroll-snap-type:x proximity}
   body.simi1 .simsub::-webkit-scrollbar{display:none}
-  body.simi1 .simsub button{flex:none;border:0;border-radius:99px;padding:7px 14px;min-height:36px;font:inherit;font-size:13px;background:rgba(255,255,255,.65);color:var(--ink);white-space:nowrap;scroll-snap-align:start}
+  body.simi1 .simsub button{flex:none;border:0;border-radius:99px;padding:7px 14px;min-height:36px;font:inherit;font-size:13px;background:var(--ui1chip);color:var(--ink);white-space:nowrap;scroll-snap-align:start}
   body.simi1 .simsub button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
   body.simi1 .splist .phead .ulbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   body.simi1 .splist .phead .ulbar::-webkit-scrollbar{display:none}
@@ -166,3 +166,37 @@
   body.simi1.pv #subnav2,body.simi1.pv #pvnew,body.simi1.pv #pvver{display:none!important}
 }
 @media (max-width:1023px){body.simi1.hasdock .toast{bottom:calc(128px + env(safe-area-inset-bottom,0px))!important}}
+@media (max-width:1023px){
+  /* Viðskiptavinir (2.48.2): nafnið fær alla breiddina */
+  body.simi1[data-tab^="vsk"] .splist .urow{grid-template-columns:minmax(0,1fr) auto!important}
+  body.simi1[data-tab^="vsk"] .splist .urow>:nth-child(2):not(:last-child){display:none}
+  body.simi1[data-tab^="vsk"] .splist .urow>:first-child{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Dagatal: haus brotnar snyrtilega, viðburðir sem punktar í mánaðarsýn, listinn fyrir neðan sýnir daginn */
+  body.simi1[data-tab="dagatal"] #view>.phead{margin:0!important;padding:12px 16px!important;background:var(--ui1head)}
+  body.simi1[data-tab="dagatal"] #view>.phead .phrow{flex-wrap:wrap;gap:8px}
+  body.simi1 .ucalctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%}
+  body.simi1 .ucalctl .btn,body.simi1 .ucalctl button{white-space:nowrap;min-height:34px;width:auto!important}
+  body.simi1 .ucalctl .seg.calseg{display:inline-flex!important;flex:none}
+  body.simi1[data-tab="dagatal"] .cal .cday{min-height:52px!important;padding:4px!important}
+  body.simi1.pv.ui1[data-tab="dagatal"] .cal .cday .clab{display:none!important}
+  body.simi1.pv.ui1[data-tab="dagatal"] .cal .cday .dots{display:flex!important;gap:2px;flex-wrap:wrap;margin-top:2px}
+  body.simi1.pv.ui1[data-tab="dagatal"] .cal .cday .dots i{display:block;width:6px;height:6px;border-radius:50%;background:var(--c,var(--ink))}
+  body.simi1[data-tab="dagatal"] #view>:not(.phead):not(.simact){margin-inline:12px}
+  /* Spjall: listi rásanna og samtal hvort á eftir öðru */
+  body.simi1 .spwrap{display:block!important;grid-template-columns:none!important}
+  body.simi1 .spchans{flex-direction:column!important}
+  body.simi1 .spconv{height:auto!important;min-height:50vh}
+  /* Til baka í stillingum */
+  body.simi1 .simback{display:inline-flex;align-items:center;gap:4px;margin:10px 0 4px!important}
+}
+@media (max-width:1023px){
+  /* Spjall: rásir sem lárétt röð efst, samtalið fyrir neðan og innsláttur fyrir ofan neðri stikuna */
+  body.simi1 .spchans{flex-direction:row!important;overflow-x:auto;scrollbar-width:none;gap:6px;padding-bottom:6px}
+  body.simi1 .spchans::-webkit-scrollbar{display:none}
+  body.simi1 .spchans .spch{flex:none;max-width:220px;border-radius:12px}
+  body.simi1 .spchans .spfoot{display:none}
+  body.simi1 .spchans{flex-wrap:wrap!important}
+  body.simi1 .spchans>.phead{flex:1 0 100%!important;margin:0 -16px!important}
+  body.simi1 .spchans>.spch{flex:1 0 100%!important;max-width:none!important;border-radius:0}
+  body.simi1[data-tab="dagatal"] #view .card{width:auto!important;max-width:none!important;display:block}
+}

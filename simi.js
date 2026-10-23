@@ -28,7 +28,7 @@
   // Undirflipar hlutans sem flögur efst í listanum (í tölvu eru þeir í vinstri stikunni)
   function secChips() {
     const v = document.getElementById("view"); if (!v || det()) return;
-    const s = secs().find(x => x.tabs.some(t => t[0] === cur())); if (!s || s.k === "heim") return;
+    const s = secs().find(x => x.tabs.some(t => t[0] === cur())); if (!s || s.k === "heim" || s.k === "meira" || cur() === "stillingar") return;
     const list = s.tabs.filter(t => !YF[t[0]] && ok(t[0]) && (!t[2] || ALLL[t[0]] || t[0] === cur()));
     if (list.length < 2) return;
     const host = v.querySelector(".splist .phead") || v.querySelector(".phead"); if (!host || host.querySelector(".simsub")) return;
@@ -200,14 +200,25 @@
   // opna atriði úr „Í dag“ og „Leita“ (utan #view-smella doAct notar data-open)
   document.addEventListener("click", e => { if (!phone()) return; const r = e.target.closest(".sd [data-open]"); if (!r || e.target.closest(".sdtel,[data-simk],[data-qrp]")) return; e.preventDefault(); e.stopPropagation(); try { openDetail(r.dataset.open); } catch (x) {} }, true);
 
+  // Stillingar og Póstur eru tveir dálkar í tölvu (listi + valið atriði): í síma listinn fyrst, svo valið atriði með „Til baka“
+  function splitFix() {
+    const v = document.getElementById("view"), sp = v?.querySelector(".split"); if (!sp) return;
+    const t = cur();
+    if (t === "stillingar") {
+      if (!window.STSUB) { sp.classList.add("nodet"); sp.querySelector(".spdet")?.remove(); }
+      else if (!sp.querySelector(".spdet .simback")) sp.querySelector(".spdet")?.insertAdjacentHTML("afterbegin", `<button type="button" class="uback simback" data-act="stsub:">${ico("chev", 14).replace("M9 6l6 6-6 6", "M15 6l-6 6 6 6")}Stillingar</button>`);
+    }
+    if (t === "postur" && !det()) { sp.classList.add("nodet"); sp.querySelector(".spdet")?.remove(); }
+  }
   function decorate() {
     document.body.classList.toggle("simidet", !!det());
     if (!phone()) { document.getElementById("simact")?.remove(); document.body.classList.remove("simhasact"); return; }
     document.body.classList.remove("simdag");
-    views(); secChips(); actBar(); bar();
+    views(); splitFix(); secChips(); actBar(); bar();
     // „Meira“ í neðri stiku: virkt þegar opinn hluti er ekki í stikunni
     const mb = document.querySelector('#tbar [data-tab="meira"] .tl'); if (mb) mb.textContent = "Meira";
   }
+  const _dm = window.drawMenu; if (_dm) { const dmS = function () { const r = _dm.apply(this, arguments); try { if (phone()) bar(); } catch (e) {} return r; }; window.drawMenu = dmS; try { drawMenu = dmS; } catch (e) {} }
   const _render = window.render || render;
   function renderS() { mapTab(); _render.apply(this, arguments); try { decorate(); } catch (e) { console.warn("simi", e); } }
   window.render = renderS; try { render = renderS; } catch (e) {}
