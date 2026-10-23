@@ -132,7 +132,7 @@ function drawMenu(){
   const cur=secOf(tab), c=secCounts();
   const html=(cls)=>SECTIONS.filter(x=>!(cls&&x.nobar)).map(x=>`<button type="button" class="tab${cls}" data-tab="${x.tabs[0][0]}"${x===cur&&tab!=="leit"?' aria-current="page"':""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${x.l}</span><span class="tc">${esc(c[x.k]||"")}</span>${c[x.k+"!"]?'<span class="tdot" aria-hidden="true"></span>':""}</button>`).join("");
   // Tölva (2.14.0, ORG.pakkaval): hliðarvalmyndin flokkuð í Kjarna, Pakka og Tengingar
-  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",dagatal:"Pakkar",timar:"Pakkar",tilbod:"Pakkar",pantanir:"Pakkar",bunadur:"Pakkar",fjarmal:"Pakkar",skjol:"Tengingar",postur:"Tengingar",spjall:"Tengingar"}; let last=null;
+  const side=()=>{if(!window.ORG?.pakkaval) return html(""); const G={heim:"Kjarni",verkefni:"Kjarni",dagatal:"Verkfæri",timar:"Verkfæri",tilbod:"Verkfæri",pantanir:window.ORG?.utlit==="I"?"Kjarni":"Verkfæri",bunadur:"Verkfæri",fjarmal:"Verkfæri",skjol:"Tengingar",postur:"Tengingar",spjall:"Tengingar"}; let last=null;
     // Neðst (2.15.1): Stillingar og notandinn – ekkert annað í hliðarstikunni (klukka, Í dag o.fl. falið með body.pv)
     let ft=document.getElementById("sfoot2"); if(!ft){ft=document.createElement("div"); ft.id="sfoot2"; const sf=document.querySelector(".side .sfoot"); sf?.parentNode.insertBefore(ft,sf);}
     const U=window.USER, ini=(U?.sk||String(U?.nafn||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2)).toUpperCase(), stc=tab==="stillingar", mec=cur?.k==="meira"&&!stc;
@@ -204,16 +204,16 @@ function vPakkar(){const E=window.EININGAR||{}, P=window.PAKKAR||{}, T=window.TE
   const pk=([p,[l,d,ein]])=>{const last=pakkiLast(p), on=pakkiOn(p)&&!last;
     return `<div class="card" style="display:flex;flex-direction:column;gap:8px;${on?"":"opacity:.75"}">
       <label style="display:flex;flex-direction:row;align-items:flex-start;gap:12px;text-align:left;font:inherit;color:inherit;cursor:${last?"default":"pointer"}"><div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:500">${esc(l)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">${esc(d)}</div></div>${sw(`data-pakki="${esc(p)}"`,on,last,l)}</label>
-      <div style="font-size:12px;color:var(--muted)">${last?"Ekki í boði í þessari uppsetningu":on&&ein.length&&!ein.some(k=>ON(k))?"Kveikt – en engin eining pakkans er virk":on?"Virkt":"Slökkt"}</div>
+      <div style="font-size:12px;color:var(--muted)">${last?"Ekki í boði í þessari uppsetningu":on&&ein.length&&!ein.some(k=>ON(k))?"Kveikt – en engin eining þess er virk":on?"Virkt":"Slökkt"}</div>
       ${on&&ein.length>1?`<div class="llist">${ein.map(sub).join("")}</div>`:""}</div>`;};
   const tg=([p,[l,d,ein,soon]])=>{const last=pakkiLast(p)||!!soon, on=!soon&&pakkiOn(p)&&!pakkiLast(p)&&ein.some(k=>ON(k));
     return `<label class="lrow" style="${last?"opacity:.6;cursor:default":""}"><div class="lm"><div class="lt">${esc(l)}</div><div class="ls">${esc(d)}${soon?" · "+esc(soon):pakkiLast(p)?" · ekki í boði":""}</div></div>${sw(`data-pakki="${esc(p)}"`,on,last,l)}</label>`;};
   const h2=(t,s)=>`<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin:22px 0 10px"><h3 style="margin:0;font-size:17px;font-weight:500">${t}</h3><span style="font-size:13px;color:var(--muted)">${s}</span></div>`;
   const kj=(window.KJARNI||[]).map(k=>E[k]?.[0]).filter(Boolean).concat(["Heim","Notendur og hlutverk","Leit","Stillingar"]);
   const dl=E.deildir&&(ON("leiga")||ON("sala"))?`${h2("Stillingar","Valkostir sem stýra framsetningu")}<div class="llist">${sub("deildir")}</div>`:"";
-  return `<p class="hint" style="margin:14px 0 4px">Atrium skiptist í kjarna sem er alltaf virkur, pakka sem fyrirtækið velur og tengingar við ytri kerfi. Slökktu á því sem fyrirtækið notar ekki – það hverfur úr valmynd, Heim og formum hjá öllum. Gögnin eyðast ekki.</p>
+  return `<p class="hint" style="margin:14px 0 4px">Atrium skiptist í kjarna sem er alltaf virkur, verkfæri sem fyrirtækið velur og tengingar við ytri kerfi. Slökktu á því sem fyrirtækið notar ekki – það hverfur úr valmynd, Heim og formum hjá öllum. Gögnin eyðast ekki.</p>
   ${h2("Kjarni","Alltaf virkur")}<div style="display:flex;flex-wrap:wrap;gap:8px">${kj.map(x=>`<span style="font-size:13px;background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:7px 12px">${esc(x)}</span>`).join("")}</div>
-  ${h2("Pakkar","Admin kveikir og slekkur innan þess sem er í boði")}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${Object.entries(P).map(pk).join("")}</div>
+  ${h2("Verkfæri","Admin kveikir og slekkur innan þess sem er í boði")}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${Object.entries(P).map(pk).join("")}</div>
   ${h2("Tengingar","Ytri kerfi")}<div class="llist">${Object.entries(T).map(tg).join("")}</div>${dl}`;}
 document.addEventListener("change",e=>{const p=e.target?.dataset?.pakki; if(!p) return; if(!can("stillingar")){e.target.checked=!e.target.checked; return toast("Aðeins admin getur breytt einingum.");}
   const v=e.target.checked, G={...(window.PAKKAR||{}),...(window.TENGINGAR||{})}, ein=G[p]?.[2]||[];

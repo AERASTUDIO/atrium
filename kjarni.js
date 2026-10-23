@@ -43,7 +43,7 @@
     verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
     timar:      ["Tímar", "Tímaskráning, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
     tilbod:     ["Tilboð og þjónustur", "Tilboð og þjónustulisti: þjónusta á tímagjaldi eða föstu verði, tímagjald á verkefnum og færslum", ["tilbod", "verdskra"]],
-    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", ...(window.ORG?.pakkaval ? ["pantanir"] : [])]],
+    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", ...(window.ORG?.pakkaval && window.ORG?.utlit !== "I" ? ["pantanir"] : [])]],
     fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]
   };
   const TENGINGAR = {
@@ -53,7 +53,8 @@
     claude:     ["Claude-aðstoð", "Spurningar og skráningar í mæltu máli", [], "Væntanlegt"]
   };
   const PAKKI_AF = {}; [PAKKAR, TENGINGAR].forEach(G => Object.entries(G).forEach(([p, v]) => v[2].forEach(k => { PAKKI_AF[k] = p; })));
-  const KJARNI = ["verkefni", "vidskiptavinir"];
+  // Útlit I (dev): Pantanir eru hluti af kjarnanum, alltaf virkar, ekki í pakkanum Vörulisti og lager
+  const KJARNI = ["verkefni", "vidskiptavinir", ...(window.ORG?.pakkaval && window.ORG?.utlit === "I" ? ["pantanir"] : [])];
   const ALLTAF = window.ORG?.pakkaval ? KJARNI.slice() : ["verkefni"];
   // S er skilgreint með let í app-grunnur.js (ekki á window) – lesið við keyrslu
   const st = () => { try { return typeof S !== "undefined" ? S : null; } catch (e) { return null; } };

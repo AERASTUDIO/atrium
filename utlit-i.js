@@ -32,7 +32,7 @@
   const coSide = () => { const l = ORG.merki || ORG.logo || {}, src = l.dokk || l.ljos; const i = document.querySelector(".side .colog"); if (i && src && i.getAttribute("src") !== src) i.src = src; };
   coSide(); new MutationObserver(coSide).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  const GRP = { heim: "Kjarni", verkefni: "Kjarni", vidsk: "Kjarni", pantanir: "Kjarni", dagatal: "Pakkar", timar: "Pakkar", tilbod: "Pakkar", bunadur: "Pakkar", fjarmal: "Pakkar", skjol: "Tengingar", postur: "Tengingar", spjall: "Tengingar" };
+  const GRP = { heim: "Kjarni", verkefni: "Kjarni", vidsk: "Kjarni", pantanir: "Kjarni", dagatal: "Verkfæri", timar: "Verkfæri", tilbod: "Verkfæri", bunadur: "Verkfæri", fjarmal: "Verkfæri", skjol: "Tengingar", postur: "Tengingar", spjall: "Tengingar" };
   const desk = () => window.matchMedia("(min-width:1024px)").matches;
 
   /* ---------- Vinstri stika: hlutar í hópum, undirflipar valins hluta, engar tölur ---------- */
@@ -106,8 +106,7 @@
     if (typeof STPAGES !== "undefined" && STPAGES.svid && can("stillingar")) { const r = v.querySelector('[data-act="stsub:einingar"]'); if (r && !v.querySelector('[data-act="stsub:svid"]')) r.insertAdjacentHTML("afterend", mrow("stsub:svid", "Svið", { d: STPAGES.svid.d })); }
     v.querySelector(".pback")?.remove();
     const list = v.innerHTML;
-    const first = v.querySelector('[data-act^="stsub:"]')?.getAttribute("data-act").slice(6);
-    const cur = sub || (can("stillingar") && v.querySelector('[data-act="stsub:einingar"]') ? "einingar" : first);
+    const cur = sub;  // ekkert valið þegar Stillingar eru opnaðar
     let det = `<div class="spempty">Veldu stillingu úr listanum</div>`;
     if (cur && typeof STPAGES !== "undefined" && STPAGES[cur]) { window.STSUB = cur; _render(); window.STSUB = sub;
       const ph = v.querySelector(".phead"); const t = STPAGES[cur].l; ph?.remove();
