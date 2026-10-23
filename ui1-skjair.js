@@ -148,7 +148,7 @@
     let h = "", last = "";
     xs.forEach(v => { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } const n = cnt(v);
       h += `<div class="urow uv" ${tapAttr("vsk", v.id)}><span class="t">${E(v.name || "")}${v.tengilidur ? `<span class="m"> · ${E(v.tengilidur)}</span>` : ""}</span><span class="m">${n ? n + " verkefni" : ""}</span><span class="r">${pill(n ? "Í gangi" : "Óvirkur")}</span></div>`; });
-    return lhead("Verkefni", "Viðskiptavinir", nbtn("Viðskiptavinur")) + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"]], f, "u1vf:vsk")}</div>`
+    return lhead("", "Viðskiptavinir", nbtn("Viðskiptavinur")) + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"]], f, "u1vf:vsk")}</div>`
       + `<div class="ucols uv"><span>Heiti · Tengiliður</span><span>Verkefni</span><span class="r">Staða</span></div>` + (h || `<div class="uempty">Engir viðskiptavinir.</div>`);
   };
   // Tilboð eftir sviði
