@@ -179,8 +179,8 @@
     const iso = isoD(today), xs = api.VR().filter(v => api.vDeild(v) === "leiga" && v.tegund !== "vinna").sort((a, b) => String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
     let h = "", last = "";
     xs.forEach(v => { const g = v.tegund === "pakki" ? "Pakkar" : (String(v.nr || "").split("-")[0] || "–") + (v.flokkur ? " · " + v.flokkur : ""); if (g !== last) { h += grpH(g); last = g; }
-      const tot = +v.fjoldi || 0, free = v.tegund === "pakki" ? "" : Math.max(0, tot - (api.upptekid(v.id, iso, iso).max || 0));
-      h += `<div class="urow ul" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}</span><span class="m">${v.tegund === "pakki" ? "" : tot}</span>${free === "" ? "<span></span>" : freeCol(free, tot)}<span class="r">${pill(kr(v.leiguverd))}</span></div>`; });
+      const tot = +v.fjoldi || 0, free = v.tegund === "pakki" ? "" : Math.max(0, tot - u1Ovirk(v) - (api.upptekid(v.id, iso, iso).max || 0));
+      h += `<div class="urow ul" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${u1OpinSkemmd(v) ? ' <i class="udot" title="Þarf skoðun"></i>' : ""}</span><span class="m">${v.tegund === "pakki" ? "" : tot}</span>${free === "" ? "<span></span>" : freeCol(free, tot)}<span class="r">${pill(kr(v.leiguverd))}</span></div>`; });
     return lhead("Vörulisti", "Leiga", nbtn("Búnaður")) + `<div class="ucols ul"><span>Vnr.</span><span>Heiti</span><span>Magn</span><span>Laust</span><span class="r">Verð/dag</span></div>` + (h || `<div class="uempty">Enginn leigubúnaður.</div>`);
   };
   U.svorur = function () {
@@ -188,7 +188,7 @@
     const fr = {}; api.TB().filter(T => ["Drög", "Sent"].includes(T.stada)).forEach(T => (T.linur || []).forEach(l => { if (l.teg === "sala" && l.v) fr[l.v] = (fr[l.v] || 0) + (+l.magn || 0); }));
     const xs = api.VR().filter(v => api.vDeild(v) === "sala" && v.tegund !== "vinna").sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
     let h = "", last = "";
-    xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; } const tot = +v.fjoldi || 0, free = Math.max(0, tot - (fr[v.id] || 0)), low = tot <= 2;
+    xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; } const tot = +v.fjoldi || 0, free = Math.max(0, tot - (fr[v.id] || 0)), low = tot <= (+v.lagmark || 2);
       h += `<div class="urow ul" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${low ? ' <i class="udot" title="Lítið á lager"></i>' : ""}</span><span class="m">${tot}</span>${low ? `<span class="ufree red" style="font-weight:600">${free}</span>` : freeCol(free, tot)}<span class="r">${pill(kr(v.soluverd))}</span></div>`; });
     return lhead("Vörulisti", "Sala", nbtn("Vara")) + `<div class="ucols ul"><span>Vnr.</span><span>Heiti</span><span>Lager</span><span>Laust</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engar söluvörur.</div>`);
   };
@@ -197,7 +197,7 @@
   st.day = null;
   const kpiB = (l, v) => `<div class="vyk"><small>${l}</small><b>${v}</b></div>`;
   const mini = (l, v) => `<div class="umini"><small>${l}</small><span>${v}</span></div>`;
-  window.u1VaraTop = function (id) {
+  const u1VaraYfir = function (id) {
     const api = window.salaAPI; if (!api) return "";
     const v = api.VR().find(x => String(x.id) === String(id)); if (!v) return "";
     const iso = isoD(today), tot = +v.fjoldi || 0;
@@ -206,15 +206,16 @@
       const fr = api.TB().filter(T => ["Drög", "Sent"].includes(T.stada)).reduce((a, T) => a + (T.linur || []).filter(l => String(l.v) === String(v.id)).reduce((b, l) => b + (+l.magn || 0), 0), 0);
       const fm = +v.soluverd ? Math.round((1 - (+v.innkaupsverd || 0) / +v.soluverd) * 100) : 0;
       return `<div class="ukpis">${kpiB("Á lager", tot)}${kpiB("Frátekið á tilboðum", fr)}${kpiB("Laust", Math.max(0, tot - fr))}${kpiB("Á tilboðum", onTb.length)}</div>`
-        + `<div class="uminis">${mini("Söluverð", kr(v.soluverd))}${mini("Innkaupsverð", v.innkaupsverd ? kr(v.innkaupsverd) : "–")}${mini("Framlegð", v.innkaupsverd ? fm + " %" : "–")}${mini("Flokkur", E(v.flokkur || "–"))}</div>`;
+        + `<div class="uminis">${mini("Söluverð", kr(v.soluverd))}${mini("Innkaupsverð", v.innkaupsverd ? kr(v.innkaupsverd) : "–")}${mini("Framlegð", v.innkaupsverd ? fm + " %" : "–")}${mini("Viðvörun undir", `<input class="ulm" type="number" min="0" value="${+v.lagmark || 0}" onchange="doAct('u1lm:${E(v.id)}:'+this.value)"> stk.`)}</div>`
+        + (()=>{ const hs = (v.hreyfingar || []).filter(h => h.teg === "Selt"); if (!hs.length) return ""; const now = new Date(), vals = [...Array(12)].map((_, i) => { const dd = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1), k = dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0"); return [MNs[dd.getMonth()], hs.filter(h => String(h.dags).startsWith(k)).reduce((a, h) => a + Math.abs(h.magn), 0)]; }); const mx = Math.max(1, ...vals.map(x => x[1])); return `<div class="card ucard"><div class="ush">Selt á mánuði</div><div class="vybars">${vals.map(([l, n], i) => `<div class="vyb" style="height:120px"><span class="vyv${i === 11 ? " on" : ""}">${n || ""}</span><div class="vys"><i style="height:${Math.round(n / mx * 80)}px;background:${i === 11 ? "#1F5A96" : "#BFD0E3"}"></i></div><span class="vyl">${l}</span></div>`).join("")}</div></div>`; })();
     }
     const bk = api.bokanir().filter(b => String(b.v) === String(v.id) && (b.til || b.fra) >= iso).sort((a, b) => String(a.fra).localeCompare(String(b.fra)));
     const tent = []; api.TB().filter(T => T.stada === "Sent" && T.fra).forEach(T => (T.linur || []).forEach(l => { if (String(l.v) === String(v.id)) tent.push({ fra: T.fra, til: T.til || T.fra, m: +l.magn || 0, T }); }));
-    const freeToday = Math.max(0, tot - (api.upptekid(v.id, iso, iso).max || 0));
+    const freeToday = Math.max(0, tot - u1Ovirk(v) - (api.upptekid(v.id, iso, iso).max || 0));
     // dagatal: 4 vikur frá mánudegi þessarar viku
     const a = mondayOf(today), cells = [];
     for (let i = 0; i < 28; i++) { const x = new Date(a); x.setDate(x.getDate() + i); const di = isoD(x), past = x < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const b = bk.filter(q => q.fra <= di && q.til >= di).reduce((s, q) => s + q.m, 0), tq = tent.filter(q => q.fra <= di && q.til >= di).reduce((s, q) => s + q.m, 0), free = tot - b;
+      const b = bk.filter(q => q.fra <= di && q.til >= di).reduce((s, q) => s + q.m, 0), tq = tent.filter(q => q.fra <= di && q.til >= di).reduce((s, q) => s + q.m, 0), free = tot - u1Ovirk(v) - b;
       const cls = past ? "past" : free <= 0 ? "full" : b ? "part" : x.getDay() % 6 ? "" : "wkend";
       cells.push(`<button type="button" class="ucd ${cls}${tq && !past ? " tent" : ""}${di === iso ? " today" : ""}${st.day === di ? " sel" : ""}" data-act="u1day:${di}"><span class="cdn">${x.getDate() === 1 ? "1. " + MNs[x.getMonth()] : x.getDate()}</span>${tq && !past ? `<span class="cdt">?${tq}</span>` : ""}${past ? "" : `<b>${free}</b>`}</button>`); }
     let pop = "";
@@ -225,9 +226,90 @@
     const up = bk.slice(0, 5).map(q => `<a class="ucpr" ${tapAttr("tb", q.T.id)}><span><b>${E(q.T.nr || "")} ${E(q.T.heiti || "")}</b><small>${E(relD(q.fra))}${q.til && q.til !== q.fra ? " – " + E(relD(q.til)) : ""}</small></span>${pill(q.m + " stk.")}</a>`).join("") || `<div class="usub">Ekkert frátekið framundan.</div>`;
     const pk = api.VR().filter(x => x.tegund === "pakki" && (x.innihald || []).some(i => String(i.v) === String(v.id))).map(x => [E(x.heiti), ((x.innihald || []).find(i => String(i.v) === String(v.id))?.m || 1) + " stk."]);
     return `<div class="ukpis">${kpiB("Laus í dag", freeToday + " af " + tot)}${kpiB("Bókanir framundan", bk.length)}${kpiB("Á tilboðum", onTb.length)}</div>`
-      + `<div class="uminis">${mini("Dagverð", kr(v.leiguverd))}${mini("Fjöldi", tot + " stk.")}${mini("Flokkur", E(v.flokkur || "–"))}</div>`
+      + `<div class="uminis">${mini("Dagverð", kr(v.leiguverd))}${mini("Fjöldi", tot + " stk.")}${mini("Flokkur", E(v.flokkur || "–"))}${mini("Viðvörun undir", `<input class="ulm" type="number" min="0" value="${+v.lagmark || 0}" onchange="doAct('u1lm:${E(v.id)}:'+this.value)"> laus`)}</div>`
       + `<div class="ucalrow"><div><div class="ush">Framboð</div>${cal}</div><div><div class="ush">Útleiga framundan</div>${up}${pk.length ? `<div class="ush" style="margin-top:14px">Í pökkum</div>${pk.map(([a, b]) => `<div class="vyr"><span>${a}</span><span>${b}</span></div>`).join("")}` : ""}</div></div>`;
   };
+
+
+  window.u1VaraTop = function (id) {
+    const api = window.salaAPI, v = VRget(id); if (!api || !v) return "";
+    const leiga = api.vDeild(v) === "leiga", nO = u1OpinSkemmd(v), ink = (v.innkaup || []).filter(x => x.stada === "Pantað");
+    const keys = leiga ? [["yfir", "Yfirlit"], ["eintok", "Eintök " + ((v.eintok || []).length || "")], ["astand", "Ástand" + (nO ? " " + nO : "")]] : [["yfir", "Yfirlit"], ["hreyf", "Hreyfingar"], ["innk", "Innkaup" + (ink.length ? " " + ink.length : "")]];
+    if (!keys.some(x => x[0] === st.vt)) st.vt = "yfir";
+    const ban = leiga && nO ? `<a class="uwarn" href="#" data-act="u1vt:astand"><i></i><span><b>${nO} ${nO === 1 ? "skemmd þarf" : "skemmdir þurfa"} skoðun</b> · ${E((v.skemmdir || []).find(x => x.stada === "opin")?.lysing || "")}</span><span class="m">Skoða ástand →</span></a>`
+      : !leiga && ink.length ? `<a class="uwarn info" href="#" data-act="u1vt:innk"><i></i><span><b>Á leiðinni: ${ink.reduce((a, x) => a + (+x.magn || 0), 0)} stk.</b> · ${E(ink[0].nr)}${ink[0].birgir ? " frá " + E(ink[0].birgir) : ""}${ink[0].vaent ? ", væntanlegt " + E(ink[0].vaent.split("-").reverse().join(".")) : ""}</span><span class="m">Opna →</span></a>` : "";
+    const body = st.vt === "eintok" ? u1VaraEintok(v) : st.vt === "astand" ? u1VaraAstand(v) : st.vt === "hreyf" ? u1VaraLager(v) : st.vt === "innk" ? u1VaraInnkaup(v) : u1VaraYfir(id);
+    return tabsV(keys, st.vt) + ban + body;
+  };
+  /* ---------- Eintök, ástand og skemmdir (leigubúnaður) – reitir á vöruskjalinu: eintok[], skemmdir[] ---------- */
+  st.vt = "yfir"; st.dmg = null; st.ink = null; st.tal = null;
+  const ST_E = { ok: "Í lagi", skodun: "Þarf að skoða", vidgerd: "Í viðgerð", tynt: "Týnt" };
+  window.u1Ovirk = v => (v?.eintok || []).filter(e => e.stada && e.stada !== "ok").length;
+  window.u1OpinSkemmd = v => (v?.skemmdir || []).filter(x => x.stada === "opin").length;
+  const VRget = id => window.salaAPI?.VR().find(x => String(x.id) === String(id));
+  const saveV = (id, fn) => saveSnapshot(s => { const q = (s.vorur || []).find(x => String(x.id) === String(id)); if (q) fn(q, s); });
+  const tabsV = (keys, cur) => `<div class="uvt">${keys.map(([k, l]) => `<button type="button" class="${k === cur ? "on" : ""}" data-act="u1vt:${k}">${E(l)}</button>`).join("")}</div>`;
+  window.u1VaraEintok = function (v) {
+    const es = v.eintok || [];
+    if (!es.length) return `<div class="uempty">Engin eintök skráð. Stofnaðu eintök til að rekja hvert stykki, prenta QR-merki og skrá ástand.</div><button type="button" class="btn primary" data-act="u1mkE:${E(v.id)}">Stofna ${+v.fjoldi || 0} eintök</button>`;
+    return `<div class="ush" style="display:flex;justify-content:space-between;align-items:center">Eintök · ${es.length}<span style="display:flex;gap:8px"><button type="button" class="btn" data-act="u1qr:${E(v.id)}">Prenta QR-merki</button><button type="button" class="btn" data-act="u1scan:">Skanna</button></span></div>`
+      + `<div class="ueh"><span>Nr.</span><span>Ástand</span><span>Hilla</span><span></span></div>`
+      + es.map((e, i) => `<div class="uer2"><span class="m">${E(e.nr)}</span><span class="${e.stada && e.stada !== "ok" ? "red" : ""}">${E(ST_E[e.stada || "ok"])}</span><span class="m">${E(e.hilla || v.hilla || "")}</span><select aria-label="Ástand ${E(e.nr)}" onchange="doAct('u1es:${E(v.id)}:${i}:'+this.value)">${Object.entries(ST_E).map(([k, l]) => `<option value="${k}"${(e.stada || "ok") === k ? " selected" : ""}>${l}</option>`).join("")}</select></div>`).join("");
+  };
+  window.u1VaraAstand = function (v) {
+    const xs = (v.skemmdir || []).slice().sort((a, b) => (a.stada === "opin" ? 0 : 1) - (b.stada === "opin" ? 0 : 1) || String(b.dags).localeCompare(String(a.dags)));
+    const es = v.eintok || [];
+    const form = st.dmg === v.id ? `<div class="card udmgf"><label>Eintak<select id="u1dE">${es.length ? es.map(e => `<option>${E(e.nr)}</option>`).join("") : `<option value="">(ekkert eintak skráð)</option>`}</select></label><label>Lýsing<input id="u1dL" type="text" placeholder="t.d. rifið grill að framan"></label><label>Tengist (pöntun eða tilboð)<input id="u1dR" type="text" placeholder="t.d. P-0899"></label><div style="display:flex;gap:8px"><button type="button" class="btn primary" data-act="u1dmgS:${E(v.id)}">Vista</button><button type="button" class="btn" data-act="u1dmg:">Hætta við</button></div></div>` : "";
+    return `<div class="ush" style="display:flex;justify-content:space-between;align-items:center">Ástand<button type="button" class="btn" data-act="u1dmg:${E(v.id)}">+ Skrá skemmd</button></div>${form}`
+      + (xs.map(x => `<div class="card udmg${x.stada === "opin" ? " open" : ""}"><div class="udmgh"><div><small>${E(x.eintak || "")}</small><b>${E(x.lysing || "")}</b></div>${pill(x.stada === "opin" ? "Þarf að skoða" : x.stada === "vidgerd" ? "Í viðgerð" : "Lokið", x.stada === "opin")}</div><div class="usub">Skráð ${E((x.dags || "").slice(0, 10).split("-").reverse().join("."))}${x.ref ? " · " + E(x.ref) : ""}${x.af ? " · " + E(x.af) : ""}</div>`
+        + (x.stada !== "lokid" ? `<div style="display:flex;gap:8px;margin-top:8px"><button type="button" class="btn" data-act="u1dmgX:${E(v.id)}:${E(x.id)}:lokid">Merkja í lagi</button>${x.stada === "opin" ? `<button type="button" class="btn" data-act="u1dmgX:${E(v.id)}:${E(x.id)}:vidgerd">Senda í viðgerð</button>` : ""}</div>` : "") + `</div>`).join("") || `<div class="uempty">Engar skemmdir skráðar.</div>`);
+  };
+  // QR-merki: prentsíða með merki á hvert eintak (qrcodejs af cdnjs), slóð appsins + ?e=<eintak>
+  function printQR(v) {
+    const base = (ORG.appUrl || location.origin + location.pathname).split("?")[0], es = v.eintok || [];
+    const w = window.open("", "_blank"); if (!w) { toast?.("Leyfðu sprettiglugga til að prenta merki"); return; }
+    w.document.write(`<!doctype html><meta charset="utf-8"><title>QR-merki ${E(v.nr || "")}</title><style>body{font-family:Poppins,Arial,sans-serif;margin:12mm}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}.l{border:1px solid #ccc;border-radius:3mm;padding:3mm;display:flex;gap:3mm;align-items:center;break-inside:avoid}.l b{display:block;font-size:12pt}.l small{font-size:9pt;color:#555}@media print{button{display:none}}</style><button onclick="print()">Prenta</button><div class="g">${es.map((e, i) => `<div class="l"><div id="q${i}"></div><div><b>${E(e.nr)}</b><small>${E(v.heiti || "")}<br>${E(ORG.nafn || "")}</small></div></div>`).join("")}</div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>${JSON.stringify(es.map(e => base + "?e=" + encodeURIComponent(e.nr)))}.forEach((u,i)=>new QRCode(document.getElementById("q"+i),{text:u,width:84,height:84}));<\/script>`);
+    w.document.close();
+  }
+  // Skanna: myndavél + BarcodeDetector (Chrome/Edge/Android); annars má slá inn númer eintaks
+  async function scanQR() {
+    const wrap = document.createElement("div"); wrap.className = "uscan";
+    wrap.innerHTML = `<div class="uscanb"><video playsinline muted></video><div class="usub">Beindu myndavélinni að QR-merki eintaks</div><input type="text" placeholder="…eða sláðu inn númer, t.d. HL-101-07"><div style="display:flex;gap:8px"><button type="button" class="btn primary">Opna</button><button type="button" class="btn">Loka</button></div></div>`;
+    document.body.append(wrap); const vid = wrap.querySelector("video"), inp = wrap.querySelector("input"), [ok, cl] = wrap.querySelectorAll("button"); let stream = null, on = true;
+    const close = () => { on = false; stream?.getTracks().forEach(t => t.stop()); wrap.remove(); };
+    const go = txt => { const m = String(txt).match(/[?&]e=([^&]+)/), nr = decodeURIComponent(m ? m[1] : String(txt).trim()); if (openEintak(nr)) close(); else toast?.("Fann ekki eintakið " + nr); };
+    cl.onclick = close; ok.onclick = () => go(inp.value); inp.onkeydown = e => { if (e.key === "Enter") go(inp.value); };
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); vid.srcObject = stream; await vid.play();
+      if ("BarcodeDetector" in window) { const det = new BarcodeDetector({ formats: ["qr_code"] }); const tick = async () => { if (!on) return; try { const r = await det.detect(vid); if (r[0]) return go(r[0].rawValue); } catch (e) {} setTimeout(tick, 300); }; tick(); }
+    } catch (e) { vid.remove(); }
+  }
+  function openEintak(nr) {
+    const v = (window.salaAPI?.VR() || []).find(x => (x.eintok || []).some(e => e.nr === nr)); if (!v) return false;
+    tab = "lvorur"; st.vt = "eintok"; DETAIL = null; render(); openDetail("vara:" + v.id); return true;
+  }
+  // ?e=<eintak> í slóð (skannað með venjulegri myndavél)
+  (function () { const m = location.search.match(/[?&]e=([^&]+)/); if (!m) return; const nr = decodeURIComponent(m[1]); let n = 0; const t = setInterval(() => { if (window.S && S.vorur) { clearInterval(t); openEintak(nr); } else if (++n > 60) clearInterval(t); }, 500); })();
+
+  /* ---------- Lager og innkaup (söluvörur) – reitir á vöruskjalinu: hreyfingar[], innkaup[], lagmark ---------- */
+  window.u1VaraLager = function (v) {
+    const hs = (v.hreyfingar || []).slice().sort((a, b) => String(b.dags).localeCompare(String(a.dags)));
+    const tal = st.tal === v.id ? `<div class="card udmgf"><label>Talið á lager<input id="u1tN" type="number" min="0" value="${+v.fjoldi || 0}"></label><div style="display:flex;gap:8px"><button type="button" class="btn primary" data-act="u1talS:${E(v.id)}">Vista talningu</button><button type="button" class="btn" data-act="u1tal:">Hætta við</button></div></div>` : "";
+    return `<div class="ush" style="display:flex;justify-content:space-between;align-items:center">Lagerhreyfingar<button type="button" class="btn" data-act="u1tal:${E(v.id)}">Talning</button></div>${tal}<div class="ueh h4"><span>Dags.</span><span>Hreyfing</span><span>Magn</span><span>Staða</span></div>`
+      + (hs.map(h => `<div class="uer2 h4"><span class="m">${E((h.dags || "").slice(0, 10).split("-").reverse().join("."))}</span><span>${E(h.teg)}${h.ref ? `<span class="m"> · ${E(h.ref)}</span>` : ""}</span><span class="${h.magn > 0 ? "blue" : ""}">${h.magn > 0 ? "+" : "−"}${Math.abs(h.magn)}</span><span class="m">${h.stada ?? ""}</span></div>`).join("") || `<div class="uempty">Engar hreyfingar skráðar enn. Móttaka innkaupa og talning skrást hér.</div>`);
+  };
+  window.u1VaraInnkaup = function (v) {
+    const xs = (v.innkaup || []).slice().sort((a, b) => (a.stada === "Pantað" ? 0 : 1) - (b.stada === "Pantað" ? 0 : 1) || String(b.dags).localeCompare(String(a.dags)));
+    const form = st.ink === v.id ? `<div class="card udmgf"><label>Birgir<input id="u1iB" type="text" value="${E(v.birgir || "")}"></label><label>Magn<input id="u1iM" type="number" min="1" value="${Math.max(1, (+v.lagmark || 4) * 2 - (+v.fjoldi || 0))}"></label><label>Væntanlegt<input id="u1iV" type="date"></label><div style="display:flex;gap:8px"><button type="button" class="btn primary" data-act="u1inkS:${E(v.id)}">Panta</button><button type="button" class="btn" data-act="u1ink:">Hætta við</button></div></div>` : "";
+    return `<div class="ush" style="display:flex;justify-content:space-between;align-items:center">Innkaup<button type="button" class="btn primary" data-act="u1ink:${E(v.id)}">Panta inn</button></div>${form}`
+      + (xs.map(x => `<div class="uer2 i4"><span class="m">${E(x.nr || "")}</span><span>${E(x.birgir || "")} · ${x.magn} stk.<span class="m"> · ${x.stada === "Pantað" ? "væntanlegt " + E((x.vaent || "").split("-").reverse().join(".")) : "móttekið " + E((x.mott || "").slice(0, 10).split("-").reverse().join("."))}</span></span>${pill(x.stada, x.stada === "Pantað")}${x.stada === "Pantað" ? `<button type="button" class="btn" data-act="u1inkM:${E(v.id)}:${E(x.id)}">Móttaka</button>` : "<span></span>"}</div>`).join("") || `<div class="uempty">Engin innkaup skráð.</div>`);
+  };
+
+  /* ---------- Svið (Stillingar › Svið): heiti sviðanna; Leiga og Sala fylgja einingunum ---------- */
+  window.svidHeiti = k => CFG().svid?.[k]?.heiti || k;
+  if (typeof STPAGES !== "undefined") STPAGES.svid = { l: "Svið", d: "Leiga, Sala og Þjónusta – flokkun verkefna og tilboða", s: [], adm: 1, fn: () => {
+    const row = (k, desc, on, ein) => `<div class="uvs sv"><b>${E(k)}</b><span class="m">${E(desc)}</span><input type="text" value="${E(CFG().svid?.[k]?.heiti || "")}" placeholder="${E(k)}" aria-label="Heiti sviðsins ${E(k)}" onchange="doAct('u1svh:${k}:'+this.value)"><span>${ein ? `<a href="#" data-act="stsub:einingar">${on ? "Virkt" : "Óvirkt"} ›</a>` : "Alltaf virkt"}</span></div>`;
+    return `<div class="card ucard"><div class="unote" style="margin-top:0">Verkefni og tilboð flokkast sjálfkrafa á svið eftir línum tilboða og deild verkefnis. Hvert fyrirtæki getur endurnefnt sviðin, t.d. Þjónusta → Tækniþjónusta.</div><div class="uvs sv h"><span>Svið</span><span>Til hvers</span><span>Heiti hjá fyrirtækinu</span><span>Virkt</span></div>`
+      + row("Leiga", "Útleiga á búnaði", ON("leiga"), 1) + row("Sala", "Sala á vörum af lager", ON("sala"), 1) + row("Þjónusta", "Vinna, tæknifólk, uppsetning", true, 0) + `</div>`; } };
 
   /* ---------- aðgerðir ---------- */
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, {
@@ -239,6 +321,24 @@
       if (k === "u1rep") { st.rep = v; render(); return; }
       if (k === "u1rp") { st.rp = v; render(); return; }
       if (k === "u1grp") { st.grp = v; render(); return; }
+      if (k === "u1vt") { st.vt = v; render(); return; }
+      if (k === "u1mkE") { const q = VRget(v); if (!q) return; const n = +q.fjoldi || 0, pre = q.nr || "X"; await saveV(v, x => { x.eintok = [...Array(n)].map((_, i) => ({ nr: pre + "-" + String(i + 1).padStart(2, "0"), stada: "ok" })); }); st.vt = "eintok"; render(); return; }
+      if (k === "u1es") { const [id, i, val] = [r[0], +r[1], r[2]]; await saveV(id, x => { if (x.eintok?.[i]) x.eintok[i].stada = val; }); render(); return; }
+      if (k === "u1qr") { const q = VRget(v); if (q) printQR(q); return; }
+      if (k === "u1scan") { scanQR(); return; }
+      if (k === "u1dmg") { st.dmg = v || null; render(); return; }
+      if (k === "u1dmgS") { const e = document.getElementById("u1dE")?.value || "", l = document.getElementById("u1dL")?.value || "", rf = document.getElementById("u1dR")?.value || ""; if (!l.trim()) { toast?.("Skrifaðu lýsingu"); return; }
+        await saveV(v, x => { (x.skemmdir = x.skemmdir || []).push({ id: (crypto.randomUUID?.() || String(Date.now())).replace(/-/g, ""), eintak: e, lysing: l.trim(), ref: rf.trim(), dags: new Date().toISOString(), af: ME(), stada: "opin" }); const u = (x.eintok || []).find(y => y.nr === e); if (u) u.stada = "skodun"; });
+        st.dmg = null; render(); return; }
+      if (k === "u1dmgX") { const [id, did, val] = r; await saveV(id, x => { const q = (x.skemmdir || []).find(y => String(y.id) === did); if (q) { q.stada = val; q[val === "lokid" ? "lokid" : "sent"] = new Date().toISOString(); const u = (x.eintok || []).find(y => y.nr === q.eintak); if (u) u.stada = val === "lokid" ? "ok" : "vidgerd"; } }); render(); return; }
+      if (k === "u1tal") { st.tal = v || null; render(); return; }
+      if (k === "u1talS") { const n = +document.getElementById("u1tN")?.value; if (!(n >= 0)) return; await saveV(v, x => { const df = n - (+x.fjoldi || 0); x.fjoldi = n; (x.hreyfingar = x.hreyfingar || []).push({ dags: new Date().toISOString(), teg: "Talning", magn: df, stada: n, af: ME() }); }); st.tal = null; render(); return; }
+      if (k === "u1ink") { st.ink = v || null; render(); return; }
+      if (k === "u1inkS") { const b = document.getElementById("u1iB")?.value || "", m = +document.getElementById("u1iM")?.value || 0, ve = document.getElementById("u1iV")?.value || ""; if (!m) return;
+        await saveV(v, x => { const n = (x.innkaup || []).length + 1; (x.innkaup = x.innkaup || []).push({ id: String(Date.now()), nr: "IP-" + String(n).padStart(3, "0"), birgir: b, magn: m, vaent: ve, dags: new Date().toISOString(), stada: "Pantað" }); if (b) x.birgir = b; }); st.ink = null; toast?.("Innkaup skráð"); render(); return; }
+      if (k === "u1inkM") { const [id, iid] = r; await saveV(id, x => { const q = (x.innkaup || []).find(y => String(y.id) === iid); if (!q) return; q.stada = "Móttekið"; q.mott = new Date().toISOString(); x.fjoldi = (+x.fjoldi || 0) + (+q.magn || 0); (x.hreyfingar = x.hreyfingar || []).push({ dags: q.mott, teg: "Móttekið", ref: q.nr + (q.birgir ? " " + q.birgir : ""), magn: +q.magn || 0, stada: x.fjoldi }); }); toast?.("Móttekið á lager"); render(); return; }
+      if (k === "u1lm") { const [id, val] = r; await saveV(id, x => { x.lagmark = +val || 0; }); render(); return; }
+      if (k === "u1svh") { const [key, ...rest] = r, val = rest.join(":").trim(); await cfgSave(c => { c.svid = c.svid || {}; c.svid[key] = { ...(c.svid[key] || {}), heiti: val }; }); toast?.("Vistað"); render(); return; }
       if (k === "u1day") { st.day = v && v !== st.day ? v : null; render(); return; }
       if (k === "u1vf") { const [key, val] = [r[0], r.slice(1).join(":")]; st.vf[key] = val; render(); return; }
       if (k === "u1mv") { const p = findProj(v), ids = new Set([...st.sel].filter(x => x.startsWith("time:")).map(x => x.slice(5))), kids = new Set([...st.sel].filter(x => x.startsWith("kostn:")).map(x => x.slice(6)));

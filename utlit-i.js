@@ -43,7 +43,7 @@
       const vis = x.tabs.filter(t => !t[2]);
       if (on && vis.length > 1) {
         const act = vis.some(t => t[0] === tab) ? tab : vis[0][0];
-        h += `<div class="tsubs">${vis.map(([k, l]) => `<button type="button" class="tab tsub" data-tab="${k}"${k === act ? ' aria-current="true"' : ""}>${esc(l)}</button>`).join("")}</div>`;
+        h += `<div class="tsubs">${vis.map(([k, l]) => `<button type="button" class="tab tsub" data-tab="${k}"${k === act ? ' aria-current="true"' : ""}>${esc(["Leiga", "Sala", "Þjónusta"].includes(l) && window.svidHeiti ? svidHeiti(l) : l)}</button>`).join("")}</div>`;
       }
     });
     el.innerHTML = h;
@@ -63,6 +63,7 @@
     if (!desk() || !S || !LIST.has(tab)) {
       document.body.classList.remove("hassplit", "spfull"); _render();
       if (desk() && S && !DETAIL && window.UI1V?.[tab]) { v.innerHTML = UI1V[tab](); return; }
+      if (tab === "stillingar" && !window.STSUB && typeof STPAGES !== "undefined" && STPAGES.svid && can("stillingar")) { const r = v.querySelector('[data-act="stsub:einingar"]'); if (r && !v.querySelector('[data-act="stsub:svid"]')) r.insertAdjacentHTML("afterend", mrow("stsub:svid", "Svið", { d: STPAGES.svid.d })); }
       // Yfirflokkur í smáu letri fyrir ofan heiti undirsíðu (t.d. Tímar › Vikan)
       const sup = desk() && S && !DETAIL ? SUPER() : "", ph = v.querySelector(".phead"), tl = ph?.querySelector(".ptitle"), lab = (secOf(tab).tabs.find(t => t[0] === tab) || [])[1];
       if (sup && tl && lab) { tl.textContent = lab; ph.insertAdjacentHTML("afterbegin", `<div class="spsup">${esc(sup)}</div>`); }
@@ -101,9 +102,11 @@
       const ss = el.querySelector('select[aria-label="Staða verkefnis"]'); if (ss) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(ss); act.append(w); ss.closest(".fsels")?.remove(); }
       [...el.querySelectorAll(".viewtitle")].find(x => x.textContent.trim() === "Staða verkefnis")?.remove();
       const p = findProj(id);
-      if (p && window.svidOf) { const sv = svidOf(p); hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${sv.length > 1 && i === 0 ? "★ " : ""}${esc(x)}</span>`).join("")}</div>`); }
+      if (p && window.svidOf) { const sv = svidOf(p); hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${sv.length > 1 && i === 0 ? "★ " : ""}${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}</div>`); }
+      if (DTAB === "fundir" && p) { const th = (S?.thraedir || []).filter(t => t.verkefniId === p.id), po = (S?.postar || []).filter(t => t.verkefniId === p.id);
+        const body = el.querySelector(".dbody"); if (body) body.insertAdjacentHTML("afterbegin", `<div class="viewtitle" style="margin-top:14px">Póstar · ${th.length + po.length}</div>` + ([...th.map(t => `<a class="ucpr" href="#" data-act="tab:postur"><span><b>✉ ${esc(t.efni || "Póstþráður")}</b><small>tengt ${esc(String(t.tengt || "").slice(0, 10).split("-").reverse().join("."))}${t.af ? " · " + esc(t.af) : ""}</small></span><span class="upill">Póstur</span></a>`), ...po.map(t => `<div class="ucpr"><span><b>✉ ${esc(t.efni || "")}</b><small>${esc(t.fra || "")} · ${esc(String(t.dags || "").slice(0, 10).split("-").reverse().join("."))}</small></span><span class="upill">Eldri póstur</span></div>`)].join("") || `<div class="usub" style="padding:6px 0">Engir póstar tengdir verkefninu. Tengdu póst úr Pósti.</div>`) + `<div class="viewtitle">Fundir</div>`); }
       const nav = el.querySelector(".dtabs");
-      if (nav) { const by = k => nav.querySelector(`[data-act="dtab:${k}"]`); const f = by("fundir"); if (f) f.firstChild.textContent = "Samskipti ";
+      if (nav) { const by = k => nav.querySelector(`[data-act="dtab:${k}"]`); const f = by("fundir"); if (f) { const nth = (S?.thraedir || []).filter(t => t.verkefniId === p?.id).length + (S?.postar || []).filter(t => t.verkefniId === p?.id).length, dc = f.querySelector(".dc"), nf = +(dc?.textContent || 0); f.firstChild.textContent = "Samskipti "; if (dc) dc.textContent = nf + nth; else if (nth) f.insertAdjacentHTML("beforeend", `<span class="dc">${nth}</span>`); }
         ["yfirlit", "undir", "fundir", "tilbod", "timar", "skrar", "stillingar"].map(by).filter(Boolean).forEach(b => nav.append(b)); }
     }
     if (kind === "vara" && window.u1VaraTop) {
