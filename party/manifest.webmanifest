@@ -3,7 +3,7 @@
   "short_name": "Party.is",
   "description": "Atrium by AERA Studio – uppsetning party.is.",
   "lang": "is",
-  "id": "/atrium/party/",
+  "id": "/party/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

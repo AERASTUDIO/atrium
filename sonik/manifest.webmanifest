@@ -3,7 +3,7 @@
   "short_name": "Sonik",
   "description": "Atrium by AERA Studio – uppsetning Sonik.",
   "lang": "is",
-  "id": "/atrium/sonik/",
+  "id": "/sonik/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

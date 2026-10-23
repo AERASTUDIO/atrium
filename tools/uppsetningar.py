@@ -8,7 +8,7 @@ Uppsetning í undirmöppu <m>/ þarf: <m>/fyrirtaeki.js (window.ORG), <m>/manife
 Allar aðrar skrár (kóði, Atrium-merki, letur) eru sameiginlegar – <base href="../"> vísar á rótina.
 Frá 2.6.0 eru ALLAR uppsetningar í undirmöppu (líka AERA), svo hver fær sitt eigið app á tækinu (PWA-umfang skarast ekki).
 Rót geymslunnar (index.html) er aðeins tilvísun á aera/.
-ATH: "id" í <m>/manifest.webmanifest verður að vera full slóð, t.d. "/atrium/sonik/" – Chrome les id miðað við lénið,
+ATH: "id" í <m>/manifest.webmanifest verður að vera full slóð, t.d. "/sonik/" (frá 2.40.0 á atrium.aerastudio.is) – Chrome les id miðað við lénið,
 svo "./" gæfi öllum uppsetningum sama auðkenni og ein uppsetning kæmi í stað annarrar (lagað í 2.6.1)."""
 import json, os, sys
 

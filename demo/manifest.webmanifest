@@ -3,7 +3,7 @@
   "short_name": "Atrium",
   "description": "Atrium by AERA Studio – sýniútgáfa.",
   "lang": "is",
-  "id": "/atrium/demo/",
+  "id": "/demo/",
   "start_url": "./?demo",
   "scope": "./",
   "display": "standalone",
