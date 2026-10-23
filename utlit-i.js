@@ -112,10 +112,12 @@
     if (vp) { DETAIL_K = DETAIL; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); det = vp; }
     else if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); }
     else { full = false; _render(); }
+    // Ekkert valið (2.36.0): listinn nær yfir allan skjáinn með fleiri dálkum; spjaldið birtist fyrst þegar atriði er valið (ekki í Pósti)
+    const wide = !DETAIL && tab !== "postur"; window.u1Wide = wide;
     const list = window.UI1V?.[tab] ? UI1V[tab]() : v.innerHTML, sup = window.UI1V?.[tab] ? "" : SUPER();
-    document.body.classList.add("hassplit"); document.body.classList.toggle("spfull", !!DETAIL && full);
-    v.innerHTML = `<div class="split"><section class="splist" aria-label="Listi">${sup ? `<div class="spsup">${esc(sup)}</div>` : ""}${list}</section>`
-      + `<section class="spdet" aria-label="Nánar">${DETAIL ? `<button type="button" class="spwin" data-ui1="win" aria-label="Opna í nýjum glugga" title="Opna í nýjum glugga (⌘/Ctrl-smellur á línu)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v11"/></svg></button><button type="button" class="spexp" data-ui1="exp" aria-label="${full ? "Minnka" : "Stækka"} glugga" title="${full ? "Minnka" : "Stækka"}">${full ? COL : EXP}</button>${det}` : `<div class="spempty">Veldu atriði úr listanum</div>`}</section></div>`;
+    document.body.classList.add("hassplit"); document.body.classList.toggle("spfull", !!DETAIL && full); document.body.classList.toggle("spwide", wide);
+    v.innerHTML = `<div class="split${wide ? " nodet" : ""}"><section class="splist" aria-label="Listi">${sup ? `<div class="spsup">${esc(sup)}</div>` : ""}${list}</section>`
+      + (wide ? "" : `<section class="spdet" aria-label="Nánar">${DETAIL ? `<button type="button" class="spx" data-ui1="close" aria-label="Loka spjaldi" title="Loka (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="spwin" data-ui1="win" aria-label="Opna í nýjum glugga" title="Opna í nýjum glugga (⌘/Ctrl-smellur á línu)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v11"/></svg></button><button type="button" class="spexp" data-ui1="exp" aria-label="${full ? "Minnka" : "Stækka"} glugga" title="${full ? "Minnka" : "Stækka"}">${full ? COL : EXP}</button>${det}` : `<div class="spempty">Veldu atriði úr listanum</div>`}</section>`) + `</div>`;
     // Sía efst í listanum (síar línur og spjöld eftir texta)
     const sl = v.querySelector(".splist"), ph = sl.querySelector(".phead");
     // Síuflipar inn í gráa hausinn (eins og á útlitsborðinu) og flýtilyklar neðst
@@ -324,6 +326,10 @@
   window.render = renderI; try { render = renderI; } catch (e) {}
 
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="exp"]'); if (!b) return; full = !full; render(); });
+  // Loka spjaldi: listinn fer aftur yfir allan skjáinn
+  const closeDet = () => { DETAIL = null; full = false; render(); };
+  document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="close"]'); if (!b) return; closeDet(); });
+  document.addEventListener("keydown", e => { if (e.key !== "Escape" || !DETAIL || !document.body.classList.contains("hassplit") || !document.querySelector(".split .spdet") || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) return; const sw = document.getElementById("sheetwrap"); if (sw && !sw.hidden) return; if (document.querySelector("dialog[open], .modal.open")) return; e.preventDefault(); closeDet(); });
   // Flýtilyklar í listum: ↑↓ fletta, Enter opna, N nýtt
   document.addEventListener("keydown", e => {
     if (!document.body.classList.contains("hassplit") || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") || e.metaKey || e.ctrlKey || e.altKey) return; const sw = document.getElementById("sheetwrap"); if (sw && !sw.hidden) return;

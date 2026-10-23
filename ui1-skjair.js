@@ -74,7 +74,11 @@
     const hd = `<div class="ucols uf"><span></span><span>Dags.</span><span>Lýsing · Verkefni</span><span>Magn</span><span class="r">Tegund</span></div>`;
     const body = rows.map(r => { const key = r.k + ":" + r.id, on = st.sel.has(key), x = d(r.date);
       return `<div class="urow uf${on ? " sel" : ""}" ${tapAttr(r.k, r.id)}><button type="button" class="ubox${on ? " on" : ""}" data-act="u1sel:${E(key)}" aria-label="Velja">${on ? "✓" : ""}</button><span class="m">${x ? x.getDate() + ". " + MNs[x.getMonth()] : ""}</span><span class="t">${E(r.lys)}<span class="m"> · ${E(r.p?.nr || "Innra")}</span></span><span class="m">${E(r.mag)}</span><span class="r">${pill(r.teg)}</span></div>`; }).join("") || `<div class="uempty">Engar færslur.</div>`;
-    return lhead("Tímar", "Færslur", nb) + `<div class="ulbar">${chips([["", "Allt"], ["Tími", "Tímar"], ["Kostnaður", "Kostnaður"], ["Akstur", "Akstur"], ["Innra", "Innra"]], st.ff, "u1ff")}</div>` + bar + hd + body;
+    const top = lhead("Tímar", "Færslur", nb) + `<div class="ulbar">${chips([["", "Allt"], ["Tími", "Tímar"], ["Kostnaður", "Kostnaður"], ["Akstur", "Akstur"], ["Innra", "Innra"]], st.ff, "u1ff")}</div>` + bar;
+    if (WIDE()) return top + wl("18px 96px minmax(0,1.6fr) minmax(0,1.2fr) minmax(0,1fr) 96px 100px", wcols(["", "Dags.", "Lýsing", "Verkefni", "Starfsmaður", "Magn", "Tegund"])
+      + (rows.map(r => { const key = r.k + ":" + r.id, on = st.sel.has(key), x = d(r.date);
+        return `<div class="urow${on ? " sel" : ""}" ${tapAttr(r.k, r.id)}><button type="button" class="ubox${on ? " on" : ""}" data-act="u1sel:${E(key)}" aria-label="Velja">${on ? "✓" : ""}</button>${wc(x ? dateIS(x) : "")}${wc(E(r.lys), "t")}${wc(E(r.p ? r.p.nr + " " + (r.p.stutt || "") : "Innra"))}${wc(E(r.e?.starfsmadur ? starfName(r.e.starfsmadur) : ""))}${wc(E(r.mag))}${wc(pill(r.teg), "r")}</div>`; }).join("") || `<div class="uempty">Engar færslur.</div>`));
+    return top + hd + body;
   };
 
   /* ---------- Tímar › Skýrslur ---------- */
@@ -129,6 +133,16 @@
   const row = (key, a, b, c, dd, s, dark, extra = "") => `<div class="urow" ${key}><span class="m">${a}</span><span class="t">${b}${c ? `<span class="m"> · ${c}</span>` : ""}</span><span class="m">${dd}</span><span class="r">${s ? pill(s, dark) : ""}</span>${extra}</div>`;
   const cols = (a, b, c, dd) => `<div class="ucols"><span>${a}</span><span>${b}</span><span>${c}</span><span class="r">${dd}</span></div>`;
   const grpH = l => `<div class="ugrp">${E(l)}</div>`;
+  // Breiður listi (2.36.0): þegar ekkert er valið nær listinn yfir allan skjáinn og sýnir fleiri dálka
+  const WIDE = () => !!window.u1Wide;
+  const wl = (g, inner) => `<div class="uwl" style="--g:${g}">${inner}</div>`;
+  const wcols = hs => `<div class="ucols">${hs.map((h, i) => `<span${i === hs.length - 1 ? ' class="r"' : ""}>${h}</span>`).join("")}</div>`;
+  const wc = (x, cl = "m") => `<span class="${cl}">${x == null ? "" : x}</span>`;
+  const wrow = (key, cells) => `<div class="urow" ${key}>${cells.join("")}</div>`;
+  const rng2 = T => { const a = T.fra ? dateIS(d(T.fra)) : "", b = T.til && T.til !== T.fra ? dateIS(d(T.til)) : ""; return a + (b ? " – " + b : ""); };
+  const fjL = T => (T.linur || []).length;
+  const totK = T => { try { return window.tbTotals ? kr(tbTotals(T).tot) : ""; } catch (e) { return ""; } };
+  const pnr = id => { const p = id ? findProj(id) : null; return p ? p.nr : ""; };
   const nbtn = l => `<button type="button" class="btn primary" data-act="fabnew">+ ${E(l)}</button>`;
   st.vf = { verk: "gangi", lverk: "gangi", sverk: "gangi" };
   const mineP = p => (p.starfsfolk || p.starfsmenn || []).some(x => (x.sk || x) === ME()) || (window.projStaff && projStaff(p).some(x => (x.sk || x) === ME()));
@@ -138,7 +152,10 @@
     const xs = all.filter(p => SQ() || (!fv || (p.thjonusta || []).includes(fv)) && (f === "lokid" ? isDone(p) : !isDone(p) && (f !== "min" || mineP(p)))).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const n = all.filter(p => !isDone(p)).length, nm = all.filter(p => !isDone(p) && mineP(p)).length;
     const flSel = fls.length ? `<label class="uflsel"><select onchange="doAct('u1vf:${key}V:'+this.value)" aria-label="Verkflokkur"><option value="">Allir verkflokkar</option>${fls.map(x => `<option${x === fv ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label>` : "";
-    return lhead("Verkefni", title, nbtn("Verkefni")) + `<div class="ulbar">${chips([["gangi", "Í gangi · " + n], ["min", "Mín · " + nm], ["lokid", "Lokið"]], f, "u1vf:" + key)}${flSel}</div>`
+    const top = lhead("Verkefni", title, nbtn("Verkefni")) + `<div class="ulbar">${chips([["gangi", "Í gangi · " + n], ["min", "Mín · " + nm], ["lokid", "Lokið"]], f, "u1vf:" + key)}${flSel}</div>`;
+    if (WIDE()) return top + wl("80px minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) 120px 130px 90px 110px", wcols(["Nr.", "Heiti", "Viðskiptavinur", vfl ? "Verkflokkur" : "Svið", "Starfsfólk", "Tímar", "Skil", "Staða"])
+      + (xs.map(p => wrow(tapAttr("verk", p.id), [wc(E(p.nr)), wc(E(p.stutt || p.nafn || ""), "t"), wc(E(p.vidskiptavinur || "")), wc(E(vfl ? (p.thjonusta || []).join(", ") : svidOf(p).join(", "))), wc(E((p.starfsmenn || []).map(x => x.sk || x).join(", "))), wc(E(H(+p.timar || 0) + (+p.aklst ? " / " + H(+p.aklst) : "") + " klst.")), wc(E(relD(p.skiladagur))), wc(pill(p.stada), "r")])).join("") || `<div class="uempty">Engin verkefni.</div>`));
+    return top
       + cols("Nr.", vfl ? "Heiti · Verkflokkur" : "Heiti · Viðskiptavinur", "Skil", "Staða")
       + (xs.map(p => row(tapAttr("verk", p.id), E(p.nr), E(p.stutt || p.nafn || ""), E(vfl ? ((p.thjonusta || []).join(", ") || p.vidskiptavinur || "") : (p.vidskiptavinur || "")), E(relD(p.skiladagur)), p.stada, false)).join("") || `<div class="uempty">Engin verkefni.</div>`);
   }
@@ -153,7 +170,12 @@
     let h = "", last = "";
     xs.forEach(v => { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } const n = cnt(v);
       h += `<div class="urow uv" ${tapAttr("vsk", v.id)}><span class="t">${E(v.name || "")}${v.tengilidur ? `<span class="m"> · ${E(v.tengilidur)}</span>` : ""}</span><span class="m">${n ? n + " verkefni" : ""}</span><span class="r">${pill(n ? "Í gangi" : "Óvirkur")}</span></div>`; });
-    return lhead("", "Viðskiptavinir", nbtn("Viðskiptavinur")) + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"]], f, "u1vf:vsk")}</div>`
+    const top = lhead("", "Viðskiptavinir", nbtn("Viðskiptavinur")) + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"]], f, "u1vf:vsk")}</div>`;
+    if (WIDE()) { let w = ""; last = "";
+      xs.forEach(v => { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { w += grpH(l); last = l; } const n = cnt(v);
+        w += wrow(tapAttr("vsk", v.id), [wc(E(v.name || ""), "t"), wc(E(v.tengilidur || "")), wc(E(v.simiT || v.simi || "")), wc(E(v.netfangT || v.netfang || "")), wc(E(v.kennitala || "")), wc(n ? n + " verkefni" : ""), wc(pill(n ? "Í gangi" : "Óvirkur"), "r")]); });
+      return top + wl("minmax(0,1.4fr) minmax(0,1fr) 110px minmax(0,1.3fr) 110px 96px 96px", wcols(["Heiti", "Tengiliður", "Sími", "Netfang", "Kennitala", "Verkefni", "Staða"]) + (w || `<div class="uempty">Engir viðskiptavinir.</div>`)); }
+    return top
       + `<div class="ucols uv"><span>Heiti · Tengiliður</span><span>Verkefni</span><span class="r">Staða</span></div>` + (h || `<div class="uempty">Engir viðskiptavinir.</div>`);
   };
   // Tilboð eftir sviði
@@ -162,7 +184,10 @@
     const all = api.TB().filter(T => !teg || (T.linur || []).some(l => l.teg === teg)), f = st.vf[key] || "opin";
     const xs = all.filter(T => SQ() || (f === "opin" ? ["Drög", "Sent"].includes(T.stada) : f === "samth" ? T.stada === "Samþykkt" : true)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const no = all.filter(T => ["Drög", "Sent"].includes(T.stada)).length, ns = all.filter(T => T.stada === "Samþykkt").length;
-    return lhead("Tilboð", title, nbtn("Tilboð")) + `<div class="ulbar">${chips([["opin", "Opin · " + no], ["samth", "Samþykkt · " + ns], ["allt", "Allar stöður"]], f, "u1vf:" + key)}</div>`
+    const top = lhead("Tilboð", title, nbtn("Tilboð")) + `<div class="ulbar">${chips([["opin", "Opin · " + no], ["samth", "Samþykkt · " + ns], ["allt", "Allar stöður"]], f, "u1vf:" + key)}</div>`;
+    if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 56px 120px 104px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Línur", "Upphæð m. vsk", "Staða"])
+      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc(E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(fjL(T)), wc(E(totK(T))), wc(pill(T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
+    return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Dags.", "Staða")
       + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E(T.vidskiptavinur || ""), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
   }
@@ -174,7 +199,10 @@
     const api = window.salaAPI; if (!api) return "";
     const all = api.PN().filter(P => !teg || (P.linur || []).some(l => l.teg === teg)), f = st.vf.pn || "opnar", OP = ["Ný", "Staðfest"];
     const xs = all.filter(P => SQ() || (f === "opnar" ? OP.includes(P.stada) : f === "afh" ? P.stada === "Afhent" : ["Skilað", "Lokið"].includes(P.stada))).sort((a, b) => String(a.fra || "").localeCompare(String(b.fra || "")));
-    return lhead("Pantanir", title, nbtn("Pöntun")) + `<div class="ulbar">${chips([["opnar", "Opnar · " + all.filter(P => OP.includes(P.stada)).length], ["afh", "Afhentar · " + all.filter(P => P.stada === "Afhent").length], ["lokid", "Lokið"]], f, "u1vf:pn")}</div>`
+    const top = lhead("Pantanir", title, nbtn("Pöntun")) + `<div class="ulbar">${chips([["opnar", "Opnar · " + all.filter(P => OP.includes(P.stada)).length], ["afh", "Afhentar · " + all.filter(P => P.stada === "Afhent").length], ["lokid", "Lokið"]], f, "u1vf:pn")}</div>`;
+    if (WIDE()) return top + wl("80px minmax(0,1.3fr) minmax(0,1fr) 84px 100px 100px 56px 120px 100px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Afhending", "Skil", "Línur", "Upphæð m. vsk", "Staða"])
+      + (xs.map(P => wrow(tapAttr("tb", P.id), [wc(E(P.nr || "")), wc(E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun"), "t"), wc(E(P.vidskiptavinur || P.tengilidur || "")), wc(E(pnr(P.verkefniId))), wc(E(P.fra ? dateIS(d(P.fra)) : "")), wc(E(P.til ? dateIS(d(P.til)) : "")), wc(fjL(P)), wc(E(totK(P))), wc(pill(P.stada, P.stada === "Ný"), "r")])).join("") || `<div class="uempty">Engar pantanir.</div>`));
+    return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Afhending", "Staða")
       + (xs.map(P => row(tapAttr("tb", P.id), E(P.nr || ""), E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""), E(P.vidskiptavinur || P.tengilidur || ""), E(relD(P.fra)), P.stada, P.stada === "Ný")).join("") || `<div class="uempty">Engar pantanir.</div>`);
   };  U.pantanir = pnList("Allar", ""); U.pnl = pnList("Leiga", "leiga"); U.pns = pnList("Sala", "sala"); U.pnt = pnList("Þjónusta", "vinna");
@@ -188,9 +216,13 @@
     let h = "", last = "";
     xs.forEach(v => { const g = v.tegund === "pakki" ? "Pakkar" : (String(v.nr || "").split("-")[0] || "–") + (v.flokkur ? " · " + v.flokkur : ""); if (g !== last) { h += grpH(g); last = g; }
       const tot = +v.fjoldi || 0, free = v.tegund === "pakki" ? "" : Math.max(0, tot - u1Ovirk(v) - (api.upptekid(v.id, iso, iso).max || 0));
+      if (WIDE()) { const ov = v.tegund === "pakki" ? "" : u1Ovirk(v), nx = api.TB().filter(T => T.fra && T.fra >= iso && !["Hafnað", "Skilað", "Lokið"].includes(T.stada) && (T.linur || []).some(l => String(l.v) === String(v.id))).sort((a, b) => String(a.fra).localeCompare(String(b.fra)))[0];
+        h += wrow(tapAttr("vara", v.id), [wc(E(v.nr || "")), wc(E(v.heiti || "") + (u1OpinSkemmd(v) ? ' <i class="udot" title="Þarf skoðun"></i>' : ""), "t"), wc(E(v.tegund === "pakki" ? "Pakki" : v.flokkur || "")), wc(v.tegund === "pakki" ? "" : tot), free === "" ? "<span></span>" : freeCol(free, tot), wc(ov ? `<span class="red">${ov}</span>` : ov === 0 ? "0" : ""), wc(E(nx ? dateIS(d(nx.fra)) + " · " + (nx.nr || "") : "")), wc(pill(kr(v.leiguverd)), "r")]); return; }
       h += `<div class="urow ul" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${u1OpinSkemmd(v) ? ' <i class="udot" title="Þarf skoðun"></i>' : ""}${v.flokkur ? `<span class="m"> · ${E(v.flokkur)}</span>` : ""}</span><span class="m">${v.tegund === "pakki" ? "" : tot}</span>${free === "" ? "<span></span>" : freeCol(free, tot)}<span class="r">${pill(kr(v.leiguverd))}</span></div>`; });
     const flSel = (key, cur, list) => `<label class="uflsel"><select onchange="doAct('u1vf:${key}:'+this.value)" aria-label="Flokkur"><option value="">Allir flokkar</option>${list.map(x => `<option${x === cur ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label>`;
-    return lhead("Vörulisti", "Leiga", nbtn("Búnaður")) + `<div class="ulbar">${chips([["", "Allt · " + allL.length], ["bunadur", "Búnaður"], ["pakki", "Pakkar"]], f, "u1vf:lvorur")}${flSel("lvorurF", fk, fls)}</div><div class="ucols ul"><span>Vnr.</span><span>Heiti · Flokkur</span><span>Magn</span><span>Laust</span><span class="r">Verð/dag</span></div>` + (h || `<div class="uempty">Enginn leigubúnaður.</div>`);
+    const top = lhead("Vörulisti", "Leiga", nbtn("Búnaður")) + `<div class="ulbar">${chips([["", "Allt · " + allL.length], ["bunadur", "Búnaður"], ["pakki", "Pakkar"]], f, "u1vf:lvorur")}${flSel("lvorurF", fk, fls)}</div>`;
+    if (WIDE()) return top + wl("84px minmax(0,1.5fr) minmax(0,1fr) 64px 64px 84px 150px 110px", wcols(["Vnr.", "Heiti", "Flokkur", "Magn", "Laust", "Í viðgerð", "Næst í útleigu", "Verð/dag"]) + (h || `<div class="uempty">Enginn leigubúnaður.</div>`));
+    return top + `<div class="ucols ul"><span>Vnr.</span><span>Heiti · Flokkur</span><span>Magn</span><span>Laust</span><span class="r">Verð/dag</span></div>` + (h || `<div class="uempty">Enginn leigubúnaður.</div>`);
   };
   U.svorur = function () {
     const api = window.salaAPI; if (!api) return "";
@@ -199,9 +231,12 @@
     const xs = allS.filter(v => SQ() || (!sf || low0(v)) && (!sk || v.flokkur === sk)).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
     let h = "", last = "";
     xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; } const tot = +v.fjoldi || 0, free = Math.max(0, tot - (fr[v.id] || 0)), low = tot <= (+v.lagmark || 2);
+      if (WIDE()) { h += wrow(tapAttr("vara", v.id), [wc(E(v.nr || "")), wc(E(v.heiti || "") + (low ? ' <i class="udot" title="Lítið á lager"></i>' : ""), "t"), wc(E(v.flokkur || "")), wc(tot), low ? `<span class="ufree red" style="font-weight:600">${free}</span>` : freeCol(free, tot), wc(fr[v.id] || ""), wc(+v.lagmark || 2), wc(E(v.innkaupsverd ? kr(v.innkaupsverd) : "")), wc(pill(kr(v.soluverd)), "r")]); return; }
       h += `<div class="urow ul" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${low ? ' <i class="udot" title="Lítið á lager"></i>' : ""}</span><span class="m">${tot}</span>${low ? `<span class="ufree red" style="font-weight:600">${free}</span>` : freeCol(free, tot)}<span class="r">${pill(kr(v.soluverd))}</span></div>`; });
     const fls = [...new Set(allS.map(v => v.flokkur).filter(Boolean))].sort((a, b) => a.localeCompare(b, "is"));
-    return lhead("Vörulisti", "Sala", nbtn("Vara")) + `<div class="ulbar">${chips([["", "Allar · " + allS.length], ["low", "Undir lágmarki · " + allS.filter(low0).length]], sf, "u1vf:svorur")}<label class="uflsel"><select onchange="doAct('u1vf:svorurF:'+this.value)" aria-label="Flokkur"><option value="">Allir flokkar</option>${fls.map(x => `<option${x === sk ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label></div><div class="ucols ul"><span>Vnr.</span><span>Heiti</span><span>Lager</span><span>Laust</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engar söluvörur.</div>`);
+    const top = lhead("Vörulisti", "Sala", nbtn("Vara")) + `<div class="ulbar">${chips([["", "Allar · " + allS.length], ["low", "Undir lágmarki · " + allS.filter(low0).length]], sf, "u1vf:svorur")}<label class="uflsel"><select onchange="doAct('u1vf:svorurF:'+this.value)" aria-label="Flokkur"><option value="">Allir flokkar</option>${fls.map(x => `<option${x === sk ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label></div>`;
+    if (WIDE()) return top + wl("84px minmax(0,1.5fr) minmax(0,1fr) 64px 64px 84px 76px 120px 110px", wcols(["Vnr.", "Heiti", "Flokkur", "Lager", "Laust", "Í tilboðum", "Lágmark", "Innkaupsverð", "Verð"]) + (h || `<div class="uempty">Engar söluvörur.</div>`));
+    return top + `<div class="ucols ul"><span>Vnr.</span><span>Heiti</span><span>Lager</span><span>Laust</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engar söluvörur.</div>`);
   };
 
   /* ---------- Vörulisti › Þjónusta (vinna og tæknifólk): enginn lager, ekkert dagatal ---------- */
@@ -211,8 +246,11 @@
     const xs = all.filter(v => SQ() || !f || (v.flokkur || "Annað") === f).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
     let h = "", last = "";
     xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; }
+      if (WIDE()) { h += wrow(tapAttr("vara", v.id), [wc(E(v.nr || "")), wc(E(v.heiti || ""), "t"), wc(E(v.flokkur || "")), wc(E(v.lysing || "")), wc(E(v.eining || "")), wc(pill(kr(v.soluverd || v.leiguverd)), "r")]); return; }
       h += `<div class="urow uv3" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${v.flokkur ? `<span class="m"> · ${E(v.flokkur)}</span>` : ""}</span><span class="m">${E(v.eining || "")}</span><span class="r">${pill(kr(v.soluverd || v.leiguverd))}</span></div>`; });
-    return lhead("Vörulisti", "Þjónusta", nbtn("Þjónusta")) + `<div class="ulbar">${chips([["", "Allar · " + all.length], ...fl.map(x => [x, x])], f, "u1vf:vvinna")}</div>`
+    const top = lhead("Vörulisti", "Þjónusta", nbtn("Þjónusta")) + `<div class="ulbar">${chips([["", "Allar · " + all.length], ...fl.map(x => [x, x])], f, "u1vf:vvinna")}</div>`;
+    if (WIDE()) return top + wl("84px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.5fr) 90px 110px", wcols(["Vnr.", "Heiti", "Flokkur", "Lýsing", "Eining", "Verð"]) + (h || `<div class="uempty">Engin þjónusta skráð.</div>`));
+    return top
       + `<div class="ucols uv3"><span>Vnr.</span><span>Heiti · Flokkur</span><span>Eining</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engin þjónusta skráð.</div>`);
   };
   window.u1VinnaYfir = function (v) {
@@ -663,7 +701,11 @@
     const all = (S?.fundir || []).slice(), now = isoD(today), f = st.vf.fundir || "fram";
     const fram = all.filter(m => String(m.date).slice(0, 10) >= now), lidnir = all.filter(m => String(m.date).slice(0, 10) < now), endur = all.filter(m => m.seria);
     const xs = SQ() ? all.sort((a, b) => String(b.date).localeCompare(String(a.date))) : (f === "fram" ? fram.sort((a, b) => String(a.date).localeCompare(String(b.date))) : f === "lidnir" ? lidnir.sort((a, b) => String(b.date).localeCompare(String(a.date))) : endur);
-    return lhead("Dagatal", "Fundir", nbtn("Fundur")) + `<div class="ulbar">${chips([["fram", "Framundan · " + fram.length], ["lidnir", "Liðnir · " + lidnir.length], ["endur", "Endurteknir" + (endur.length ? " · " + endur.length : "")]], f, "u1vf:fundir")}</div>`
+    const top = lhead("Dagatal", "Fundir", nbtn("Fundur")) + `<div class="ulbar">${chips([["fram", "Framundan · " + fram.length], ["lidnir", "Liðnir · " + lidnir.length], ["endur", "Endurteknir" + (endur.length ? " · " + endur.length : "")]], f, "u1vf:fundir")}</div>`;
+    if (WIDE()) return top + wl("110px 64px minmax(0,1.4fr) minmax(0,1.2fr) minmax(0,1fr) 84px 104px", wcols(["Dags.", "Kl.", "Fundur", "Verkefni", "Staðsetning", "Fundargerð", "Staða"])
+      + (xs.map(m => { const p = m.projectId ? findProj(m.projectId) : null, n = daysTo(m.date);
+        return wrow(tapAttr("fund", m.id), [wc(E(fmtD(m.date))), wc(E(hhmm(m.date) || "")), wc(E(m.name || "Fundur"), "t"), wc(E(p ? p.nr + " " + (p.stutt || "") : "")), wc(E(m.stadsetning || (m.fundarhlekkur ? "Fjarfundur" : ""))), wc(m.fundargerd ? "Já" : ""), wc(pill(n === 0 ? "Í dag" : n > 0 ? "Framundan" : "Liðinn", n === 0), "r")]); }).join("") || `<div class="uempty">Engir fundir.</div>`));
+    return top
       + `<div class="ucols uf5"><span>Dags.</span><span>Fundur</span><span>Verkefni</span><span>Kl.</span><span class="r"></span></div>`
       + (xs.map(m => { const p = m.projectId ? findProj(m.projectId) : null, n = daysTo(m.date);
         return `<div class="urow uf5" ${tapAttr("fund", m.id)}><span class="m">${E(fmtD(m.date))}</span><span class="t">${E(m.name || "Fundur")}</span><span class="m">${E(p?.nr || m.stadsetning || "")}</span><span class="m">${E(hhmm(m.date) || "")}</span><span class="r">${pill(n === 0 ? "Í dag" : n > 0 ? "Framundan" : "Liðinn", n === 0)}</span></div>`; }).join("") || `<div class="uempty">Engir fundir.</div>`);
@@ -678,7 +720,16 @@
     const rowU = x => `<div class="urow uf5" ${tapAttr("verk", x.p.id)}><span class="m">Óreikn.</span><span class="t">${E(x.p.nr)} ${E(x.p.stutt || "")}</span><span class="m">${H(x.h)} klst.</span><span class="m"></span><span class="r">${E(kr(x.kr))}</span></div>`;
     const rowR = r => { const p = findProj(r.verkefniId), late = r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0;
       return `<div class="urow uf5" ${tapAttr("reikn", r.id)}><span class="m">${E(String(r.nr).padStart(3, "0"))}</span><span class="t">${E(r.kaupandi?.name || "")}${late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""}</span><span class="m">${E(p?.nr || "")}</span><span class="m">${E(String(r.dags || "").slice(5).split("-").reverse().join("."))}</span><span class="r">${E(kr(r.tot))}</span></div>`; };
-    return lhead("", "Reikningar", nbtn("Reikningur").replace('data-act="fabnew"', 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length]], f, "u1vf:trk")}</div>`
+    const top = lhead("", "Reikningar", nbtn("Reikningur").replace('data-act="fabnew"', 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length]], f, "u1vf:trk")}</div>`;
+    if (WIDE()) { const dI = x => x ? dateIS(d(x)) : "";
+      const wU = x => wrow(tapAttr("verk", x.p.id), [wc("Óreikn."), wc(E(x.p.vidskiptavinur || ""), "t"), wc(E(x.p.nr + " " + (x.p.stutt || ""))), wc(E(H(x.h) + " klst.")), wc(""), wc(pill("Óreikningsfært")), wc(E(kr(x.kr)), "r")]);
+      const wR = r => { const p = findProj(r.verkefniId), late = r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0;
+        return wrow(tapAttr("reikn", r.id), [wc(E(String(r.nr).padStart(3, "0"))), wc(E(r.kaupandi?.name || "") + (late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""), "t"), wc(E(p ? p.nr + " " + (p.stutt || "") : "")), wc(E(dI(r.dags))), wc(`<span class="${late ? "red" : ""}">${E(dI(r.gjalddagi))}</span>`), wc(pill(late ? "Fram yfir" : r.stada || "", late)), wc(E(kr(r.tot)), "r")]); };
+      return top + wl("80px minmax(0,1.3fr) minmax(0,1.3fr) 110px 110px 120px 120px", wcols(["Nr.", "Kaupandi", "Verkefni", "Dags.", "Gjalddagi", "Staða", "Upphæð"])
+        + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(wU).join("") : "")
+        + (rs.length ? (f === "allt" ? grpH("Ógreiddir reikningar") : "") + rs.sort((a, b) => b.nr - a.nr).map(wR).join("") : "")
+        + (!(showU && ub.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "")); }
+    return top
       + `<div class="ucols uf5"><span>Nr.</span><span>Heiti</span><span>Verk / klst.</span><span>Dags.</span><span class="r">Upphæð</span></div>`
       + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(rowU).join("") : "")
       + (rs.length ? (f === "allt" ? grpH("Ógreiddir reikningar") : "") + rs.sort((a, b) => b.nr - a.nr).map(rowR).join("") : "")

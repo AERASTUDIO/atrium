@@ -1178,3 +1178,20 @@ body.pv.ui1 .splist .spfilt input{display:block!important}
 /* 2.35.0: leit í öllum stöðum */
 body.pv.ui1 .splist.srch .phead .ulbar{opacity:.4;pointer-events:none}
 body.pv.ui1 .srchnote{margin:-2px 16px 6px;font-size:12px;color:var(--muted)}
+/* 2.36.0 – Breiður listi þegar ekkert er valið: listinn yfir allan skjáinn, spjald birtist við val */
+body.pv.ui1 .split.nodet{grid-template-columns:minmax(0,1fr)!important}
+body.pv.ui1 .split.nodet .splist{border-right:0}
+body.pv.ui1 .split.nodet .splist .phead,body.pv.ui1 .split.nodet .splist>.srchnote{padding-inline:32px}
+body.pv.ui1 .split.nodet .splist .spfilt{margin:14px 32px 8px!important;max-width:520px}
+body.pv.ui1 .split.nodet .urow,body.pv.ui1 .split.nodet .ucols,body.pv.ui1 .split.nodet .ugrp{padding-inline:32px}
+body.pv.ui1 .uwl .urow,body.pv.ui1 .uwl .ucols{grid-template-columns:var(--g)!important;gap:16px}
+body.pv.ui1 .uwl .urow>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.pv.ui1 .uwl .urow .t{font-weight:500;color:var(--ink)}
+body.pv.ui1 .uwl .ucols>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.pv.ui1 .uwl .red{color:#C62828}
+body.pv.ui1 .spx{position:absolute;top:18px;right:20px;z-index:5;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+body.pv.ui1 .spx:hover{color:var(--ink)}
+body.pv.ui1 .spdet .spexp{right:62px!important}
+body.pv.ui1 .spwin{right:104px!important}
+body.pv.ui1 .udh2 .uact{padding-right:138px}
+@container (max-width:760px){body.pv.ui1 .udh2 .udl{padding-right:138px}}
