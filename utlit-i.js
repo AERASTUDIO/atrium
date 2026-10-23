@@ -119,6 +119,33 @@
       if (nav) { const by = k => nav.querySelector(`[data-act="dtab:${k}"]`); const f = by("fundir"); if (f) { const nth = (S?.thraedir || []).filter(t => t.verkefniId === p?.id).length + (S?.postar || []).filter(t => t.verkefniId === p?.id).length, dc = f.querySelector(".dc"), nf = +(dc?.textContent || 0); f.firstChild.textContent = "Samskipti "; if (dc) dc.textContent = nf + nth; else if (nth) f.insertAdjacentHTML("beforeend", `<span class="dc">${nth}</span>`); }
         ["yfirlit", "undir", "fundir", "tilbod", "timar", "skrar", "stillingar"].map(by).filter(Boolean).forEach(b => nav.append(b)); }
     }
+    if (kind === "tb" && window.salaAPI) {
+      const api = salaAPI, T = [...api.TB(), ...api.PN()].find(x => String(x.id) === id);
+      if (T) {
+        const sup = kick?.querySelector(".kind")?.textContent.trim(); if (sup) hd.querySelector(".spsup").textContent = sup;
+        const ed = el.querySelector('[data-act^="tbed:start"]'), pv = el.querySelector('[data-act^="tbpdf:pv"]');
+        if (ed) { ed.classList.remove("primary"); act.append(ed); } if (pv) { pv.textContent = "PDF"; act.append(pv); }
+        const fs = el.querySelector(".fsels"), sel = fs?.querySelector("select");
+        if (sel) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(sel); act.append(w); const kd = fs.previousElementSibling; if (kd?.matches(".kind")) kd.remove(); fs.remove(); }
+        const L = T.linur || [], has = t => L.some(l => l.teg === t), sv = [has("leiga") && "Leiga", has("sala") && "Sala", has("vinna") && "Þjónusta"].filter(Boolean);
+        if (sv.length) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}</div>`);
+        const tt = api.totals(T) || {}, isP = !!T.pontun;
+        let av = "–", avL = "Búnaður";
+        if (has("leiga")) { let miss = 0; L.filter(l => l.teg === "leiga").forEach(l => { const v = api.VR().find(x => String(x.id) === String(l.v)); if (!v || v.tegund === "pakki") return; const cap = (+v.fjoldi || 0) - (window.u1Ovirk ? u1Ovirk(v) : 0), oth = api.upptekid(v.id, T.fra, T.til || T.fra, T.id).max || 0; miss += Math.max(0, (+l.magn || 0) - (cap - oth)); }); av = miss ? miss + " vantar" : "allt laust"; }
+        else if (has("sala")) { avL = "Lager"; let miss = 0; L.filter(l => l.teg === "sala").forEach(l => { const v = api.VR().find(x => String(x.id) === String(l.v)); miss += Math.max(0, (+l.magn || 0) - (+v?.fjoldi || 0)); }); av = miss ? miss + " vantar" : "allt á lager"; }
+        else { avL = "Vinna"; av = L.reduce((a, l) => a + (/klst/.test(l.ein || "") ? +l.magn || 0 : 0), 0).toLocaleString("de-DE") + " klst."; }
+        const dd = x => x ? String(x).slice(0, 10).split("-").reverse().map((v, i) => i < 2 ? +v : v).slice(0, 2).join(".") + "." : "–";
+        const kp = (a, b) => `<div class="ukp"><small>${esc(a)}</small><b>${esc(b)}</b></div>`;
+        const kpis = `<div class="ukps">${kp("Samtals án VSK", (Math.round(tt.net || 0)).toLocaleString("de-DE") + " kr.")}${isP ? kp("Afhending", dd(T.fra)) : kp("Gildir til", dd(T.gildir))}${kp(avL, av)}</div>`;
+        const tab = el.querySelector(".tbtab");
+        if (tab) { const tv = el.querySelector(".viewtitle"); const rows = L.map(l => { const dg = l.teg === "leiga" ? (+l.dagar || (T.fra ? Math.max(1, Math.round((new Date(T.til || T.fra) - new Date(T.fra)) / 864e5) + 1) : "")) : ""; return `<div class="utbr"><span>${esc(l.heiti || "")}</span><span>${esc(String(l.magn ?? ""))}${l.ein && l.ein !== "stk." ? " " + esc(l.ein) : ""}</span><span>${dg || ""}</span><span>${(Math.round(api.lSum(l, T) || 0)).toLocaleString("de-DE")} kr.</span></div>`; }).join("");
+          tab.outerHTML = `<div class="utb"><div class="utbr h"><span>Lína</span><span>Magn</span><span>Dagar</span><span>Upphæð</span></div>${rows}</div>`; if (tv) tv.remove(); }
+        const lk = [...el.querySelectorAll(".links")]; const bottom = lk.find(x => x.querySelector('[data-act^="tbutg:"],[data-act^="tbverk:"],[data-act^="tbdel:"]'));
+        const dl = lk.find(x => x.querySelector('[data-act^="tbpdf:dl"]')); if (dl && bottom) { bottom.prepend(...dl.querySelectorAll("button")); dl.remove(); }
+        const sumc = el.querySelector(".rksum"); if (bottom && sumc) sumc.after(bottom);
+        hd._top = kpis;
+      }
+    }
     if (kind === "vara" && window.u1VaraTop) {
       const top = u1VaraTop(id);
       if (top) {
@@ -131,7 +158,7 @@
       }
     }
     (kick || h).before(hd); kick?.remove(); h.remove(); sub?.remove();
-    if (hd._top) hd.insertAdjacentHTML("afterend", hd._top);
+    if (hd._top) { const sb = hd.nextElementSibling?.matches?.("p.sub") ? hd.nextElementSibling : hd; sb.insertAdjacentHTML("afterend", hd._top); }
   }
   function applyFilt(sl) {
     const q = fold(flt.trim()); const items = sl.querySelectorAll(".card,.lrow,.vrow,.row,.item,li,tr");

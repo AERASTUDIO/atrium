@@ -344,6 +344,52 @@
     return `<div class="uvy">${h}</div>`;
   };
 
+  /* ---------- Dagatal › Fundir (dálkalisti) ---------- */
+  U.fundir = function () {
+    const all = (S?.fundir || []).slice(), now = isoD(today), f = st.vf.fundir || "fram";
+    const fram = all.filter(m => String(m.date).slice(0, 10) >= now), lidnir = all.filter(m => String(m.date).slice(0, 10) < now), endur = all.filter(m => m.seria);
+    const xs = (f === "fram" ? fram.sort((a, b) => String(a.date).localeCompare(String(b.date))) : f === "lidnir" ? lidnir.sort((a, b) => String(b.date).localeCompare(String(a.date))) : endur);
+    return lhead("Dagatal", "Fundir", nbtn("Fundur")) + `<div class="ulbar">${chips([["fram", "Framundan · " + fram.length], ["lidnir", "Liðnir · " + lidnir.length], ["endur", "Endurteknir" + (endur.length ? " · " + endur.length : "")]], f, "u1vf:fundir")}</div>`
+      + `<div class="ucols uf5"><span>Dags.</span><span>Fundur</span><span>Verkefni</span><span>Kl.</span><span class="r"></span></div>`
+      + (xs.map(m => { const p = m.projectId ? findProj(m.projectId) : null, n = daysTo(m.date);
+        return `<div class="urow uf5" ${tapAttr("fund", m.id)}><span class="m">${E(fmtD(m.date))}</span><span class="t">${E(m.name || "Fundur")}</span><span class="m">${E(p?.nr || m.stadsetning || "")}</span><span class="m">${E(hhmm(m.date) || "")}</span><span class="r">${pill(n === 0 ? "Í dag" : n > 0 ? "Framundan" : "Liðinn", n === 0)}</span></div>`; }).join("") || `<div class="uempty">Engir fundir.</div>`);
+  };
+  /* ---------- Reikningar (dálkalisti: óreikningsfært + reikningar) ---------- */
+  U.trk = function () {
+    const f = st.vf.trk || "allt", R = (S?.reikningar || []).filter(r => r.stada !== "Ógilt");
+    const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
+    const og = R.filter(r => r.stada !== "Greitt"), gr = R.filter(r => r.stada === "Greitt");
+    const tot = ub.reduce((a, x) => a + x.kr, 0) + og.reduce((a, r) => a + (+r.tot || 0), 0), mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
+    const showU = f === "allt" || f === "oreikn", rs = f === "ogr" ? og : f === "gr" ? gr : f === "allt" ? og : [];
+    const rowU = x => `<div class="urow uf5" ${tapAttr("verk", x.p.id)}><span class="m">Óreikn.</span><span class="t">${E(x.p.nr)} ${E(x.p.stutt || "")}</span><span class="m">${H(x.h)} klst.</span><span class="m"></span><span class="r">${E(kr(x.kr))}</span></div>`;
+    const rowR = r => { const p = findProj(r.verkefniId), late = r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0;
+      return `<div class="urow uf5" ${tapAttr("reikn", r.id)}><span class="m">${E(String(r.nr).padStart(3, "0"))}</span><span class="t">${E(r.kaupandi?.name || "")}${late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""}</span><span class="m">${E(p?.nr || "")}</span><span class="m">${E(String(r.dags || "").slice(5).split("-").reverse().join("."))}</span><span class="r">${E(kr(r.tot))}</span></div>`; };
+    return lhead("", "Reikningar", nbtn("Reikningur").replace('data-act="fabnew"', 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length]], f, "u1vf:trk")}</div>`
+      + `<div class="ucols uf5"><span>Nr.</span><span>Heiti</span><span>Verk / klst.</span><span>Dags.</span><span class="r">Upphæð</span></div>`
+      + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(rowU).join("") : "")
+      + (rs.length ? (f === "allt" ? grpH("Ógreiddir reikningar") : "") + rs.sort((a, b) => b.nr - a.nr).map(rowR).join("") : "")
+      + (!(showU && ub.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "");
+  };
+  /* ---------- Spjall › Samstarfsfólk (listi og spjald hlið við hlið) ---------- */
+  const ini = n => String(n || "").split(/\s+/).map(w => w[0] || "").join("").slice(0, 2).toUpperCase();
+  U.teymi = function () {
+    const us = (window.nuUsers ? nuUsers() : []).filter(u => u.virkur !== false), f = st.vf.teymi || "allir";
+    const xs = us.filter(u => f === "allir" || u.virkur);
+    const sel = xs.find(u => u.email === st.tm) || xs.find(u => u.email !== DB?.email) || xs[0];
+    const RL = { admin: "Admin", starfsmadur: "Starfsmaður", bokari: "Bókari" };
+    const wk = sk => { const a = mondayOf(today); return faerslur().filter(e => (e.starfsmadur || "") === sk && d(e.date) >= a).reduce((s, e) => s + (+e.timar || 0), 0); };
+    const projs = u => verkefni().filter(p => !isDone(p) && (p.starfsmenn || []).some(x => (x.sk || x) === u.sk));
+    const list = lhead("Spjall", "Samstarfsfólk") + `<div class="ulbar">${chips([["allir", "Allir · " + us.length], ["virkir", "Virkir"]], f, "u1vf:teymi")}</div>`
+      + `<div class="ucols ut4"><span></span><span>Nafn</span><span>Hlutverk</span><span class="r">Síðast inni</span></div>`
+      + xs.map(u => `<div class="urow ut4${u === sel ? " on" : ""}" data-act="u1tm:${E(u.email)}" role="button" tabindex="0"><span><span class="mav sm">${E(ini(u.nafn || ""))}</span></span><span class="t">${E(u.nafn || u.email)}${u.email === DB?.email ? '<span class="m"> · þú</span>' : ""}</span><span class="m">${E(RL[u.hlutverk] || u.hlutverk || "")}</span><span class="r m">${E(u.sidast ? fmtD(String(u.sidast).slice(0, 10)) : "")}</span></div>`).join("");
+    let det = `<div class="spempty">Veldu manneskju úr listanum</div>`;
+    if (sel) { const ps = projs(sel), me = sel.email === DB?.email;
+      det = `<div class="udh2"><div class="udl"><div class="spsup">Samstarfsfólk · ${E(RL[sel.hlutverk] || "")}</div><h2 class="ptitle">${E(sel.nafn || "")}</h2><div class="usub">${E(sel.email)}${sel.sidast ? " · síðast inni " + E(fmtD(String(sel.sidast).slice(0, 10))) : ""}</div></div><div class="uact">${me ? "" : `<button type="button" class="btn primary" data-act="spto:${E(sel.email)}">Skilaboð</button><a class="btn" href="https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(sel.email)}" target="_blank" rel="noopener">Teams</a>`}</div></div>`
+        + `<div class="uvy"><div class="ukps"><div class="ukp"><small>Verkefni í gangi</small><b>${ps.length}</b></div><div class="ukp"><small>Klst. í þessari viku</small><b>${H(wk(sel.sk))}</b></div><div class="ukp"><small>Hlutverk</small><b>${E(RL[sel.hlutverk] || "")}</b></div></div>`
+        + `<div class="ush2"><span>Verkefni</span></div>` + (ps.map(p => `<a class="uln" ${tapAttr("verk", p.id)} data-tab="verk"><span>${E(p.nr)} ${E(p.stutt || "")}<small> · ${E(p.vidskiptavinur || "")}</small></span>${pill(p.stada)}</a>`).join("") || `<div class="usub" style="padding:6px 0">Ekki skráð á verkefni.</div>`) + `</div>`; }
+    return `<div class="split ui1own"><div class="splist">${list}</div><div class="spdet"><div class="spdetin">${det}</div></div></div>`;
+  };
+
   /* ---------- Heim: Yfirlit, Óklárað, Framundan, Tilkynningar ---------- */
   const fmtD = w => { const x = d(w); if (!x) return ""; const n = daysTo(w); return n === 0 ? "í dag" : n === 1 ? "á morgun" : n === -1 ? "í gær" : x.getDate() + ". " + MNs[x.getMonth()]; };
   const att = it => it.open ? tapAttr(it.open.split(":")[0], it.open.slice(it.open.indexOf(":") + 1)) : `data-act="${it.act}" role="button" tabindex="0"`;
@@ -442,6 +488,7 @@
         if (!p || (!ids.size && !kids.size)) return;
         await saveSnapshot(s => { (s.timar?.faerslur || []).forEach(e => { if (ids.has(String(e.id))) { e.verkefniId = p.id; e.nr = p.nr; } }); (s.kostnadur || []).forEach(x => { if (kids.has(String(x.id))) x.verkefniId = p.id; }); });
         toast?.(`${ids.size + kids.size} færslur færðar á ${p.nr}`); st.sel.clear(); render(); return; }
+      if (k === "u1tm") { st.tm = r.join(":"); render(); return; }
       if (k === "u1skil") { const me = meSk(); await saveSnapshot(s => { s.timar = s.timar || {}; const o = s.timar.skil = s.timar.skil || {}; o[me] = [...new Set([...(o[me] || []), v])]; }); toast?.("Vikunni skilað"); render(); return; }
     }
   });
