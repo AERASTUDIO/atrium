@@ -199,4 +199,8 @@
   body.simi1 .spchans>.phead{flex:1 0 100%!important;margin:0 -16px!important}
   body.simi1 .spchans>.spch{flex:1 0 100%!important;max-width:none!important;border-radius:0}
   body.simi1[data-tab="dagatal"] #view .card{width:auto!important;max-width:none!important;display:block}
+
+  /* Raðir með gátreit fremst (Færslur): gátreitur · dags · lýsing · merki */
+  body.simi1 .splist .urow:has(>.ubox){grid-template-columns:22px 52px minmax(0,1fr) auto!important}
+  body.simi1 .splist .urow:has(>.ubox)>.t{display:block!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }

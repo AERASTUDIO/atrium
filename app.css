@@ -782,7 +782,7 @@ label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0
 @media (max-width:1023px){.vyk6,.vy3{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* ---------- Útlit I – skjáir (2.24.0) ---------- */
 @media (min-width:1024px){
-  body.ui1 .uhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:-24px -32px 22px;padding:22px 32px 16px;min-height:86px;background:#DDE2E6;border-bottom:1px solid var(--line)}
+  body.ui1 .uhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:-24px -32px 22px;padding:22px 32px 16px;min-height:86px;background:var(--ui1head);border-bottom:1px solid var(--line)}
   body.ui1 .uhead .ptitle{margin:2px 0 0;font-size:28px;font-weight:300}
   body.ui1 .uhr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   body.ui1 .uhr select,body.ui1 .ubulk select{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:0 10px;min-height:36px;background:var(--surface,#fff);color:var(--ink)}
@@ -790,7 +790,7 @@ label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0
 }
 .upill{display:inline-block;font-size:12px;line-height:1.6;padding:1px 9px;border-radius:999px;background:var(--raise,#EEF1F4);color:var(--muted);white-space:nowrap}.upill.dark{background:var(--ink);color:var(--bg)}
 .uchips{display:flex;gap:6px;flex-wrap:wrap}.uchip{font:inherit;font-size:12.5px;border:0;border-radius:999px;padding:3px 11px;background:var(--raise,#EEF1F4);color:var(--muted);cursor:pointer}.uchip.on{background:var(--ink);color:var(--bg)}
-.ubar{display:block;height:8px;border-radius:4px;background:#E9EDF1;overflow:hidden}.ubar i{display:block;height:100%;background:#1F5A96}
+.ubar{display:block;height:8px;border-radius:4px;background:var(--line);overflow:hidden}.ubar i{display:block;height:100%;background:#1F5A96}
 .uwarn{display:flex;align-items:center;gap:12px;padding:9px 14px;border:1px solid #F1C9C9;background:#FDF3F3;border-radius:12px;font-size:13.5px;margin-bottom:14px}.uwarn i{width:8px;height:8px;border-radius:50%;background:#C62828;flex:none}.uwarn span{flex:1}
 .usum{display:flex;align-items:center;gap:22px;padding:14px 18px;border-radius:14px;background:var(--surface,#fff);border:1px solid var(--line);margin-bottom:18px}.usum small{font-size:12px;color:var(--muted)}.usum b{display:block;font-size:26px;font-weight:300}.usum b small{font-size:14px}
 .usb{flex:1}.usb .ubar{height:10px}.usl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}.usl b{color:var(--ink);font-weight:500;font-size:12px;display:inline}

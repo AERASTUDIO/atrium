@@ -245,7 +245,7 @@ body.simi1.pv.ui1 .side .logo{background-image:url(icons/atrium-haus-dokk.svg)!i
 body.simi1.pv.ui1.hasco .side .cobrand .logo{background-image:url(icons/atrium-merki-dokk.svg)!important;aspect-ratio:1/1!important}
 
 /* app.css: @media (min-width:1024px) */
-body.simi1.ui1 .uhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:-24px -32px 22px;padding:22px 32px 16px;min-height:86px;background:#DDE2E6;border-bottom:1px solid var(--line)}
+body.simi1.ui1 .uhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:-24px -32px 22px;padding:22px 32px 16px;min-height:86px;background:var(--ui1head);border-bottom:1px solid var(--line)}
 body.simi1.ui1 .uhead .ptitle{margin:2px 0 0;font-size:28px;font-weight:300}
 body.simi1.ui1 .uhr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 body.simi1.ui1 .uhr select,body.simi1.ui1 .ubulk select{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:0 10px;min-height:36px;background:var(--surface,#fff);color:var(--ink)}

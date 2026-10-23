@@ -226,6 +226,8 @@
     if (!phone()) { document.getElementById("simact")?.remove(); document.body.classList.remove("simhasact"); return; }
     document.body.classList.remove("simdag");
     views(); splitFix(); secChips(); actBar(); bar();
+    // Hlutar sem neðri stikan opnar beint (Í dag, Leita, Tímar, Meira) eru efsta stig – enginn „Til baka“
+    if (!det() && /^(yfirlit|leit|meira|timar|tfaer|tskyr|timyf|trk)$/.test(cur())) document.querySelectorAll("#view .uback:not(.simback)").forEach(b => b.remove());
     // „Meira“ í neðri stiku: virkt þegar opinn hluti er ekki í stikunni
     const mb = document.querySelector('#tbar [data-tab="meira"] .tl'); if (mb) mb.textContent = "Meira";
   }
