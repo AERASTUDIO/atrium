@@ -234,3 +234,14 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
   :root body.kerfi.simi1 #view .spwrap.simspc .spform :is(input,textarea){flex:1;min-width:0}
   :root body.kerfi.simi1 main#view>:is(p.sub,p.hint,.sub){margin-inline:16px!important}
 }
+
+/* Vikusýn í tölvu (2.50.8): fyllir skjáinn – dálkar ná niður að hnöppum, atriði efst í dálki og fá tvær línur */
+@media (min-width:1024px){
+  :root body.kerfi #view .wkcal{gap:var(--s2)!important;min-height:calc(100vh - 290px)}
+  :root body.kerfi #view .wkday{min-height:0!important;height:auto;padding:var(--s3)!important;gap:var(--s3)!important}
+  :root body.kerfi #view .wkitems{justify-content:flex-start!important;gap:var(--s1)!important}
+  :root body.kerfi #view .wki{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;font-size:var(--t-sm)!important;line-height:1.35;padding:6px 8px!important;overflow-wrap:anywhere;hyphens:auto}
+  :root body.kerfi #view .wki .wkt{display:block;margin:0 0 1px!important;font-size:var(--t-xs)!important}
+  :root body.kerfi #view .wke{font-size:var(--t-sm)!important;color:var(--muted);opacity:.6}
+  :root body.kerfi #view .wkcal+.links{margin-top:var(--s3)}
+}
