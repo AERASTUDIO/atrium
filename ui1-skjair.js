@@ -52,9 +52,8 @@
     const skylda = goal() / 5 * workdays(m0, today), bank = done - skylda;
     const left = Math.max(0, goal() - wTot), wdl = st.wk === 0 ? days.filter((x, i) => i < 5 && x > today).length : st.wk > 0 ? 5 : 0;
     const k = klukka(), forgot = k && (Date.now() - new Date(k.start)) > 12 * 36e5;
-    const skil = (S?.timar?.skil?.[me] || []).includes(isoD(a));
-    const right = btn("‹", "u1wk:-1") + btn("Í dag", "u1wk:0") + btn("›", "u1wk:1") + (MCP && !skil ? `<button type="button" class="ulink" data-act="u1cpw:${isoD(a)}">Afrita síðustu viku</button>` : "") + (skil ? pill("Skilað") : btn("Skila viku", "u1skil:" + isoD(a), "primary"));
-    return head("Tímar · " + days[0].getDate() + ". " + MNs[days[0].getMonth()] + " – " + days[6].getDate() + ". " + MNs[days[6].getMonth()] + (skil ? " · skilað" : ""), "Vika " + wkNo, right)
+    const right = btn("‹", "u1wk:-1") + btn("Í dag", "u1wk:0") + btn("›", "u1wk:1") + (MCP ? `<button type="button" class="ulink" data-act="u1cpw:${isoD(a)}">Afrita síðustu viku</button>` : "");  // „Skila viku“ tekið út (2.46.1)
+    return head("Tímar · " + days[0].getDate() + ". " + MNs[days[0].getMonth()] + " – " + days[6].getDate() + ". " + MNs[days[6].getMonth()], "Vika " + wkNo, right)
       + (forgot ? `<div class="uwarn"><i></i><span><b>Klukkan hefur gengið í ${H((Date.now() - new Date(k.start)) / 36e5)} klst.</b> Hvenær hættirðu?</span><button type="button" class="btn primary" data-act="kedit">Leiðrétta</button></div>` : "")
       + `<div class="usum"><div><small>Þessi vika</small><b>${H(wTot)} <small>af ${H(goal())} klst.</small></b></div><div class="usb"><div class="ubar"><i style="width:${Math.min(100, wTot / goal() * 100)}%"></i></div><div class="usl"><span>${H(left)} klst. eftir${st.wk === 0 ? ` · ${wdl} ${wdl === 1 ? "vinnudagur" : "vinnudagar"} eftir` : ""}</span><span>Tímabanki ${MNs[today.getMonth()]}: <b>${bank >= 0 ? "+" : "−"}${H(Math.abs(bank))} klst.</b></span></div></div></div>`
       + `<div class="uweek">${cols}</div>`;
@@ -864,11 +863,9 @@
     const m0 = new Date(today.getFullYear(), today.getMonth(), 1), mo = fs.filter(e => d(e.date) >= m0);
     const by = {}; mo.forEach(e => { const p = findProj(e.verkefniId), k = p ? svidOf(p)[0] : "Innra"; by[k] = (by[k] || 0) + (+e.timar || 0); });
     const moT = Object.values(by).reduce((s, x) => s + x, 0), unb = window.rkUnbilled ? verkefni().reduce((s, p) => s + sumT(rkUnbilled(p.id).es), 0) : 0;
-    const skil = S?.timar?.skil || {}, ws = isoD(a), notS = staff.filter(x => !(skil[x.sk] || []).includes(isoD(new Date(a.getTime() - 7 * 864e5))));
     return head("Tímar", "Yfirlit", btn("Opna vikuna", "tab:timar", "primary")) + kp4([["Þín vika", H(me) + " af " + H(g) + " klst."], ["Teymið í viku", H(team) + " klst."], ["Þessi mánuður", H(moT) + " klst."], ["Óreikningsfært", H(unb) + " klst."]])
       + `<div class="udash">${dcard("Vikan hjá teyminu", staff.map(x => { const h = wk.filter(e => e.starfsmadur === x.sk).reduce((s, e) => s + (+e.timar || 0), 0); return `<div class="ubr"><span>${E(x.nafn || x.sk)}</span><div class="ubar"><i style="width:${Math.min(100, h / g * 100)}%"></i></div><span>${H(h)} klst.</span></div>`; }), "tskyr", "Engir tímar skráðir.")}`
-      + dcard("Hvert fer tíminn · " + MNs[today.getMonth()], [...SV, "Innra"].filter(k => by[k]).map(k => `<div class="ubr"><span>${E(k === "Innra" ? k : svH(k))}</span><div class="ubar"><i style="width:${moT ? by[k] / moT * 100 : 0}%"></i></div><span>${Math.round(moT ? by[k] / moT * 100 : 0)} %</span></div>`), "tskyr", "Engir tímar í mánuðinum.")
-      + dcard("Síðasta vika – óskilað", notS.map(x => drow(go("tskyr", ""), E(x.nafn || x.sk), "hefur ekki skilað síðustu viku", "Óskilað")), "tskyr", "Allir hafa skilað síðustu viku.") + `</div>`;
+      + dcard("Hvert fer tíminn · " + MNs[today.getMonth()], [...SV, "Innra"].filter(k => by[k]).map(k => `<div class="ubr"><span>${E(k === "Innra" ? k : svH(k))}</span><div class="ubar"><i style="width:${moT ? by[k] / moT * 100 : 0}%"></i></div><span>${Math.round(moT ? by[k] / moT * 100 : 0)} %</span></div>`), "tskyr", "Engir tímar í mánuðinum.") + `</div>`;
   };
 
   /* ---------- Heim: Yfirlit, Óklárað, Framundan, Tilkynningar ---------- */
@@ -1030,7 +1027,7 @@
         const b = makeXlsx({ sheet: "Hvert fer tíminn", cols: [36, 10, 8], rows }); saveDoc({ data: b, name: "Hvert fer tíminn " + (st.hvLab || "") + ".xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", kind: "Skýrslur" }); return; }
       if (k === "u1rksv") { window.rkSaveDoc?.(v); return; }
       if (k === "u1tm") { st.tm = r.join(":"); render(); return; }
-      if (k === "u1skil") { const me = meSk(); await saveSnapshot(s => { s.timar = s.timar || {}; const o = s.timar.skil = s.timar.skil || {}; o[me] = [...new Set([...(o[me] || []), v])]; }); toast?.("Vikunni skilað"); render(); return; }
+      // „Skila viku“ (u1skil) tekið út 2.46.1 – eldri skil í timar.skil eru látin ósnert
     }
   });
 })();
