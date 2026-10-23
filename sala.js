@@ -725,6 +725,16 @@
   };
 
   /* ---------- Aðgerðir ---------- */
+  // Lager (2.39.2): söluvörur á pöntun dragast frá lager þegar pöntun er afhent (Afhent/Skilað/Lokið) og bætast aftur við ef hún fer til baka.
+  // Það sem var dregið frá er geymt á pöntuninni (P.lager.linur) svo breytingar á línum eftir afhendingu leiðrétta lagerinn rétt.
+  const LDELIV = ["Afhent", "Skilað", "Lokið"];
+  const lagerSync = (q, s) => { if (!isP(q)) return;
+    const want = {}; if (LDELIV.includes(q.stada)) (q.linur || []).forEach(l => { if (!l.v || l.teg !== "sala") return; const v = (s.vorur || []).find(x => String(x.id) === String(l.v)); if (!v || vDeild(v) !== "sala" || ["vinna", "pakki"].includes(v.tegund)) return; want[l.v] = (want[l.v] || 0) + (+l.magn || 0); });
+    const had = {}; (q.lager?.linur || []).forEach(x => { had[x.v] = (had[x.v] || 0) + (+x.m || 0); });
+    const ids = new Set([...Object.keys(want), ...Object.keys(had)]); let ch = false; const dags = new Date().toISOString().slice(0, 10);
+    ids.forEach(id => { const df = (want[id] || 0) - (had[id] || 0); if (!df) return; const v = (s.vorur || []).find(x => String(x.id) === String(id)); if (!v) return; ch = true;
+      v.fjoldi = (+v.fjoldi || 0) - df; (v.hreyfingar = v.hreyfingar || []).push({ dags, teg: df > 0 ? "Selt" : "Bakfært", ref: q.nr, pontun: q.id, magn: -df }); });
+    if (ch || Object.keys(want).length !== Object.keys(had).length) q.lager = Object.keys(want).length ? { dags, linur: Object.entries(want).map(([v, m]) => ({ v, m })) } : null; };
   const saveT = (id, fn) => saveSnapshot(s => { const q = (s.tilbod || []).find(x => x.id === id) || (s.pantanir || []).find(x => x.id === id); if (q) fn(q, s); });
   window.salaAct = function (k, r) {
     const a = r.join(":");
@@ -767,7 +777,7 @@
       if (op === "cancel") { if (!confirm("Hætta við breytingar á tilboðinu?")) return; EDT = null; render(); return; }
       if (op === "save") { const D = EDT; if (!D) return; if (D.fra && D.til && D.til < D.fra) return toast("„Til“ getur ekki verið á undan „Frá“.");
         const ar = blokkar(D) ? arekstrar(D).length : 0;
-        saveT(D.id, q => { Object.keys(D).forEach(x => { q[x] = D[x]; }); }).then(() => { EDT = null; toast((isP(D) ? "Pöntun" : "Tilboð") + " vistað" + (ar ? ` – ath. ${ar} ${ar === 1 ? "vara er" : "vörur eru"} ekki laus` : "")); render(); }).catch(e => toast(errText(e))); return; } }
+        saveT(D.id, (q, s) => { const L0 = q.lager; Object.keys(D).forEach(x => { q[x] = D[x]; }); q.lager = L0 || null; lagerSync(q, s); }).then(() => { EDT = null; toast((isP(D) ? "Pöntun" : "Tilboð") + " vistað" + (ar ? ` – ath. ${ar} ${ar === 1 ? "vara er" : "vörur eru"} ekki laus` : "")); render(); }).catch(e => toast(errText(e))); return; } }
     if (k === "tbl") { if (!EDT) return; const [op, id] = r, D = tDeild(EDT);
       if (op === "thj") { thjPicker(); return; }
       if (op === "pick") { const M = isMix(EDT) && (id === "leiga" || id === "sala") ? id : null, DD = M || D; if (!(isMix(EDT) && !M ? VR() : VRd(DD)).length) return toast(`${DD === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – bættu við eða notaðu sérlínu.`); picker(M); return; }
@@ -775,7 +785,7 @@
       if (op === "del") { EDT.linur = (EDT.linur || []).filter(l => l.id !== id); render(); return; } }
     if (k === "tbst") { const [id, st] = r, T0 = findT(id); if (!T0) return;
       if (T0.stada !== st && !blokkar(T0) && blokkar({ ...T0, stada: st }) && arekstrar(T0).length && !confirm(`Búnaður er ekki laus ${dRange(T0)}:\n\n${arekTxt(T0)}\n\nSetja ${isP(T0) ? "pöntunina" : "tilboðið"} samt á „${st}“? Búnaðurinn verður þá tvíbókaður.`)) { render(); return; }
-      saveT(id, q => { q.stada = st; if (st === "Sent" && !q.sent) q.sent = isoDay(new Date()); }).then(() => toast("Staða: " + st)); return; }
+      saveT(id, (q, s) => { q.stada = st; if (st === "Sent" && !q.sent) q.sent = isoDay(new Date()); lagerSync(q, s); }).then(() => { const L = findT(id)?.lager; toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " · dregið frá lager" : isP(T0) && T0.lager && !L ? " · bætt aftur á lager" : "")); }); return; }
     if (k === "tbutg") { const T = findT(a); if (!T || !confirm(`Búa til útgáfu ${(+T.utgafa || 1) + 1} af tilboði ${T.nr}?\n\nNúverandi útgáfa er skráð í „Fyrri útgáfur“ og staðan fer aftur í Drög.`)) return;
       saveT(a, q => { (q.eldri = q.eldri || []).push({ utgafa: +q.utgafa || 1, dags: q.dags, net: totals(q).net }); q.utgafa = (+q.utgafa || 1) + 1; q.dags = isoDay(new Date()); q.stada = "Drög"; })
         .then(() => { EDT = structuredClone(findT(a)); render(); toast("Ný útgáfa – breyttu og vistaðu"); }); return; }
