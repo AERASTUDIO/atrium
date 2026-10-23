@@ -213,3 +213,9 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
   :root body.kerfi.simi1 #view .splist :is(.ugrp,.ush,.ush2){padding-left:16px!important;padding-right:16px!important;margin-inline:0!important}
   :root body.kerfi.simi1 #view .splist .spfilt{margin:var(--s3) 16px var(--s2)!important;width:auto!important}
 }
+
+/* Engin skrunstika í síma (2.50.6) – eins og í öppum, ekki tölvu */
+@media (max-width:1023px){
+  html,body,body *{scrollbar-width:none!important}
+  html::-webkit-scrollbar,body::-webkit-scrollbar,body *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;background:transparent!important}
+}
