@@ -284,3 +284,13 @@ body.kerfi #view :is(.nr,.urow>span:first-child){font-variant-numeric:tabular-nu
 /* Engar skrunstikur í tölvu heldur (2.51.1) – skrunað með músarhjóli, snertifleti eða lyklum eins og áður */
 html,body,body *{scrollbar-width:none!important}
 html::-webkit-scrollbar,body::-webkit-scrollbar,body *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+
+/* Tölvuapp án titilstiku (2.51.2): manifest display_override window-controls-overlay.
+   Appið nær upp í efstu brún; gluggahnapparnir (–, ▢, ✕) liggja ofan á efst til hægri og mjó dráttarlína (#wcodrag) heldur glugganum færanlegum. */
+#wcodrag{display:none}
+@media (display-mode: window-controls-overlay){
+  #wcodrag{display:block;position:fixed;z-index:60;top:env(titlebar-area-y,0);left:248px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 248px);height:env(titlebar-area-height,0);-webkit-app-region:drag;app-region:drag;background:var(--bg)}
+  body.pv .app{padding-top:env(titlebar-area-height,0)}
+  body.pv.ui1 .split,body.pv.ui1[data-tab="spjall"] .spwrap,body.pv.ui1[data-tab="spjall"] .spconv{height:calc(100vh - env(titlebar-area-height,0px))!important}
+  body.pv.ui1 .split .splist .phead{top:0!important}
+}

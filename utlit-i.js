@@ -4,7 +4,9 @@
 (function () {
   if (window.ORG?.utlit !== "I" || !window.ORG?.pakkaval) return;
   document.body.classList.add("ui1");
-  if (window.ORG?.kerfi) document.body.classList.add("kerfi");  // hönnunarkerfið (2.49.0, kerfi.css)
+  if (window.ORG?.kerfi) document.body.classList.add("kerfi");
+  // Dráttarlína fyrir tölvuapp án titilstiku (window-controls-overlay, 2.51.2)
+  if (!document.getElementById("wcodrag")) { const g = document.createElement("div"); g.id = "wcodrag"; g.setAttribute("aria-hidden", "true"); document.body.append(g); }  // hönnunarkerfið (2.49.0, kerfi.css)
 
   /* ---------- Hlutar og undirflipar ---------- */
   const by = k => SECTIONS_ALL.find(x => x.k === k);
