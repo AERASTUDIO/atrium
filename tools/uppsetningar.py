@@ -25,10 +25,10 @@ def smida(m, src):
     rep('<meta charset="utf-8">', '<meta charset="utf-8"><base href="../">')
     rep('<script src="fyrirtaeki.js"></script>', f'<script src="{m}/fyrirtaeki.js"></script>')
     rep('<link rel="manifest" href="manifest.webmanifest?v=3">', f'<link rel="manifest" href="{m}/manifest.webmanifest">')
-    # App-tákn uppsetningarinnar (frá 2.9.1, tools/takn.py): Atrium og merki fyrirtækisins á ská
+    # App-tákn uppsetningarinnar (tools/takn.py; frá 2.39.0 vírrammi með hálftóni, ?v=2 svo tækin sæki nýja táknið)
     if os.path.exists(os.path.join(ROT, m, "apple-touch-icon.png")):
-        rep('<link rel="icon" type="image/png" href="icons/atrium-icon-192.png">', f'<link rel="icon" type="image/png" href="{m}/icon-192.png">')
-        rep('<link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">', f'<link rel="apple-touch-icon" href="{m}/apple-touch-icon.png">')
+        rep('<link rel="icon" type="image/png" href="icons/atrium-icon-192.png">', f'<link rel="icon" type="image/png" href="{m}/icon-192.png?v=2">')
+        rep('<link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">', f'<link rel="apple-touch-icon" href="{m}/apple-touch-icon.png?v=2">')
     if os.path.exists(os.path.join(ROT, m, "utlit.css")):
         rep('<link rel="stylesheet" href="brand.css">', f'<link rel="stylesheet" href="brand.css">\n<link rel="stylesheet" href="{m}/utlit.css">')
     return h
