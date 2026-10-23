@@ -564,7 +564,8 @@
       const acts = MCP ? `<button type="button" class="btn" data-act="u1tcp:${E(e.id)}">Afrita</button><button type="button" class="btn" data-act="del:time:${E(e.id)}">Eyða</button>` + more2([["✎ Breyta", "edit:time:" + e.id]]) : "";
       const sv = p ? svidOf(p) : ["Innra"], subs = p?.undirverk || [];
       const sel = MCP && p ? `<select class="usel" onchange="doAct('u1tsub:${E(e.id)}:'+this.value)" aria-label="Undirverk"><option value="">Ekkert undirverk</option>${subs.map(u => `<option value="${E(u.id)}"${u.id === e.undirverkId ? " selected" : ""}>${E(u.heiti || u.nr)}</option>`).join("")}</select>` : E(subs.find(u => u.id === e.undirverkId)?.heiti || "–");
-      const rk = e.reikningur ? `<span class="m">á reikningi</span>` : MCP && p ? `<label class="usw"><input type="checkbox"${e.ekkiRk ? "" : " checked"} onchange="doAct('u1trk:${E(e.id)}:'+(this.checked?1:0))"><i></i></label>` : (e.ekkiRk ? "Nei" : "Já");
+      const rkOn = window.timiRukka ? timiRukka(e) : !e.ekkiRk, fast = p && window.innheimtaOf && innheimtaOf(p) !== "timar";
+      const rk = e.reikningur ? `<span class="m">á reikningi</span>` : MCP && p ? `<label class="usw" title="${fast ? "Verkefnið er á föstu verði – kveiktu til að rukka þetta sem aukavinnu" : "Slökktu ef þessi tími á ekki að fara á reikning"}"><input type="checkbox"${rkOn ? " checked" : ""} onchange="doAct('u1trk:${E(e.id)}:'+(this.checked?1:0))"><i></i></label>${fast ? ` <small class="m">${rkOn ? "aukavinna" : "fast verð – ekki rukkað sérstaklega"}</small>` : ""}` : (rkOn ? "Já" : "Nei");
       return dHead("Tímafærsla · " + u1D.dIS(e.date), (e.lysing || "Tími").replace(/^Innra – /, ""), [p ? E(p.nr + " " + (p.stutt || "")) : "Innra", E(nm)].join(" · "), acts)
         + `<div class="uvb">${kp3([["Tími", e.fra ? E(e.fra + (e.til ? "–" + e.til : "")) : "–"], ["Klst.", H(e.timar)], ["Vika " + wkNo, H(wk) + " af " + H(goal())]])}`
         + `<div class="ukv"><span>Svið <small>· af verkefninu</small></span><span>${E(sv.map(x => x === "Innra" ? x : (window.svidHeiti ? svidHeiti(x) : x)).join(", "))}</span></div>`
@@ -679,13 +680,17 @@
     const row = (t, r) => `<div class="uln"><span>${t}</span>${r}</div>`;
     const lg = sv.includes("Leiga") ? lines("leiga") : [], vn = lines("vinna"), sl = sv.includes("Sala") ? lines("sala") : [];
     const vnH = vn.filter(x => /klst/.test(x.l.ein || "")).reduce((a, x) => a + (+x.l.magn || 0), 0);
-    const tbK = () => sam.length ? kp("Samþykkt tilboð án vsk", kr(samV)) : src.length ? kp("Tilboð · " + src[0].stada.toLowerCase() + " · án vsk", kr(sumT(src))) : +p.tilbod ? kp("Tilboðsupphæð (skráð á verkefni)", kr(+p.tilbod)) : kp("Samþykkt tilboð", "–");
+    const ih = window.innheimtaOf ? innheimtaOf(p) : "timar", aetl = ih === "timar" && (sam.length || +p.tilbod);
+    const tbK = () => aetl ? kp("Áætlun skv. tilboði án vsk", kr(sam.length ? samV : +p.tilbod)) : sam.length ? kp("Samþykkt tilboð án vsk", kr(samV)) : src.length ? kp("Tilboð · " + src[0].stada.toLowerCase() + " · án vsk", kr(sumT(src))) : +p.tilbod ? kp("Tilboðsupphæð (skráð á verkefni)", kr(+p.tilbod)) : kp("Samþykkt tilboð", "–");
     const more = (xs, f) => xs.slice(0, 6).map(f).join("") + (xs.length > 6 ? `<a class="uln" href="#" data-act="dtab:tilbod"><span class="m">+ ${xs.length - 6} fleiri línur á tilboði</span><span class="m">→</span></a>` : "");
     let k;
     if (sv.includes("Leiga")) k = [tbK(), kp("Búnaður", lg.length ? lg.reduce((a, x) => a + (+x.l.magn || 0), 0) + " tæki " + (sam.length ? "frátekin" : "á tilboði") : "–"), kp("Tæknifólk", vn.length ? vn.length + " · " + H(vnH) + " klst." : "–")];
     else if (sv.includes("Sala")) k = [tbK(), kp("Vörur", sl.length ? sl.reduce((a, x) => a + (+x.l.magn || 0), 0) + " stk." : "–"), kp("Tímar", H(p.timar || 0) + (p.aklst ? " af " + H(p.aklst) : "") + " klst.")];
-    else k = [kp("Tímar", H(p.timar || 0) + (p.aklst ? " af " + H(p.aklst) : "") + " klst."), kp("Óreikningsfært", unb || "–"), tbK()];
+    else k = [kp("Tímar", H(p.timar || 0) + (p.aklst ? " af " + H(p.aklst) : "") + " klst."), ih === "timar" ? kp("Óreikningsfært", unb || "–") : kp("Innheimta", ih === "tilbod" ? "Fast verð" : "Ekki rukkað"), tbK()];
     let h = `<div class="ukps">${k.join("")}</div>`;
+    // Tímavinna á móti áætlun (2.42.0): viðvörun þegar unnir tímar nálgast eða fara fram úr áætluðum tímum
+    if (ih === "timar" && +p.aklst > 0 && (+p.timar || 0) >= 0.9 * p.aklst) { const pc = Math.round((+p.timar || 0) / p.aklst * 100), yfir = pc > 100;
+      h = `<div class="uwarn${yfir ? "" : " info"}"><i></i><span><b>${yfir ? "Komið fram úr áætlun" : "Nálgast áætlun"}:</b> ${H(+p.timar || 0)} af ${H(p.aklst)} klst. (${pc} %)${yfir ? " – ræddu við viðskiptavininn áður en meira er unnið" : ""}</span></div>` + h; }
     if (lg.length) h += `<div class="ush2"><span>Búnaður á verkinu</span><a href="#" data-act="tab:lvorur">Framboð →</a></div>` + more(lg, ({ l, T }) => {
       const v = api.VR().find(x => String(x.id) === String(l.v)); let pl = pill("–");
       if (v && v.tegund !== "pakki") { const cap = (+v.fjoldi || 0) - (window.u1Ovirk ? u1Ovirk(v) : 0), oth = api.upptekid(v.id, T.fra, T.til || T.fra, T.id).max || 0, short = (+l.magn || 0) - (cap - oth); pl = short > 0 ? pill(short + " vantar", true) : pill("laust"); }
@@ -1011,7 +1016,8 @@
       if (k === "u1us") { st.usel = st.usel === v ? null : v; render(); return; }
       if (k === "u1cf") { st.cf = v || ""; render(); return; }
       if (k === "u1tsub") { const [id, sid] = r; await saveSnapshot(s => { const e = (s.timar?.faerslur || []).find(x => String(x.id) === id); if (e) e.undirverkId = sid || null; }); render(); return; }
-      if (k === "u1trk") { const [id, on] = r; await saveSnapshot(s => { const e = (s.timar?.faerslur || []).find(x => String(x.id) === id); if (e) { if (on === "1") delete e.ekkiRk; else e.ekkiRk = true; } }); render(); return; }
+      if (k === "u1trk") { const [id, on] = r; const e0 = faerslur().find(x => String(x.id) === id), fast = e0 && window.innheimtaOf && innheimtaOf(findProj(e0.verkefniId)) !== "timar";
+        await saveSnapshot(s => { const e = (s.timar?.faerslur || []).find(x => String(x.id) === id); if (!e) return; if (fast) { if (on === "1") e.rukka = true; else delete e.rukka; } else { if (on === "1") delete e.ekkiRk; else e.ekkiRk = true; } }); render(); return; }
       if (k === "u1tcp") { const e = faerslur().find(x => String(x.id) === v); if (!e) return; kind = "tima"; PREFILL = { date: isoD(today), pid: e.verkefniId || "", lysing: e.lysing || "", timar: e.timar }; openSheet(); return; }
       if (k === "u1cpw") { const a = d(v), p0 = new Date(a); p0.setDate(p0.getDate() - 7); const me = ME();
         const prev = faerslur().filter(e => (e.starfsmadur || me) === me && d(e.date) >= p0 && d(e.date) < a); if (!prev.length) return toast?.("Engir tímar í síðustu viku");

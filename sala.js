@@ -829,10 +829,13 @@
         body: `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nMeðfylgjandi er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).net)} án VSK.${T.gildir ? `\nTilboðið gildir til ${dIS(T.gildir)}.` : ""}\n\nEndilega hafðu samband ef spurningar vakna.`,
         atts: [{ name: fileBase(T) + ".pdf", type: "application/pdf", size: bytes.length, data: bytes }],
         onSent: () => saveT(a, q => { if (q.stada === "Drög") q.stada = "Sent"; q.sent = isoDay(new Date()); }) })).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
+    // Verkefni úr tilboði (2.42.0): áætlaðir tímar = klst.-línur, verkflokkar = flokkar vinnulína (úr vörulista), tímavinna ef tilboðið er eingöngu vinna
+    const klstOf = T => { const h = (T.linur || []).filter(l => l.teg === "vinna" && /klst/i.test(l.ein || "")).reduce((a, l) => a + (+l.magn || 0), 0); return h || null; };
+    const vflOf = T => { const vf = typeof THJ === "function" ? THJ().map(x => typeof x === "string" ? x : x?.n || x?.nafn || "") : []; return [...new Set((T.linur || []).filter(l => l.teg === "vinna" && l.v).map(l => findV(l.v)?.flokkur).filter(f => f && (!vf.length || vf.includes(f))))]; };
     if (k === "tbverk") { const T = findT(a); if (!T || T.verkefniId) return; if (!confirm(`Stofna verkefni úr ${isP(T) ? "pöntun" : "tilboði"} ${T.nr}?\n\n„${T.heiti}“ fyrir ${T.vidskiptavinur || T.tengilidur || "–"}, ${krs(totals(T).net)} án VSK.`)) return;
       const id = gid(), nr = nextProjNr(), st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
       saveSnapshot(s => { (s.verkefni = s.verkefni || []).push({ id, nr, stutt: T.heiti, nafn: nr + " " + T.heiti, stada: st, vidskiptavinur: T.vidskiptavinur || null, verkkaupi: null, vskId: T.vskId || null, vkId: null,
-          thjonusta: [], timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: null, tilbod: isP(T) ? null : totals(T).net, tilbodId: isP(T) ? null : T.id, ...(isP(T) ? { pontunId: T.id } : {}), deild: isMix(T) ? null : tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
+          thjonusta: vflOf(T), timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: klstOf(T), ...(vinnaEin(T) ? { innheimta: "timar" } : {}), tilbod: isP(T) ? null : totals(T).net, tilbodId: isP(T) ? null : T.id, ...(isP(T) ? { pontunId: T.id } : {}), deild: isMix(T) ? null : tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
           lysing: [isMix(T) ? null : DL[tDeild(T)].l, T.stadsetning, T.fra ? dRange(T) : ""].filter(Boolean).join(" · ") || null });
         const q = (s.tilbod || []).find(x => x.id === a) || (s.pantanir || []).find(x => x.id === a); if (q) q.verkefniId = id; })
         .then(() => { toast(`Verkefni ${nr} stofnað`); openDetail("verk:" + id); }).catch(e => toast(errText(e))); return; }

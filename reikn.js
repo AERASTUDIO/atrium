@@ -12,7 +12,18 @@
   const kaupandi = p => findVsk(p?.vskId) || findVsk(p?.vkId) || null; // greiðandi = viðskiptavinur (verkkaupi aflagður 1.4.0)
   const fx = n => String(n).replace(".", ",");
   const keyOf = x => x.verkefniId || NONE;
-  const obilled = pid => ({ es: faerslur().filter(e => keyOf(e) === (pid || NONE) && !e.reikningur && !e.ekkiRk && e.id && !isTmp(e.id)), ks: kostn().filter(k => keyOf(k) === (pid || NONE) && !k.reikningur) });
+  /* Innheimtuháttur verkefnis (2.42.0): timar = tímavinna (tímar × tímagjald rukkaðir); tilbod = fast verð skv. tilboði/pöntun (tímar til yfirsýnar);
+     ekki = ekki rukkað. p.innheimta ræður; annars sjálfgefið: í útliti I fær verkefni með búnaði/vörum á tilboði eða pöntun „tilbod“, annars tímavinna.
+     Utan útlits I er sjálfgefið tímavinna (óbreytt hegðun). */
+  const INNH = { timar: "Tímavinna – rukkað eftir unnum tímum", tilbod: "Fast verð – rukkað skv. tilboði eða pöntun", ekki: "Ekki rukkað" };
+  window.INNH = INNH;
+  window.innheimtaOf = p => { if (!p) return window.ORG?.utlit === "I" ? "ekki" : "timar"; /* tímar án verkefnis = Innra */ if (INNH[p.innheimta]) return p.innheimta; if (window.ORG?.utlit !== "I") return "timar";
+    const api = window.salaAPI; if (["leiga", "sala"].includes(p.deild)) return "tilbod";
+    if (api) { const docs = [...api.TB(), ...api.PN()].filter(T => T.verkefniId === p.id || T.id === p.tilbodId || T.id === p.pontunId); if (docs.some(T => T.stada !== "Hafnað" && (T.linur || []).some(l => l.teg !== "vinna"))) return "tilbod"; }
+    return INNH[CFG().innheimta] ? CFG().innheimta : "timar"; };
+  // Á færsla að fara á reikning? Tímavinna: já nema merkt „ekki rukka“; fast verð / ekki rukkað: aðeins ef merkt sem aukavinna (e.rukka)
+  window.timiRukka = e => { if (!e || e.reikningur) return false; const p = e.verkefniId ? findProj(e.verkefniId) : null; return window.innheimtaOf(p) === "timar" ? !e.ekkiRk : e.rukka === true; };
+  const obilled = pid => ({ es: faerslur().filter(e => keyOf(e) === (pid || NONE) && !e.reikningur && window.timiRukka(e) && e.id && !isTmp(e.id)), ks: kostn().filter(k => keyOf(k) === (pid || NONE) && !k.reikningur) });
   // Öll verkefni (og „án verkefnis“) sem eiga eitthvað óreikningsfært
   const openGroups = () => [...verkefni().map(p => p.id), NONE].map(k => ({ k, p: k === NONE ? null : findProj(k), ...obilled(k === NONE ? null : k) })).filter(g => g.es.length || g.ks.length);
   window.rkUnbilled = obilled;
