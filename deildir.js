@@ -27,7 +27,9 @@
   window.tegSelect = (id, cur) => { if (!(ON("leiga") || ON("sala"))) return "";
     const o = [["", "Ekki valin"], ...(ON("leiga") ? [["leiga", "Leiga"]] : []), ...(ON("sala") ? [["sala", "Sala"]] : []), ...(ON("leiga") && ON("sala") ? [["baedi", "Leiga og sala"]] : [])];
     const c = cur === undefined ? ({ lverk: "leiga", sverk: "sala" }[typeof tab !== "undefined" ? tab : ""] || "") : (cur || "");
-    return `<label>Þjónusta<select id="${id}">${o.map(([k, l]) => `<option value="${k}"${k === c ? " selected" : ""}>${l}</option>`).join("")}</select></label><p class="hint" style="margin:-4px 0 6px">Valfrjálst – þjónustutegundir lína í tilboðum verkefnisins bætast sjálfkrafa við.</p>`; };
+    const I = window.ORG?.utlit === "I", sh = x => I && window.svidHeiti ? svidHeiti(x) : x;
+    if (I) { o[0][1] = sh("Þjónusta"); o.forEach(x => { if (x[0] === "leiga") x[1] = sh("Leiga"); if (x[0] === "sala") x[1] = sh("Sala"); if (x[0] === "baedi") x[1] = sh("Leiga") + " og " + sh("Sala").toLowerCase(); }); }
+    return `<label>${I ? "Svið" : "Þjónusta"}<select id="${id}">${o.map(([k, l]) => `<option value="${k}"${k === c ? " selected" : ""}>${l}</option>`).join("")}</select></label><p class="hint" style="margin:-4px 0 6px">${I ? "Svið bætast líka sjálfkrafa við eftir línum í tilboðum verkefnisins (leiga, sala, vinna)." : "Valfrjálst – þjónustutegundir lína í tilboðum verkefnisins bætast sjálfkrafa við."}</p>`; };
   window.setDeild = v => { try { localStorage.setItem(LSK, v || ""); } catch (e) {} if (typeof render === "function") render(); };
 
   // Val í formum verkefnis (nýtt / breyta)

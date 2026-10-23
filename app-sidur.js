@@ -85,7 +85,7 @@ function dVerk(p){
   if(DTAB==="stillingar") body=`<div class="viewtitle">Staða</div>${statRow("verk",p.id,STVAL().map(x=>x.n),p.stada)}${MCP?lokaBtn(p):""}
     <div class="viewtitle" style="margin-top:6px">Upplýsingar</div>${settingsCard([
       ["Verknúmer",`<span class="nr">${esc(p.nr)}</span>`],["Heiti",esc(p.stutt||"")],["Viðskiptavinur",projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")],
-      ["Þjónusta",p.thjonusta?.length?p.thjonusta.map(esc).join(", "):""],
+      [VFL(),p.thjonusta?.length?p.thjonusta.map(esc).join(", "):""],
       ["Skiladagur",p.skiladagur?fmtDT(p.skiladagur)+(!isDone(p)?` <span style="color:var(--muted)">· ${rel(daysTo(p.skiladagur))}</span>`:""):""],
       ["Viðburður",p.vidburdur?fmtDT(p.vidburdur):""],["Tímabil verks",timabilTxt(p)],["Tímagjald",window.rateOf&&rateOf(p)?esc(num(rateOf(p))+" kr./klst. · "+(p.timagjald?"eigið tímagjald":taxtiOf(p)?.heiti||"")):""],["Teikningar frá",esc(p.teikningarFra||"")],
       ["Mappa",p.mappa?`<a class="plink" href="${esc(p.mappa)}" target="_blank" rel="noopener">Opna í OneDrive</a>`:""]],linkBtns(p,{edit:"verk"}))}

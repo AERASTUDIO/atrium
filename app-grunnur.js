@@ -90,6 +90,8 @@ const budgetOf=p=>{const a=+p?.aklst||0; if(!a) return null; const pct=(+p.timar
 const budgetPill=p=>{const b=budgetOf(p); return b&&b.cls?`<span class="pill ${b.cls}">${Math.round(b.pct*100)}% af áætlun</span>`:"";};
 // Sjálfgefnar stöður: stillingar fyrirtækisins › uppsetningin (ORG.stodur, frá 2.15.4) › DEF_STODUR
 const STODUR=()=>CFG().stodur?.length?CFG().stodur:(window.ORG?.stodur?.length?ORG.stodur:DEF_STODUR);
+// Útlit I: „Verkflokkur“ – undirflokkur Þjónustu sem lýsir tegund vinnu (áður „þjónusta“ á verkefni)
+const VFL=()=>window.ORG?.utlit==="I"?"Verkflokkur":"Þjónusta";
 const THJ=()=>CFG().thjonusta?.length?CFG().thjonusta:(window.ORG?.thjonusta?.length?ORG.thjonusta:DEF_THJ);
 const STARFS=()=>CFG().starfsmenn?.length?CFG().starfsmenn:DEF_STARF;
 // Innskráður notandi skráir á sig (skammstöfun úr notendaskrá); annars sá sem merktur er „ég“ í Starfsmönnum.

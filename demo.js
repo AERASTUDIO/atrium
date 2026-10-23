@@ -88,7 +88,7 @@ function sampleState() {
     stillingar: {
       starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }, ...(window.ORG?.utlit === "I" ? [{ sk: "OK", nafn: "Ólafur Kristinsson" }] : [])],
       vikumark: 40,
-      thjonusta: ["Hönnun", "Ráðgjöf", "Framkvæmd", "Almennt"],
+      thjonusta: window.ORG?.utlit === "I" ? ["Ráðgjöf", "Hönnun", "Framkvæmd", "Viðhald", "Rekstur"] : ["Hönnun", "Ráðgjöf", "Framkvæmd", "Almennt"],
       reikn: { nafn: (window.ORG?.nafn || "Fyrirtækið") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
       undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@demo.example" }
     }
@@ -128,6 +128,9 @@ function rikari(g) {
     undirverk: [g.sub(`${yr}-19`, 1, "Uppsetning", "Done", -36, 10), g.sub(`${yr}-19`, 2, "Tónleikar", "Done", -35, 8)] });
   const p12 = N("p12", 29, "Tækniþjónusta á viðburði", { stada: st(2, "Í bið"), vskId: "d0000000000000000000000000000c03", vidskiptavinur: "Viðskiptavinur C", starfsmenn: ["HS"], skiladagur: day(16), lysing: "Hljóð- og ljósamaður á kvöldviðburði. Bíður staðfestingar á tímasetningu." });
   g.verkefni.push(p7, p8, p9, p10, p11, p12);
+  // Verkflokkar (undirflokkar Þjónustu)
+  const VF = { p1: ["Hönnun"], p2: ["Hönnun"], p3: ["Framkvæmd"], p4: ["Ráðgjöf"], p5: ["Framkvæmd"], p6: ["Hönnun"], p7: ["Framkvæmd"], p8: ["Framkvæmd"], p9: ["Viðhald", "Rekstur"], p10: ["Ráðgjöf"], p11: ["Framkvæmd"], p12: ["Framkvæmd"] };
+  g.verkefni.forEach(p => { if (VF[p.id]) p.thjonusta = VF[p.id]; });
   // Tímar fimm starfsmanna síðustu 4 vikur (virkir dagar), á verkefni, undirverk og Innra
   const plan = { JJ: [p1, p2, p3, p10, p9], GG: [p3, p7, p8, p2, p11], HS: [p1, p12, p11], OK: [p9, p7, p3, p11], SB: [] };
   const lys = { p1: ["Teiknivinna", "Módelvinna", "Fundur með viðskiptavini"], p2: ["Lagfæringar", "Yfirferð"], p3: ["Keyrsluplan og ljósateikning", "Sviðsteikning", "Samskipti við viðburðastjóra"], p7: ["Teikning loftahátalara", "Lagnaleiðir", "Mælingar á staðnum"],

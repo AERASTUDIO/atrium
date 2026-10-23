@@ -8,7 +8,7 @@ const STPAGES={utlit:{l:"Útlit",s:["Útlit"]},ms:{l:"Microsoft 365",s:["Microso
   adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
   einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()},
   tilbod:{l:"Leiga og sala",d:"Flokkar, dagstuðlar, VSK, tilboðsnúmer og skilmálar",s:[],adm:1,fn:()=>window.tbStillingar?tbStillingar():""},
-  vstill:{l:"Verkefnastillingar",d:"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna","Þjónusta","Sniðmát undirverka"],adm:1},
+  vstill:{l:"Verkefnastillingar",d:window.ORG?.utlit==="I"?"Stöður, verkflokkar og sniðmát undirverka":"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna",window.ORG?.utlit==="I"?"Verkflokkar":"Þjónusta","Sniðmát undirverka"],adm:1},
   prufa:{l:"Prufugögn",d:"Hlaða inn eða eyða uppspunnum gögnum til prófunar",s:[],adm:1,fn:()=>window.vPrufugogn?vPrufugogn():""}};
 function stChunks(){const h=vStillingarAll(), parts=h.split('<div class="viewtitle">'), m={};
   parts.slice(1).forEach(x=>{const t=x.slice(0,x.indexOf("</div>")).replace(/<[^>]+>/g,"").trim(); m[t]=(m[t]||"")+'<div class="viewtitle">'+x;}); return m;}
@@ -53,9 +53,9 @@ function vStillingarAll(){
     ${mini("cfg:stlok:"+i,x.lokid?"↺":"✓",x.lokid?"Merkja sem í gangi":"Merkja sem lokið")}${mini("cfg:stup:"+i,"↑","Færa ofar")}${mini("cfg:stren:"+i,"✎","Endurnefna")}${mini("cfg:stdel:"+i,"✕","Eyða")}</div></div>`).join("")}
   <button type="button" class="btn" style="margin-top:10px" data-act="cfg:stadd">+ Ný staða</button>
   <p class="hint" style="margin-top:6px">✓ merkir stöðu sem „lokið“: slík verkefni teljast ekki í gangi og fara neðst í listum.</p>
-  <div class="viewtitle">Þjónusta</div>
+  <div class="viewtitle">${window.ORG?.utlit==="I"?"Verkflokkar":"Þjónusta"}</div>${window.ORG?.utlit==="I"?`<p class="hint" style="margin:0 0 8px">Undirflokkar Þjónustu sem lýsa tegund vinnunnar. Verkefni getur haft einn eða fleiri. Notaðir sem síur í Verkefni › Þjónusta og í skýrslunni „Hvert fer tíminn“.</p>`:""}
   ${THJ().map((x,i)=>`<div class="cfgrow"><div class="grow">${esc(x)}<div class="ls" style="font-size:12.5px;color:var(--muted)">${usedT(x)} verkefni</div></div><div class="ctl">${mini("cfg:thup:"+i,"↑","Færa ofar")}${mini("cfg:thren:"+i,"✎","Endurnefna")}${mini("cfg:thdel:"+i,"✕","Eyða")}</div></div>`).join("")}
-  <button type="button" class="btn" style="margin-top:10px" data-act="cfg:thadd">+ Ný þjónusta</button>
+  <button type="button" class="btn" style="margin-top:10px" data-act="cfg:thadd">+ ${window.ORG?.utlit==="I"?"Nýr verkflokkur":"Ný þjónusta"}</button>
   <div class="viewtitle">Starfsmenn</div>
   ${STARFS().map((x,i)=>`<div class="cfgrow"><div class="grow">${esc(x.nafn)} <span class="nr">${esc(x.sk)}</span> ${x.sk===ME()?'<span class="tag">Ég</span>':""}<div class="ls" style="font-size:12.5px;color:var(--muted)">${usedS(x.sk)} tímaskráningar</div></div><div class="ctl">${x.sk===ME()||window.USER?"":mini("cfg:sfeg:"+i,"Ég","Merkja sem mig")}${mini("cfg:sfren:"+i,"✎","Endurnefna")}${mini("cfg:sfdel:"+i,"✕","Eyða")}</div></div>`).join("")}
   <button type="button" class="btn" style="margin-top:10px" data-act="cfg:sfadd">+ Nýr starfsmaður</button>
