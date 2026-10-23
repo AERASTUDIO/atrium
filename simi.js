@@ -209,7 +209,18 @@
       else if (!sp.querySelector(".spdet .simback")) sp.querySelector(".spdet")?.insertAdjacentHTML("afterbegin", `<button type="button" class="uback simback" data-act="stsub:">${ico("chev", 14).replace("M9 6l6 6-6 6", "M15 6l-6 6 6 6")}Stillingar</button>`);
     }
     if (t === "postur" && !det()) { sp.classList.add("nodet"); sp.querySelector(".spdet")?.remove(); }
+    // Samstarfsfólk: í tölvu er fyrsta manneskjan valin sjálfkrafa – í síma listinn fyrst
+    if (t === "teymi") {
+      if (!window.SIMTM) { sp.classList.add("nodet"); sp.querySelector(".spdet")?.remove(); }
+      else if (!sp.querySelector(".spdet .simback")) sp.querySelector(".spdet .spdetin, .spdet")?.insertAdjacentHTML("afterbegin", `<button type="button" class="uback simback" data-simtm="0">${ico("chev", 14).replace("M9 6l6 6-6 6", "M15 6l-6 6 6 6")}Samstarfsfólk</button>`);
+    }
   }
+  document.addEventListener("click", e => {
+    if (!phone()) return;
+    if (e.target.closest('[data-act^="u1tm:"]')) window.SIMTM = true;
+    else if (e.target.closest('[data-simtm="0"]')) { window.SIMTM = false; render(); }
+    else if (e.target.closest('[data-act^="tab:"],[data-tab],[data-simtab]')) window.SIMTM = false;
+  }, true);
   function decorate() {
     document.body.classList.toggle("simidet", !!det());
     if (!phone()) { document.getElementById("simact")?.remove(); document.body.classList.remove("simhasact"); return; }

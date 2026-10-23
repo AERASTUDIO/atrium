@@ -1,0 +1,158 @@
+/* Hönnunarkerfi Atrium (2.49.0, body.kerfi – ORG.kerfi, fyrst í dev/).
+   Eitt sett af stærðum fyrir allt appið, í tölvu og síma. Hlaðið síðast svo það gildi ofan á eldri lög (app.css, brand.css,
+   Útlit I, símaútlit). Úttekt 23.10.2026: 23 leturstærðir, 14 hnappahæðir og 8 reitahæðir → hér 6 · 3 · 2.
+
+   Letur (Poppins):  xs 11.5  · sm 12.5 · md 14 · lg 16 · xl 20 · 2xl 24
+   Þyngd:            300 stórir titlar og tölur · 400 texti · 500 áhersla (aldrei 600/700)
+   Hnappar:          36 px (tölva) / 40 px (sími) · lítill 30 px · flögur 28 px
+   Reitir:           38 px, 14 px letur (tölva) / 44 px, 16 px letur (sími – svo iOS stækki ekki)
+   Bil:              4 · 8 · 12 · 16 · 24 · 32 */
+body.kerfi{
+  --t-xs:11.5px; --t-sm:12.5px; --t-md:14px; --t-lg:16px; --t-xl:20px; --t-2xl:24px;
+  --h-btn:36px; --h-sm:30px; --h-chip:28px; --h-in:38px; --f-in:14px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --rad:10px;
+}
+@media (max-width:1023px){ body.kerfi{ --h-btn:40px; --h-in:44px; --f-in:16px; } }
+
+/* ---------- Grunnur ---------- */
+body.kerfi #view,body.kerfi #sheetwrap{font-size:var(--t-md);line-height:1.45}
+body.kerfi #view :is(b,strong,th),body.kerfi #sheetwrap :is(b,strong){font-weight:500}
+body.kerfi #view [style*="font-weight:600"],body.kerfi #view [style*="font-weight:700"]{font-weight:500!important}
+
+/* ---------- Titlar ---------- */
+body.kerfi #view :is(.ptitle,h2.big,.uhead .ptitle,.udh2 .ptitle,.sdh h1){font-size:var(--t-2xl)!important;font-weight:300!important;letter-spacing:-.01em;line-height:1.2}
+body.kerfi #view :is(.spsup,.kicker,.sdl,.qrsup){font-size:var(--t-xs)!important;font-weight:400!important;color:var(--muted);letter-spacing:.02em}
+body.kerfi #view :is(.usub,p.sub,.sub,.hint){font-size:var(--t-sm)!important;color:var(--muted);font-weight:400}
+/* Kaflafyrirsagnir: eitt form alls staðar – lítið, hástafir, dauft */
+body.kerfi #view :is(.viewtitle,.ush,.ush2,.sdsec,.ugrp,.mgroup,.dow,.snh,thead th,.ucols>span,.ueh>span){font-size:var(--t-xs)!important;font-weight:500!important;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+body.kerfi #view :is(.viewtitle,.ush,.ush2,.sdsec){margin-top:var(--s5)!important;margin-bottom:var(--s2)!important}
+body.kerfi #view :is(.ush,.ush2) :is(a,button){text-transform:none;letter-spacing:0;font-size:var(--t-sm)!important;font-weight:400!important}
+/* Fyrirsagnir korta */
+body.kerfi #view :is(.card h3,.ucard h3,.uct h3,.vyt h3,.uhch h3,.h2hd h3,.dcard h3,section>h3){font-size:var(--t-lg)!important;font-weight:500!important;letter-spacing:0;margin:0}
+
+/* ---------- Texti í listum og spjöldum ---------- */
+body.kerfi #view :is(.urow .m,.urow>span,.ls,.ll small,.mt small,.sdtx small,.uln small,.ucpr small,small,.uen,.ufree,.cdt){font-size:var(--t-sm)!important;font-weight:400}
+body.kerfi #view :is(.urow .t,.lt,.mt,.sdtx b,.uln b,.ucpr b,.qrnm b,.utbr>span:first-child){font-size:var(--t-md)!important;font-weight:500!important}
+body.kerfi #view .urow .t{color:var(--ink)}
+body.kerfi #view :is(.nr,.urow>span:first-child,.sdtm){font-size:var(--t-sm)!important;font-variant-numeric:tabular-nums;color:var(--muted)}
+body.kerfi #view :is(.utbr span,.uhrow span,.ubr span,.uvs span,.mrow,.ucd,.cday,.utile,.grow .t,.cmt,.card>div){font-size:var(--t-md)!important}
+body.kerfi #view .mrow .mt{font-weight:400!important}
+/* Tölur: KPI, samtölur */
+body.kerfi #view :is(.ukp b,.kp b,.card b.n,.uklr b,.uwk b,.vyk b,.ll b,.utile b,.usum b,.sdkt b,.big,.h2v){font-size:var(--t-xl)!important;font-weight:300!important;line-height:1.2;font-variant-numeric:tabular-nums}
+body.kerfi #view :is(.ukp small,.kp small,.usum small,.utile small){font-size:var(--t-xs)!important;color:var(--muted)}
+body.kerfi #view .utbt b{font-size:var(--t-lg)!important;font-weight:500!important}
+
+/* ---------- Merki og flögur ---------- */
+body.kerfi #view :is(.pill,.upill,.dbadge,.badge,.ucnt){font-size:var(--t-xs)!important;font-weight:500!important;line-height:1.5;padding:1px 9px!important;border-radius:999px;letter-spacing:0}
+body.kerfi #view :is(.uchip,.chip,.simsub button){font-size:var(--t-sm)!important;font-weight:400!important;min-height:var(--h-chip);padding:3px 12px!important;border-radius:999px}
+body.kerfi #view :is(.uchip.on,.simsub button[aria-selected="true"]){font-weight:500!important}
+
+/* ---------- Hnappar ---------- */
+body.kerfi #view :is(.btn,a.btn),body.kerfi #sheetwrap .btn,body.kerfi .simact .btn,body.kerfi .qrcard .btn{font-size:var(--t-md)!important;font-weight:500!important;min-height:var(--h-btn);padding:0 var(--s4)!important;border-radius:var(--rad);line-height:1.2}
+body.kerfi #view :is(.btn.sm,.mini,button.mini,.uback,.ulink,.klink,.sdbtn.sm){font-size:var(--t-sm)!important;min-height:var(--h-sm)}
+body.kerfi #view :is(.uback){font-weight:400!important;padding:0!important;min-height:0;color:var(--muted)}
+body.kerfi #view :is(.links,.uact,.qract,.sdpa,.ucalctl){gap:var(--s2)!important}
+body.kerfi #view .dtabs button,body.kerfi #view .uvt button,body.kerfi #view .seg button{font-size:var(--t-md)!important;font-weight:400!important}
+body.kerfi #view :is(.dtabs button[aria-selected="true"],.dtabs button.on,.uvt button.on,.seg button[aria-selected="true"],.seg button[aria-pressed="true"]){font-weight:500!important}
+
+/* Táknhnappur (+) heldur sinni stærð */
+:root body.kerfi #view .btn.pnew:not(.u1pn){padding:0!important;width:var(--h-btn);min-width:var(--h-btn)}
+
+/* ---------- Form ---------- */
+body.kerfi :is(#view,#sheetwrap) label{font-size:var(--t-sm)!important;font-weight:500!important;color:var(--muted);gap:var(--s1)!important}
+body.kerfi :is(#view,#sheetwrap) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select){font-size:var(--f-in)!important;min-height:var(--h-in);height:var(--h-in);padding:0 var(--s3)!important;border-radius:var(--rad);box-sizing:border-box}
+body.kerfi :is(#view,#sheetwrap) textarea{font-size:var(--f-in)!important;padding:var(--s2) var(--s3)!important;border-radius:var(--rad);min-height:84px}
+body.kerfi :is(#view,#sheetwrap) .two{gap:var(--s3)!important}
+body.kerfi #view .spfilt input{height:auto;min-height:0;padding:0!important}
+body.kerfi #view .spfilt{height:var(--h-btn)!important}
+body.kerfi #view .spfilt kbd{font-size:var(--t-xs)!important}
+
+/* ---------- Kort og bil ---------- */
+body.kerfi #view :is(.card,.ucard,.sdk,.sdp,.qrbox,.ukp,.kp){border-radius:12px}
+body.kerfi #view :is(.ucard,.card.ucard,.dcard){padding:var(--s4)!important}
+body.kerfi #view :is(.ukps,.kpis,.udash,.uh3,.uhtop){gap:var(--s3)!important}
+body.kerfi #view .stdet>*+*{margin-top:var(--s3)}
+body.kerfi #view .stdet :is(.card,.ucard){padding:var(--s4)!important}
+
+/* ---------- Stillingar: listinn eins og aðrir listar ---------- */
+body.kerfi #view .mrow{min-height:48px;padding:var(--s2) var(--s4)!important}
+body.kerfi #view .mrow .mt{font-size:var(--t-md)!important}
+body.kerfi #view .mrow small,body.kerfi #view .mrow .mv{font-size:var(--t-sm)!important;color:var(--muted)}
+
+
+/* ---------- Leifar úr eldri lögum (úttekt 2) ---------- */
+body.kerfi #view :is(.ucd b,.uer b,.spcm b,.utbt span,.bt b,.qrbh b){font-size:var(--t-md)!important;font-weight:500!important}
+body.kerfi #view :is(.udh span,.uln span,.usl span,.usvid,.usvf,.usug span,.meta span,.chipbtn,.cday .n,.uwk .m,.uwarn span,.qrbh span){font-size:var(--t-sm)!important}
+body.kerfi #view :is(.cdn,.ucalh span,.ucalh,.vyl,.vyv,.tag,.spt,.dc,.cdt){font-size:var(--t-xs)!important}
+body.kerfi #view :is(.seg button,.ucalctl .seg button,.sdbtn,.qrseg button){font-size:var(--t-md)!important}
+body.kerfi #view .sdbtn.sm{font-size:var(--t-sm)!important}
+body.kerfi #view h3{font-size:var(--t-lg)!important;font-weight:500!important}
+body.kerfi #view .card b:not([class]){font-size:inherit}
+body.kerfi #view :is(.card>b,.card b.n,.card .big){font-size:var(--t-xl)!important;font-weight:300!important}
+body.kerfi #view td,body.kerfi #view th{font-size:var(--t-sm)!important}
+
+
+/* ---------- Innfelld stærðir (style="font-size:…") færðar á kvarðann ---------- */
+body.kerfi :is(#view,#sheetwrap) :is([style*="font-size:12px"],[style*="font-size:12.5px"],[style*="font-size:13px"],[style*="font-size:13.5px"]){font-size:var(--t-sm)!important}
+body.kerfi :is(#view,#sheetwrap) :is([style*="font-size:14px"],[style*="font-size:14.5px"],[style*="font-size:15px"]){font-size:var(--t-md)!important}
+body.kerfi :is(#view,#sheetwrap) :is([style*="font-size:16px"],[style*="font-size:17px"],[style*="font-size:18px"]){font-size:var(--t-lg)!important}
+body.kerfi :is(#view,#sheetwrap) [style*="font-size:20px"]{font-size:var(--t-xl)!important}
+body.kerfi :is(#view,#sheetwrap) [style*="font-weight:600"],body.kerfi :is(#view,#sheetwrap) [style*="font-weight:700"]{font-weight:500!important}
+
+/* ---------- Sterkari reglur þar sem eldri lög eru sértækari ---------- */
+:root body.kerfi #view :is(.splist,.spdet,.uhead,.udh2,.phead,.phrow,.udl,div,section) .ptitle,:root body.kerfi #view .ptitle{font-size:var(--t-2xl)!important;font-weight:300!important}
+:root body.kerfi #view :is(.seg,.ucalctl,div) button:is(*){font-size:var(--t-md)}
+:root body.kerfi #view .seg button{font-size:var(--t-md)!important}
+:root body.kerfi #view :is(.spx,.spwin,.spexp,.sheetmin){font-size:var(--t-sm)!important}
+:root body.kerfi #view :is(.chipbtn,.daychips button){font-size:var(--t-sm)!important;font-weight:400!important}
+:root body.kerfi #view :is(.req,.cday .n,.udh span,td.yfir,.vyv.on){font-weight:500!important}
+:root body.kerfi #view :is(i.pp,.sav,.spn,.achk i,.card>span){font-size:var(--t-xs)!important}
+:root body.kerfi #view :is(.umore>summary,.grow>div,.dbody>.card,.cmh .x){font-size:var(--t-md)!important}
+:root body.kerfi #view .viewtitle a.plink{font-size:inherit!important}
+
+
+/* Skráningarblað (#sheetwrap) og gátreitir */
+:root body.kerfi :is(#view,#sheetwrap) .seg button{font-size:var(--t-sm)!important;font-weight:500!important}
+:root body.kerfi :is(#view,#sheetwrap) .chipbtn{font-size:var(--t-sm)!important;font-weight:400!important}
+:root body.kerfi :is(#view,#sheetwrap) .chipbtn[aria-pressed="true"]{font-weight:500!important}
+:root body.kerfi :is(#view,#sheetwrap) .req{font-weight:500!important}
+:root body.kerfi #view .ubox{font-size:10px!important}
+:root body.kerfi :is(#view,#sheetwrap) :is(.sheetmin,.bt span){font-size:var(--t-sm)!important}
+
+
+/* Haus á yfirlitssíðum fór 8 px út fyrir skjáinn í tölvu (−40 px spássía) */
+@media (min-width:1024px){ body.kerfi.ui1 .anim>.phead{margin-inline:0;padding-inline:0} }
+
+
+/* ---------- Stillingaraðir (.cfgrow): nafn vinstra, stýringar jafnháar ---------- */
+body.kerfi #view .cfgrow{gap:var(--s2) var(--s3);padding:var(--s3) 0;min-height:52px}
+body.kerfi #view .cfgrow .grow{font-size:var(--t-md)!important;font-weight:500}
+body.kerfi #view .cfgrow .grow .ls{font-weight:400;margin-top:2px}
+body.kerfi #view .cfgrow .tag{font-size:var(--t-xs)!important;font-weight:400;padding:1px 8px;margin-left:4px;vertical-align:1px}
+body.kerfi #view .cfgrow .ctl{gap:var(--s2)}
+:root body.kerfi #view .cfgrow .ctl :is(select,.mini,.btn){height:var(--h-btn)!important;min-height:var(--h-btn)!important;font-size:var(--t-md)!important;border-radius:var(--rad)}
+:root body.kerfi #view .cfgrow .ctl .mini{min-width:var(--h-btn);padding:0 var(--s3)!important;font-weight:400}
+:root body.kerfi #view .cfgrow .ctl select{min-width:140px;padding:0 28px 0 var(--s3)!important}
+
+/* ---------- Sími ---------- */
+@media (max-width:1023px){
+  :root body.kerfi #view .ptitle,:root body.kerfi #view :is(.splist,.spdet,.uhead,.udh2,.phead,.phrow,.udl,div,section) .ptitle,body.kerfi #view :is(h2.big,.sdh h1){font-size:22px!important}
+  body.kerfi #view :is(.ukp b,.kp b,.card b.n,.uklr b,.uwk b,.vyk b,.ll b,.utile b,.usum b,.big,.h2v){font-size:18px!important}
+  body.kerfi #view .sdkt b{font-size:24px!important}
+  body.kerfi #view :is(.stdet .two,.two){grid-template-columns:minmax(0,1fr)!important}
+
+  /* Stillingaraðir: stýringar í heilli línu undir nafninu */
+  body.kerfi #view .cfgrow .ctl{flex:1 1 100%;margin-left:0}
+  :root body.kerfi #view .cfgrow .ctl select{flex:1 1 auto;font-size:16px!important}
+  /* Listar eru alltaf einn dálkur í síma */
+  :root body.kerfi #view .list{display:flex!important;flex-direction:column;gap:var(--s2)}
+  :root body.kerfi #view .list{align-items:stretch!important}
+  :root body.kerfi #view .list>*{width:auto!important;max-width:none!important}
+  :root body.kerfi .anim>.phead{padding-inline:0!important}
+  :root body.kerfi #view .ucalctl .calseg{max-width:none!important}
+  :root body.kerfi #view .fsels select,:root body.kerfi #view .uchips select{height:36px!important;min-height:36px!important;border-radius:999px;width:auto!important;max-width:100%}
+  /* Dagatal: sýnarval í heilli línu, svo flakk og + Fundur */
+  :root body.kerfi #view .ucalctl{display:flex;flex-wrap:wrap;width:100%;gap:var(--s2)!important}
+  :root body.kerfi #view .ucalctl .calseg{flex:1 1 100%;display:grid;grid-template-columns:repeat(3,1fr)}
+  :root body.kerfi #view .ucalctl .pnew{margin-left:auto}
+}

@@ -36,6 +36,8 @@ window.ORG = {
   einingar: { leiga: true, sala: true, deildir: true, pantanir: true, qr: true },
   // Nýtt símaútlit (2.45.0, simi.js og simi.css): listar beint úr neðri stiku, flipar sem renna, hreinni haus og Heim. Prófað hér fyrst.
   simi: "I",
+  // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma. Prófað hér fyrst.
+  kerfi: true,
   // Firebase-verkefnið atrium (atrium-499a2). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyAGCMEK5HdNqLEHH9UXe8B3zL9m9-bnzu0",
