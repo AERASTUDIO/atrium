@@ -32,6 +32,8 @@
     // Frá 2.8.0 – deildarval efst og verkefni, Heim og dagatal síuð eftir deild (deildir.js). Deildirnar = Leiga/Sala sem eru virkar.
     // Frá 2.20.0 (aðeins með pakkavali): pantanir og erindi án verkefnis – sami ritill og tilboð, frátekning leigubúnaðar
     ...(window.ORG?.pakkaval ? { pantanir: ["Pantanir", "Pantanir og erindi án verkefnis: viðskiptavinur, línur úr vörulista, afhending og skil, uppruni (sími, tölvupóstur, Shopify …)", null, 1] } : {}),
+    // Frá 2.45.0 (fyrst í dev/): QR-merki á eintök leigubúnaðar, skanni í öllum tækjum (líka iPhone), skönnun út og inn á pöntunum (qr.js). Sjálfgefið óvirk.
+    qr:             ["QR-merki og skanni", "QR-merki á hvert eintak, skanni í síma og tölvu, eintaksspjald og skönnun út og inn á pöntunum", "leiga", 1],
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
   // Pakkar og tengingar (frá 2.14.0, einingatillagan 21.10.2026): einingarnar flokkaðar í kjarna, fimm pakka og tengingar.
@@ -43,7 +45,7 @@
     verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
     timar:      ["Tímar", "Tímaskráning, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
     tilbod:     ["Tilboð og þjónustur", "Tilboð og þjónustulisti: þjónusta á tímagjaldi eða föstu verði, tímagjald á verkefnum og færslum", ["tilbod", "verdskra"]],
-    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", ...(window.ORG?.pakkaval && window.ORG?.utlit !== "I" ? ["pantanir"] : [])]],
+    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", "qr", ...(window.ORG?.pakkaval && window.ORG?.utlit !== "I" ? ["pantanir"] : [])]],
     fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]
   };
   const TENGINGAR = {

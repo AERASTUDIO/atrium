@@ -1,0 +1,30 @@
+/* Símaútlit I (2.45.0, simi.js – ORG.simi === "I", fyrst í dev/). Aðeins á skjám mjórri en 1024 px. */
+@media (max-width:1023px){
+  /* Haus: dagsetningin fer (hún er efst á Heim), táknin jafnt dreifð */
+  body.simi1 header #today{display:none}
+  body.simi1 header .hright{gap:4px}
+  body.simi1 header .hright .iconbtn,body.simi1 header .avbtn{flex:none}
+  /* Pláss neðst svo síðasta lína hverfi ekki undir stikuna og plús-hnappinn */
+  body.simi1 .app{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+  /* Plús-hnappurinn: ekki á spjöldum (þar eru aðgerðirnar) */
+  body.simi1.simidet .fab{display:none!important}
+  /* Heim: lykiltölur í jöfnum reitum, síðasti reitur fyllir línuna ef þeir eru oddatala; engin tvítekin „Vikan þín“ */
+  body.simi1 .h2tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  body.simi1 .h2tiles>.h2tile:last-child:nth-child(odd){grid-column:1/-1}
+  body.simi1 .h2tile{padding:14px}
+  body.simi1 .h2tile .h2v{font-size:24px;line-height:1.2;overflow-wrap:anywhere}
+  body.simi1 .h2>.usum{display:none}
+  body.simi1 .h2card .h2hd{flex-wrap:wrap;row-gap:4px}
+  body.simi1 .h2card .h2hd .h2tag{display:none}
+  body.simi1 .h2klukka{margin-bottom:6px}
+  /* Undirflipar: renna lárétt ef þeir komast ekki fyrir, merkt val skýrt */
+  body.simi1 .phead .seg{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  body.simi1 .phead .seg::-webkit-scrollbar{display:none}
+  body.simi1 .phead .seg button{flex:1 0 auto;min-height:40px;padding:8px 14px;scroll-snap-align:start;white-space:nowrap}
+  /* Spjöld: næsta skref á pöntun */
+  body.simi1 .simnx{margin:12px 0 4px}
+  body.simi1 .simnx .btn{width:100%;min-height:48px;justify-content:center;font-size:16px}
+  /* Langir textar brjóta ekki skjáinn */
+  body.simi1 #view{overflow-wrap:anywhere}
+  body.simi1 #view .pill{white-space:nowrap}
+}

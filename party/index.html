@@ -26,6 +26,8 @@ window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="brand.css">
 <link rel="stylesheet" href="party/utlit.css">
+<link rel="stylesheet" href="qr.css">
+<link rel="stylesheet" href="simi.css">
 
 <aside class="side" aria-label="Valmynd"><span class="cobrand"><img class="colog" alt=""><span class="cosep" aria-hidden="true"></span><span class="logo" role="img" aria-label="Atrium"></span></span>
 <button type="button" class="btn primary new" onclick="openFab()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Nýtt</button>
@@ -49,7 +51,7 @@ window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <script src="xlsx.js"></script>
 <script src="skjalagerd.js"></script>
 <script type="module">const ROT=f=>new URL(f,document.baseURI).href; /* full slóð: Safari tekur ekki mið af <base> í import() (2.8.2) */ if(window.AERA_DEMO) import(ROT("demo.js")); else if(window.ORG.firebase) import(ROT("firebase.js")); else { /* uppsetning án gagnagrunns (enn sem komið er) */ document.getElementById("login").hidden=false; document.getElementById("login-msg").textContent="Þessi uppsetning er ekki enn tengd gagnagrunni. Sýniútgáfan virkar: bættu ?demo aftan við slóðina."; document.getElementById("login-ms").disabled=true; }</script>
-<script>const APP_VERSION="2.44.2"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
+<script>const APP_VERSION="2.45.0"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
 <script src="app-grunnur.js"></script>
 <script src="app-listar.js"></script>
 <script src="app-skyrslur.js"></script>
@@ -73,5 +75,7 @@ window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <script src="personuvernd.js"></script>
 <script src="utlit-i.js"></script>
 <script src="ui1-skjair.js"></script>
+<script src="qr.js"></script>
+<script src="simi.js"></script>
 
 </body></html>

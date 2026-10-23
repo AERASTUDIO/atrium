@@ -1,0 +1,95 @@
+/* QR-merki og skanni (2.45.0, qr.js) – skanni á fullum skjá, eintaksspjald og skönnunarkassi á pöntun */
+body.qropen{overflow:hidden}
+.qrsc{position:fixed;inset:0;z-index:200;background:#0b0c0d;color:#eef1f3;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.qrtop{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.qrtop b{font-size:17px;font-weight:500}
+.qrsup{font-size:12px;color:#9aa5af;letter-spacing:.02em}
+.qrx{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:inherit;display:grid;place-items:center;cursor:pointer}
+.qrx:focus-visible,.qrtorch:focus-visible{outline:2px solid #a9d0f5;outline-offset:2px}
+.qrcam{position:relative;flex:1 1 auto;min-height:220px;overflow:hidden;background:#000}
+.qrcam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.qrcam.off{display:grid;place-items:center;background:#141618}
+.qrframe{position:absolute;left:50%;top:50%;width:min(62vw,62vh,300px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:18px;box-shadow:0 0 0 100vmax rgba(0,0,0,.42);pointer-events:none;transition:box-shadow .2s}
+.qrframe i{position:absolute;width:34px;height:34px;border:3px solid #eef1f3;border-radius:6px}
+.qrframe i:nth-child(1){left:-2px;top:-2px;border-right:0;border-bottom:0;border-radius:18px 0 0 0}
+.qrframe i:nth-child(2){right:-2px;top:-2px;border-left:0;border-bottom:0;border-radius:0 18px 0 0}
+.qrframe i:nth-child(3){left:-2px;bottom:-2px;border-right:0;border-top:0;border-radius:0 0 0 18px}
+.qrframe i:nth-child(4){right:-2px;bottom:-2px;border-left:0;border-top:0;border-radius:0 0 18px 0}
+.qrframe span{position:absolute;left:8%;right:8%;top:10%;height:2px;background:linear-gradient(90deg,transparent,#a9d0f5,transparent);animation:qrline 2.2s ease-in-out infinite alternate}
+@keyframes qrline{to{top:88%}}
+@media (prefers-reduced-motion:reduce){.qrframe span{animation:none;top:50%;opacity:.6}}
+.qrframe.ok i{border-color:#7fd6a8}.qrframe.bad i{border-color:#f0a58f}
+.qrmsg{position:absolute;left:50%;bottom:18px;transform:translate(-50%,8px);max-width:calc(100% - 32px);padding:10px 16px;border-radius:12px;background:#22262a;color:#eef1f3;font-size:15px;opacity:0;transition:opacity .15s,transform .15s;pointer-events:none;text-align:center}
+.qrmsg.show{opacity:1;transform:translate(-50%,0)}
+.qrmsg.ok{background:#173c2a;color:#d9f5e5}.qrmsg.bad{background:#4a2118;color:#ffe3da}
+.qrtorch{position:absolute;right:16px;top:16px;width:48px;height:48px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#eef1f3;display:grid;place-items:center;cursor:pointer}
+.qrtorch.on{background:#eef1f3;color:#0b0c0d}
+.qrnocam{max-width:320px;padding:24px;text-align:center;color:#c3cbd2;line-height:1.5}
+.qrpanel{flex:0 0 auto;max-height:52vh;overflow:auto;background:#141618;border-radius:18px 18px 0 0;margin-top:-14px;position:relative;padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px}
+.qrman{display:flex;gap:8px}
+.qrman input{flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 12px;border-radius:12px;border:1px solid #2a2f33;background:#0f1112;color:#eef1f3}
+.qrman .btn{min-height:44px;width:auto;flex:none}
+.qrprog{display:flex;flex-direction:column;gap:8px}
+.qrprog b{font-size:20px;font-weight:500}
+.qrbar{height:8px;border-radius:8px;background:#22262a;overflow:hidden}.qrbar i{display:block;height:100%;background:#5d9bd6;border-radius:8px;transition:width .25s}
+.qrbar.in i{background:#93a0ad}
+.qrlist{display:flex;flex-direction:column;gap:2px}
+.qrli{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid #1f2326;min-height:44px}
+.qrli.full .qrnm b{color:#9aa5af}
+.qrck{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid #3a4148;display:grid;place-items:center;font-size:13px;color:#0b0c0d}
+.qrli.full .qrck{background:#7fd6a8;border-color:#7fd6a8}
+.qrnm{flex:1;min-width:0;display:flex;flex-direction:column}.qrnm b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qrnm small{color:#9aa5af;font-size:12.5px}
+.qrn{font-variant-numeric:tabular-nums;color:#c3cbd2;white-space:nowrap}
+.qrcnt{display:flex;align-items:center;gap:6px}
+.qrcnt button{width:40px;height:40px;border-radius:10px;border:1px solid #2a2f33;background:#1a1d1f;color:#eef1f3;font-size:20px;cursor:pointer}
+.qrdone{width:100%;min-height:48px}
+/* Eintaksspjald (blað neðan frá á síma, gluggi í tölvu) */
+.qrcard{position:fixed;inset:0;z-index:190;display:flex;align-items:flex-end;justify-content:center}
+.qrscrim{position:absolute;inset:0;background:var(--scrim,rgba(0,0,0,.6))}
+.qrsheet{position:relative;width:min(560px,100%);max-height:92vh;overflow:auto;background:var(--sheet,#141618);color:var(--ink);border-radius:22px 22px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px var(--shadow,rgba(0,0,0,.5))}
+@media (min-width:700px){.qrcard{align-items:center}.qrsheet{border-radius:22px;padding-bottom:22px}}
+.qrsheet .grab{width:40px;height:5px;border-radius:5px;background:var(--line);margin:0 auto 6px}
+.qrsheet .qrx{position:absolute;right:12px;top:12px;background:var(--raise);color:var(--ink)}
+.qrcd{display:flex;flex-direction:column;gap:14px}
+.qrch{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-right:48px}
+.qrch h2{margin:2px 0 0;font-size:26px;font-weight:500;letter-spacing:.01em}
+.qrsub{color:var(--muted)}
+.qrcd .qrsup{color:var(--muted)}
+.qrwhere{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;background:var(--raise)}
+.qrwhere small,.qrsec small,.qrdm small{font-size:12px;color:var(--muted)}
+.qrwhere b{font-weight:500;font-size:16px}.qrwhere span{color:var(--muted);font-size:13.5px}
+.qrwhere.out{background:var(--b0)}
+.qrwhere .ulink{align-self:flex-start;margin-top:4px;padding:6px 0;background:none;border:0;color:var(--accent);font:inherit;cursor:pointer}
+.qrdm{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:14px;border:1px solid var(--line)}
+.qrdm span{color:var(--muted);font-size:13px}
+.qrsec{display:flex;flex-direction:column;gap:6px}
+.qrseg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+@media (min-width:420px){.qrseg{grid-template-columns:repeat(4,1fr)}}
+.qrseg button{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.qrseg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.qrdmf>div{display:flex;gap:8px}
+.qrdmf input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--ink)}
+.qract{display:flex;flex-wrap:wrap;gap:8px}
+.qract .btn,.qrbb .btn,.qrsbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px}
+.qract .btn.primary{flex:1 1 100%;justify-content:center}
+/* Kassi á pöntun */
+.qrbox{margin:14px 0;padding:14px 16px;border-radius:16px;background:var(--raise);display:flex;flex-direction:column;gap:10px}
+.qrbh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}.qrbh b{font-weight:500}.qrbh span{color:var(--muted);font-size:13.5px;font-variant-numeric:tabular-nums}
+.qrbars{display:flex;flex-direction:column;gap:6px}
+.qrbox .qrbar{background:var(--line)}
+.qrwarn{font-size:13.5px;color:var(--ink);background:var(--warn-soft);border-radius:10px;padding:8px 10px}
+.qrbb{display:flex;flex-wrap:wrap;gap:8px}
+.qrtap{cursor:pointer}.qrtap:hover{background:var(--hover)}
+.qreint{margin-top:6px}
+.qrhbtn svg{width:20px;height:20px}
+.qrsbtn{width:100%;justify-content:center;margin-top:8px}
+/* Eintakalisti á vöruspjaldi í síma */
+.qreint .ush{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:6px}
+.qreint .ueh{display:none}
+.qreint .uer2{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,150px);align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);min-height:48px;border-radius:8px}
+.qreint .uer2>span:nth-child(1){font-weight:500;font-variant-numeric:tabular-nums}
+.qreint .uer2>span:nth-child(2){display:none}
+.qreint .uer2>span:nth-child(3){color:var(--muted);font-size:13px}
+.qreint .uer2 select{width:100%;min-height:40px;font:inherit;font-size:14px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--ink);padding:6px 8px}
+.qreint .uempty{color:var(--muted);margin:8px 0}
+.qruti{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:var(--b1);color:var(--ink);font-size:11.5px;font-weight:400;white-space:nowrap}

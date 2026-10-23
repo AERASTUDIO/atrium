@@ -70,7 +70,7 @@
         <li><b>Google Firebase</b> (Firestore og innskráning) – gagnagrunnur ${co}${pv.svaedi ? ", hýstur í " + E(pv.svaedi) : ""}.</li>
         <li><b>Microsoft 365</b> – innskráning, skjöl á SharePoint/OneDrive og póstur. Appið les þau með heimild notandans; þau eru ekki afrituð í gagnagrunninn.</li>
         <li><b>GitHub Pages</b> – hýsir sjálft appið (kóðann). Engin gögn ${co} eru þar.</li></ul>
-        <p>Appið notar engar rakningar, auglýsingar eða greiningartól. Letur og forritasöfn eru hýst í appinu sjálfu. Á tækinu geymist afrit af gögnunum svo appið virki án nets; það er hreinsað við útskráningu.</p>`)
+        <p>Appið notar engar rakningar, auglýsingar eða greiningartól. Letur og forritasöfn eru hýst í appinu sjálfu. Á tækinu geymist afrit af gögnunum svo appið virki án nets; það er hreinsað við útskráningu.${window.ON && ON("qr") ? " Myndavélin er aðeins notuð til að lesa QR-merki, á tækinu sjálfu – engar myndir eru vistaðar eða sendar." : ""}</p>`)
       + sec("Varðveisla", `<p>Reikningar og bókhaldsgögn eru geymd í 7 ár vegna bókhaldslaga. Önnur gögn eru geymd meðan þeirra er þörf vegna verkefna og viðskipta og er eytt eða þau nafnhreinsuð þegar þess er óskað og ekkert mælir gegn því.</p>`)
       + sec("Réttindi þín", `<p>Þú átt rétt á að fá að vita hvaða upplýsingar eru geymdar um þig og fá afrit af þeim, láta leiðrétta þær, láta eyða þeim eða takmarka vinnslu, og andmæla vinnslu. Hafðu samband við ${co}${net ? ` (<a href="mailto:${net}">${net}</a>)` : ""}. Þú getur einnig kvartað til <a href="https://www.personuvernd.is" target="_blank" rel="noopener">Persónuverndar</a>.</p>`)
       + `</div>`;
