@@ -58,6 +58,7 @@ window.ORG = {
   docLogo: "icons/doc-logo.png",
   // Nýja einingaskiptingin og útlitið (pakkaval, 2.21.0 – eins og Dev) og allar einingar opnar; admin síar í Stillingar › Einingar
   pakkaval: true,
+  utlit: "I",                          // tölvuútlit I (frá 2.43.0, eins og Dev og party.is); síminn óbreyttur
   einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
   // Firebase-verkefni uppsetningarinnar (aera-app-cfdb3). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
