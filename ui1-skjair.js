@@ -934,8 +934,23 @@
     return `<div class="uhead uhh"><div><div class="spsup">${E(dayTitle(today))}</div><h2 class="ptitle">${greet}${first ? ", " + E(first) : ""}</h2></div><div class="uhr"><button type="button" class="btn primary" onclick="openFab()">+ Nýtt</button></div></div>`
       + `<div class="uhtop">${vik}${kl}</div>`
       + `<div class="uh3">${hcard("Óklárað", ok.length, "Ekkert óklárað – vel gert.", ok, "hfrag", it => it.title + (it.sub ? " · " + it.sub : ""))}${hcard("Framundan", fr.length, "Ekkert næstu 7 daga.", fr, "hfram", it => relW(it.date) + (it.time ? " " + it.time : "") + " · " + it.title)}${hcard("Tilkynningar", tk.length, "Engar nýjar tilkynningar.", tk, "hnyl", it => it.title + (it.sub ? " · " + it.sub : ""))}</div>`
+      + dagskraHTML()
       + (src ? `<div class="h2logo"><img src="${E(src)}" alt="${E(ORG.nafn || "")}"></div>` : `<div class="h2logo txt">${E(ORG.nafn || "")}</div>`);
   };
+  // Dagskrá dagsins neðst á Heim › Yfirlit (2.52.1): fundir, skil og viðburðir dagsins + afhendingar og skil pantana, í tímaröð
+  function dagskraHTML() {
+    const t = isoD(today), hm = w => { const m = String(w || "").match(/T(\d\d:\d\d)/) || String(w || "").match(/^(\d\d:\d\d)/); return m ? m[1] : ""; }, ag = [];
+    let cal = new Map(); try { cal = calItems(); } catch (e) {}
+    (cal.get(t) || []).filter(i => !i.span && !i.done).forEach(i => ag.push({ time: hm(i.when), title: i.title || "", sub: i.nr || "", kind: i.kind || "", open: i.open }));
+    (window.salaAPI?.PN?.() || []).forEach(P => {
+      const fra = String(P.fra || "").slice(0, 10), til = String(P.til || P.fra || "").slice(0, 10), who = P.tengilidur || P.vidskiptavinur || "";
+      if (fra === t && ["Ný", "Staðfest"].includes(P.stada)) ag.push({ time: hm(P.fra), title: [P.nr, P.heiti].filter(Boolean).join(" "), sub: who, kind: "Afhending", open: "tb:" + P.id });
+      if (P.stada === "Afhent" && til && til <= t) ag.push({ time: hm(P.til), title: [P.nr, P.heiti].filter(Boolean).join(" "), sub: who, kind: til < t ? "Skil – seint" : "Skil pöntunar", open: "tb:" + P.id, late: til < t });
+    });
+    ag.sort((x, y) => (x.time || "99").localeCompare(y.time || "99"));
+    const rows = ag.map(a => `<div class="udsr${a.late ? " late" : ""}" ${a.open ? `data-open="${E(a.open)}" role="button" tabindex="0"` : ""}><span class="udst">${E(a.time || "–")}</span><span class="udsx"><b>${E(a.title)}</b>${a.sub ? `<small>${E(a.sub)}</small>` : ""}</span><span class="r">${pill(a.kind, a.late ? "late" : "")}</span></div>`).join("");
+    return `<section class="card ucard udags"><div class="uhch"><h3>Dagskrá dagsins${ag.length ? ` <span class="m">${ag.length}</span>` : ""}</h3><a href="#" data-act="tab:dagatal">Dagatal →</a></div>${rows || `<div class="uempty">Ekkert á dagskrá í dag.</div>`}</section>`;
+  }
   // Lesnar tilkynningar (á þessu tæki)
   const SEENK = "u1seen:" + (window.ORG?.lsForskeyti || "");
   const seenSet = () => { try { return new Set(JSON.parse(localStorage.getItem(SEENK) || "[]")); } catch (e) { return new Set(); } };

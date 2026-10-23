@@ -295,37 +295,16 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,body *::-webkit-scrollbar{displa
   body.pv.ui1 .split .splist .phead{top:0!important}
 }
 
-/* ---------- Upphafsskjár í tölvu (2.52.0): dagleg samantekt í stað stóra merkisins ---------- */
-body.kerfi .ustart.udash{height:auto;min-height:100vh;display:block;background:var(--bg)!important;padding:40px 48px 64px;box-sizing:border-box;position:relative}
-body.kerfi .udash .dshd{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:28px}
-body.kerfi .udash .dsl{display:block;font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
-body.kerfi .udash h1{margin:0;font-size:28px;font-weight:300;letter-spacing:-.02em;color:var(--ink)}
-body.kerfi .udash .uwire.usmall{width:44px;height:44px;opacity:.55;flex:none}
-body.kerfi .udash .dsks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
-body.kerfi .udash .dsk{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
-body.kerfi .udash .dsk small{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-body.kerfi .udash .dsk b{font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
-body.kerfi .udash .dsk b small{font-size:13px;text-transform:none;letter-spacing:0;font-weight:400}
-body.kerfi .udash .dsk>span{font-size:var(--t-sm);color:var(--muted)}
-body.kerfi .udash .dsk.warn b{color:#C0392B}
-html:not([data-theme="light"]) body.kerfi .udash .dsk.warn b{color:#FF7B72}
-body.kerfi .udash .dsbar{display:block;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:6px}
-body.kerfi .udash .dsbar i{display:block;height:100%;background:var(--kacc)}
-body.kerfi .udash .dsgrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px;align-items:start}
-body.kerfi .udash .dscol{display:flex;flex-direction:column;gap:12px;min-width:0}
-body.kerfi .udash .dsb{border:1px solid var(--line);border-radius:6px;background:var(--surface);min-width:0}
-body.kerfi .udash .dsh{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500}
-body.kerfi .udash .dsh i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--ink)}
-body.kerfi .udash .dsr{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
-body.kerfi .udash .dsr:last-child{border-bottom:0}
-body.kerfi .udash .dsr:is([data-open],[data-act]){cursor:pointer}
-body.kerfi .udash .dsr:is([data-open],[data-act]):hover{background:var(--hover,rgba(127,127,127,.06))}
-body.kerfi .udash .dst{font-size:var(--t-sm);color:var(--muted);font-variant-numeric:tabular-nums}
-body.kerfi .udash .dsx{display:flex;flex-direction:column;min-width:0}
-body.kerfi .udash .dsx b{font-size:var(--t-md);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body.kerfi .udash .dsx small{font-size:var(--t-sm);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body.kerfi .udash .dsr.late .dst,body.kerfi .udash .dsr.late b{color:#C0392B}
-html:not([data-theme="light"]) body.kerfi .udash .dsr.late :is(.dst,b){color:#FF7B72}
-body.kerfi .udash .dse{padding:18px 14px;font-size:var(--t-sm);color:var(--muted)}
-body.kerfi .udash .uver{position:static;margin-top:28px}
-@media (max-width:1280px){ body.kerfi .udash .dsks{grid-template-columns:repeat(2,minmax(0,1fr))} body.kerfi .udash .dsgrid{grid-template-columns:minmax(0,1fr)} }
+/* ---------- Dagskrá dagsins á Heim › Yfirlit (2.52.1): neðst, þvert yfir skjáinn ---------- */
+body.kerfi #view .card.ucard.udags{margin-top:12px;padding:0!important}
+body.kerfi #view .udags .uhch{padding:12px 14px;border-bottom:1px solid var(--line);margin:0}
+body.kerfi #view .udsr{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+body.kerfi #view .udsr:last-child{border-bottom:0}
+body.kerfi #view .udsr:hover{background:var(--hover,rgba(127,127,127,.06))}
+body.kerfi #view .udst{font-size:var(--t-sm);color:var(--muted);font-variant-numeric:tabular-nums}
+body.kerfi #view .udsx{display:flex;align-items:baseline;gap:10px;min-width:0}
+body.kerfi #view .udsx b{font-size:var(--t-md);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.kerfi #view .udsx small{font-size:var(--t-sm);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.kerfi #view .udsr.late .udst,body.kerfi #view .udsr.late b{color:#C0392B}
+html:not([data-theme="light"]) body.kerfi #view .udsr.late :is(.udst,b){color:#FF7B72}
+body.kerfi #view .udags .uempty{padding:16px 14px}

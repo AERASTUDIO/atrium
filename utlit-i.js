@@ -85,7 +85,7 @@
     if (tab === "upphaf") {
       if (!wideScr()) { tab = "yfirlit"; return renderI(); }
       document.body.classList.remove("hassplit", "spfull"); document.body.classList.add("onstart"); drawMenu();
-      v.innerHTML = startHTML();
+      if (!v.querySelector(".ustart")) v.innerHTML = startHTML();
       return;
     }
     document.body.classList.remove("onstart"); document.body.dataset.tab = tab;
@@ -302,60 +302,14 @@
     if (q && !vis) { if (!e0) sl.querySelector(".spfoot")?.insertAdjacentHTML("beforebegin", `<div class="uempty fltnone">Ekkert fannst fyrir „${esc(flt.trim())}“.</div>`); } else e0?.remove();
   }
 
-  // Upphafsskjár (2.52.0): dagleg samantekt – dagskrá dagsins, tímar, skil framundan og pantanir. Atrium-merkið lítið í horninu.
+  // Upphafsskjár: ekkert valið í vinstri stiku – aðeins merkið, þrívítt og snýst (CSS 3D, engin aukasöfn)
   function startHTML() {
+    // Atrium-merkið sem vírmynd (sömu fletir og í merkinu, aðeins útlínur), kyrrt
     const P = ["0,0 72,0 58,14 0,14", "0,14 58,14 72,28 0,28", "72,0 72,28 58,14", "100,0 100,72 86,58 86,0", "86,0 86,58 72,72 72,0", "100,72 72,72 86,58",
       "100,100 28,100 42,86 100,86", "100,86 42,86 28,72 100,72", "28,100 28,72 42,86", "0,100 0,28 14,42 14,100", "14,100 14,42 28,28 28,100", "0,28 28,28 14,42"];
-    const mark = `<svg class="uwire usmall" viewBox="-4 -4 108 108" aria-hidden="true">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg>`;
-    const ver = `<div class="uver">Atrium ${esc(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</div>`;
-    if (!S) return `<div class="ustart">${mark}${ver}</div>`;
-    const tr = f => { try { return f(); } catch (e) { return null; } };
-    const now = new Date(), iso = x => tr(() => isoDay(x)) || "", t = iso(now), hr = now.getHours();
-    const DN = ["Sunnudagur", "Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur"], MN = ["janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", "ágúst", "september", "október", "nóvember", "desember"];
-    const greet = hr < 5 ? "Góða nótt" : hr < 11 ? "Góðan daginn" : hr < 18 ? "Góðan dag" : "Gott kvöld";
-    const nm = String(window.USER?.nafn || "").split(/\s+/)[0];
-    const sk = tr(() => ME()) || "", F = tr(() => faerslur()) || [], hm = w => { const m = String(w || "").match(/T(\d\d:\d\d)/); return m ? m[1] : ""; };
-    const H = n => (Math.round((+n || 0) * 10) / 10).toLocaleString("is-IS");
-    const mon = tr(() => iso(mondayOf(now))) || t;
-    const mine = F.filter(e => (e.starfsmadur || "") === sk);
-    const hToday = mine.filter(e => String(e.date || "").slice(0, 10) === t).reduce((a, e) => a + (+e.timar || 0), 0);
-    const hWeek = mine.filter(e => { const x = String(e.date || "").slice(0, 10); return x >= mon && x <= t; }).reduce((a, e) => a + (+e.timar || 0), 0);
-    const goal = +(tr(() => CFG().vikumark)) || 40;
-    const cal = tr(() => calItems()) || new Map(), PN = window.salaAPI?.PN?.() || [];
-    // Dagskrá dagsins: fundir, skil og viðburðir + afhendingar og skil pantana
-    const ag = [];
-    (cal.get(t) || []).filter(i => !i.span && !i.done).forEach(i => ag.push({ time: hm(i.when), title: i.title || "", sub: [i.kind, i.nr].filter(Boolean).join(" · "), open: i.open, t: i.t }));
-    PN.forEach(Pn => {
-      if (Pn.fra && String(Pn.fra).slice(0, 10) === t && ["Ný", "Staðfest"].includes(Pn.stada)) ag.push({ time: hm(Pn.fra), title: (Pn.nr || "") + " " + (Pn.heiti || ""), sub: "Afhending · " + (Pn.tengilidur || Pn.vidskiptavinur || ""), open: "tb:" + Pn.id, t: "pn" });
-      const til = String(Pn.til || Pn.fra || "").slice(0, 10);
-      if (Pn.stada === "Afhent" && til && til <= t) ag.push({ time: hm(Pn.til), title: (Pn.nr || "") + " " + (Pn.heiti || ""), sub: (til < t ? "Skil – komið fram yfir · " : "Skil · ") + (Pn.tengilidur || Pn.vidskiptavinur || ""), open: "tb:" + Pn.id, t: "pn", late: til < t });
-    });
-    ag.sort((a, b) => (a.time || "99").localeCompare(b.time || "99"));
-    // Skil næstu 7 daga (verkefni og undirverk)
-    const soon = []; for (let k = 1; k <= 7; k++) { const x = new Date(now); x.setDate(x.getDate() + k); const ix = iso(x);
-      (cal.get(ix) || []).filter(i => (i.t === "skil" || i.t === "undir") && !i.done).forEach(i => soon.push({ d: x, ...i })); }
-    const late = (tr(() => verkefni()) || []).filter(p => p.skiladagur && String(p.skiladagur).slice(0, 10) < t && !tr(() => isDone(p)));
-    const newPn = PN.filter(x => x.stada === "Ný");
-    const unread = tr(() => window.spUnread?.()) || 0;
-    const rel = x => { const n = Math.round((new Date(iso(x)) - new Date(t)) / 864e5); return n === 1 ? "Á morgun" : DN[x.getDay()].slice(0, 3) + " " + x.getDate() + "."; };
-    const row = (o, a, b, c, cls = "") => `<a class="dsr${cls}" ${o ? (o.startsWith("tab:") ? `data-act="${esc(o)}"` : `data-open="${esc(o)}"`) + ` role="button" tabindex="0"` : ""}><span class="dst">${esc(a || "–")}</span><span class="dsx"><b>${esc(b)}</b>${c ? `<small>${esc(c)}</small>` : ""}</span></a>`;
-    const box = (h, n, body, empty, more) => `<section class="dsb"><div class="dsh"><span>${h}</span>${n ? `<i>${n}</i>` : ""}${more || ""}</div>${body || `<div class="dse">${empty}</div>`}</section>`;
-    const kpi = (l, v, sub, warn) => `<div class="dsk${warn ? " warn" : ""}"><small>${l}</small><b>${v}</b>${sub ? `<span>${sub}</span>` : ""}</div>`;
-    const att = [];
-    if (late.length) att.push(row("tab:verk", "!", late.length + (late.length === 1 ? " verkefni" : " verkefni") + " komin fram yfir skil", late.slice(0, 3).map(p => p.nr + " " + (p.stutt || "")).join(" · "), " late"));
-    if (newPn.length) att.push(row("tab:pantanir", "Ný", newPn.length + (newPn.length === 1 ? " pöntun bíður" : " pantanir bíða") + " staðfestingar", newPn.slice(0, 3).map(x => x.nr + " " + (x.heiti || "")).join(" · ")));
-    if (unread) att.push(row("tab:spjall", "✉", unread + " ólesin skilaboð", "Spjall"));
-    return `<div class="ustart udash">
-      <div class="dshd"><div><span class="dsl">${DN[now.getDay()]} ${now.getDate()}. ${MN[now.getMonth()]}</span><h1>${greet}${nm ? ", " + esc(nm) : ""}</h1></div>${mark}</div>
-      <div class="dsks">${kpi("Í dag", H(hToday) + " klst.", "skráð")}${kpi("Vikan", H(hWeek) + " <small>/ " + H(goal) + " klst.</small>", `<span class="dsbar"><i style="width:${Math.min(100, hWeek / goal * 100)}%"></i></span>`)}${kpi("Dagskrá", ag.length, ag.length === 1 ? "atriði í dag" : "atriði í dag")}${kpi("Skil næstu 7 daga", soon.length, late.length ? late.length + " komin fram yfir" : "", late.length)}</div>
-      <div class="dsgrid">
-        ${box("Dagskrá dagsins", ag.length, ag.map(a => row(a.open, a.time, a.title, a.sub, a.late ? " late" : "")).join(""), "Ekkert á dagskrá í dag.")}
-        <div class="dscol">
-          ${att.length ? box("Þarf athygli", att.length, att.join(""), "") : ""}
-          ${box("Skil framundan", soon.length, soon.slice(0, 8).map(i => row(i.open, rel(i.d), i.title, [i.kind, i.nr].filter(Boolean).join(" · "))).join(""), "Engin skil næstu 7 daga.")}
-        </div>
-      </div>${ver}</div>`;
+    return `<div class="ustart"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div><div class="uver">Atrium ${esc(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</div></div>`;
   }
+
 
   // Fleiri gluggar (2.33.0): staða hvers glugga í slóðinni (#t=flipi&o=atriði&d=undirflipi) – opna í nýjum glugga og muna stað við endurhleðslu
   const winHash = (t, o, dt) => "#t=" + encodeURIComponent(t || "") + (o ? "&o=" + encodeURIComponent(o) : "") + (o && dt && dt !== "yfirlit" ? "&d=" + encodeURIComponent(dt) : "");
