@@ -962,3 +962,25 @@ body.pv.ui1 .usvc b.n{display:block;font-size:26px;font-weight:300;margin:6px 0 
 body.pv.ui1 .ubr{display:grid;grid-template-columns:150px minmax(0,1fr) 70px;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
 body.pv.ui1 .ubr .ubar{height:8px}
 body.pv.ui1 .ubr span:last-child{text-align:right;color:var(--muted)}
+/* 2.28.1: upphafsskjár – venjulega Atrium-merkið sem vírmynd, kyrrt */
+.uwire{width:220px;height:220px}
+.uwire polygon{fill:none;stroke:#3A424B;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+:root[data-theme="dark"] .uwire polygon{stroke:#C9D1D9}
+/* 2.29.0: pósthólf eins og í Outlook */
+.pofolds .chipbtn .pocnt{font-weight:600;color:inherit;margin-left:3px}
+.pofilt .chipbtn{font-size:12.5px;padding:4px 10px}
+.potb{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.potb .btn{padding:5px 12px;min-height:34px;font-size:13px}
+.potb .btn.on{background:#E3ECF5}
+.potb .posel select{min-height:34px;font-size:13px}
+.porow .poqa{display:none;gap:2px}
+.porow:hover .poqa,.porow:focus-within .poqa{display:inline-flex}
+.porow .poqa button{border:0;background:transparent;font:inherit;font-size:14px;color:var(--muted);cursor:pointer;padding:2px 5px;border-radius:6px}
+.porow .poqa button:hover{background:var(--line);color:var(--ink)}
+.porow.flagged{box-shadow:inset 3px 0 0 #B4232A}
+.poflg{color:#B4232A}.poimp{color:#B4232A;font-weight:700}
+.porow.unread .pofrom,.porow.unread .ls:first-of-type{font-weight:600}
+body.pv.ui1 .splist .pofolds,body.pv.ui1 .splist .pofilt{gap:6px;padding:0 16px}
+body.pv.ui1 .splist .pofolds .chipbtn,body.pv.ui1 .splist .pofilt .chipbtn{min-height:30px;padding:4px 11px;font-size:12.5px}
+body.pv.ui1 .splist .pofolds .posel select{min-height:30px;font-size:12.5px;padding:2px 8px}
+body.pv.ui1 .splist #poq{padding:0 16px}

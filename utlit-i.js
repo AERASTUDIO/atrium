@@ -208,12 +208,12 @@
   }
   // Upphafsskjár: ekkert valið í vinstri stiku – aðeins merkið, þrívítt og snýst (CSS 3D, engin aukasöfn)
   function startHTML() {
-    // Vírmynd af Atrium-merkinu: fjórir kubbar (framhlið, bakhlið og brúnir) sem togast löturhægt sundur og saman
-    const bars = [[0, 0, 72, 28, 0, -1], [72, 0, 28, 72, 1, 0], [28, 72, 72, 28, 0, 1], [0, 28, 28, 72, -1, 0]], D = 9;
-    const box = ([x, y, w, h, dx, dy]) => { const f = `M${x} ${y}h${w}v${h}h${-w}z`, b = `M${x + D} ${y - D}h${w}v${h}h${-w}z`, e = `M${x} ${y}l${D} ${-D}M${x + w} ${y}l${D} ${-D}M${x + w} ${y + h}l${D} ${-D}M${x} ${y + h}l${D} ${-D}`;
-      return `<g class="uwb" style="--dx:${dx * 7}px;--dy:${dy * 7}px"><path class="bk" d="${b}"/><path class="ed" d="${e}"/><path class="fr" d="${f}"/></g>`; };
-    return `<div class="ustart"><svg class="uwire" viewBox="-14 -24 132 132" aria-label="Atrium" role="img">${bars.map(box).join("")}</svg><div class="u3name">ATRIUM</div></div>`;
+    // Atrium-merkið sem vírmynd (sömu fletir og í merkinu, aðeins útlínur), kyrrt
+    const P = ["0,0 72,0 58,14 0,14", "0,14 58,14 72,28 0,28", "72,0 72,28 58,14", "100,0 100,72 86,58 86,0", "86,0 86,58 72,72 72,0", "100,72 72,72 86,58",
+      "100,100 28,100 42,86 100,86", "100,86 42,86 28,72 100,72", "28,100 28,72 42,86", "0,100 0,28 14,42 14,100", "14,100 14,42 28,28 28,100", "0,28 28,28 14,42"];
+    return `<div class="ustart"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div></div>`;
   }
+
 
   if (desk()) { tab = "upphaf"; }
   // Smellt aftur á opinn yfirflokk: hann lokast og upphafsskjárinn birtist

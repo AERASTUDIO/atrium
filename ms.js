@@ -10,6 +10,8 @@
   // SharePoint-síða fyrirtækisins (ORG.sp): krefst Files.ReadWrite.All (admin consent í Entra)
   // Sameiginlegt pósthólf (ORG.postholf): krefst Mail.Read.Shared og Mail.Send.Shared (admin consent í Entra)
   if (window.ORG.postholf) { CFG.scopes += " Mail.Read.Shared Mail.Send.Shared"; CFG.base += " Mail.Read.Shared"; }
+  // Pósthólf eins og í Outlook (2.29.0, fyrst í útliti I/dev): merkja lesið, flagga, færa, safn og eyða krefst Mail.ReadWrite
+  if (window.ORG.utlit === "I") { CFG.scopes = CFG.scopes.replace("Mail.Read ", "Mail.ReadWrite ").replace(/Mail\.Read$/, "Mail.ReadWrite"); CFG.base = CFG.base.replace(/Mail\.Read( |$)/, "Mail.ReadWrite$1"); }
   if (window.ORG.sp) { CFG.scopes = CFG.scopes.replace("Files.ReadWrite", "Files.ReadWrite.All"); CFG.base = CFG.base.replace("Files.ReadWrite", "Files.ReadWrite.All"); }
   const REDIRECT = window.ORG.appUrl && location.href.startsWith(window.ORG.appUrl) ? window.ORG.appUrl : location.origin + location.pathname;
   const AUTH = `https://login.microsoftonline.com/${CFG.tenant}/oauth2/v2.0`;
