@@ -139,6 +139,10 @@
       const mt = n.querySelector(".mt"); if (mt) { mt.querySelectorAll("small").forEach(x => x.remove()); mt.insertAdjacentHTML("beforeend", `<small>${esc(grp)}</small>`); }
       if (f0 && !(f0 === "eg" ? grp === "Ég" : grp === "Admin")) n.style.display = "none"; });
     const ph0 = v.querySelector(".phead"); if (ph0) ph0.insertAdjacentHTML("beforeend", `<div class="ulbar">${[["", "Allt"], ["eg", "Ég"], ["fyr", "Fyrirtækið"]].map(([k, l]) => `<button type="button" class="uchip${k === f0 ? " on" : ""}" onclick="window._stf='${k}';render()">${l}</button>`).join("")}</div>`);
+    // Leit í stillingum: heiti, lýsing og undirkaflar hverrar síðu (STPAGES[k].s)
+    const kw = r => { const k = (r.getAttribute("data-act") || "").slice(6), P0 = typeof STPAGES !== "undefined" ? STPAGES[k] : null; return [r.textContent, P0?.l, P0?.d, ...(P0?.s || [])].filter(Boolean).join(" "); };
+    v.querySelectorAll(".mrow").forEach(r => r.setAttribute("data-kw", kw(r)));
+    if (ph0) ph0.insertAdjacentHTML("afterend", `<label class="spfilt stq"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input type="search" id="u1stq" placeholder="Leita í stillingum…" aria-label="Leita í stillingum" value="${esc(window._stq || "")}"><kbd>/</kbd></label>`);
     const list = v.innerHTML;
     const cur = sub;  // ekkert valið þegar Stillingar eru opnaðar
     let det = `<div class="spempty">Veldu stillingu úr listanum</div>`;
@@ -149,6 +153,10 @@
     document.body.classList.add("hassplit"); document.body.classList.remove("spfull");
     v.innerHTML = `<div class="split"><section class="splist" aria-label="Listi">${list}</section><section class="spdet" aria-label="Nánar">${det}</section></div>`;
     v.querySelector(`.splist [data-act="stsub:${CSS.escape(cur || "")}"]`)?.classList.add("spsel");
+    const q = v.querySelector("#u1stq"), apply = () => { const t = fold((window._stq = q.value).trim()); let n = 0; v.querySelectorAll(".splist .mrow").forEach(r => { const hit = !t || fold(r.getAttribute("data-kw") || "").includes(t); if (r.dataset.hid !== "1") r.style.display = hit ? "" : "none"; if (hit && r.style.display !== "none") n++; });
+      let e0 = v.querySelector(".splist .stnone"); if (!n && t) { if (!e0) v.querySelector(".splist").insertAdjacentHTML("beforeend", `<div class="uempty stnone">Ekkert fannst.</div>`); } else e0?.remove(); };
+    v.querySelectorAll(".splist .mrow").forEach(r => { if (r.style.display === "none") r.dataset.hid = "1"; });
+    if (q) { q.addEventListener("input", apply); q.addEventListener("keydown", e => { if (e.key === "Enter") { const r = [...v.querySelectorAll(".splist .mrow")].find(x => x.style.display !== "none"); if (r) { e.preventDefault(); r.click(); } } }); apply(); }
   }
   /* Spjaldið hægra megin í stíl útlitsborðsins: haus með yfirlínu, heiti og aðgerðum; Svið; flipar í réttri röð */
   function fixDet(el) {
@@ -301,7 +309,7 @@
     else if ((e.key === "n" || e.key === "N") && document.querySelector('.splist .phead [data-act="fabnew"], .splist .phead .pnew')) { e.preventDefault(); document.querySelector('.splist .phead [data-act="fabnew"], .splist .phead .pnew').click(); }
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.querySelector(".spfilt input")) { e.preventDefault(); document.querySelector(".spfilt input").focus(); }
+    if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.querySelector(".spfilt input")) { e.preventDefault(); const i = document.querySelector(".spfilt input"); i.focus(); i.select?.(); }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { const q = document.getElementById("topq"); if (q) { e.preventDefault(); q.focus(); } }
   });
   window.addEventListener("resize", () => { clearTimeout(renderI._r); renderI._r = setTimeout(() => S && render(), 200); });
