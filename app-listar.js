@@ -27,7 +27,7 @@ const calModes=()=>`<div class="seg calseg" role="tablist" aria-label="Sýn">${[
 function calCard(i){return `<div class="card tap${i.done?" compact":""}" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))}><div class="row"><div class="grow"><div class="kind">${esc(i.kind)}${hhmm(i.when)?" · kl. "+hhmm(i.when):""}</div><div class="t">${esc(i.title)}</div>
     <div class="meta">${i.nr?`<span class="nr">${esc(i.nr)}</span>`:""}${i.o?.stadsetning?`<span>${esc(i.o.stadsetning)}</span>`:""}${i.t==="skil"&&i.o?.stada?statusPill(i.o.stada):""}</div>${i.t==="fund"?meetBtn(i.o):""}</div>${CHEV}</div></div>`;}
 const CHL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>', CHR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';
-const calAdd=()=>MCP?`<div class="links"><button type="button" class="btn primary" data-act="caladd:fund">+ Fundur</button><button type="button" class="btn" data-act="caladd:tima">+ Tími</button><button type="button" class="btn" data-act="caladd:undir">+ Undirverk</button><button type="button" class="btn" data-act="caladd:verk">+ Verkefni</button></div>`:"";
+const calAdd=()=>MCP?`<div class="links"><button type="button" class="btn" data-act="caladd:fund">+ Fundur</button><button type="button" class="btn" data-act="caladd:tima">+ Tími</button><button type="button" class="btn" data-act="caladd:undir">+ Undirverk</button><button type="button" class="btn" data-act="caladd:verk">+ Verkefni</button></div>`:"";
 const dayTitle=x=>DAYL[x.getDay()][0].toUpperCase()+DAYL[x.getDay()].slice(1)+" "+x.getDate()+". "+MONL[x.getMonth()];
 function vCalWeek(){
   const items=calItems(), a=mondayOf(d(calSel)), days=[...Array(7)].map((_,k)=>{const x=new Date(a); x.setDate(a.getDate()+k); return x;}), e=days[6];
@@ -78,7 +78,7 @@ function vCal(){
   <div class="legend"><span style="--c:${CALC.fund}">Fundur</span><span style="--c:${CALC.skil}">Skil verkefnis</span><span style="--c:${CALC.undir}">Skil undirverks</span><span style="--c:${CALC.vidb}">Viðburður</span><span style="--c:var(--b2)">Tímabil verks</span></div>
   <div class="viewtitle">${sel?DAYL[sel.getDay()][0].toUpperCase()+DAYL[sel.getDay()].slice(1)+" "+sel.getDate()+". "+MONL[sel.getMonth()]:""}${calSel===isoDay(today)?" · í dag":""}</div>
   ${list.length?`<div class="list">${list.map(card).join("")}</div>`:`<div class="empty">Ekkert skráð þennan dag.</div>`}
-  ${MCP?`<div class="links"><button type="button" class="btn primary" data-act="caladd:fund">+ Fundur</button><button type="button" class="btn" data-act="caladd:verk">+ Verkefni</button><button type="button" class="btn" data-act="caladd:undir">+ Undirverk</button></div>`:""}`;
+  ${MCP?`<div class="links"><button type="button" class="btn" data-act="caladd:fund">+ Fundur</button><button type="button" class="btn" data-act="caladd:verk">+ Verkefni</button><button type="button" class="btn" data-act="caladd:undir">+ Undirverk</button></div>`:""}`;
 }
 let vskFilter="";
 // dk (2.12.0): Leiga/Sala › Viðskiptavinir – aðeins þeir sem eiga tilboð eða verkefni í deildinni; leitarreitur nær yfir alla.

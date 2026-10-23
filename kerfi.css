@@ -156,3 +156,14 @@ body.kerfi #view .cfgrow .ctl{gap:var(--s2)}
   :root body.kerfi #view .ucalctl .calseg{flex:1 1 100%;display:grid;grid-template-columns:repeat(3,1fr)}
   :root body.kerfi #view .ucalctl .pnew{margin-left:auto}
 }
+
+/* ---------- Dagatal (2.50.2) ----------
+   Einn „+ Fundur“: hnapparnir undir dagatalinu (á valinn dag) – ekki líka í hausnum.
+   Blái reiturinn fylgir völdum degi; dagurinn í dag er með rauðu letri. */
+body.kerfi{--today:#FF7B72}
+html[data-theme="light"] body.kerfi{--today:#C62828}
+body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
+:root body.kerfi #view .cal .cday.today{background:transparent}
+:root body.kerfi #view .cal .cday[aria-pressed="true"]{background:var(--ui1sel,var(--accent))!important;color:var(--ink)}
+:root body.kerfi #view .cal .cday.today .n{color:var(--today)!important;font-weight:600!important;box-shadow:none!important;background:none!important}
+:root body.kerfi #view .cal .cday[aria-pressed="true"] .n{box-shadow:none!important}
