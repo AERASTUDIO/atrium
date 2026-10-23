@@ -206,3 +206,10 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
   :root body.kerfi.simi1 #view .phead .ulbar :is(label,.uflsel){flex:none;margin:0!important;width:auto!important}
   :root body.kerfi.simi1 #view .phead .ulbar select{height:32px!important;min-height:32px!important;border-radius:999px!important;width:auto!important;padding:0 28px 0 12px!important;background-color:var(--ui1chip)!important;border:0!important;color:var(--ink)}
 }
+
+/* Listar í síma (2.50.5): línur 52 px (ekki 75), leitarreitur í sömu spássíu og listinn */
+@media (max-width:1023px){
+  :root body.kerfi.simi1 #view .splist .urow{box-sizing:border-box!important;min-height:52px!important;padding:var(--s2) 16px!important}
+  :root body.kerfi.simi1 #view .splist :is(.ugrp,.ush,.ush2){padding-left:16px!important;padding-right:16px!important;margin-inline:0!important}
+  :root body.kerfi.simi1 #view .splist .spfilt{margin:var(--s3) 16px var(--s2)!important;width:auto!important}
+}
