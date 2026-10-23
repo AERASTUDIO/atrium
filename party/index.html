@@ -22,9 +22,7 @@ const end=()=>{if(done)return;done=true;el.classList.add("out");setTimeout(()=>e
 const login=()=>{const l=document.getElementById("login"); return !!(l&&!l.hidden);};
 const tick=()=>{if(done)return; if(Date.now()-t0>15000||login())return end(); if(ready()&&Date.now()-t0>=MIN)return end(); setTimeout(tick,120);};
 window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+<link rel="preload" href="fonts/web/Poppins-Regular.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="brand.css">
 <link rel="stylesheet" href="party/utlit.css">
@@ -51,7 +49,7 @@ window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <script src="xlsx.js"></script>
 <script src="skjalagerd.js"></script>
 <script type="module">const ROT=f=>new URL(f,document.baseURI).href; /* full slóð: Safari tekur ekki mið af <base> í import() (2.8.2) */ if(window.AERA_DEMO) import(ROT("demo.js")); else if(window.ORG.firebase) import(ROT("firebase.js")); else { /* uppsetning án gagnagrunns (enn sem komið er) */ document.getElementById("login").hidden=false; document.getElementById("login-msg").textContent="Þessi uppsetning er ekki enn tengd gagnagrunni. Sýniútgáfan virkar: bættu ?demo aftan við slóðina."; document.getElementById("login-ms").disabled=true; }</script>
-<script>const APP_VERSION="2.43.0"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
+<script>const APP_VERSION="2.44.0"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
 <script src="app-grunnur.js"></script>
 <script src="app-listar.js"></script>
 <script src="app-skyrslur.js"></script>
@@ -72,6 +70,7 @@ window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <script src="adgangur.js"></script>
 <script src="notendur.js"></script>
 <script src="vista.js"></script>
+<script src="personuvernd.js"></script>
 <script src="utlit-i.js"></script>
 <script src="ui1-skjair.js"></script>
 

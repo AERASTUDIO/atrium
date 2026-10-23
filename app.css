@@ -1227,3 +1227,6 @@ body.pv.ui1 .uback{display:inline-flex;align-items:center;gap:4px;border:0;backg
 body.pv.ui1 .uback:hover{color:var(--ink);background:rgba(31,90,150,.06)}
 body.pv.ui1 .spdet>.uback{margin-top:14px;margin-bottom:0}
 body.pv.ui1 .phead>.uback{align-self:flex-start}
+/* 2.44.0 – Persónuvernd */
+.pvy .pvtxt{font-size:13.5px;line-height:1.6;color:var(--ink)}.pvy .pvtxt p{margin:4px 0 10px}.pvy .pvtxt ul{margin:4px 0 10px;padding-left:18px}.pvy .pvtxt li{margin:3px 0}
+.pvy .ush2:first-child{margin-top:0}

@@ -139,7 +139,7 @@ async function saveEdit(type,id){
 
 
 function syncNow(){
-  if(!S) return; const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"}); const a=document.createElement("a");
+  if(!S) return; if(window.can&&!can("stillingar")) return toast("Aðeins admin getur sótt afrit af öllum gögnum."); // persónuvernd (2.44.0) const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"}); const a=document.createElement("a");
   a.href=URL.createObjectURL(blob); a.download="aera-afrit-"+isoDay(new Date())+".json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000);
   toast("Afrit vistað á tækinu");
 }

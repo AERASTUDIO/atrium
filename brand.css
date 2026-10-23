@@ -1,3 +1,8 @@
+/* Letur hýst í appinu sjálfu (2.44.0, persónuvernd): ekkert sótt frá Google Fonts – IP-tala notanda fer ekki til þriðja aðila. Poppins, SIL OFL (fonts/OFL.txt). */
+@font-face{font-family:"Poppins";font-style:normal;font-weight:300;font-display:swap;src:url(fonts/web/Poppins-Light.woff) format("woff")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/web/Poppins-Regular.woff) format("woff")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/web/Poppins-Medium.woff) format("woff")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/web/Poppins-SemiBold.woff) format("woff")}
 /* AERA Studio – útlit eftir merkjahandbók (v1.2, október 2026).
    Litir: Nótt #121416 · Grafít #2F3742 · Stál #7C8896 · Þoka #C9D1D9 · Pappír #F6F7F8.
    Á dökkum grunni eru tónar merkisins lýstir: #DFE5EA · #93A0AD · #4B5664.

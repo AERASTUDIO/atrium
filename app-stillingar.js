@@ -19,7 +19,7 @@ function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB];
   const me=["utlit","ms","sig","amin"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
   const co=can("stillingar")?["adgangur","folk","einingar","fyrir","vstill",...(window.ON&&(ON("leiga")||ON("sala"))?["tilbod"]:[]),"prufa"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
-  <div class="mgroup">Gögn</div><div class="mlist">${mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins",noch:1})}</div>`;}
+  <div class="mgroup">Gögn og persónuvernd</div><div class="mlist">${STPAGES.personuvernd?mrow("stsub:personuvernd",STPAGES.personuvernd.l,{d:STPAGES.personuvernd.d}):""}${can("stillingar")?mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins (aðeins admin – inniheldur persónuupplýsingar)",noch:1}):""}</div>`;}
 function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
   const bs=window.ORG?.pakkaval&&window.barSecs?barSecs():null, rest=bs?SECTIONS.filter(x=>!x.nobar&&!bs.includes(x)):[], c=secCounts();
   const grid=rest.length?`<div class="mgrid">${rest.map(x=>`<button type="button" class="mtile" data-act="tab:${x.tabs[0][0]}">${x.ic}<span>${esc(x.l)}</span>${c[x.k]?`<small>${esc(c[x.k])}</small>`:""}</button>`).join("")}</div>`:"";

@@ -3,7 +3,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import { getAuth, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch }
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { firebaseConfig, MS_TENANT, MS_DOMAIN, ADMIN, LEGACY_EMAILS } from "./firebase-config.js";
 
@@ -41,7 +41,15 @@ document.getElementById("login-ms").addEventListener("click", () => {
 });
 getRedirectResult(auth).catch(e => showLogin("Innskráning tókst ekki: " + (e.code || e.message)));
 
-window.aeraSignOut = () => signOut(auth).then(() => location.reload());
+// Skrá út (2.44.0, persónuvernd): auk innskráningar hverfa gögn fyrirtækisins af tækinu – afrit Firestore í vafranum (IndexedDB),
+// Microsoft-lyklar og staðbundnar stillingar þessarar uppsetningar. Aðrar uppsetningar á sama léni (eigið forskeyti) haldast.
+window.aeraSignOut = async () => {
+  try { await signOut(auth); } catch (e) {}
+  try { await terminate(fs); await clearIndexedDbPersistence(fs); } catch (e) { console.warn("clearIndexedDbPersistence", e); }
+  try { if (window.ORG?.lsForskeyti) localStorage.clear(); else { const L = window.localStorage, ADRAR = /^(demo|dev|party|sonik|[a-z0-9]+):/; for (let i = L.length - 1; i >= 0; i--) { const k = L.key(i); if (k && (!ADRAR.test(k) || k.startsWith("u1seen:"))) L.removeItem(k); } } } catch (e) {}
+  try { sessionStorage.clear(); } catch (e) {}
+  location.reload();
+};
 
 // Les notendaskrána (app/notendur). Skilar null ef aðgangur fæst ekki.
 async function readUsers() {
