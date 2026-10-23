@@ -79,19 +79,113 @@ function sampleState() {
     { id: "m1", efni: "Efnisval", fra: "Tengiliður B", dags: iso(-40), url: null, verkefniId: "p1", ekkiFannst: true }
   ];
   window.MS_OFL = [{ id: "demo-m2", conversationId: "demo-conv-2", subject: "Fyrirspurn um nýtt verkefni", from: { emailAddress: { name: "Tengiliður A", address: "tengilidur@example.is" } }, receivedDateTime: iso(0), bodyPreview: "Gætuð þið gert tilboð í nýtt verkefni…" }];
+  if (window.ORG?.utlit === "I") rikari({ vsk, verkefni, faerslur, fundir, kostnadur, reikningar, skjol, thraedir, sub, P, T });
   return {
     uppfaert: new Date().toISOString(),
     verkefni, fundir, vidskiptavinir: vsk, skjol, kostnadur, reikningar, postar, thraedir,
     timar: { faerslur },
     netfangaskra: [],
     stillingar: {
-      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }],
+      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }, ...(window.ORG?.utlit === "I" ? [{ sk: "OK", nafn: "Ólafur Kristinsson" }] : [])],
       vikumark: 40,
       thjonusta: ["Hönnun", "Ráðgjöf", "Framkvæmd", "Almennt"],
       reikn: { nafn: (window.ORG?.nafn || "Fyrirtækið") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
       undirskrift: { nafn: "Jóna Jónsdóttir", netfang: "demo@demo.example" }
     }
   };
+}
+
+/* Ítarleg sýnigögn fyrir útlit I (2.26.0): fleiri viðskiptavinir, verkefni á öllum sviðum (Leiga, Sala, Þjónusta),
+   tímar fimm starfsmanna síðustu fjórar vikur, fundir, kostnaður og reikningar. Allt uppspuni. */
+function rikari(g) {
+  const ST = (window.ORG?.stodur || []).map(x => x.n), st = (i, d) => ST[i] || d;   // Fyrirspurn · Í vinnslu · Í bið · Afhent · Lokið
+  const c = (k, name, o) => ({ id: "d0000000000000000000000000000c" + k, name, hlutverk: ["Viðskiptavinur"], kennitala: "000000-00" + k, vsknr: "", heimilisfang: "", postnumer: "", stadur: "", simi: "", netfang: "", vefsida: "", tengilidur: "", simiT: "", netfangT: "", athugasemdir: "", ...o });
+  g.vsk.push(
+    c("05", "Álfaborg ehf.", { heimilisfang: "Skeifan 6", postnumer: "108", stadur: "Reykjavík", simi: "555 0501", netfang: "alfaborg@daemi.example", tengilidur: "Katrín Ragnarsdóttir", netfangT: "katrin@daemi.example" }),
+    c("06", "Bláfell ehf.", { hlutverk: ["Viðskiptavinur", "Verkkaupi"], heimilisfang: "Hafnarbraut 12", postnumer: "200", stadur: "Kópavogur", simi: "555 0601", netfang: "blafell@daemi.example", tengilidur: "Einar Þórsson", netfangT: "einar@daemi.example" }),
+    c("07", "Fyrirtæki X", { heimilisfang: "Borgartún 21", postnumer: "105", stadur: "Reykjavík", simi: "555 0701", netfang: "x@daemi.example", tengilidur: "Hildur Pálsdóttir", netfangT: "hildur@daemi.example" }),
+    c("08", "Hótel Lind", { heimilisfang: "Rauðarárstígur 18", postnumer: "105", stadur: "Reykjavík", simi: "555 0801", netfang: "hotel@daemi.example", tengilidur: "Magnús Óskarsson", netfangT: "magnus@daemi.example" }));
+  const V = n => g.vsk.find(x => x.name === n);
+  const [p1, p2, p3, p4, p5, p6] = g.verkefni;
+  // Eldri sex verkefnin fá stöður uppsetningarinnar og fleiri starfsmenn
+  Object.assign(p1, { stada: st(1, p1.stada), starfsmenn: ["JJ", "HS"], aklst: 120 }); Object.assign(p2, { stada: st(2, p2.stada), starfsmenn: ["JJ", "GG"] });
+  Object.assign(p3, { stutt: "Árshátíð Fyrirtækis X", nafn: p3.nr + " Árshátíð Fyrirtækis X", deild: "leiga", stada: st(1, p3.stada), vskId: V("Fyrirtæki X").id, vidskiptavinur: "Fyrirtæki X", vkId: null, verkkaupi: null, starfsmenn: ["JJ", "GG", "OK"],
+    lysing: "Hljóð, ljós og LED-veggur fyrir árshátíð, 600 gestir. Uppsetning daginn áður.", naest: "Staðfesta sviðsteikningu og keyrsluplan.", athuga: "Aðgengi að hleðslubrú frá kl. 8.", vidburdur: day(12, "18:00"), skiladagur: day(13), timabilFra: null, timabilTil: null,
+    thjonusta: [], aklst: 90, undirverk: [g.sub(p3.nr, 1, "Vettvangsskoðun", "Done", -8, 3), g.sub(p3.nr, 2, "Teikning og keyrsluplan", "In progress", 4, 6), g.sub(p3.nr, 3, "Uppsetning", "Not started", 11, 0), g.sub(p3.nr, 4, "Viðburður og niðurtaka", "Not started", 13, 0)] });
+  Object.assign(p4, { stada: st(0, p4.stada) }); Object.assign(p5, { stada: st(3, p5.stada) }); Object.assign(p6, { stada: st(4, p6.stada) });
+  const N = (id, k, stutt, o) => g.P({ id, nr: `${yr}-${k}`, stutt, timar: 0, undirverk: [], ...o });
+  const p7 = N("p7", 25, "Hljóðkerfi veitingastaðar", { deild: "sala", stada: st(1, "Í vinnslu"), vskId: "d0000000000000000000000000000c04", vidskiptavinur: "Viðskiptavinur D", starfsmenn: ["GG", "OK"], aklst: 30, tilbod: 1950000, skiladagur: day(20),
+    lysing: "Loftahátalarar, magnari og veggstýring (install).", naest: "Yfirfara teikningu með eiganda.",
+    undirverk: [g.sub(`${yr}-25`, 1, "Mælingar", "Done", -6, 4), g.sub(`${yr}-25`, 2, "Teikning", "Done", -2, 5), g.sub(`${yr}-25`, 3, "Uppsetning", "Up next", 18, 0), g.sub(`${yr}-25`, 4, "Forritun og afhending", "Not started", 20, 0)] });
+  const p8 = N("p8", 26, "Ráðstefna Hótel Lind", { deild: "leiga", stada: st(1, "Í vinnslu"), vskId: V("Hótel Lind").id, vidskiptavinur: "Hótel Lind", starfsmenn: ["GG"], tilbod: 640000, skiladagur: day(5), vidburdur: day(5, "09:00"),
+    lysing: "Hljóðkerfi, skjávarpi og tveir skjáir fyrir eins dags ráðstefnu.", undirverk: [g.sub(`${yr}-26`, 1, "Undirbúningur", "In progress", 3, 2), g.sub(`${yr}-26`, 2, "Ráðstefnudagur", "Not started", 5, 0)] });
+  const p9 = N("p9", 27, "Þjónustusamningur Bláfells", { stada: st(1, "Í vinnslu"), vskId: V("Bláfell ehf.").id, vidskiptavinur: "Bláfell ehf.", starfsmenn: ["OK", "JJ"], aklst: 80, skiladagur: day(68),
+    lysing: "Mánaðarleg þjónusta og eftirlit með hljóð- og myndkerfum í höfuðstöðvum.", naest: "Mánaðarskoðun í næstu viku.",
+    undirverk: [g.sub(`${yr}-27`, 1, "Úttekt kerfa", "Done", -40, 12), g.sub(`${yr}-27`, 2, "Skoðun október", "In progress", 6, 4), g.sub(`${yr}-27`, 3, "Skoðun nóvember", "Not started", 36, 0)] });
+  const p10 = N("p10", 28, "Fundarsalur Álfaborgar", { deild: "sala", stada: st(0, "Fyrirspurn"), vskId: V("Álfaborg ehf.").id, vidskiptavinur: "Álfaborg ehf.", starfsmenn: ["JJ"], tilbod: 1450000, skiladagur: day(30),
+    lysing: "Skjáir, borðhljóðnemi og hljóðstýring í nýjan fundarsal á 2. hæð." });
+  const p11 = N("p11", 19, "Jólatónleikar", { deild: "leiga", stada: st(3, "Afhent"), vskId: V("Fyrirtæki X").id, vidskiptavinur: "Fyrirtæki X", starfsmenn: ["GG", "OK", "HS"], skiladagur: day(-35),
+    undirverk: [g.sub(`${yr}-19`, 1, "Uppsetning", "Done", -36, 10), g.sub(`${yr}-19`, 2, "Tónleikar", "Done", -35, 8)] });
+  const p12 = N("p12", 29, "Tækniþjónusta á viðburði", { stada: st(2, "Í bið"), vskId: "d0000000000000000000000000000c03", vidskiptavinur: "Viðskiptavinur C", starfsmenn: ["HS"], skiladagur: day(16), lysing: "Hljóð- og ljósamaður á kvöldviðburði. Bíður staðfestingar á tímasetningu." });
+  g.verkefni.push(p7, p8, p9, p10, p11, p12);
+  // Tímar fimm starfsmanna síðustu 4 vikur (virkir dagar), á verkefni, undirverk og Innra
+  const plan = { JJ: [p1, p2, p3, p10, p9], GG: [p3, p7, p8, p2, p11], HS: [p1, p12, p11], OK: [p9, p7, p3, p11], SB: [] };
+  const lys = { p1: ["Teiknivinna", "Módelvinna", "Fundur með viðskiptavini"], p2: ["Lagfæringar", "Yfirferð"], p3: ["Keyrsluplan og ljósateikning", "Sviðsteikning", "Samskipti við viðburðastjóra"], p7: ["Teikning loftahátalara", "Lagnaleiðir", "Mælingar á staðnum"],
+    p8: ["Undirbúningur búnaðar", "Prófun skjávarpa"], p9: ["Mánaðarskoðun", "Uppfærsla hugbúnaðar", "Bilanagreining"], p10: ["Tilboðsgerð", "Vettvangsskoðun"], p11: ["Uppsetning", "Keyrsla", "Niðurtaka"], p12: ["Undirbúningur"] };
+  const INN = ["Innra – skrifstofa", "Innra – lagerumsjón", "Innra – námskeið", "Innra – vikufundur"];
+  let sd = 3; const rnd = () => (sd = (sd * 9301 + 49297) % 233280) / 233280;
+  const keep = g.faerslur.filter(e => e.date >= day(0)).length ? [] : [];
+  g.faerslur.length = 0; keep.forEach(e => g.faerslur.push(e));
+  let n = 0;
+  Object.entries(plan).forEach(([sk, ps]) => {
+    for (let off = -27; off <= 0; off++) {
+      const x = new Date(base); x.setDate(x.getDate() + off); const wd = x.getDay(); if (wd === 0 || wd === 6) continue;
+      if (sk === "SB" && rnd() < 0.5) continue;
+      let h = 8, t = 8.5; const parts = [];
+      if (off === 0) h = sk === "JJ" ? 3 : 2.5;
+      while (h > 0.4) { const b = Math.min(h, [1, 1.5, 2, 2.5, 3, 4][Math.floor(rnd() * 6)]); parts.push(b); h -= b; }
+      parts.forEach(b => {
+        const inn = !ps.length || rnd() < 0.18, p = inn ? null : ps[Math.floor(rnd() * ps.length)];
+        if (p && p.stada === st(3, "Afhent") && off > -30) { /* afhent: aðeins eldri tímar */ }
+        const L = p ? lys[p.id] || ["Vinna"] : INN, su = p && p.undirverk.length ? p.undirverk[Math.floor(rnd() * p.undirverk.length)] : null;
+        const fra = `${String(Math.floor(t)).padStart(2, "0")}:${t % 1 ? "30" : "00"}`; t += b; const til = `${String(Math.floor(t)).padStart(2, "0")}:${t % 1 ? "30" : "00"}`;
+        g.faerslur.push({ id: "t" + (++n), date: day(off), lysing: L[Math.floor(rnd() * L.length)], nr: p?.nr || null, verkefniId: p?.id || null, undirverkId: su?.id || null, fra, til, timar: b, starfsmadur: sk, timabil: timabilOf(day(off)) });
+      });
+    }
+  });
+  // Akstur og eldri tímar á afhentum verkefnum
+  g.faerslur.push({ id: "t" + (++n), date: day(-36), lysing: "Uppsetning", nr: p11.nr, verkefniId: "p11", undirverkId: p11.undirverk[0].id, fra: "08:00", til: "18:00", timar: 10, starfsmadur: "GG", timabil: timabilOf(day(-36)) });
+  g.faerslur.push({ id: "t" + (++n), date: day(-35), lysing: "Tónleikar – keyrsla", nr: p11.nr, verkefniId: "p11", undirverkId: p11.undirverk[1].id, fra: "16:00", til: "24:00", timar: 8, starfsmadur: "OK", timabil: timabilOf(day(-35)) });
+  // Samtölur á verkefnum og undirverkum
+  g.verkefni.forEach(p => { p.timar = 0; (p.undirverk || []).forEach(u => { u.timar = 0; }); });
+  g.faerslur.forEach(e => { const p = g.verkefni.find(x => x.id === e.verkefniId); if (!p) return; p.timar = Math.round((p.timar + e.timar) * 10) / 10; const u = p.undirverk.find(x => x.id === e.undirverkId); if (u) u.timar = Math.round((u.timar + e.timar) * 10) / 10; });
+  // Fundir
+  const F = (id, name, off, hm, p, o) => g.fundir.push({ id, name, date: day(off, hm), stadsetning: null, fundarhlekkur: null, fundargerd: null, projectId: p?.id || null, verknr: p?.nafn || null, mappa: null, attendees: [], seria: null, ...o });
+  F("f5", "Rennsli og keyrsluplan", 1, "13:00", p3, { stadsetning: "Fyrirtæki X, Borgartún 21" });
+  F("f6", "Skoðun á staðnum", 3, "09:30", p7, { stadsetning: "Viðskiptavinur D" });
+  F("f7", "Undirbúningsfundur ráðstefnu", 2, "15:00", p8, { fundarhlekkur: "https://meet.example.com/lind" });
+  F("f8", "Mánaðarskoðun", 6, "10:00", p9, { stadsetning: "Bláfell ehf." });
+  F("f9", "Kynning á lausn", 8, "11:00", p10, { stadsetning: "Álfaborg ehf." });
+  F("f10", "Vikufundur", 2, "09:00", null, { stadsetning: "Skrifstofa" });
+  F("f11", "Uppgjör jólatónleika", -30, "14:00", p11, { fundargerd: "Allt gekk vel. Eitt hreyfiljós bilaði – sent í viðgerð." });
+  // Kostnaður
+  g.kostnadur.push(
+    { id: "k2", date: day(-2), verkefniId: "p3", undirverkId: null, lysing: "Gaffer-teip og kapalbindi", upphaed: 12400, starfsmadur: "GG", kvittun: null, kvittunId: null, stofnad: iso(-2) },
+    { id: "k3", date: day(-6), verkefniId: "p7", undirverkId: null, lysing: "Festingar og skrúfur", upphaed: 8650, starfsmadur: "OK", kvittun: null, kvittunId: null, stofnad: iso(-6) },
+    { id: "k4", date: day(-11), verkefniId: null, undirverkId: null, lysing: "Kaffi og veitingar á vikufund", upphaed: 6200, starfsmadur: "JJ", kvittun: null, kvittunId: null, stofnad: iso(-11) },
+    { id: "k5", date: day(-36), verkefniId: "p11", undirverkId: null, lysing: "Leiga á lyftu", upphaed: 48000, starfsmadur: "GG", kvittun: null, kvittunId: null, stofnad: iso(-36) });
+  // Reikningar
+  const sel = g.reikningar[0].seljandi, RK = (id, nr, off, p, cl, lys, magn, verd, stada) => { const net = magn * verd, vs = Math.round(net * 0.24); g.reikningar.push({ id, nr, dags: day(off), gjalddagi: day(off + 14), verkefniIds: [p.id], verkefniId: p.id, vskId: cl.id,
+    kaupandi: { name: cl.name, kennitala: cl.kennitala, heimilisfang: cl.heimilisfang, postnumer: cl.postnumer, stadur: cl.stadur, netfang: cl.netfang }, seljandi: sel, linur: [{ lysing: lys, magn, eining: "klst.", verd }], vskP: 24, net, vsk: vs, tot: net + vs, timaIds: [], kostnIds: [], stada, greitt: stada === "Greitt" ? day(off + 9) : null, stofnad: iso(off) }); };
+  RK("r3", 1003, -32, p11, V("Fyrirtæki X"), "Jólatónleikar – tæknivinna", 64, 9500, "Greitt");
+  RK("r4", 1004, -20, p9, V("Bláfell ehf."), "Þjónustusamningur – september", 18, 12500, "Ógreitt");
+  RK("r5", 1005, -3, p9, V("Bláfell ehf."), "Þjónustusamningur – október", 16, 12500, "Ógreitt");
+  g.reikningar.forEach(r => { if (r.nr >= 1003) r.timaIds = []; });
+  // Skjöl og póstþræðir
+  g.skjol.push({ id: "s3", name: "Sviðsteikning v2", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p3", mappa: "02 Vinnuskjöl", stofnad: iso(-3), breytt: iso(-1) },
+    { id: "s4", name: "Lagnateikning", snid: "tengill", url: "https://example.com/", stadur: "verk", projectId: "p7", mappa: "02 Vinnuskjöl", stofnad: iso(-2), breytt: iso(-2) });
+  g.thraedir.push({ id: "t2", conv: "demo-conv-3", verkefniId: "p3", efni: "Árshátíð – breytingar á dagskrá", tengt: iso(0), af: "sjálfvirkt" },
+    { id: "t3", conv: "demo-conv-4", verkefniId: "p8", efni: "Ráðstefna – fjöldi gesta", tengt: iso(-2), af: "Jóna" });
 }
 
 // Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar), ?demo=bokari = bókari (Sigrún).
@@ -111,7 +205,8 @@ const user = { email, ...notendur.notendur[email] };
 // Sýniútgáfan líkir eftir aðgangsreglum: starfsmaður sér aðeins sína tíma og sinn kostnað.
 const store = { "app/state": sampleState(), "app/notendur": notendur };
 // Vörulisti og tilboð (sala.js): sýnigögn þegar einingarnar eru virkar í uppsetningunni (t.d. Sonik)
-if (window.salaPrufa && window.ON && (ON("leiga") || ON("sala"))) { const st = store["app/state"], p = salaPrufa(st.vidskiptavinir); st.vorur = p.vorur; st.tilbod = p.tilbod; if (p.pantanir?.length) st.pantanir = p.pantanir; }
+if (window.salaPrufa && window.ON && (ON("leiga") || ON("sala"))) { const st = store["app/state"], p = salaPrufa(st.vidskiptavinir); st.vorur = p.vorur; st.tilbod = p.tilbod; if (p.pantanir?.length) st.pantanir = p.pantanir;
+  if (window.ORG?.utlit === "I") { const L = { "L-0901": "p3", "L-0902": "p8", "S-0901": "p7", "S-0902": "p10", "L-0884": "p11", "T-0815": "p12" }; st.tilbod.forEach(t => { if (L[t.nr]) t.verkefniId = L[t.nr]; }); } }
 // Spjall í sýniútgáfu
 [["s1", "almennt", [], "gunnar@demo.example", "Gunnar Gunnarsson", "Er einhver með gögnin frá síðasta fundi?", -1],
  ["s2", "almennt", [], "jona@demo.example", "Jóna Jónsdóttir", "Þau eru í möppu verkefnisins 👍", -1],

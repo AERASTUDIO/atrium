@@ -592,7 +592,80 @@
       pn("P-0903", { heiti: "Skjávarpar fyrir námskeið", tengilidur: "Jón Jónsson", uppruni: "postur", fra: day(5), til: day(5), stada: "Staðfest" }, [[proj, 3]]),
       pn("P-0904", { heiti: "Partýpakki", tengilidur: "Anna Gunnarsdóttir", netfang: "anna@daemi.is", uppruni: "shopify", ytriNr: "1047", fra: day(8), til: day(9) }, [[k12, 2], [parL, 8], [haze, 1]])
     ] : [];
+    if (window.ORG?.utlit === "I") rikari(V, T, Pn, { cl, cl2, CL, tb, pn, day, e8, b6, d20, dlive, sq5, sm58, ulxd, k12, mac, parL, ma3, haze, truss, led, nova, tv75, proj, tech, ljm, upps, akst, g4030, loft, spa, dsp, mxa, s75, vegg, kap, uppS, forr, akS });
     return { vorur: V, tilbod: T, pantanir: Pn };
+  }
+  /* Ítarleg prufugögn fyrir útlit I (2.26.0): eintök, skemmdir, lagerhreyfingar, innkaup og birgjar á vörum,
+     auk eldri samþykktra tilboða og pantana á öllum sviðum svo yfirlit, gröf og dagatöl fyllist. Allt merkt prufa. */
+  function rikari(V, T, Pn, o) {
+    const iso = (off, h = 10) => { const x = new Date(); x.setHours(h, 0, 0, 0); x.setDate(x.getDate() + off); return x.toISOString(); };
+    const nm = n => (o.CL.find(c => c.name === n) || null);
+    const who = n => { const c = nm(n); return { vskId: c?.id || null, vidskiptavinur: n }; };
+    // Eintök á leigubúnaði (allt að 24 stk.) – nokkur í skoðun eða viðgerð
+    V.filter(v => v.deild === "leiga" && v.tegund === "leiga" && +v.fjoldi && +v.fjoldi <= 24).forEach((v, k) => {
+      v.eintok = [...Array(+v.fjoldi)].map((_, i) => ({ nr: v.nr + "-" + String(i + 1).padStart(2, "0"), stada: "ok", hilla: ["A", "B", "C", "D"][k % 4] + (1 + (i >> 3)) }));
+    });
+    const dmg = (v, i, lys, ref, off, stada) => { if (!v.eintok?.[i]) return; const e = v.eintok[i]; (v.skemmdir = v.skemmdir || []).push({ id: gid(), eintak: e.nr, lysing: lys, ref, dags: iso(off), af: "GG", stada }); e.stada = stada === "opin" ? "skodun" : stada === "vidgerd" ? "vidgerd" : "ok"; };
+    dmg(o.e8, 3, "Suð í diskanti eftir flutning", "L-0884 Jólatónleikar", -2, "opin");
+    dmg(o.mac, 7, "Mótor í pönnu festist", "L-0871 Árshátíð", -9, "vidgerd");
+    dmg(o.ulxd, 1, "Rafhlöðulok brotið", "P-0890", -1, "opin");
+    dmg(o.tv75, 5, "Rispa á skjá – nothæfur", "L-0862", -30, "lokid");
+    o.e8.eintok && (o.e8.eintok[15].stada = "tynt");
+    // Söluvörur: birgjar, lágmark, hreyfingar síðustu 12 mánuði og innkaup
+    const birg = { "Hátalarar": "Hljóðheimar ehf.", "Magnarar og stýring": "Tækjasalan ehf.", "Hljóðnemar": "Hljóðheimar ehf.", "Skjáir": "Skjálausnir ehf.", "Uppsetningarefni": "Rafbúðin ehf." };
+    let s = 7;
+    const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    V.filter(v => v.deild === "sala" && v.tegund === "sala").forEach(v => {
+      v.birgir = birg[v.flokkur] || "Heildsalan ehf.";
+      v.lagmark = Math.max(2, Math.round((+v.fjoldi || 0) * 0.3));
+      const H = []; let q = (+v.fjoldi || 0);
+      for (let m = 0; m < 12; m++) { const n = Math.max(0, Math.round(rnd() * Math.max(2, (+v.fjoldi || 0) / 3))); if (!n) continue; const off = -m * 30 - Math.round(rnd() * 25);
+        H.push({ dags: iso(off).slice(0, 10), teg: "Selt", ref: "S-08" + (40 + m), magn: -n }); }
+      for (let m = 0; m < 4; m++) H.push({ dags: iso(-m * 90 - 12).slice(0, 10), teg: "Móttekið", ref: "IP-00" + (4 - m) + " " + v.birgir, magn: Math.round((+v.fjoldi || 4) * 0.8) });
+      H.sort((a, b) => a.dags.localeCompare(b.dags)).forEach(h => { q += 0; h.stada = null; });
+      // staða eftir hverja hreyfingu, reiknuð afturábak frá núverandi lager
+      let cur = +v.fjoldi || 0; H.slice().reverse().forEach(h => { h.stada = cur; cur -= h.magn; });
+      v.hreyfingar = H;
+      v.innkaup = [{ id: gid(), nr: "IP-001", birgir: v.birgir, magn: Math.round((+v.fjoldi || 4) * 0.8), vaent: iso(-100).slice(0, 10), dags: iso(-110), stada: "Móttekið", mott: iso(-102) }];
+    });
+    o.loft.fjoldi = 14; o.loft.lagmark = 20; // undir lágmarki
+    o.mxa.fjoldi = 1;
+    o.loft.innkaup.push({ id: gid(), nr: "IP-014", birgir: o.loft.birgir, magn: 48, vaent: iso(6).slice(0, 10), dags: iso(-3), stada: "Pantað" });
+    o.s75.innkaup.push({ id: gid(), nr: "IP-015", birgir: o.s75.birgir, magn: 4, vaent: iso(12).slice(0, 10), dags: iso(-1), stada: "Pantað" });
+    // Tengja núverandi tilboð við viðskiptavini úr prufugögnunum
+    const fx = (nr, n) => { const t = T.find(x => x.nr === nr); if (t && nm(n)) Object.assign(t, who(n)); };
+    fx("L-0901", "Fyrirtæki X"); fx("L-0902", "Hótel Lind"); fx("S-0902", "Álfaborg ehf.");
+    // Eldri samþykkt tilboð síðustu 6 mánuði – Leiga, Sala og Þjónusta – svo tekjugröfin sýni sögu
+    const old = [
+      ["L-0810", "leiga", "Fyrirtæki X", "Þorrablót", -265, [[o.e8, 6], [o.b6, 2], [o.sq5, 1], [o.parL, 16], [o.tech, 8], [o.akst, 2]]],
+      ["S-0812", "sala", "Hótel Lind", "Hátalarar í matsal", -235, [[o.loft, 10], [o.spa, 1], [o.kap, 120], [o.uppS, 12]]],
+      ["L-0821", "leiga", "Viðskiptavinur B", "Vorráðstefna", -205, [[o.proj, 2], [o.ulxd, 4], [o.tv75, 2], [o.tech, 8]]],
+      ["T-0803", "blandad", "Bláfell ehf.", "Úttekt hljóðkerfa", -180, [[o.forr, 10], [o.akS, 1]]],
+      ["L-0840", "leiga", "Álfaborg ehf.", "Opnunarhátíð", -170, [[o.e8, 4], [o.mac, 8], [o.parL, 12], [o.truss, 6], [o.tech, 8], [o.ljm, 8]]],
+      ["L-0862", "leiga", "Hótel Lind", "Haustfundur", -150, [[o.tv75, 6], [o.k12, 4], [o.ulxd, 4], [o.tech, 8]]],
+      ["L-0871", "leiga", "Fyrirtæki X", "Árshátíð í fyrra", -120, [[o.e8, 8], [o.b6, 4], [o.mac, 12], [o.parL, 24], [o.led, 18], [o.tech, 16], [o.ljm, 16], [o.upps, 20]]],
+      ["S-0855", "sala", "Viðskiptavinur D", "Hljóðkerfi í móttöku", -110, [[o.loft, 8], [o.spa, 1], [o.kap, 80], [o.uppS, 10]]],
+      ["L-0877", "leiga", "Bláfell ehf.", "Sumarhátíð starfsfólks", -95, [[o.e8, 4], [o.b6, 2], [o.sq5, 1], [o.parL, 16], [o.tech, 10], [o.akst, 2]]],
+      ["S-0861", "sala", "Álfaborg ehf.", "Skjáir í verslun", -80, [[o.s75, 3], [o.vegg, 3], [o.uppS, 8], [o.forr, 2]]],
+      ["L-0880", "leiga", "Viðskiptavinur A", "Ráðstefna", -62, [[o.proj, 2], [o.tv75, 2], [o.ulxd, 6], [o.tech, 9]]],
+      ["T-0812", "blandad", "Bláfell ehf.", "Þjónustuskoðun hljóðkerfis", -50, [[o.forr, 6], [o.uppS, 4], [o.akS, 1]]],
+      ["L-0884", "leiga", "Fyrirtæki X", "Jólatónleikar", -35, [[o.e8, 12], [o.b6, 6], [o.d20, 4], [o.dlive, 1], [o.mac, 16], [o.truss, 12], [o.tech, 24], [o.ljm, 20]]],
+      ["S-0870", "sala", "Hótel Lind", "Fundarherbergi – hljóð og mynd", -24, [[o.s75, 2], [o.mxa, 1], [o.dsp, 1], [o.vegg, 2], [o.uppS, 12], [o.forr, 4]]],
+      ["T-0815", "blandad", "Viðskiptavinur C", "Tækniþjónusta á viðburði", -14, [[o.tech, 12], [o.ljm, 8], [o.akst, 2]]],
+      ["L-0889", "leiga", "Viðskiptavinur B", "Kynning", -8, [[o.tv75, 2], [o.k12, 2], [o.tech, 4]]]
+    ];
+    old.forEach(([nr, d, n, heiti, off, items]) => { const fra = o.day(off), t = o.tb(d === "blandad" ? "leiga" : d, nr, { ...who(n), heiti, fra, til: o.day(off + (d === "leiga" ? 1 : 0)), dags: o.day(off - 12), stada: "Samþykkt" }, items); if (d === "blandad") t.deild = "blandad"; T.push(t); });
+    T.push(o.tb("leiga", "L-0904", { ...who("Bláfell ehf."), heiti: "Starfsmannagleði", fra: o.day(19), til: o.day(19), dags: o.day(-1), stada: "Drög" }, [[o.sq5, 1], [o.k12, 4], [o.parL, 16], [o.haze, 1], [o.tech, 6]]));
+    T.push(o.tb("leiga", "L-0905", { ...who("Fyrirtæki X"), heiti: "Vörukynning", fra: o.day(26), til: o.day(27), dags: o.day(-9), stada: "Sent" }, [[o.led, 16], [o.nova, 1], [o.tv75, 4], [o.tech, 10], [o.upps, 8]]));
+    // Fleiri pantanir á öllum sviðum (aðeins þar sem pantanir eru virkar)
+    if (Pn.length) {
+      Pn.push(o.pn("P-0905", { ...who("Hótel Lind"), heiti: "Hljóðmaður á fund", uppruni: "postur", fra: o.day(3), til: o.day(3), stada: "Staðfest" }, [[o.tech, 5], [o.akst, 1]]));
+      Pn.push(o.pn("P-0906", { ...who("Álfaborg ehf."), heiti: "Loftahátalarar", uppruni: "vefur", fra: o.day(2), til: o.day(2), stada: "Ný" }, [[o.loft, 6], [o.kap, 40]]));
+      Pn.push(o.pn("P-0907", { ...who("Viðskiptavinur A"), heiti: "Fagskjár og festing", uppruni: "simi", fra: o.day(-4), til: o.day(-4), stada: "Lokið" }, [[o.s75, 1], [o.vegg, 1], [o.uppS, 2]]));
+      Pn.push(o.pn("P-0890", { tengilidur: "Guðrún Ólafsdóttir", heiti: "Brúðkaup", uppruni: "shopify", ytriNr: "1031", fra: o.day(-3), til: o.day(-2), stada: "Skilað" }, [[o.ulxd, 2], [o.k12, 2], [o.parL, 12]]));
+      Pn.push(o.pn("P-0908", { ...who("Bláfell ehf."), heiti: "Forritun hljóðstýringar", uppruni: "postur", fra: o.day(7), til: o.day(7), stada: "Staðfest" }, [[o.forr, 3]]));
+      Pn.push(o.pn("P-0880", { ...who("Fyrirtæki X"), heiti: "Aukabúnaður á jólatónleika", uppruni: "simi", fra: o.day(-36), til: o.day(-35), stada: "Lokið" }, [[o.sm58, 6], [o.haze, 1]]));
+    }
   }
   // Staðlaður búnaðarlisti (bunadarlisti.js, 2.19.0): admin hleður inn í Búnað; línur merktar „listi“ svo eyða má þeim í einu lagi
   function listi() {
