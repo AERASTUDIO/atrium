@@ -119,7 +119,7 @@
       ${opn.length ? `<div class="qrdm"><small>Opnar skemmdir</small>${opn.map(x => `<div>${E(x.lysing || "")} <span>${E(dIS(x.dags))}${x.ref ? " · " + E(x.ref) : ""}</span></div>`).join("")}</div>` : ""}
       ${ed ? `<div class="qrsec"><small>Ástand</small><div class="qrseg" role="group" aria-label="Ástand eintaks">${Object.entries(ST_E).map(([k, l]) => `<button type="button" data-c="st:${k}" aria-pressed="${k === sk}">${E(l)}</button>`).join("")}</div></div>
       <form class="qrsec qrdmf" data-c="dmgform"><label for="qrdl"><small>Skrá skemmd</small></label><div><input id="qrdl" type="text" placeholder="t.d. rifið grill að framan"><button type="submit" class="btn">Skrá</button></div></form>` : ""}
-      <div class="qract"><button type="button" class="btn primary" data-c="next">${ICON}Skanna næsta</button><button type="button" class="btn" data-c="vara">Opna búnaðinn</button><button type="button" class="btn" data-c="print">Prenta merki</button></div></div>`;
+      <div class="qract"><button type="button" class="btn primary" data-c="next">${ICON}Skanna næsta</button><button type="button" class="btn" data-c="vara">Opna búnaðinn</button>${matchMedia("(min-width:1024px)").matches ? `<button type="button" class="btn" data-c="print">Prenta merki</button>` : ""}</div></div>`;
   }
   function openCard(nr) {
     closeCard();
