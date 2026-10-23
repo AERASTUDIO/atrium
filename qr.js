@@ -114,12 +114,17 @@
     const where = u ? `<div class="qrwhere out"><small>Staðsetning</small><b>Úti · ${E(u.nr || P?.nr || "pöntun")}</b><span>${E(P?.tengilidur || P?.vidskiptavinur || "")}${P?.til ? " · skil " + E(dIS(P.til)) : ""}</span>${P ? `<button type="button" class="ulink" data-c="pn:${E(P.id)}">Opna pöntun →</button>` : ""}</div>`
       : `<div class="qrwhere"><small>Staðsetning</small><b>Á lager${e.hilla || v.hilla ? " · hilla " + E(e.hilla || v.hilla) : ""}</b></div>`;
     const ed = can();
+    // Næsta skref eftir samhengi (2.48.0): skila inn á pöntunina sem það er úti á, afhenda á næstu pöntun sem vantar svona hlut, eða merkja í lagi
+    const nx = !ed ? null : u && P && ["Afhent", "Skilað"].includes(P.stada) ? { c: "ctx:inn:" + P.id, l: "Skila inn á " + (P.nr || "pöntun"), s: (P.tengilidur || P.vidskiptavinur || "") }
+      : !u && sk === "ok" ? (() => { const Q = nextOrderFor(v); return Q ? { c: "ctx:ut:" + Q.id, l: "Afhenda á " + (Q.nr || "pöntun"), s: [Q.tengilidur || Q.vidskiptavinur, Q.fra ? dIS(Q.fra) : ""].filter(Boolean).join(" · ") } : null; })()
+      : sk !== "ok" ? { c: "st:ok", l: "Merkja í lagi", s: ST_E[sk] + " núna" } : null;
     return `<div class="qrcd"><div class="qrch"><div><div class="qrsup">${E(v.nr || "")} · ${E(v.flokkur || v.tegund || "Búnaður")}</div><h2>${E(e.nr)}</h2><div class="qrsub">${E(v.heiti || "")}</div></div><span class="pill ${sk === "ok" ? "pc-teal" : "pc-amber"}">${E(ST_E[sk] || sk)}</span></div>
       ${where}
-      ${opn.length ? `<div class="qrdm"><small>Opnar skemmdir</small>${opn.map(x => `<div>${E(x.lysing || "")} <span>${E(dIS(x.dags))}${x.ref ? " · " + E(x.ref) : ""}</span></div>`).join("")}</div>` : ""}
+      ${nx ? `<button type="button" class="btn primary qrnx" data-c="${E(nx.c)}"><span>${E(nx.l)}</span>${nx.s ? `<small>${E(nx.s)}</small>` : ""}</button>` : ""}
+      ${opn.length ? `<div class="qrdm"><small>Opnar skemmdir</small>${opn.map(x => `<div>${E(x.lysing || "")} <span>${E(dIS(x.dags))}${x.ref ? " · " + E(x.ref) : ""}</span>${x.mynd?.url ? ` <a href="${E(x.mynd.url)}" target="_blank" rel="noopener">Mynd ↗</a>` : ""}</div>`).join("")}</div>` : ""}
       ${ed ? `<div class="qrsec"><small>Ástand</small><div class="qrseg" role="group" aria-label="Ástand eintaks">${Object.entries(ST_E).map(([k, l]) => `<button type="button" data-c="st:${k}" aria-pressed="${k === sk}">${E(l)}</button>`).join("")}</div></div>
-      <form class="qrsec qrdmf" data-c="dmgform"><label for="qrdl"><small>Skrá skemmd</small></label><div><input id="qrdl" type="text" placeholder="t.d. rifið grill að framan"><button type="submit" class="btn">Skrá</button></div></form>` : ""}
-      <div class="qract"><button type="button" class="btn primary" data-c="next">${ICON}Skanna næsta</button><button type="button" class="btn" data-c="vara">Opna búnaðinn</button>${matchMedia("(min-width:1024px)").matches ? `<button type="button" class="btn" data-c="print">Prenta merki</button>` : ""}</div></div>`;
+      <form class="qrsec qrdmf" data-c="dmgform"><label for="qrdl"><small>Skrá skemmd</small></label><div><input id="qrdl" type="text" placeholder="t.d. rifið grill að framan"><label class="btn qrcamb" title="Taka mynd" aria-label="Taka mynd af skemmdinni"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><input type="file" id="qrdf" accept="image/*" capture="environment" hidden></label><button type="submit" class="btn">Skrá</button></div><div class="qrdfn" id="qrdfn" aria-live="polite"></div></form>` : ""}
+      <div class="qract"><button type="button" class="btn${nx ? "" : " primary"}" data-c="next">${ICON}Skanna næsta</button><button type="button" class="ulink qrlink" data-c="vara">Opna búnaðinn</button>${matchMedia("(min-width:1024px)").matches ? `<button type="button" class="btn" data-c="print">Prenta merki</button>` : ""}</div></div>`;
   }
   function openCard(nr) {
     closeCard();
@@ -127,12 +132,22 @@
     w.innerHTML = `<div class="qrscrim" data-c="close"></div><div class="qrsheet"><div class="grab" aria-hidden="true"></div><button type="button" class="qrx" data-c="close" aria-label="Loka"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="qrbody">${cardHTML(nr)}</div></div>`;
     document.body.append(w); CARD = { w, nr };
     const redraw = () => { if (CARD?.w === w) w.querySelector(".qrbody").innerHTML = cardHTML(nr); };
-    w.addEventListener("submit", async e => { e.preventDefault(); const i = w.querySelector("#qrdl"), l = i?.value.trim(); if (!l) return; const f = findE(nr); if (!f) return;
-      await saveV(f.v.id, x => { const q = (x.eintok || []).find(y => y.nr === nr); (x.skemmdir = x.skemmdir || []).push({ id: (crypto.randomUUID?.() || String(Date.now())).replace(/-/g, ""), eintak: nr, lysing: l, ref: q?.uti?.nr || "", dags: nowIso().slice(0, 10), af: me(), stada: "opin" }); if (q && (!q.stada || q.stada === "ok")) q.stada = "skodun"; });
-      toast?.("Skemmd skráð á " + nr); redraw(); });
+    w.addEventListener("change", e => { if (e.target.id !== "qrdf") return; const f0 = e.target.files?.[0]; const n = w.querySelector("#qrdfn"); if (n) n.textContent = f0 ? "Mynd tilbúin: " + f0.name : ""; });
+    w.addEventListener("submit", async e => { e.preventDefault(); const i = w.querySelector("#qrdl"), file = w.querySelector("#qrdf")?.files?.[0]; let l = i?.value.trim(); if (!l && !file) return; if (!l) l = "Skemmd (sjá mynd)"; const f = findE(nr); if (!f) return;
+      // Mynd (2.48.0): vistuð í Skemmdir-möppu fyrirtækisins á SharePoint/OneDrive – aðeins tengill í gögnunum
+      let mynd = null;
+      if (file) { const btn = w.querySelector(".qrdmf [type=submit]"); if (btn) { btn.disabled = true; btn.textContent = "Vista…"; }
+        try { if (!(window.MS && MS.on && MS.on()) || !window.msSaveFile) throw new Error("ekki tengt");
+          const ext = ((file.name || "").split(".").pop() || "jpg").toLowerCase(), dir = (ORG.od?.stofa || ORG.od?.mitt || "Atrium") + "/Skemmdir/" + new Date().getFullYear();
+          const it = await msSaveFile(dir, nr + " " + nowIso().slice(0, 16).replace("T", " ").replace(":", "") + "." + ext, file, file.type || "image/jpeg", false);
+          mynd = { url: it?.webUrl || "", nafn: it?.name || file.name };
+        } catch (x) { toast?.("Myndin vistaðist ekki (tengstu Microsoft) – skemmdin er skráð án myndar"); } }
+      await saveV(f.v.id, x => { const q = (x.eintok || []).find(y => y.nr === nr); (x.skemmdir = x.skemmdir || []).push({ id: (crypto.randomUUID?.() || String(Date.now())).replace(/-/g, ""), eintak: nr, lysing: l, ref: q?.uti?.nr || "", dags: nowIso().slice(0, 10), af: me(), stada: "opin", ...(mynd ? { mynd } : {}) }); if (q && (!q.stada || q.stada === "ok")) q.stada = "skodun"; });
+      toast?.("Skemmd skráð á " + nr + (mynd ? " með mynd" : "")); redraw(); });
     w.addEventListener("click", async e => { const b = e.target.closest("[data-c]"); if (!b || b.tagName === "FORM") return; const [k, a] = b.dataset.c.split(/:(.*)/s);
       if (k === "close") return closeCard();
       if (k === "next") { closeCard(); return scanFree(); }
+      if (k === "ctx") { const [dir, pid] = a.split(":"); const r = await applyScan(pid, dir, nr); toast?.(r.msg); return redraw(); }
       if (k === "st") { const f = findE(nr); if (!f) return; await saveV(f.v.id, x => { const q = (x.eintok || []).find(y => y.nr === nr); if (q) q.stada = a; }); toast?.(nr + ": " + ST_E[a]); return redraw(); }
       if (k === "vara") { const f = findE(nr); closeCard(); if (f) { try { tab = "lvorur"; DETAIL = null; } catch (x) {} render(); openDetail("vara:" + f.v.id); } return; }
       if (k === "pn") { closeCard(); try { tab = "pantanir"; DETAIL = null; } catch (x) {} render(); openDetail("tb:" + a); return; }
@@ -153,6 +168,31 @@
   }
 
   /* ---------- Skönnun út og inn á pöntun ---------- */
+  // Næsta pöntun sem þarf svona hlut (Ný/Staðfest, afhending frá í gær til eftir 3 daga, ekki fullskannað út)
+  function nextOrderFor(v) {
+    const t0 = new Date(); t0.setDate(t0.getDate() - 1); const t1 = new Date(); t1.setDate(t1.getDate() + 3);
+    const a = t0.toISOString().slice(0, 10), b = t1.toISOString().slice(0, 10);
+    return PN().filter(P => ["Ný", "Staðfest"].includes(P.stada) && P.fra && String(P.fra).slice(0, 10) >= a && String(P.fra).slice(0, 10) <= b)
+      .filter(P => { const r = orderState(P, "ut").rows.find(x => x.id === String(v.id)); return r && r.eint && r.got < r.magn; })
+      .sort((x, y) => String(x.fra).localeCompare(String(y.fra)))[0] || null;
+  }
+  // Eitt eintak skannað út eða inn á pöntun (notað af skannanum og samhengishnappnum á eintaksspjaldinu)
+  async function applyScan(pid, dir, nr) {
+    const out = dir === "ut", P = PN().find(x => String(x.id) === String(pid)); if (!P) return { ok: false, msg: "Pöntunin fannst ekki" };
+    const f = findE(nr); if (!f) return { ok: false, msg: "Óþekkt eintak " + nr };
+    const row = need(P).find(x => x.id === String(f.v.id)); if (!row) return { ok: false, msg: f.v.heiti + " er ekki á pöntuninni" };
+    const s0 = orderState(P, dir); if (s0.list.includes(nr)) return { ok: false, msg: nr + " er þegar skannað" };
+    const r0 = s0.rows.find(x => x.id === row.id); if (r0 && r0.got >= r0.magn) return { ok: false, msg: "Komin nóg af " + f.v.heiti + " (" + r0.magn + ")" };
+    if (out && f.e.uti && String(f.e.uti.p) !== String(P.id)) return { ok: false, msg: nr + " er úti á " + (f.e.uti.nr || "annarri pöntun") };
+    if (out && f.e.stada && f.e.stada !== "ok") return { ok: false, msg: nr + ": " + ST_E[f.e.stada] + " – ekki afhenda" };
+    if (!can()) return { ok: true, msg: nr };
+    await saveSnapshot(S0 => { const Q = (S0.pantanir || []).find(x => String(x.id) === String(P.id)); if (!Q) return; Q.skann = Q.skann || {}; (Q.skann[dir] = Q.skann[dir] || []).push(nr); Q.skann[dir + "Dags"] = nowIso(); Q.skann.af = me();
+      const V = (S0.vorur || []).find(x => String(x.id) === String(f.v.id)), e = V?.eintok?.find(y => y.nr === nr); if (e) { if (out) e.uti = { p: P.id, nr: P.nr || "", dags: nowIso().slice(0, 10) }; else delete e.uti; } }).catch(() => {});
+    // allt komið: pöntunin færist í Afhent / Skilað
+    const P2 = PN().find(x => String(x.id) === String(pid)), s2 = P2 ? orderState(P2, dir) : null, nxS = out ? "Afhent" : "Skilað";
+    if (s2 && s2.done >= s2.tot && P2.stada !== nxS && P2.stada !== "Lokið") { try { doAct("tbst:" + P2.id + ":" + nxS); } catch (e) {} return { ok: true, msg: nr + " · " + (P2.nr || "") + " " + (out ? "afhent" : "skilað") + " – allt komið" }; }
+    return { ok: true, msg: nr + (out ? " afhent á " : " skilað inn á ") + (P.nr || "pöntun") + (s2 ? " · " + s2.done + " af " + s2.tot : "") };
+  }
   function orderState(P, dir) {
     const N = need(P), sk = P.skann || {}, list = sk[dir] || [], H = sk[dir + "H"] || {};
     const rows = N.map(x => { const got = x.eint ? list.filter(nr => (x.v?.eintok || []).some(e => e.nr === nr)).length : (+H[x.id] || 0); return { ...x, got: Math.min(got, x.magn), over: Math.max(0, got - x.magn) }; });
