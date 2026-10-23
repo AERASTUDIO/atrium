@@ -99,9 +99,13 @@
   // Sala sem hefur átt sér stað (2.38.1): samþykkt tilboð sem ekki urðu að pöntun + staðfestar/afhentar/skilaðar/lokið pantanir – hver sala talin einu sinni.
   // Upphæðir án VSK og eftir afslátt (líka afslátt á öllu skjalinu).
   const PSELD = ["Staðfest", "Afhent", "Skilað", "Lokið"];
-  const seld = () => [...TB().filter(T => T.stada === "Samþykkt" && !PN().some(P => P.tilbodId === T.id)), ...PN().filter(P => PSELD.includes(P.stada))];
+  // 2.41.0: þar sem Pantanir eru virkar verður samþykkt tilboð með búnaði eða vörum að pöntun – það telst sem sala í gegnum pöntunina.
+  // Tilboð með eingöngu vinnu verða að verkefni og teljast sem sala þegar þau eru samþykkt. Án Pantana (t.d. Sonik) telst samþykkt tilboð sem sala.
+  const vinnaEin = T => (T.linur || []).length > 0 && (T.linur || []).every(l => l.teg === "vinna");
+  const vantarPontun = T => !isP(T) && T.stada === "Samþykkt" && PNON() && !vinnaEin(T) && !PN().some(P => P.tilbodId === T.id);
+  const seld = () => [...TB().filter(T => T.stada === "Samþykkt" && !PN().some(P => P.tilbodId === T.id) && (!PNON() || vinnaEin(T))), ...PN().filter(P => PSELD.includes(P.stada))];
   const netLine = (l, T) => Math.round(lSum(l, T) * (1 - (+T.afsl || 0) / 100));
-  window.salaAPI = { TB, VR, PN, lSum, totals, seld, netLine, netOf: T => totals(T).net, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; } };
+  window.salaAPI = { TB, VR, PN, lSum, totals, seld, vinnaEin, vantarPontun, netLine, netOf: T => totals(T).net, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; } };
   window.pnOpnar = () => PNON() ? PN().filter(P => !["Skilað", "Lokið"].includes(P.stada)) : [];
   // Laust á tímabili skjals (fyrir valglugga): pakki = hve margir heilir pakkar
   const lausFyrir = (v, T) => { if (!T?.fra || vDeild(v) !== "leiga" || v.tegund === "vinna") return null; const til = tilOf(T), mine = tharfir(T);
@@ -690,6 +694,10 @@
       Pn.push(o.pn("P-0890", { tengilidur: "Guðrún Ólafsdóttir", heiti: "Brúðkaup", uppruni: "shopify", ytriNr: "1031", fra: o.day(-3), til: o.day(-2), stada: "Skilað" }, [[o.ulxd, 2], [o.k12, 2], [o.parL, 12]]));
       Pn.push(o.pn("P-0908", { ...who("Bláfell ehf."), heiti: "Forritun hljóðstýringar", uppruni: "postur", fra: o.day(7), til: o.day(7), stada: "Staðfest" }, [[o.forr, 3]]));
       Pn.push(o.pn("P-0880", { ...who("Fyrirtæki X"), heiti: "Aukabúnaður á jólatónleika", uppruni: "simi", fra: o.day(-36), til: o.day(-35), stada: "Lokið" }, [[o.sm58, 6], [o.haze, 1]]));
+      // 2.41.0: eldri samþykkt tilboð með búnaði/vörum fengu pöntun (Lokið) – eins og reglan er nú; framtíðartilboð án pöntunar sýna „vantar pöntun“
+      const ti = o.day(0); let n = 700;
+      T.filter(t => t.stada === "Samþykkt" && (t.linur || []).some(l => l.teg !== "vinna") && String(t.til || t.fra || t.dags) < ti && !Pn.some(P => P.tilbodId === t.id)).forEach(t => {
+        Pn.push({ ...structuredClone(t), id: "pn-" + t.id, pontun: true, nr: "P-0" + (n++), deild: "blandad", uppruni: "tilbod", stada: "Lokið", tilbodId: t.id, utgafa: 1, eldri: [], lager: null }); });
     }
   }
   // Staðlaður búnaðarlisti (bunadarlisti.js, 2.19.0): admin hleður inn í Búnað; línur merktar „listi“ svo eyða má þeim í einu lagi
@@ -728,8 +736,9 @@
   // Lager (2.39.2): söluvörur á pöntun dragast frá lager þegar pöntun er afhent (Afhent/Skilað/Lokið) og bætast aftur við ef hún fer til baka.
   // Það sem var dregið frá er geymt á pöntuninni (P.lager.linur) svo breytingar á línum eftir afhendingu leiðrétta lagerinn rétt.
   const LDELIV = ["Afhent", "Skilað", "Lokið"];
+  const lagerWant = (q, s) => { const want = {}; if (LDELIV.includes(q.stada)) (q.linur || []).forEach(l => { if (!l.v || l.teg !== "sala") return; const v = (s.vorur || []).find(x => String(x.id) === String(l.v)); if (!v || vDeild(v) !== "sala" || ["vinna", "pakki"].includes(v.tegund)) return; want[l.v] = (want[l.v] || 0) + (+l.magn || 0); }); return want; };
   const lagerSync = (q, s) => { if (!isP(q)) return;
-    const want = {}; if (LDELIV.includes(q.stada)) (q.linur || []).forEach(l => { if (!l.v || l.teg !== "sala") return; const v = (s.vorur || []).find(x => String(x.id) === String(l.v)); if (!v || vDeild(v) !== "sala" || ["vinna", "pakki"].includes(v.tegund)) return; want[l.v] = (want[l.v] || 0) + (+l.magn || 0); });
+    const want = lagerWant(q, s);
     const had = {}; (q.lager?.linur || []).forEach(x => { had[x.v] = (had[x.v] || 0) + (+x.m || 0); });
     const ids = new Set([...Object.keys(want), ...Object.keys(had)]); let ch = false; const dags = new Date().toISOString().slice(0, 10);
     ids.forEach(id => { const df = (want[id] || 0) - (had[id] || 0); if (!df) return; const v = (s.vorur || []).find(x => String(x.id) === String(id)); if (!v) return; ch = true;
@@ -763,6 +772,14 @@
     if (k === "pnutf") { UT.fl = a; render(); return; }
     if (k === "pnuta") { UT.allt = r[0] === "1"; render(); return; }
     if (k === "pnutv") { UT.fl = a; UT.fra = null; UT.allt = false; doAct("tab:vutl"); return; }
+    // Eldri samþykkt tilboð án pöntunar (2.41.0): skráð sem pantanir með stöðuna Lokið – svo salan teljist með – án þess að breyta lager (talning hefur þegar tekið það með)
+    if (k === "pntbAll") { const ti = isoDay(new Date()), xs = TB().filter(T => vantarPontun(T) && String(T.til || T.fra || T.dags || "").slice(0, 10) < ti); if (!xs.length) return;
+      if (!confirm(`Skrá ${xs.length} eldri samþykkt ${xs.length === 1 ? "tilboð" : "tilboð"} sem pantanir?\n\nÞær fá stöðuna „Lokið“ og teljast þá með í sölutölum. Lager breytist ekki, því salan er liðin.`)) return;
+      let n0 = +CF().nastaNrP || 1001; const Ps = xs.map((T, i) => ({ id: gid(), pontun: true, nr: "P-" + (n0 + i), deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
+        uppruni: "tilbod", ytriNr: null, stadsetning: T.stadsetning || null, fra: T.fra || null, til: T.til || T.fra || null, dags: isoDay(new Date()), stada: "Lokið", afsl: +T.afsl || 0, athugasemd: "Skráð eftir á úr samþykktu tilboði " + (T.nr || ""), linur: (T.linur || []).map(l => ({ ...l, id: gid() })), verkefniId: T.verkefniId || null, tilbodId: T.id }));
+      saveSnapshot(s => { Ps.forEach(P => { const w = lagerWant(P, s); P.lager = Object.keys(w).length ? { dags: isoDay(new Date()), linur: Object.entries(w).map(([v, m]) => ({ v, m })), eftirA: true } : null; (s.pantanir = s.pantanir || []).push(P); });
+        s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n0 + Ps.length }; })
+        .then(() => { toast(Ps.length + " pantanir skráðar (" + Ps[0].nr + (Ps.length > 1 ? "–" + Ps[Ps.length - 1].nr : "") + ")"); render(); }).catch(e => toast(errText(e))); return; }
     if (k === "pntb") { const T = findT(a); if (!T || isP(T)) return; const n = +CF().nastaNrP || 1001, nr = "P-" + n, id = gid();
       const P = { id, pontun: true, nr, deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
         uppruni: "tilbod", ytriNr: null, stadsetning: T.stadsetning || null, fra: T.fra || null, til: T.til || T.fra || null, dags: isoDay(new Date()), stada: "Staðfest", afsl: +T.afsl || 0, athugasemd: null,
@@ -785,7 +802,12 @@
       if (op === "del") { EDT.linur = (EDT.linur || []).filter(l => l.id !== id); render(); return; } }
     if (k === "tbst") { const [id, st] = r, T0 = findT(id); if (!T0) return;
       if (T0.stada !== st && !blokkar(T0) && blokkar({ ...T0, stada: st }) && arekstrar(T0).length && !confirm(`Búnaður er ekki laus ${dRange(T0)}:\n\n${arekTxt(T0)}\n\nSetja ${isP(T0) ? "pöntunina" : "tilboðið"} samt á „${st}“? Búnaðurinn verður þá tvíbókaður.`)) { render(); return; }
-      saveT(id, (q, s) => { q.stada = st; if (st === "Sent" && !q.sent) q.sent = isoDay(new Date()); lagerSync(q, s); }).then(() => { const L = findT(id)?.lager; toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " · dregið frá lager" : isP(T0) && T0.lager && !L ? " · bætt aftur á lager" : "")); }); return; }
+      const nySamth = !isP(T0) && st === "Samþykkt" && T0.stada !== "Samþykkt";
+      saveT(id, (q, s) => { q.stada = st; if (st === "Sent" && !q.sent) q.sent = isoDay(new Date()); lagerSync(q, s); }).then(() => { const L = findT(id)?.lager;
+        // Tilboð samþykkt (2.41.0): spyrja hvort stofna eigi pöntun (búnaður/vörur) eða verkefni (eingöngu vinna)
+        if (nySamth) setTimeout(() => { const T1 = findT(id); if (!T1) return;
+          if (vantarPontun(T1)) { if (confirm(`Tilboð ${T1.nr} er samþykkt.\n\nStofna pöntun úr því núna?\nPöntunin heldur utan um afhendingu, lager og rukkun – salan telst með þegar pöntunin er staðfest.`)) doAct("pntb:" + id); }
+          else if (vinnaEin(T1) && !T1.verkefniId) doAct("tbverk:" + id); }, 150); toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " · dregið frá lager" : isP(T0) && T0.lager && !L ? " · bætt aftur á lager" : "")); }); return; }
     if (k === "tbutg") { const T = findT(a); if (!T || !confirm(`Búa til útgáfu ${(+T.utgafa || 1) + 1} af tilboði ${T.nr}?\n\nNúverandi útgáfa er skráð í „Fyrri útgáfur“ og staðan fer aftur í Drög.`)) return;
       saveT(a, q => { (q.eldri = q.eldri || []).push({ utgafa: +q.utgafa || 1, dags: q.dags, net: totals(q).net }); q.utgafa = (+q.utgafa || 1) + 1; q.dags = isoDay(new Date()); q.stada = "Drög"; })
         .then(() => { EDT = structuredClone(findT(a)); render(); toast("Ný útgáfa – breyttu og vistaðu"); }); return; }
