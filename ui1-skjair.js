@@ -67,7 +67,7 @@
     return [...t, ...c].sort((a, b) => String(b.date).localeCompare(String(a.date)));
   };
   U.tfaer = function () {
-    const rows = allF().filter(r => !st.ff || r.teg === st.ff).slice(0, 300);
+    const rows = allF().filter(r => SQ() || !st.ff || r.teg === st.ff).slice(0, SQ() ? 2000 : 300);
     const selR = rows.filter(r => st.sel.has(r.k + ":" + r.id)), selH = selR.reduce((s, r) => s + r.h, 0);
     const nb = `<button type="button" class="btn primary" onclick="kind='tima';openSheet()">+ Skrá</button>`;
     const bar = selR.length ? `<div class="ubulk"><span>${selR.length} valdar${selH ? " · " + H(selH) + " klst." : ""}</span><select aria-label="Færa á verkefni" onchange="if(this.value)doAct('u1mv:'+this.value)"><option value="">Færa á verkefni ▾</option>${verkefni().filter(p => !isDone(p)).map(p => `<option value="${E(p.id)}">${E(p.nr + " " + (p.stutt || p.nafn || ""))}</option>`).join("")}</select><button type="button" data-act="u1sel:">Hætta við</button></div>` : "";
@@ -122,6 +122,8 @@
   };
 
   /* ---------- Listar með dálkum (Verkefni, Viðskiptavinir, Tilboð, Pantanir, Vörulisti) ---------- */
+  // Leit í gangi (2.35.0): þá leitar listinn í öllum stöðum og flokkum, óháð síuflipum
+  const SQ = () => !!String(window.u1Q || "").trim();
   const relD = iso => { const x = d(iso); if (!x) return ""; const n = Math.round((x - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 864e5);
     return dateIS(x); };
   const row = (key, a, b, c, dd, s, dark, extra = "") => `<div class="urow" ${key}><span class="m">${a}</span><span class="t">${b}${c ? `<span class="m"> · ${c}</span>` : ""}</span><span class="m">${dd}</span><span class="r">${s ? pill(s, dark) : ""}</span>${extra}</div>`;
@@ -133,7 +135,7 @@
   function vlist(key, title, pf, vfl) {
     const all = verkefni().filter(pf), f = st.vf[key] || "gangi", fv = vfl ? st.vf[key + "V"] || "" : "";
     const fls = vfl ? THJ().filter(t => all.some(p => (p.thjonusta || []).includes(t))) : [];
-    const xs = all.filter(p => (!fv || (p.thjonusta || []).includes(fv)) && (f === "lokid" ? isDone(p) : !isDone(p) && (f !== "min" || mineP(p)))).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
+    const xs = all.filter(p => SQ() || (!fv || (p.thjonusta || []).includes(fv)) && (f === "lokid" ? isDone(p) : !isDone(p) && (f !== "min" || mineP(p)))).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const n = all.filter(p => !isDone(p)).length, nm = all.filter(p => !isDone(p) && mineP(p)).length;
     const flSel = fls.length ? `<label class="uflsel"><select onchange="doAct('u1vf:${key}V:'+this.value)" aria-label="Verkflokkur"><option value="">Allir verkflokkar</option>${fls.map(x => `<option${x === fv ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label>` : "";
     return lhead("Verkefni", title, nbtn("Verkefni")) + `<div class="ulbar">${chips([["gangi", "Í gangi · " + n], ["min", "Mín · " + nm], ["lokid", "Lokið"]], f, "u1vf:" + key)}${flSel}</div>`
@@ -147,7 +149,7 @@
   U.vsk = function () {
     const L = (S?.vidskiptavinir || []).filter(v => !window.inDeild || true).slice().sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "is"));
     const cnt = v => verkefni().filter(p => p.vskId === v.id && !isDone(p)).length;
-    const f = st.vf.vsk || "", xs = L.filter(v => f === "opin" ? cnt(v) : f === "an" ? !cnt(v) : true);
+    const f = st.vf.vsk || "", xs = L.filter(v => SQ() || (f === "opin" ? cnt(v) : f === "an" ? !cnt(v) : true));
     let h = "", last = "";
     xs.forEach(v => { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } const n = cnt(v);
       h += `<div class="urow uv" ${tapAttr("vsk", v.id)}><span class="t">${E(v.name || "")}${v.tengilidur ? `<span class="m"> · ${E(v.tengilidur)}</span>` : ""}</span><span class="m">${n ? n + " verkefni" : ""}</span><span class="r">${pill(n ? "Í gangi" : "Óvirkur")}</span></div>`; });
@@ -158,7 +160,7 @@
   function tlist(key, title, teg) {
     const api = window.salaAPI; if (!api) return "";
     const all = api.TB().filter(T => !teg || (T.linur || []).some(l => l.teg === teg)), f = st.vf[key] || "opin";
-    const xs = all.filter(T => f === "opin" ? ["Drög", "Sent"].includes(T.stada) : f === "samth" ? T.stada === "Samþykkt" : true).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
+    const xs = all.filter(T => SQ() || (f === "opin" ? ["Drög", "Sent"].includes(T.stada) : f === "samth" ? T.stada === "Samþykkt" : true)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const no = all.filter(T => ["Drög", "Sent"].includes(T.stada)).length, ns = all.filter(T => T.stada === "Samþykkt").length;
     return lhead("Tilboð", title, nbtn("Tilboð")) + `<div class="ulbar">${chips([["opin", "Opin · " + no], ["samth", "Samþykkt · " + ns], ["allt", "Allar stöður"]], f, "u1vf:" + key)}</div>`
       + cols("Nr.", "Heiti · Viðskiptavinur", "Dags.", "Staða")
@@ -171,7 +173,7 @@
   const pnList = (title, teg) => function () {
     const api = window.salaAPI; if (!api) return "";
     const all = api.PN().filter(P => !teg || (P.linur || []).some(l => l.teg === teg)), f = st.vf.pn || "opnar", OP = ["Ný", "Staðfest"];
-    const xs = all.filter(P => f === "opnar" ? OP.includes(P.stada) : f === "afh" ? P.stada === "Afhent" : ["Skilað", "Lokið"].includes(P.stada)).sort((a, b) => String(a.fra || "").localeCompare(String(b.fra || "")));
+    const xs = all.filter(P => SQ() || (f === "opnar" ? OP.includes(P.stada) : f === "afh" ? P.stada === "Afhent" : ["Skilað", "Lokið"].includes(P.stada))).sort((a, b) => String(a.fra || "").localeCompare(String(b.fra || "")));
     return lhead("Pantanir", title, nbtn("Pöntun")) + `<div class="ulbar">${chips([["opnar", "Opnar · " + all.filter(P => OP.includes(P.stada)).length], ["afh", "Afhentar · " + all.filter(P => P.stada === "Afhent").length], ["lokid", "Lokið"]], f, "u1vf:pn")}</div>`
       + cols("Nr.", "Heiti · Viðskiptavinur", "Afhending", "Staða")
       + (xs.map(P => row(tapAttr("tb", P.id), E(P.nr || ""), E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""), E(P.vidskiptavinur || P.tengilidur || ""), E(relD(P.fra)), P.stada, P.stada === "Ný")).join("") || `<div class="uempty">Engar pantanir.</div>`);
@@ -182,7 +184,7 @@
   U.lvorur = function () {
     const api = window.salaAPI; if (!api) return "";
     const iso = isoD(today), allL = api.VR().filter(v => api.vDeild(v) === "leiga" && v.tegund !== "vinna"), f = st.vf.lvorur || "", fk = st.vf.lvorurF || "", fls = [...new Set(allL.map(v => v.flokkur).filter(Boolean))].sort((a, b) => a.localeCompare(b, "is"));
-    const xs = allL.filter(v => (!f || (f === "pakki" ? v.tegund === "pakki" : v.tegund !== "pakki")) && (!fk || v.flokkur === fk)).sort((a, b) => String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
+    const xs = allL.filter(v => SQ() || (!f || (f === "pakki" ? v.tegund === "pakki" : v.tegund !== "pakki")) && (!fk || v.flokkur === fk)).sort((a, b) => String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
     let h = "", last = "";
     xs.forEach(v => { const g = v.tegund === "pakki" ? "Pakkar" : (String(v.nr || "").split("-")[0] || "–") + (v.flokkur ? " · " + v.flokkur : ""); if (g !== last) { h += grpH(g); last = g; }
       const tot = +v.fjoldi || 0, free = v.tegund === "pakki" ? "" : Math.max(0, tot - u1Ovirk(v) - (api.upptekid(v.id, iso, iso).max || 0));
@@ -194,7 +196,7 @@
     const api = window.salaAPI; if (!api) return "";
     const fr = {}; api.TB().filter(T => ["Drög", "Sent"].includes(T.stada)).forEach(T => (T.linur || []).forEach(l => { if (l.teg === "sala" && l.v) fr[l.v] = (fr[l.v] || 0) + (+l.magn || 0); }));
     const allS = api.VR().filter(v => api.vDeild(v) === "sala" && v.tegund !== "vinna"), sf = st.vf.svorur || "", sk = st.vf.svorurF || "", low0 = v => (+v.fjoldi || 0) <= (+v.lagmark || 2);
-    const xs = allS.filter(v => (!sf || low0(v)) && (!sk || v.flokkur === sk)).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
+    const xs = allS.filter(v => SQ() || (!sf || low0(v)) && (!sk || v.flokkur === sk)).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
     let h = "", last = "";
     xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; } const tot = +v.fjoldi || 0, free = Math.max(0, tot - (fr[v.id] || 0)), low = tot <= (+v.lagmark || 2);
       h += `<div class="urow ul" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${low ? ' <i class="udot" title="Lítið á lager"></i>' : ""}</span><span class="m">${tot}</span>${low ? `<span class="ufree red" style="font-weight:600">${free}</span>` : freeCol(free, tot)}<span class="r">${pill(kr(v.soluverd))}</span></div>`; });
@@ -206,7 +208,7 @@
   U.vvinna = function () {
     const api = window.salaAPI; if (!api) return "";
     const all = api.VR().filter(v => v.tegund === "vinna"), fl = [...new Set(all.map(v => v.flokkur || "Annað"))], f = st.vf.vvinna || "";
-    const xs = all.filter(v => !f || (v.flokkur || "Annað") === f).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
+    const xs = all.filter(v => SQ() || !f || (v.flokkur || "Annað") === f).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
     let h = "", last = "";
     xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; }
       h += `<div class="urow uv3" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${v.flokkur ? `<span class="m"> · ${E(v.flokkur)}</span>` : ""}</span><span class="m">${E(v.eining || "")}</span><span class="r">${pill(kr(v.soluverd || v.leiguverd))}</span></div>`; });
@@ -428,7 +430,7 @@
     const lastRef = (() => { const T = docsWith(v).filter(T => String(T.fra || "") <= isoD(today)).sort((a, b) => String(b.fra).localeCompare(String(a.fra)))[0]; return T ? E(T.nr || "") + " · " + E(dIS(T.til || T.fra)) : ""; })();
     return `<div class="ush2" style="margin-top:0"><span>${chips([["opin", "Opið · " + op.length], ["lokid", "Lokið · " + lo.length]], st.af, "u1af")}</span>${MCP ? `<button type="button" class="btn" data-act="u1dmg:${E(v.id)}">+ Skrá skemmd</button>` : ""}</div>${form}`
       + (xs.map(x => `<div class="card udmg${x.stada === "opin" ? " open" : ""}"><div class="udmgh"><div><small>${E(x.eintak || "")}</small><b>${E(x.lysing || "")}</b></div>${pill(x.stada === "opin" ? "Þarf að skoða" : x.stada === "vidgerd" ? "Í viðgerð" : "Viðgert", x.stada === "opin")}</div><div class="usub">Skráð${x.ref ? " við skil " + E(x.ref) : ""} · ${E(dIS((x.dags || "").slice(0, 10)))}${x.af ? " · " + E(x.af) : ""}${x.lokid ? " · viðgert " + E(dIS(x.lokid.slice(0, 10))) : ""}</div>`
-        + (x.stada !== "lokid" && MCP ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button type="button" class="btn" data-act="u1dmgX:${E(v.id)}:${E(x.id)}:lokid">Merkja í lagi</button>${x.stada === "opin" ? `<button type="button" class="btn" data-act="u1dmgX:${E(v.id)}:${E(x.id)}:vidgerd">Senda í viðgerð</button>` : ""}<button type="button" class="btn" data-act="u1rk:${E(v.id)}:${E(x.id)}">Rukka viðskiptavin</button></div>` : "") + `</div>`).join("") || `<div class="uempty">${st.af === "lokid" ? "Engar lokaðar skemmdir." : "Engar opnar skemmdir – allt í lagi."}</div>`)
+        + (x.stada !== "lokid" && MCP ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button type="button" class="btn" data-act="u1dmgX:${E(v.id)}:${E(x.id)}:lokid">Merkja í lagi</button>${x.stada === "opin" ? `<button type="button" class="btn" data-act="u1dmgX:${E(v.id)}:${E(x.id)}:vidgerd">Senda í viðgerð</button>` : ""}${x.rukkad ? `<span class="upill">Rukkað ${E(kr(x.rukkad.upphaed))} · ${E(x.rukkad.pontun)}</span>` : `<button type="button" class="btn" data-act="u1rk:${E(v.id)}:${E(x.id)}">Rukka viðskiptavin</button>`}</div>` : "") + `</div>`).join("") || `<div class="uempty">${st.af === "lokid" ? "Engar lokaðar skemmdir." : "Engar opnar skemmdir – allt í lagi."}</div>`)
       + `<div class="ush2"><span>Eintök</span><span style="display:flex;gap:8px"><button type="button" class="btn" data-act="u1qr:${E(v.id)}">Prenta QR-merki</button><button type="button" class="btn" data-act="u1scan:">Skanna</button></span></div>`
       + (es.length ? es.map(e => { const dm = all.find(x => x.eintak === e.nr && x.stada !== "lokid"), lk = all.find(x => x.eintak === e.nr && x.stada === "lokid"); return `<div class="uer2 e5"><span class="uqr" aria-hidden="true">▦</span><span>${E(e.nr)}</span><span class="${e.stada && e.stada !== "ok" ? "red" : ""}">${E(ST_E[e.stada || "ok"])}${lk && (!e.stada || e.stada === "ok") ? " · viðgert " + E(dIS((lk.lokid || lk.dags || "").slice(0, 10))) : ""}</span><span class="m">${dm?.ref ? E(dm.ref) + " · " + E(dIS(dm.dags.slice(0, 10))) : lastRef}</span><span class="m">${E(e.stada === "skodun" ? "Skoðun" : e.hilla || v.hilla || "")}</span></div>`; }).join("") : `<div class="uempty">Engin eintök skráð.</div><button type="button" class="btn primary" data-act="u1mkE:${E(v.id)}">Stofna ${+v.fjoldi || 0} eintök</button>`);
   };
@@ -570,6 +572,33 @@
     }
     return null;
   };
+  /* ---------- Rukka viðskiptavin fyrir skemmd (2.35.0): tillaga að upphæð sem má breyta; stofnar pöntun á viðskiptavininn ---------- */
+  function rukka(id, did) {
+    const api = window.salaAPI, v = VRget(id), x = (v?.skemmdir || []).find(y => String(y.id) === String(did)); if (!v || !x) return;
+    const refNr = String(x.ref || "").split(/\s/)[0], doc = refNr ? [...api.TB(), ...api.PN()].find(T => T.nr === refNr) : null;
+    const base = +v.innkaupsverd || Math.round((+v.leiguverd || +v.soluverd || 0) * 10), pc = base ? 20 : 0, sug = base ? Math.round(base * pc / 100 / 500) * 500 : 0;
+    const cls = S?.vidskiptavinir || [], cur = doc?.vskId || "";
+    sheet.innerHTML = `<h3 id="sheet-h">Rukka viðskiptavin</h3><form id="rkf" novalidate>
+      <p class="hint" style="margin:0 0 8px"><b>${E(x.eintak || v.nr || "")}</b> · ${E(x.lysing || "")}${x.ref ? " · skráð við skil " + E(x.ref) : ""}</p>
+      <label>Viðskiptavinur<select id="rk-vsk"><option value="">${E(doc?.tengilidur || doc?.vidskiptavinur || "Velja…")}</option>${cls.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "is")).map(c => `<option value="${E(c.id)}"${c.id === cur ? " selected" : ""}>${E(c.name)}</option>`).join("")}</select></label>
+      <label>Skýring á reikningi<input id="rk-heiti" value="${E("Skemmdagjald – " + (x.eintak || v.nr || "") + " " + (v.heiti || "") + (x.lysing ? ": " + x.lysing : ""))}"></label>
+      <div class="two"><label>Grunnur (innkaupsverð)<input id="rk-base" type="number" min="0" value="${base || ""}" inputmode="numeric"></label><label>Upphæð án VSK<input id="rk-upp" type="number" min="0" step="100" value="${sug || ""}" inputmode="numeric"></label></div>
+      <div class="chips" style="margin:-2px 0 8px">${[10, 20, 30, 50, 100].map(n => `<button type="button" class="chipbtn" onclick="const b=+document.getElementById('rk-base').value||0;document.getElementById('rk-upp').value=Math.round(b*${n}/100/100)*100">${n} %</button>`).join("")}</div>
+      <p class="hint" style="margin:0 0 8px">Tillaga: ${pc} % af ${v.innkaupsverd ? "innkaupsverði" : "áætluðu verðmæti"}. Breyttu upphæðinni eftir viðgerðarkostnaði eða samkomulagi.</p>
+      <div id="f-msg"></div><div class="actions"><button type="button" class="btn" onclick="closeSheet()">Hætta við</button><button class="btn primary">Stofna pöntun til innheimtu</button></div></form>`;
+    sheetwrap.hidden = false;
+    document.getElementById("rkf").onsubmit = async e => { e.preventDefault();
+      const upp = +document.getElementById("rk-upp").value || 0; if (!(upp > 0)) { document.getElementById("f-msg").innerHTML = `<div class="msg err">Skráðu upphæð.</div>`; return; }
+      const cid = document.getElementById("rk-vsk").value, c = cls.find(y => y.id === cid), heiti = document.getElementById("rk-heiti").value.trim() || "Skemmdagjald";
+      const pid = (crypto.randomUUID?.() || String(Date.now())).replace(/-/g, ""), n = +(S?.stillingar?.tilbod?.nastaNrP) || 1001, nr = "P-" + n, iso = isoD(today);
+      const P = { id: pid, pontun: true, nr, deild: "blandad", heiti: "Skemmdagjald " + (x.eintak || v.nr || ""), vskId: c?.id || doc?.vskId || null, vidskiptavinur: c?.name || doc?.vidskiptavinur || null, tengilidur: doc?.tengilidur || null, simi: doc?.simi || null, netfang: c?.netfang || doc?.netfang || null,
+        uppruni: "stadur", ytriNr: null, stadsetning: null, fra: iso, til: iso, dags: iso, stada: "Staðfest", afsl: 0, athugasemd: x.ref ? "Vegna skemmdar við skil " + x.ref : null, verkefniId: doc?.verkefniId || null, tilbodId: null,
+        linur: [{ id: pid + "1", v: null, heiti, teg: "vinna", magn: 1, ein: "stk.", verd: upp }] };
+      await saveSnapshot(s0 => { (s0.pantanir = s0.pantanir || []).push(P); s0.stillingar = s0.stillingar || {}; s0.stillingar.tilbod = { ...(s0.stillingar.tilbod || {}), nastaNrP: n + 1 };
+        const q = (s0.vorur || []).find(y => String(y.id) === String(id)), d0 = (q?.skemmdir || []).find(y => String(y.id) === String(did)); if (d0) d0.rukkad = { upphaed: upp, pontun: nr, dags: iso }; });
+      closeSheet(); toast?.("Pöntun " + nr + " stofnuð til innheimtu"); tab = "pantanir"; DETAIL = "tb:" + pid; render(); };
+  }
+
   /* ---------- Lager og innkaup (söluvörur) – reitir á vöruskjalinu: hreyfingar[], innkaup[], lagmark ---------- */
   window.u1VaraLager = function (v) {
     const hs = (v.hreyfingar || []).slice().sort((a, b) => String(b.dags).localeCompare(String(a.dags)));
@@ -586,9 +615,16 @@
 
   /* ---------- Svið (Stillingar › Svið): heiti sviðanna; Leiga og Sala fylgja einingunum ---------- */
   window.svidHeiti = k => CFG().svid?.[k]?.heiti || k;
+  // Svið sem fyrirtækið notar (2.35.0): Leiga/Sala aðeins ef einingin er virk; hvert svið má slökkva á í Stillingar › Svið
+  window.svidOn = k => CFG().svid?.[k]?.off !== true && (k === "Leiga" ? ON("leiga") : k === "Sala" ? ON("sala") : true);
+  { const SVTAB = { lverk: "Leiga", sverk: "Sala", tverk: "Þjónusta", tbl: "Leiga", tbs: "Sala", tbt: "Þjónusta", pnl: "Leiga", pns: "Sala", pnt: "Þjónusta", vskl: "Leiga", vsks: "Sala", vskt: "Þjónusta", lvorur: "Leiga", svorur: "Sala", vvinna: "Þjónusta" };
+    const t0 = window.tabOn; const hasS = () => { try { return typeof S !== "undefined" && !!S; } catch (e) { return false; } };
+    window.tabOn = t => (!t0 || t0(t)) && (!SVTAB[t] || !hasS() || svidOn(SVTAB[t]));
+    const e0 = window.einSig; window.einSig = () => (e0 ? e0() : "") + "|" + (hasS() ? ["Leiga", "Sala", "Þjónusta"].map(k => svidOn(k) ? 1 : 0).join("") : "");
+    try { _einSig = null; applyEin(); } catch (e) {} }
   if (typeof STPAGES !== "undefined") STPAGES.svid = { l: "Svið", d: "Leiga, Sala og Þjónusta – flokkun verkefna og tilboða", s: [], adm: 1, fn: () => {
-    const row = (k, desc, on, ein) => `<div class="uvs sv"><b>${E(k)}</b><span class="m">${E(desc)}</span><input type="text" value="${E(CFG().svid?.[k]?.heiti || "")}" placeholder="${E(k)}" aria-label="Heiti sviðsins ${E(k)}" onchange="doAct('u1svh:${k}:'+this.value)"><span>${ein ? `<a href="#" data-act="stsub:einingar">${on ? "Virkt" : "Óvirkt"} ›</a>` : "Alltaf virkt"}</span></div>`;
-    return `<div class="card ucard"><div class="unote" style="margin-top:0">Verkefni og tilboð flokkast sjálfkrafa á svið eftir línum tilboða og deild verkefnis. Hvert fyrirtæki getur endurnefnt sviðin, t.d. Þjónusta → Tækniþjónusta.</div><div class="uvs sv h"><span>Svið</span><span>Til hvers</span><span>Heiti hjá fyrirtækinu</span><span>Virkt</span></div>`
+    const row = (k, desc, on, ein) => `<div class="uvs sv"><b><label class="usw" title="${svidOn(k) ? "Slökkva á sviðinu" : "Kveikja á sviðinu"}" style="vertical-align:middle;margin-right:8px"><input type="checkbox"${svidOn(k) ? " checked" : ""}${on ? "" : " disabled"} onchange="doAct('u1svo:${k}:'+(this.checked?1:0))"><i></i></label>${E(k)}</b><span class="m">${E(desc)}</span><input type="text" value="${E(CFG().svid?.[k]?.heiti || "")}" placeholder="${E(k)}" aria-label="Heiti sviðsins ${E(k)}" onchange="doAct('u1svh:${k}:'+this.value)"><span>${ein ? `<a href="#" data-act="stsub:einingar">${!on ? "Eining óvirk" : svidOn(k) ? "Virkt" : "Falið"} ›</a>` : svidOn(k) ? "Virkt" : "Falið"}</span></div>`;
+    return `<div class="card ucard"><div class="unote" style="margin-top:0">Verkefni og tilboð flokkast sjálfkrafa á svið eftir línum tilboða og deild verkefnis. Hvert fyrirtæki getur endurnefnt sviðin, t.d. Þjónusta → Tækniþjónusta, og slökkt á sviðum sem það notar ekki – þá hverfa flipar sviðsins úr Verkefnum, Viðskiptavinum, Pöntunum, Tilboðum og Vörulista. Gögnin haldast.</div><div class="uvs sv h"><span>Svið</span><span>Til hvers</span><span>Heiti hjá fyrirtækinu</span><span>Virkt</span></div>`
       + row("Leiga", "Útleiga á búnaði", ON("leiga"), 1) + row("Sala", "Sala á vörum af lager", ON("sala"), 1) + row("Þjónusta", "Vinna, tæknifólk, uppsetning", true, 0) + `</div>`; } };
 
   /* ---------- Verkefni › Yfirlit: lykiltölur, opin undirverk og hlutar eftir sviði (Leiga: búnaður og tæknifólk; Sala: vörur) ---------- */
@@ -626,7 +662,7 @@
   U.fundir = function () {
     const all = (S?.fundir || []).slice(), now = isoD(today), f = st.vf.fundir || "fram";
     const fram = all.filter(m => String(m.date).slice(0, 10) >= now), lidnir = all.filter(m => String(m.date).slice(0, 10) < now), endur = all.filter(m => m.seria);
-    const xs = (f === "fram" ? fram.sort((a, b) => String(a.date).localeCompare(String(b.date))) : f === "lidnir" ? lidnir.sort((a, b) => String(b.date).localeCompare(String(a.date))) : endur);
+    const xs = SQ() ? all.sort((a, b) => String(b.date).localeCompare(String(a.date))) : (f === "fram" ? fram.sort((a, b) => String(a.date).localeCompare(String(b.date))) : f === "lidnir" ? lidnir.sort((a, b) => String(b.date).localeCompare(String(a.date))) : endur);
     return lhead("Dagatal", "Fundir", nbtn("Fundur")) + `<div class="ulbar">${chips([["fram", "Framundan · " + fram.length], ["lidnir", "Liðnir · " + lidnir.length], ["endur", "Endurteknir" + (endur.length ? " · " + endur.length : "")]], f, "u1vf:fundir")}</div>`
       + `<div class="ucols uf5"><span>Dags.</span><span>Fundur</span><span>Verkefni</span><span>Kl.</span><span class="r"></span></div>`
       + (xs.map(m => { const p = m.projectId ? findProj(m.projectId) : null, n = daysTo(m.date);
@@ -638,7 +674,7 @@
     const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
     const og = R.filter(r => r.stada !== "Greitt"), gr = R.filter(r => r.stada === "Greitt");
     const tot = ub.reduce((a, x) => a + x.kr, 0) + og.reduce((a, r) => a + (+r.tot || 0), 0), mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
-    const showU = f === "allt" || f === "oreikn", rs = f === "ogr" ? og : f === "gr" ? gr : f === "allt" ? og : [];
+    const showU = SQ() || f === "allt" || f === "oreikn", rs = SQ() ? R.slice() : f === "ogr" ? og : f === "gr" ? gr : f === "allt" ? og : [];
     const rowU = x => `<div class="urow uf5" ${tapAttr("verk", x.p.id)}><span class="m">Óreikn.</span><span class="t">${E(x.p.nr)} ${E(x.p.stutt || "")}</span><span class="m">${H(x.h)} klst.</span><span class="m"></span><span class="r">${E(kr(x.kr))}</span></div>`;
     const rowR = r => { const p = findProj(r.verkefniId), late = r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0;
       return `<div class="urow uf5" ${tapAttr("reikn", r.id)}><span class="m">${E(String(r.nr).padStart(3, "0"))}</span><span class="t">${E(r.kaupandi?.name || "")}${late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""}</span><span class="m">${E(p?.nr || "")}</span><span class="m">${E(String(r.dags || "").slice(5).split("-").reverse().join("."))}</span><span class="r">${E(kr(r.tot))}</span></div>`; };
@@ -691,7 +727,7 @@
   const kp4 = arr => `<div class="ukps k4">${arr.map(([l, v]) => `<div class="ukp"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`;
   const dcard = (title, rows, more, empty) => `<section class="card ucard uhc"><div class="uhch"><h3>${E(title)}</h3>${more ? `<a href="#" data-act="tab:${more}">Sjá allt →</a>` : ""}</div>${rows.length ? rows.slice(0, 6).join("") : `<div class="usub" style="padding:10px 0">${E(empty || "Ekkert hér.")}</div>`}</section>`;
   const drow = (attr, a, b, pl, dark) => `<a class="uhrow" ${attr}><span><b>${a}</b><small>${b || ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
-  const svCards = (items, tabs, lab) => `<div class="usvc">${SV.filter(x => x !== "Leiga" || ON("leiga")).filter(x => x !== "Sala" || ON("sala")).map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`;
+  const svCards = (items, tabs, lab) => `<div class="usvc">${SV.filter(x => svidOn(x)).map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`;
   const tbSum = T => (T.linur || []).reduce((a, l) => a + (window.salaAPI.lSum(l, T) || 0), 0);
   const hasTeg = (T, x) => (T.linur || []).some(l => l.teg === SVT[x]);
   const mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
@@ -715,7 +751,7 @@
     return out; };
   const vskList = (key, x) => function () {
     const all = (S?.vidskiptavinir || []).filter(c => vskSvid(c).has(x)).sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "is"));
-    const cnt = c => verkefni().filter(p => p.vskId === c.id && !isDone(p)).length, f = st.vf[key] || "", xs = all.filter(c => f === "opin" ? cnt(c) : true);
+    const cnt = c => verkefni().filter(p => p.vskId === c.id && !isDone(p)).length, f = st.vf[key] || "", xs = all.filter(c => SQ() || (f === "opin" ? cnt(c) : true));
     let h = "", last = "";
     xs.forEach(c => { const l = String(c.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } const n = cnt(c);
       h += `<div class="urow uv" ${tapAttr("vsk", c.id)}><span class="t">${E(c.name || "")}${c.tengilidur ? `<span class="m"> · ${E(c.tengilidur)}</span>` : ""}</span><span class="m">${n ? n + " verkefni" : ""}</span><span class="r">${pill(n ? "Í gangi" : "Óvirkur")}</span></div>`; });
@@ -845,7 +881,7 @@
   const u1Seen = x => seenSet().has(tkId(x));
   window.u1MarkSeen = () => { const s0 = seenSet(); tilkItems().forEach(x => s0.add(tkId(x))); try { localStorage.setItem(SEENK, JSON.stringify([...s0].slice(-500))); } catch (e) {} render(); };
   const hlist = (title, items, chipsArr, key, opt = {}) => {
-    const f = st.vf[key] ?? (opt.def || ""), xs = items.filter(it => !f || (opt.flt ? opt.flt(it, f) : it.k === f));
+    const f = st.vf[key] ?? (opt.def || ""), xs = items.filter(it => SQ() || !f || (opt.flt ? opt.flt(it, f) : it.k === f));
     const cols = opt.cols || ["Tegund", "Atriði", "Dags.", ""];
     return lhead("Heim", title, opt.btn || "") + `<div class="ulbar">${chips(opt.chips || [["", "Allt · " + items.length], ...chipsArr.map(c => [c, c])], f, "u1vf:" + key)}</div>`
       + `<div class="ucols uh"><span>${cols[0]}</span><span>${cols[1]}</span><span>${cols[2]}</span><span class="r">${cols[3]}</span></div>`
@@ -890,6 +926,7 @@
         await saveV(v, x => { const n = (x.innkaup || []).length + 1; (x.innkaup = x.innkaup || []).push({ id: String(Date.now()), nr: "IP-" + String(n).padStart(3, "0"), birgir: b, magn: m, vaent: ve, dags: new Date().toISOString(), stada: "Pantað" }); if (b) x.birgir = b; }); st.ink = null; toast?.("Innkaup skráð"); render(); return; }
       if (k === "u1inkM") { const [id, iid] = r; await saveV(id, x => { const q = (x.innkaup || []).find(y => String(y.id) === iid); if (!q) return; q.stada = "Móttekið"; q.mott = new Date().toISOString(); x.fjoldi = (+x.fjoldi || 0) + (+q.magn || 0); (x.hreyfingar = x.hreyfingar || []).push({ dags: q.mott, teg: "Móttekið", ref: q.nr + (q.birgir ? " " + q.birgir : ""), magn: +q.magn || 0, stada: x.fjoldi }); }); toast?.("Móttekið á lager"); render(); return; }
       if (k === "u1lm") { const [id, val] = r; await saveV(id, x => { x.lagmark = +val || 0; }); render(); return; }
+      if (k === "u1svo") { const [key, on] = r; await cfgSave(c => { c.svid = c.svid || {}; c.svid[key] = { ...(c.svid[key] || {}), off: on !== "1" }; }); try { _einSig = null; applyEin(); } catch (e) {} drawMenu(); toast?.(svidHeiti(key) + (on === "1" ? " virkt" : " falið")); render(); return; }
       if (k === "u1svh") { const [key, ...rest] = r, val = rest.join(":").trim(); await cfgSave(c => { c.svid = c.svid || {}; c.svid[key] = { ...(c.svid[key] || {}), heiti: val }; }); toast?.("Vistað"); render(); return; }
       if (k === "u1cal") { st.cal = v === "0" ? 0 : st.cal + (+v || 0); render(); return; }
       if (k === "u1d2") { const [id, di] = r; if (!di) { st.rng = null; render(); return; } const R = st.rng && st.rng.v === id ? st.rng : null;
@@ -902,7 +939,8 @@
       if (k === "u1vg") { st.vt = "astand"; st.af = "opin"; st.dmg = v; render(); return; }
       if (k === "u1pi") { st.vt = "innk"; st.ink = v; render(); return; }
       if (k === "u1af") { st.af = v || "opin"; render(); return; }
-      if (k === "u1rk") { const [id, did] = r, q = VRget(id), x = (q?.skemmdir || []).find(y => String(y.id) === did); closeSheet?.(); window.salaAPI.pnForm({}); setTimeout(() => { const h = document.getElementById("pn-heiti"); if (h) h.value = "Skemmd á " + (x?.eintak || q?.nr || "") + (x?.lysing ? " – " + x.lysing : ""); }, 50); return; }
+      if (k === "u1rk") { const [id, did] = r; rukka(id, did); return; }
+      if (k === "u1rkp") { const [pc] = r, b = +document.getElementById("rk-base")?.value || 0, el = document.getElementById("rk-upp"); if (el) el.value = Math.round(b * (+pc) / 100 / 100) * 100; return; }
       if (k === "u1day") { st.day = v && v !== st.day ? v : null; render(); return; }
       if (k === "u1vf") { const [key, val] = [r[0], r.slice(1).join(":")]; st.vf[key] = val; render(); return; }
       if (k === "u1mv") { const p = findProj(v), ids = new Set([...st.sel].filter(x => x.startsWith("time:")).map(x => x.slice(5))), kids = new Set([...st.sel].filter(x => x.startsWith("kostn:")).map(x => x.slice(6)));

@@ -1175,3 +1175,6 @@ body.pv.ui1 .spdet{container-type:inline-size}
 .vsopt:has(input:checked){border-color:#1F5A96;background:#EEF3F9}
 body.pv.ui1[data-tab="stillingar"] .splist .stq{margin:12px 12px 8px}
 body.pv.ui1 .splist .spfilt input{display:block!important}
+/* 2.35.0: leit í öllum stöðum */
+body.pv.ui1 .splist.srch .phead .ulbar{opacity:.4;pointer-events:none}
+body.pv.ui1 .srchnote{margin:-2px 16px 6px;font-size:12px;color:var(--muted)}

@@ -73,6 +73,7 @@
   const SPH = { verkefni: "heiti eða verknr.", vsk: "nafni eða tengilið", vidsk: "nafni eða tengilið", tilbod: "heiti, nr. eða viðskiptavini", pantanir: "heiti, nr. eða viðskiptavini", lvorur: "heiti eða vnr.", svorur: "heiti eða vnr.", vvinna: "heiti eða vnr.", bunadur: "heiti eða vnr.", fundir: "heiti fundar", tfaer: "lýsingu eða verknr.", timar: "lýsingu eða verknr.", trk: "nafni eða nr.", fjarmal: "nafni eða nr.", heim: "heiti", postur: "sendanda eða efni" };
   const _render = window.render || render;
   function renderI() {
+    if (fltTab !== tab) { flt = ""; window.u1Q = ""; fltTab = tab; }
     const v = document.getElementById("view");
     if (tab === "upphaf") {
       if (!desk()) { tab = "yfirlit"; return renderI(); }
@@ -121,11 +122,21 @@
     if (ph) { const lb = sl.querySelector(":scope > .ulbar"); if (lb) ph.append(lb); }
     if (!sl.querySelector(".spfoot")) sl.insertAdjacentHTML("beforeend", `<div class="spfoot">/ sía · ↑↓ fletta · Enter opna · N nýtt</div>`);
     if (tab === "postur") { if (DETAIL) { sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel"); fixDet(v.querySelector(".spdet")); } return; }
-    if (fltTab !== tab) { flt = ""; fltTab = tab; }
+    if (fltTab !== tab) { flt = ""; window.u1Q = ""; fltTab = tab; }
     const f = document.createElement("label"); f.className = "spfilt";
     f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input type="search" placeholder="Leita eftir ${esc(SPH[tab] || SPH[secOf(tab).k] || "nafni eða númeri")}…" aria-label="Leita í lista" value="${esc(flt)}"><kbd>/</kbd>`;
     (ph ? ph.after(f) : sl.prepend(f));
-    const inp = f.querySelector("input"); inp.addEventListener("input", () => { flt = inp.value; applyFilt(sl); }); applyFilt(sl);
+    const inp = f.querySelector("input");
+    // Leit: í öllum stöðum og flokkum meðan eitthvað er slegið inn (listinn teiknaður aftur þegar leit hefst eða endar), Enter opnar fyrstu, Esc hreinsar
+    const reList = () => { const pos = inp.selectionStart; render(); const i2 = document.querySelector(".splist .spfilt input"); if (i2) { i2.focus(); try { i2.setSelectionRange(pos, pos); } catch (e) {} } };
+    inp.addEventListener("input", () => { const was = !!String(window.u1Q || "").trim(); flt = inp.value; window.u1Q = flt; if (was !== !!flt.trim() && window.UI1V?.[tab]) reList(); else applyFilt(sl); });
+    inp.addEventListener("keydown", e => {
+      if (e.key === "Escape") { e.preventDefault(); if (flt) { flt = ""; window.u1Q = ""; reList(); } else inp.blur(); }
+      if (e.key === "Enter") { e.preventDefault(); const r = [...sl.querySelectorAll("[data-open]")].find(x => x.style.display !== "none" && x.offsetParent); if (r) { r.click(); } }
+      if (e.key === "ArrowDown") { e.preventDefault(); inp.blur(); const r = [...sl.querySelectorAll("[data-open]")].find(x => x.style.display !== "none" && x.offsetParent); if (r) r.click(); } });
+    sl.classList.toggle("srch", !!flt.trim());
+    if (flt.trim() && window.UI1V?.[tab]) sl.querySelector(".spfilt")?.insertAdjacentHTML("afterend", `<div class="srchnote">Leitað í öllum stöðum · Esc hreinsar</div>`);
+    applyFilt(sl);
     if (DETAIL) sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel");
     if (DETAIL && !vp) fixDet(v.querySelector(".spdet"));
     const tl = sl.querySelector(".ptitle"), lab = (secOf(tab).tabs.find(t => t[0] === tab) || [])[1]; if (tl && lab && sup) tl.textContent = lab;

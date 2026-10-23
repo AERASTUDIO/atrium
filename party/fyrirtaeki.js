@@ -29,6 +29,8 @@ window.ORG = {
   docLogo: "party/doc-logo.png",
   // Nýja einingaskiptingin og útlitið (pakkaval, 2.21.0 – eins og Dev) og allar einingar opnar; admin síar í Stillingar › Einingar
   pakkaval: true,
+  // Útlit I (2.35.0, fyrst eftir Dev): dökk vinstri stika, listi og spjald hlið við hlið á tölvu. Síminn er óbreyttur.
+  utlit: "I",
   einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
   // Firebase-verkefni party.is (atrium-party). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
