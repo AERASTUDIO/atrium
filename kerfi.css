@@ -280,3 +280,7 @@ body.kerfi #view :is(.nr,.urow>span:first-child){font-variant-numeric:tabular-nu
   body:has(#sheetwrap:not([hidden])) #tbar,body:has(#sheetwrap:not([hidden])) .simact{display:none!important}
   #sheetwrap .sheet #addf>.actions,#sheetwrap .sheet .actions:last-child{position:sticky;bottom:0;z-index:3;background:var(--sheet,var(--surface));margin:12px -20px 0!important;padding:10px 20px calc(10px + env(safe-area-inset-bottom,0px))!important;border-top:1px solid var(--line)}
 }
+
+/* Engar skrunstikur í tölvu heldur (2.51.1) – skrunað með músarhjóli, snertifleti eða lyklum eins og áður */
+html,body,body *{scrollbar-width:none!important}
+html::-webkit-scrollbar,body::-webkit-scrollbar,body *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
