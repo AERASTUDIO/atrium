@@ -438,6 +438,96 @@
     return { tabs: tabsV(keys.map(([k, l]) => [k, l]), st.ct).replace(/u1vt:/g, "u1ct:"), body: body === null ? null : (body || `<div class="usub" style="padding:8px 0">Ekkert hér enn.</div>`) };
   };
 
+  /* ---------- Yfirlit hluta (Verkefni, Viðskiptavinir, Pantanir, Tilboð, Tímar) og viðskiptavinir eftir sviðum ---------- */
+  const SV = ["Leiga", "Sala", "Þjónusta"], SVT = { Leiga: "leiga", Sala: "sala", "Þjónusta": "vinna" }, svH = x => window.svidHeiti ? svidHeiti(x) : x;
+  const go = (t, k) => `data-act="u1go:${t}:${E(k || "")}" role="button" tabindex="0"`;
+  const kp4 = arr => `<div class="ukps k4">${arr.map(([l, v]) => `<div class="ukp"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`;
+  const dcard = (title, rows, more, empty) => `<section class="card ucard uhc"><div class="uhch"><h3>${E(title)}</h3>${more ? `<a href="#" data-act="tab:${more}">Sjá allt →</a>` : ""}</div>${rows.length ? rows.slice(0, 6).join("") : `<div class="usub" style="padding:10px 0">${E(empty || "Ekkert hér.")}</div>`}</section>`;
+  const drow = (attr, a, b, pl, dark) => `<a class="uhrow" ${attr}><span><b>${a}</b><small>${b || ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
+  const svCards = (items, tabs, lab) => `<div class="usvc">${SV.filter(x => x !== "Leiga" || ON("leiga")).filter(x => x !== "Sala" || ON("sala")).map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`;
+  const tbSum = T => (T.linur || []).reduce((a, l) => a + (window.salaAPI.lSum(l, T) || 0), 0);
+  const hasTeg = (T, x) => (T.linur || []).some(l => l.teg === SVT[x]);
+  const mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
+
+  U.verkyf = function () {
+    const ps = verkefni().filter(p => !isDone(p)), ti = isoD(today);
+    const late = ps.filter(p => p.skiladagur && p.skiladagur < ti), soon = ps.filter(p => p.skiladagur && daysTo(p.skiladagur) >= 0 && daysTo(p.skiladagur) <= 7).sort((a, b) => a.skiladagur.localeCompare(b.skiladagur));
+    const unb = window.rkUnbilledKr ? ps.reduce((a, p) => a + rkUnbilledKr(p.id), 0) : 0;
+    const subs = ps.flatMap(p => (p.undirverk || []).filter(u => u.stada !== "Done" && u.skiladagur).map(u => ({ p, u }))).sort((a, b) => a.u.skiladagur.localeCompare(b.u.skiladagur));
+    const st0 = STODUR().filter(x => !x.falin);
+    return head("Verkefni", "Yfirlit", nbtn("Verkefni")) + kp4([["Í gangi", ps.length], ["Skil næstu 7 daga", soon.length], ["Komið fram yfir", late.length], ["Óreikningsfært", kr(unb)]])
+      + svCards(x => { const xs = ps.filter(p => svidOf(p).includes(x)); return { n: xs.length, t: xs.length === 1 ? "verkefni í gangi" : "verkefni í gangi" }; }, { Leiga: "lverk", Sala: "sverk", "Þjónusta": "tverk" })
+      + `<div class="udash">${dcard("Skil framundan", [...late, ...soon].map(p => drow(go("verk", "verk:" + p.id), E(p.nr + " " + (p.stutt || "")), E((p.vidskiptavinur || "") + " · " + fmtD(p.skiladagur)), daysTo(p.skiladagur) < 0 ? "Seint" : p.stada, daysTo(p.skiladagur) < 0)), "verk", "Engin skil næstu 7 daga.")}`
+      + dcard("Undirverk framundan", subs.map(({ p, u }) => drow(go("verk", "verk:" + p.id), E(u.heiti || u.nr), E(p.nr + " · skil " + fmtD(u.skiladagur)), STL[u.stada] || u.stada, u.stada === "In progress")), "", "Engin opin undirverk.")
+      + dcard("Eftir stöðu", st0.map(x => { const n = ps.filter(p => p.stada === x.n).length; return `<div class="ubr"><span>${E(x.n)}</span><div class="ubar"><i style="width:${ps.length ? n / ps.length * 100 : 0}%"></i></div><span>${n}</span></div>`; }), "verk") + `</div>`;
+  };
+
+  const vskSvid = c => { const api = window.salaAPI, out = new Set(), mine = o => String(o.vskId || "") === String(c.id) || (!o.vskId && o.vidskiptavinur === c.name);
+    verkefni().filter(p => String(p.vskId || "") === String(c.id) || p.vidskiptavinur === c.name).forEach(p => svidOf(p).forEach(x => out.add(x)));
+    if (api) [...api.TB(), ...api.PN()].filter(mine).forEach(T => SV.forEach(x => { if (hasTeg(T, x)) out.add(x); }));
+    return out; };
+  const vskList = (key, x) => function () {
+    const all = (S?.vidskiptavinir || []).filter(c => vskSvid(c).has(x)).sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "is"));
+    const cnt = c => verkefni().filter(p => p.vskId === c.id && !isDone(p)).length, f = st.vf[key] || "", xs = all.filter(c => f === "opin" ? cnt(c) : true);
+    let h = "", last = "";
+    xs.forEach(c => { const l = String(c.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } const n = cnt(c);
+      h += `<div class="urow uv" ${tapAttr("vsk", c.id)}><span class="t">${E(c.name || "")}${c.tengilidur ? `<span class="m"> · ${E(c.tengilidur)}</span>` : ""}</span><span class="m">${n ? n + " verkefni" : ""}</span><span class="r">${pill(n ? "Í gangi" : "Óvirkur")}</span></div>`; });
+    return lhead("Viðskiptavinir", svH(x), nbtn("Viðskiptavinur")) + `<div class="ulbar">${chips([["", "Allir · " + all.length], ["opin", "Með opin verkefni"]], f, "u1vf:" + key)}</div>`
+      + `<div class="ucols uv"><span>Heiti · Tengiliður</span><span>Verkefni</span><span class="r">Staða</span></div>` + (h || `<div class="uempty">Engir viðskiptavinir á þessu sviði.</div>`);
+  };
+  U.vskl = vskList("vskl", "Leiga"); U.vsks = vskList("vsks", "Sala"); U.vskt = vskList("vskt", "Þjónusta");
+  U.vskyf = function () {
+    const api = window.salaAPI, L = S?.vidskiptavinir || [], m12 = isoD(new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()));
+    const rev = c => api ? api.TB().filter(T => T.stada === "Samþykkt" && String(T.fra || T.dags) >= m12 && (String(T.vskId || "") === String(c.id) || T.vidskiptavinur === c.name)).reduce((a, T) => a + tbSum(T), 0) : 0;
+    const act = L.filter(c => verkefni().some(p => p.vskId === c.id && !isDone(p))), none = L.filter(c => !vskSvid(c).size);
+    const top = L.map(c => ({ c, r: rev(c) })).filter(x => x.r).sort((a, b) => b.r - a.r), tot = top.reduce((a, x) => a + x.r, 0);
+    const nyj = L.slice().sort((a, b) => String(b.stofnad || b.id).localeCompare(String(a.stofnad || a.id))).slice(0, 6);
+    return head("Viðskiptavinir", "Yfirlit", nbtn("Viðskiptavinur")) + kp4([["Viðskiptavinir", L.length], ["Með opin verkefni", act.length], ["Tekjur 12 mán.", api ? mkr(tot) : "–"], ["Án viðskipta", none.length]])
+      + svCards(x => { const n = L.filter(c => vskSvid(c).has(x)).length; return { n, t: "viðskiptavinir" }; }, { Leiga: "vskl", Sala: "vsks", "Þjónusta": "vskt" })
+      + `<div class="udash">${dcard("Stærstu viðskiptavinir · 12 mán.", top.map(({ c, r }) => drow(go("vskt", "vsk:" + c.id), E(c.name), E(kr(r)), Math.round(r / Math.max(1, tot) * 100) + " %")), "", "Engin samþykkt tilboð síðustu 12 mánuði.")}`
+      + dcard("Með opin verkefni", act.map(c => { const n = verkefni().filter(p => p.vskId === c.id && !isDone(p)).length; return drow(go("vskt", "vsk:" + c.id), E(c.name), E(c.tengilidur || ""), n + " verkefni"); }), "", "Enginn með opin verkefni.")
+      + dcard("Án viðskipta", none.map(c => drow(go("vsk", "vsk:" + c.id), E(c.name), E(c.tengilidur || ""), "Nýr")), "vsk", "Allir viðskiptavinir eru með verkefni eða tilboð.") + `</div>`;
+  };
+
+  U.pnyf = function () {
+    const api = window.salaAPI; if (!api) return head("Pantanir", "Yfirlit");
+    const all = api.PN(), ti = isoD(today), ny = all.filter(P => P.stada === "Ný"), stf = all.filter(P => P.stada === "Staðfest"), af = all.filter(P => P.stada === "Afhent");
+    const late = af.filter(P => (P.til || P.fra) < ti), wk = all.filter(P => ["Ný", "Staðfest"].includes(P.stada) && daysTo(P.fra) >= 0 && daysTo(P.fra) <= 7).sort((a, b) => String(a.fra).localeCompare(String(b.fra)));
+    const skil = af.slice().sort((a, b) => String(a.til || a.fra).localeCompare(String(b.til || b.fra)));
+    const nm = P => E((P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : "")), who = P => E(P.vidskiptavinur || P.tengilidur || "");
+    return head("Pantanir", "Yfirlit", nbtn("Pöntun")) + kp4([["Nýjar", ny.length], ["Staðfestar", stf.length], ["Úti / bíða skila", af.length], ["Skil komin fram yfir", late.length]])
+      + svCards(x => { const xs = all.filter(P => !["Skilað", "Lokið"].includes(P.stada) && hasTeg(P, x)); return { n: xs.length, t: "opnar pantanir" }; }, { Leiga: "pnl", Sala: "pns", "Þjónusta": "pnt" })
+      + `<div class="udash">${dcard("Nýjar – þarf að staðfesta", ny.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · " + E(fmtD(P.fra)), "Ný", true)), "pantanir", "Engar nýjar pantanir.")}`
+      + dcard("Afhendingar næstu 7 daga", wk.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · " + E(fmtD(P.fra)), P.stada)), "pantanir", "Engar afhendingar næstu 7 daga.")
+      + dcard("Bíða skila", skil.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · skil " + E(fmtD(P.til || P.fra)), (P.til || P.fra) < ti ? "Seint" : "Úti", (P.til || P.fra) < ti)), "pantanir", "Ekkert úti.") + `</div>`;
+  };
+
+  U.tbyf = function () {
+    const api = window.salaAPI; if (!api) return head("Tilboð", "Yfirlit");
+    const all = api.TB(), open = all.filter(T => ["Drög", "Sent"].includes(T.stada)), d90 = all.filter(T => daysTo(T.dags) >= -90);
+    const won = d90.filter(T => T.stada === "Samþykkt"), lost = d90.filter(T => T.stada === "Hafnað"), rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) + " %" : "–";
+    const wait = all.filter(T => T.stada === "Sent").sort((a, b) => String(a.sent || a.dags).localeCompare(String(b.sent || b.dags))), drog = all.filter(T => T.stada === "Drög");
+    return head("Tilboð", "Yfirlit", nbtn("Tilboð")) + kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0))], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0))], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", wait.filter(T => daysTo(T.sent || T.dags) <= -7).length]])
+      + svCards(x => { const xs = open.filter(T => hasTeg(T, x)); return { n: xs.length, t: "opin tilboð · " + mkr(xs.reduce((a, T) => a + tbSum(T), 0)) }; }, { Leiga: "tbl", Sala: "tbs", "Þjónusta": "tbt" })
+      + `<div class="udash">${dcard("Bíða svars", wait.map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E((T.vidskiptavinur || "") + " · sent " + fmtD(T.sent || T.dags)), kr(tbSum(T)), daysTo(T.sent || T.dags) <= -7)), "ltilbod", "Ekkert bíður svars.")}`
+      + dcard("Drög", drog.map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)))), "ltilbod", "Engin drög.")
+      + dcard("Nýlega samþykkt", won.sort((a, b) => String(b.dags).localeCompare(String(a.dags))).map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)), true)), "ltilbod", "Ekkert samþykkt síðustu 90 daga.") + `</div>`;
+  };
+
+  U.timyf = function () {
+    const a = mondayOf(today), fs = faerslur(), wk = fs.filter(e => d(e.date) >= a), g = goal();
+    const staff = STARFS().filter(x => fs.some(e => e.starfsmadur === x.sk));
+    const me = wk.filter(e => (e.starfsmadur || ME()) === ME()).reduce((s, e) => s + (+e.timar || 0), 0), team = wk.reduce((s, e) => s + (+e.timar || 0), 0);
+    const m0 = new Date(today.getFullYear(), today.getMonth(), 1), mo = fs.filter(e => d(e.date) >= m0);
+    const by = {}; mo.forEach(e => { const p = findProj(e.verkefniId), k = p ? svidOf(p)[0] : "Innra"; by[k] = (by[k] || 0) + (+e.timar || 0); });
+    const moT = Object.values(by).reduce((s, x) => s + x, 0), unb = window.rkUnbilled ? verkefni().reduce((s, p) => s + sumT(rkUnbilled(p.id).es), 0) : 0;
+    const skil = S?.timar?.skil || {}, ws = isoD(a), notS = staff.filter(x => !(skil[x.sk] || []).includes(isoD(new Date(a.getTime() - 7 * 864e5))));
+    return head("Tímar", "Yfirlit", btn("Opna vikuna", "tab:timar", "primary")) + kp4([["Þín vika", H(me) + " af " + H(g) + " klst."], ["Teymið í viku", H(team) + " klst."], ["Þessi mánuður", H(moT) + " klst."], ["Óreikningsfært", H(unb) + " klst."]])
+      + `<div class="udash">${dcard("Vikan hjá teyminu", staff.map(x => { const h = wk.filter(e => e.starfsmadur === x.sk).reduce((s, e) => s + (+e.timar || 0), 0); return `<div class="ubr"><span>${E(x.nafn || x.sk)}</span><div class="ubar"><i style="width:${Math.min(100, h / g * 100)}%"></i></div><span>${H(h)} klst.</span></div>`; }), "tskyr", "Engir tímar skráðir.")}`
+      + dcard("Hvert fer tíminn · " + MNs[today.getMonth()], [...SV, "Innra"].filter(k => by[k]).map(k => `<div class="ubr"><span>${E(k === "Innra" ? k : svH(k))}</span><div class="ubar"><i style="width:${moT ? by[k] / moT * 100 : 0}%"></i></div><span>${Math.round(moT ? by[k] / moT * 100 : 0)} %</span></div>`), "tskyr", "Engir tímar í mánuðinum.")
+      + dcard("Síðasta vika – óskilað", notS.map(x => drow(go("tskyr", ""), E(x.nafn || x.sk), "hefur ekki skilað síðustu viku", "Óskilað")), "tskyr", "Allir hafa skilað síðustu viku.") + `</div>`;
+  };
+
   /* ---------- Heim: Yfirlit, Óklárað, Framundan, Tilkynningar ---------- */
   const fmtD = w => { const x = d(w); if (!x) return ""; const n = daysTo(w); return n === 0 ? "í dag" : n === 1 ? "á morgun" : n === -1 ? "í gær" : x.getDate() + ". " + MNs[x.getMonth()]; };
   const att = it => it.open ? tapAttr(it.open.split(":")[0], it.open.slice(it.open.indexOf(":") + 1)) : `data-act="${it.act}" role="button" tabindex="0"`;
@@ -537,6 +627,7 @@
         await saveSnapshot(s => { (s.timar?.faerslur || []).forEach(e => { if (ids.has(String(e.id))) { e.verkefniId = p.id; e.nr = p.nr; } }); (s.kostnadur || []).forEach(x => { if (kids.has(String(x.id))) x.verkefniId = p.id; }); });
         toast?.(`${ids.size + kids.size} færslur færðar á ${p.nr}`); st.sel.clear(); render(); return; }
       if (k === "u1ct") { st.ct = r[0]; render(); return; }
+      if (k === "u1go") { const t = r[0], key = r.slice(1).join(":"); tab = t; DETAIL = key || null; window.STSUB = null; render(); return; }
       if (k === "u1tm") { st.tm = r.join(":"); render(); return; }
       if (k === "u1skil") { const me = meSk(); await saveSnapshot(s => { s.timar = s.timar || {}; const o = s.timar.skil = s.timar.skil || {}; o[me] = [...new Set([...(o[me] || []), v])]; }); toast?.("Vikunni skilað"); render(); return; }
     }

@@ -22,11 +22,19 @@
   if (B) B.tabs.unshift(["vyfir", "Yfirlit"]);
   Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { tbl: ["tilbod", "leiga"], tbs: ["tilbod", "sala"], tbt: "tilbod", vyfir: "bunadur", tverk: "verkefni", pnl: ["pantanir", "leiga"], pns: ["pantanir", "sala"], pnt: "pantanir" });
   if (TI) TI.tabs = TI.tabs.map(t => t[0] === "timar" ? ["timar", "Vikan"] : t);
-  // Viðskiptavinir eigin hluti í Kjarna (ekki undir Verkefnum), síðan Pantanir
+  // Viðskiptavinir eigin hluti í Kjarna (ekki undir Verkefnum)
   let C = by("vidsk");
   if (V && !C) { V.tabs = V.tabs.filter(t => t[0] !== "vsk"); C = { k: "vidsk", l: "Viðskiptavinir", ic: TABDEF.find(t => t[0] === "vsk")[2], tabs: [["vsk", "Viðskiptavinir"]] }; SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(V) + 1, 0, C); }
-  // Pantanir í Kjarna, á eftir Viðskiptavinum
-  if (P && V) { SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(P), 1); SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(C || V) + 1, 0, P); }
+  // Pantanir beint fyrir neðan Heim
+  if (P && H) { SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(P), 1); SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(H) + 1, 0, P); }
+  // Yfirlit fremst; listar flokkaðir eftir sviðum (Leiga · Sala · Þjónusta) – „Öll/Allar“ falið en virkar áfram sem tenglar
+  const hide = (S0, k) => { const t = S0?.tabs.find(x => x[0] === k); if (t) t[2] = 1; };
+  if (V) { hide(V, "verk"); V.tabs.unshift(["verkyf", "Yfirlit"]); }
+  if (C) C.tabs = [["vskyf", "Yfirlit"], ["vsk", "Viðskiptavinir", 1], ["vskl", "Leiga"], ["vsks", "Sala"], ["vskt", "Þjónusta"]];
+  if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); }
+  if (T) { hide(T, "ltilbod"); T.tabs.unshift(["tbyf", "Yfirlit"]); }
+  if (TI) TI.tabs.unshift(["timyf", "Yfirlit"]);
+  Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", tbyf: "tilbod", timyf: "timar" });
   _einSig = null; applyEin();
   // Merki fyrirtækis í dökku stikunni: dökka útgáfan (ljóst merki) óháð þema
   const coSide = () => { const l = ORG.merki || ORG.logo || {}, src = l.dokk || l.ljos; const i = document.querySelector(".side .colog"); if (i && src && i.getAttribute("src") !== src) i.src = src; };
@@ -56,11 +64,11 @@
   window.drawMenu = drawI; try { drawMenu = drawI; } catch (e) {}
 
   /* ---------- Listi og spjald hlið við hlið ---------- */
-  const LIST = new Set(["postur", "tverk", "pnl", "pns", "pnt", "verk", "lverk", "sverk", "undir", "vsk", "ltilbod", "pantanir", "lvorur", "svorur", "vvinna", "fundir", "tfaer", "trk", "hfrag", "hfram", "hnyl"]);
+  const LIST = new Set(["vskl", "vsks", "vskt", "postur", "tverk", "pnl", "pns", "pnt", "verk", "lverk", "sverk", "undir", "vsk", "ltilbod", "pantanir", "lvorur", "svorur", "vvinna", "fundir", "tfaer", "trk", "hfrag", "hfram", "hnyl"]);
   const SUPER = () => { const s = secOf(tab), vis = s.tabs.filter(t => !t[2]); return vis.length > 1 && s.k !== "heim" || (s.k === "heim" && tab !== "yfirlit") ? s.l : ""; };
   const EXP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
   const COL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
-  const PH = { verkefni: "verkefni", vsk: "viðskiptavini", tilbod: "tilboð", pantanir: "pantanir", lvorur: "búnað", svorur: "vörur", vvinna: "þjónustu", fundir: "fundi", tfaer: "færslur", trk: "reikninga", fjarmal: "reikninga", undir: "undirverk", heim: "lista" };
+  const PH = { verkefni: "verkefni", vsk: "viðskiptavini", vidsk: "viðskiptavini", tilbod: "tilboð", pantanir: "pantanir", lvorur: "búnað", svorur: "vörur", vvinna: "þjónustu", fundir: "fundi", tfaer: "færslur", trk: "reikninga", fjarmal: "reikninga", undir: "undirverk", heim: "lista" };
   let full = false, flt = "";
   const _render = window.render || render;
   function renderI() {
@@ -200,14 +208,16 @@
   }
   // Upphafsskjár: ekkert valið í vinstri stiku – aðeins merkið, þrívítt og snýst (CSS 3D, engin aukasöfn)
   function startHTML() {
-    const bars = [[0, 0, 72, 28], [72, 0, 28, 72], [28, 72, 72, 28], [0, 28, 28, 72]], D = 18;
-    const box = ([x, y, w, h]) => `<div class="u3b" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%">`
-      + `<i class="f fr" style="transform:translateZ(${D / 2}px)"></i><i class="f bk" style="transform:rotateY(180deg) translateZ(${D / 2}px)"></i>`
-      + `<i class="f tp" style="height:${D}px;transform:rotateX(90deg) translateZ(${D / 2}px)"></i><i class="f bt" style="height:${D}px;top:auto;bottom:0;transform:rotateX(-90deg) translateZ(${D / 2}px)"></i>`
-      + `<i class="f lf" style="width:${D}px;transform:rotateY(-90deg) translateZ(${D / 2}px)"></i><i class="f rt" style="width:${D}px;left:auto;right:0;transform:rotateY(90deg) translateZ(${D / 2}px)"></i></div>`;
-    return `<div class="ustart"><div class="u3scene"><div class="u3logo">${bars.map(box).join("")}</div></div><div class="u3name">ATRIUM</div></div>`;
+    // Vírmynd af Atrium-merkinu: fjórir kubbar (framhlið, bakhlið og brúnir) sem togast löturhægt sundur og saman
+    const bars = [[0, 0, 72, 28, 0, -1], [72, 0, 28, 72, 1, 0], [28, 72, 72, 28, 0, 1], [0, 28, 28, 72, -1, 0]], D = 9;
+    const box = ([x, y, w, h, dx, dy]) => { const f = `M${x} ${y}h${w}v${h}h${-w}z`, b = `M${x + D} ${y - D}h${w}v${h}h${-w}z`, e = `M${x} ${y}l${D} ${-D}M${x + w} ${y}l${D} ${-D}M${x + w} ${y + h}l${D} ${-D}M${x} ${y + h}l${D} ${-D}`;
+      return `<g class="uwb" style="--dx:${dx * 7}px;--dy:${dy * 7}px"><path class="bk" d="${b}"/><path class="ed" d="${e}"/><path class="fr" d="${f}"/></g>`; };
+    return `<div class="ustart"><svg class="uwire" viewBox="-14 -24 132 132" aria-label="Atrium" role="img">${bars.map(box).join("")}</svg><div class="u3name">ATRIUM</div></div>`;
   }
+
   if (desk()) { tab = "upphaf"; }
+  // Smellt aftur á opinn yfirflokk: hann lokast og upphafsskjárinn birtist
+  document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo"); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   window.render = renderI; try { render = renderI; } catch (e) {}
 

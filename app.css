@@ -943,3 +943,22 @@ body.pv.ui1[data-tab^="skjol"] #view .lrow .ll{transform:scale(.85)}
 body.pv.ui1[data-tab^="skjol"] #view .lrow .lt{font-size:14px}
 body.pv.ui1[data-tab^="skjol"] #view .fsel,body.pv.ui1[data-tab^="skjol"] #view select{max-width:260px;min-height:38px;padding:6px 12px;font-size:13.5px}
 body.pv.ui1[data-tab^="skjol"] #view .fsels{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* 2.28.0: upphafsskjár – vírmynd sem togast sundur og saman */
+.uwire{width:250px;height:250px;overflow:visible}
+.uwire .uwb{animation:uwpull 9s ease-in-out infinite}
+.uwire path{fill:none;stroke:#5B6570;stroke-width:.55;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.uwire path.fr{stroke:#2B3138;stroke-width:1.1}
+.uwire path.bk,.uwire path.ed{stroke:#9AA5B0}
+@keyframes uwpull{0%,12%{transform:translate(0,0)}50%,62%{transform:translate(var(--dx),var(--dy))}100%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){.uwire .uwb{animation:none}}
+:root[data-theme="dark"] .uwire path.fr{stroke:#E4E8EC}
+:root[data-theme="dark"] .uwire path.bk,:root[data-theme="dark"] .uwire path.ed{stroke:#6E7985}
+body.pv.ui1 .ukps.k4{grid-template-columns:repeat(4,minmax(0,1fr))}
+body.pv.ui1 .udash{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start;margin-top:16px}
+body.pv.ui1 .udash.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.pv.ui1 .usvc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
+body.pv.ui1 .usvc .card{cursor:pointer}
+body.pv.ui1 .usvc b.n{display:block;font-size:26px;font-weight:300;margin:6px 0 2px}
+body.pv.ui1 .ubr{display:grid;grid-template-columns:150px minmax(0,1fr) 70px;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+body.pv.ui1 .ubr .ubar{height:8px}
+body.pv.ui1 .ubr span:last-child{text-align:right;color:var(--muted)}
