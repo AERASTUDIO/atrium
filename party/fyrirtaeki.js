@@ -28,6 +28,7 @@ window.ORG = {
   sigLogo: "party/sig-logo.png",
   docLogo: "party/doc-logo.png",
   // Nýja einingaskiptingin og útlitið (pakkaval, 2.21.0 – eins og Dev) og allar einingar opnar; admin síar í Stillingar › Einingar
+  personuvernd: { svaedi: "Belgíu (Google europe-west1, innan EES)" },   // persónuvernd (2.44.1): hýsingarsvæði Firestore; netfang: valfrjálst, annars admin
   pakkaval: true,
   // Útlit I (2.35.0, fyrst eftir Dev): dökk vinstri stika, listi og spjald hlið við hlið á tölvu. Síminn er óbreyttur.
   utlit: "I",
