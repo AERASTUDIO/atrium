@@ -82,7 +82,43 @@
     (ph ? ph.after(f) : sl.prepend(f));
     const inp = f.querySelector("input"); inp.addEventListener("input", () => { flt = inp.value; applyFilt(sl); }); applyFilt(sl);
     if (DETAIL) sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel");
+    if (DETAIL) fixDet(v.querySelector(".spdet"));
     const tl = sl.querySelector(".ptitle"), lab = (secOf(tab).tabs.find(t => t[0] === tab) || [])[1]; if (tl && lab && sup) tl.textContent = lab;
+  }
+  /* Spjaldið hægra megin í stíl útlitsborðsins: haus með yfirlínu, heiti og aðgerðum; Svið; flipar í réttri röð */
+  function fixDet(el) {
+    if (!el) return; el.querySelector(".backrow")?.remove();
+    const kick = el.querySelector(".kicker"), h = el.querySelector("h2.big"), sub = h?.nextElementSibling?.matches?.("p.sub") ? h.nextElementSibling : null;
+    if (!h) return;
+    const hd = document.createElement("div"); hd.className = "udh2";
+    const kt = kick ? [...kick.querySelectorAll(".nr,.stag")].map(x => x.textContent.trim()).filter(Boolean).join(" · ") : "";
+    const pills = kick ? [...kick.querySelectorAll(".pill")].map(x => x.outerHTML).join("") : "";
+    hd.innerHTML = `<div class="udl"><div class="spsup">${esc(kt)}</div><h2 class="ptitle">${esc(h.textContent)}</h2><div class="usub">${sub ? sub.innerHTML : ""}${pills ? `<span class="upills">${pills}</span>` : ""}</div></div><div class="uact"></div>`;
+    const act = hd.querySelector(".uact");
+    const [kind, id] = String(DETAIL).split(":");
+    if (kind === "verk") {
+      const ks = el.querySelector('[data-act^="kstart:"]'); if (ks) act.append(ks);
+      const ss = el.querySelector('select[aria-label="Staða verkefnis"]'); if (ss) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(ss); act.append(w); ss.closest(".fsels")?.remove(); }
+      [...el.querySelectorAll(".viewtitle")].find(x => x.textContent.trim() === "Staða verkefnis")?.remove();
+      const p = findProj(id);
+      if (p && window.svidOf) { const sv = svidOf(p); hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${sv.length > 1 && i === 0 ? "★ " : ""}${esc(x)}</span>`).join("")}</div>`); }
+      const nav = el.querySelector(".dtabs");
+      if (nav) { const by = k => nav.querySelector(`[data-act="dtab:${k}"]`); const f = by("fundir"); if (f) f.firstChild.textContent = "Samskipti ";
+        ["yfirlit", "undir", "fundir", "tilbod", "timar", "skrar", "stillingar"].map(by).filter(Boolean).forEach(b => nav.append(b)); }
+    }
+    if (kind === "vara" && window.u1VaraTop) {
+      const top = u1VaraTop(id);
+      if (top) {
+        // fjarlægja gamla verðspjaldið og Útleigu-hlutann; Breyta/Eyða í hausinn
+        el.querySelector(".card")?.matches(".card") && [...el.querySelectorAll(":scope > .card")].slice(0, 1).forEach(c => c.querySelector(".sub-i") && c.remove());
+        const ut = [...el.querySelectorAll(".viewtitle")].find(x => x.textContent.trim() === "Útleiga");
+        if (ut) { let n = ut.nextElementSibling; ut.remove(); while (n && !n.matches(".viewtitle")) { const nx = n.nextElementSibling; n.remove(); n = nx; } }
+        const lk = [...el.querySelectorAll(".links")].find(x => x.querySelector('[data-act^="vrnew:"]')); if (lk) { act.append(...lk.querySelectorAll("button")); lk.remove(); }
+        hd._top = `<div class="utop">${top}</div>`;
+      }
+    }
+    (kick || h).before(hd); kick?.remove(); h.remove(); sub?.remove();
+    if (hd._top) hd.insertAdjacentHTML("afterend", hd._top);
   }
   function applyFilt(sl) {
     const q = fold(flt.trim()); const items = sl.querySelectorAll(".card,.lrow,.vrow,.row,.item,li,tr");

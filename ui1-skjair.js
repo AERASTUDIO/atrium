@@ -193,6 +193,42 @@
     return lhead("Vörulisti", "Sala", nbtn("Vara")) + `<div class="ucols ul"><span>Vnr.</span><span>Heiti</span><span>Lager</span><span>Laust</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engar söluvörur.</div>`);
   };
 
+  /* ---------- Vöruspjald (Leiga: dagatal yfir framboð; Sala: lager) ---------- */
+  st.day = null;
+  const kpiB = (l, v) => `<div class="vyk"><small>${l}</small><b>${v}</b></div>`;
+  const mini = (l, v) => `<div class="umini"><small>${l}</small><span>${v}</span></div>`;
+  window.u1VaraTop = function (id) {
+    const api = window.salaAPI; if (!api) return "";
+    const v = api.VR().find(x => String(x.id) === String(id)); if (!v) return "";
+    const iso = isoD(today), tot = +v.fjoldi || 0;
+    const onTb = api.TB().filter(T => (T.linur || []).some(l => String(l.v) === String(v.id)));
+    if (api.vDeild(v) !== "leiga") {
+      const fr = api.TB().filter(T => ["Drög", "Sent"].includes(T.stada)).reduce((a, T) => a + (T.linur || []).filter(l => String(l.v) === String(v.id)).reduce((b, l) => b + (+l.magn || 0), 0), 0);
+      const fm = +v.soluverd ? Math.round((1 - (+v.innkaupsverd || 0) / +v.soluverd) * 100) : 0;
+      return `<div class="ukpis">${kpiB("Á lager", tot)}${kpiB("Frátekið á tilboðum", fr)}${kpiB("Laust", Math.max(0, tot - fr))}${kpiB("Á tilboðum", onTb.length)}</div>`
+        + `<div class="uminis">${mini("Söluverð", kr(v.soluverd))}${mini("Innkaupsverð", v.innkaupsverd ? kr(v.innkaupsverd) : "–")}${mini("Framlegð", v.innkaupsverd ? fm + " %" : "–")}${mini("Flokkur", E(v.flokkur || "–"))}</div>`;
+    }
+    const bk = api.bokanir().filter(b => String(b.v) === String(v.id) && (b.til || b.fra) >= iso).sort((a, b) => String(a.fra).localeCompare(String(b.fra)));
+    const tent = []; api.TB().filter(T => T.stada === "Sent" && T.fra).forEach(T => (T.linur || []).forEach(l => { if (String(l.v) === String(v.id)) tent.push({ fra: T.fra, til: T.til || T.fra, m: +l.magn || 0, T }); }));
+    const freeToday = Math.max(0, tot - (api.upptekid(v.id, iso, iso).max || 0));
+    // dagatal: 4 vikur frá mánudegi þessarar viku
+    const a = mondayOf(today), cells = [];
+    for (let i = 0; i < 28; i++) { const x = new Date(a); x.setDate(x.getDate() + i); const di = isoD(x), past = x < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const b = bk.filter(q => q.fra <= di && q.til >= di).reduce((s, q) => s + q.m, 0), tq = tent.filter(q => q.fra <= di && q.til >= di).reduce((s, q) => s + q.m, 0), free = tot - b;
+      const cls = past ? "past" : free <= 0 ? "full" : b ? "part" : x.getDay() % 6 ? "" : "wkend";
+      cells.push(`<button type="button" class="ucd ${cls}${tq && !past ? " tent" : ""}${di === iso ? " today" : ""}${st.day === di ? " sel" : ""}" data-act="u1day:${di}"><span class="cdn">${x.getDate() === 1 ? "1. " + MNs[x.getMonth()] : x.getDate()}</span>${tq && !past ? `<span class="cdt">?${tq}</span>` : ""}${past ? "" : `<b>${free}</b>`}</button>`); }
+    let pop = "";
+    if (st.day) { const di = st.day, xs = bk.filter(q => q.fra <= di && q.til >= di), ts = tent.filter(q => q.fra <= di && q.til >= di), x = d(di);
+      pop = `<div class="ucpop"><div class="ucph"><b>${x ? DN[(x.getDay() + 6) % 7] + " " + x.getDate() + ". " + MNs[x.getMonth()] : ""}</b><button type="button" data-act="u1day:" aria-label="Loka">×</button></div><div class="usub">${tot - xs.reduce((s, q) => s + q.m, 0)} laus af ${tot}</div>`
+        + ([...xs.map(q => [q, "Bókað"]), ...ts.map(q => [q, "Tilboð sent"])].map(([q, lab]) => `<a class="ucpr" ${tapAttr("tb", q.T.id)}><span><b>${E(q.T.nr || "")} ${E(q.T.heiti || "")}</b><small>${E(q.T.vidskiptavinur || "")} · ${E(lab)}</small></span>${pill(q.m + " stk.", lab === "Bókað")}</a>`).join("") || `<div class="usub">Ekkert bókað þennan dag.</div>`) + `</div>`; }
+    const cal = `<div class="ucal"><div class="ucalh">${DN.map(x => `<span>${x.slice(0, 2).toLowerCase()}</span>`).join("")}</div><div class="ucalg">${cells.join("")}</div><div class="ucall"><span>Tala = laus af ${tot}</span><span><i style="background:#E8EFF7"></i>að hluta</span><span><i style="background:#1F5A96"></i>uppbókað</span><span><i class="tent"></i>tilboð sent</span></div>${pop}</div>`;
+    const up = bk.slice(0, 5).map(q => `<a class="ucpr" ${tapAttr("tb", q.T.id)}><span><b>${E(q.T.nr || "")} ${E(q.T.heiti || "")}</b><small>${E(relD(q.fra))}${q.til && q.til !== q.fra ? " – " + E(relD(q.til)) : ""}</small></span>${pill(q.m + " stk.")}</a>`).join("") || `<div class="usub">Ekkert frátekið framundan.</div>`;
+    const pk = api.VR().filter(x => x.tegund === "pakki" && (x.innihald || []).some(i => String(i.v) === String(v.id))).map(x => [E(x.heiti), ((x.innihald || []).find(i => String(i.v) === String(v.id))?.m || 1) + " stk."]);
+    return `<div class="ukpis">${kpiB("Laus í dag", freeToday + " af " + tot)}${kpiB("Bókanir framundan", bk.length)}${kpiB("Á tilboðum", onTb.length)}</div>`
+      + `<div class="uminis">${mini("Dagverð", kr(v.leiguverd))}${mini("Fjöldi", tot + " stk.")}${mini("Flokkur", E(v.flokkur || "–"))}</div>`
+      + `<div class="ucalrow"><div><div class="ush">Framboð</div>${cal}</div><div><div class="ush">Útleiga framundan</div>${up}${pk.length ? `<div class="ush" style="margin-top:14px">Í pökkum</div>${pk.map(([a, b]) => `<div class="vyr"><span>${a}</span><span>${b}</span></div>`).join("")}` : ""}</div></div>`;
+  };
+
   /* ---------- aðgerðir ---------- */
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, {
     u1: async function (k, r) {
@@ -203,6 +239,7 @@
       if (k === "u1rep") { st.rep = v; render(); return; }
       if (k === "u1rp") { st.rp = v; render(); return; }
       if (k === "u1grp") { st.grp = v; render(); return; }
+      if (k === "u1day") { st.day = v && v !== st.day ? v : null; render(); return; }
       if (k === "u1vf") { const [key, val] = [r[0], r.slice(1).join(":")]; st.vf[key] = val; render(); return; }
       if (k === "u1mv") { const p = findProj(v), ids = new Set([...st.sel].filter(x => x.startsWith("time:")).map(x => x.slice(5))), kids = new Set([...st.sel].filter(x => x.startsWith("kostn:")).map(x => x.slice(6)));
         if (!p || (!ids.size && !kids.size)) return;
