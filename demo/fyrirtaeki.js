@@ -25,5 +25,7 @@ window.ORG = {
   einingar: { leiga: true, sala: true, verdskra: false },
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
   kerfi: true,
+  // Símaútlit (2.45.0–2.49, simi.js og simi.css): Í dag · Leita · (Skanna) · Tímar · Meira.
+  simi: "I",
   firebase: null
 };

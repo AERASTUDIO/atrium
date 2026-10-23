@@ -63,6 +63,8 @@ window.ORG = {
   einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
   kerfi: true,
+  // Símaútlit (2.45.0–2.49, simi.js og simi.css): Í dag · Leita · (Skanna) · Tímar · Meira.
+  simi: "I",
   // Firebase-verkefni uppsetningarinnar (aera-app-cfdb3). Opinber auðkenni vefforrits, ekki leyndarmál.
   firebase: {
     apiKey: "AIzaSyAUyV3MyuFrgpQ2pNMAsQIYnqYnp32hTFs",
