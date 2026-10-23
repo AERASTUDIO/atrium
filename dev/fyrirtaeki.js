@@ -25,7 +25,7 @@ window.ORG = {
   sigLogo: "icons/atrium-doc-logo.png",
   docLogo: "icons/atrium-doc-logo.png",
   // Nýja einingaskiptingin (2.14.0): kjarni, pakkar og tengingar – flokkuð valmynd og ný Stillingar › Einingar. Prófað hér fyrst.
-  personuvernd: { svaedi: "Belgíu (Google europe-west1, innan EES)" },   // persónuvernd (2.44.1): hýsingarsvæði Firestore; netfang: valfrjálst, annars admin
+  personuvernd: { netfang: "aera@aerastudio.is", svaedi: "Belgíu (Google europe-west1, innan EES)" },   // persónuvernd (2.44.1): hýsingarsvæði Firestore; netfang: valfrjálst, annars admin
   pakkaval: true,
   // Útlit I (2.23.0): dökk vinstri stika með undirflipum, listi og spjald hlið við hlið á tölvu. Prófað hér fyrst.
   utlit: "I",
