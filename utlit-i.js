@@ -113,7 +113,7 @@
     const list = window.UI1V?.[tab] ? UI1V[tab]() : v.innerHTML, sup = window.UI1V?.[tab] ? "" : SUPER();
     document.body.classList.add("hassplit"); document.body.classList.toggle("spfull", !!DETAIL && full);
     v.innerHTML = `<div class="split"><section class="splist" aria-label="Listi">${sup ? `<div class="spsup">${esc(sup)}</div>` : ""}${list}</section>`
-      + `<section class="spdet" aria-label="Nánar">${DETAIL ? `<button type="button" class="spexp" data-ui1="exp" aria-label="${full ? "Minnka" : "Stækka"} glugga" title="${full ? "Minnka" : "Stækka"}">${full ? COL : EXP}</button>${det}` : `<div class="spempty">Veldu atriði úr listanum</div>`}</section></div>`;
+      + `<section class="spdet" aria-label="Nánar">${DETAIL ? `<button type="button" class="spwin" data-ui1="win" aria-label="Opna í nýjum glugga" title="Opna í nýjum glugga (⌘/Ctrl-smellur á línu)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v11"/></svg></button><button type="button" class="spexp" data-ui1="exp" aria-label="${full ? "Minnka" : "Stækka"} glugga" title="${full ? "Minnka" : "Stækka"}">${full ? COL : EXP}</button>${det}` : `<div class="spempty">Veldu atriði úr listanum</div>`}</section></div>`;
     // Sía efst í listanum (síar línur og spjöld eftir texta)
     const sl = v.querySelector(".splist"), ph = sl.querySelector(".phead");
     // Síuflipar inn í gráa hausinn (eins og á útlitsborðinu) og flýtilyklar neðst
@@ -267,10 +267,25 @@
   }
 
 
-  if (desk()) { tab = "upphaf"; }
+  // Fleiri gluggar (2.33.0): staða hvers glugga í slóðinni (#t=flipi&o=atriði&d=undirflipi) – opna í nýjum glugga og muna stað við endurhleðslu
+  const winHash = (t, o, dt) => "#t=" + encodeURIComponent(t || "") + (o ? "&o=" + encodeURIComponent(o) : "") + (o && dt && dt !== "yfirlit" ? "&d=" + encodeURIComponent(dt) : "");
+  const winUrl = (t, o, dt) => location.pathname + location.search + winHash(t, o, dt);
+  const fromHash = () => { const m = location.hash.match(/^#t=([^&]*)(?:&o=([^&]*))?(?:&d=([^&]*))?/); if (!m) return false; const t = decodeURIComponent(m[1] || ""); if (!t) return false;
+    tab = t; DETAIL = m[2] ? decodeURIComponent(m[2]) : null; if (m[3]) DTAB = decodeURIComponent(m[3]); return true; };
+  let _wk = "";
+  const syncHash = () => { if (!desk()) return; const h = tab === "upphaf" ? "" : winHash(tab, DETAIL, DTAB); if (h === _wk) return; _wk = h; try { history.replaceState(history.state, "", location.pathname + location.search + h); } catch (e) {} };
+  window.u1OpenWin = (t, o, dt) => { const w = window.open(winUrl(t, o, dt), "atrium-" + Date.now(), "popup,width=1280,height=860"); if (!w) toast?.("Leyfðu sprettiglugga til að opna í nýjum glugga"); };
+  // ⌘/Ctrl-smellur eða miðjusmellur á línu opnar atriðið í nýjum glugga
+  const winClick = e => { const r = e.target.closest?.("[data-open]"); if (!r || !document.body.classList.contains("ui1") || !desk()) return;
+    if (!(e.metaKey || e.ctrlKey || e.button === 1)) return; e.preventDefault(); e.stopImmediatePropagation(); u1OpenWin(tab, r.getAttribute("data-open")); };
+  document.addEventListener("click", winClick, true); document.addEventListener("auxclick", e => { if (e.button === 1) winClick(e); }, true);
+  document.addEventListener("mousedown", e => { if (e.button === 1 && e.target.closest?.("[data-open]")) e.preventDefault(); }, true);
+  document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="win"]'); if (!b) return; u1OpenWin(tab, DETAIL, DTAB); });
+  if (!(desk() && fromHash()) && desk()) { tab = "upphaf"; }
   // Smellt aftur á opinn yfirflokk: hann lokast og upphafsskjárinn birtist
   document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo"); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
+  const _ri = renderI; renderI = function () { const r = _ri.apply(this, arguments); syncHash(); return r; };
   window.render = renderI; try { render = renderI; } catch (e) {}
 
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="exp"]'); if (!b) return; full = !full; render(); });

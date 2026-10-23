@@ -1153,3 +1153,17 @@ body.pv.ui1[data-tab="stillingar"] .splist .mrow.spsel{background:#E3ECF5!import
 body.pv.ui1 .usvf{display:inline-flex;align-items:center;gap:6px;margin-left:12px;padding-left:12px;border-left:1px solid var(--line);color:var(--muted);font-size:13px}
 .ustart{position:relative}
 .ustart .uver{position:absolute;left:0;right:0;bottom:22px;text-align:center;font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+/* 2.33.0: opna í nýjum glugga */
+body.pv.ui1 .spwin{position:absolute;top:18px;right:62px;z-index:5;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+body.pv.ui1 .spwin:hover{color:var(--ink)}
+body.pv.ui1 .udh2 .uact{padding-right:96px}
+body.pv.ui1 .uvh{padding-right:0}
+/* Mjórri gluggar: aðgerðir fara undir heitið þegar spjaldið er þröngt */
+body.pv.ui1 .spdet{container-type:inline-size}
+@container (max-width:760px){
+  body.pv.ui1 .udh2{grid-template-columns:minmax(0,1fr)!important}
+  body.pv.ui1 .udh2 .udl{padding-right:96px}
+  body.pv.ui1 .udh2 .uact{padding-right:0!important;justify-content:flex-start;flex-wrap:wrap!important}
+  body.pv.ui1 .ukps.k4{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (min-width:1024px) and (max-width:1360px){body.pv.ui1:not(.spfull) .split{grid-template-columns:400px minmax(0,1fr)}}
