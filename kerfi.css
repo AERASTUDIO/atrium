@@ -167,3 +167,17 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
 :root body.kerfi #view .cal .cday[aria-pressed="true"]{background:var(--ui1sel,var(--accent))!important;color:var(--ink)}
 :root body.kerfi #view .cal .cday.today .n{color:var(--today)!important;font-weight:600!important;box-shadow:none!important;background:none!important}
 :root body.kerfi #view .cal .cday[aria-pressed="true"] .n{box-shadow:none!important}
+
+/* Vikusýn: dagurinn í dag rauður eins og í mánaðarsýn; í síma er hver dagur lína (ekki sjö mjóir dálkar) */
+:root body.kerfi #view .wkday.now{box-shadow:none}
+:root body.kerfi #view .wkday.now .wkh b{color:var(--today)!important}
+@media (max-width:1023px){
+  :root body.kerfi #view .wkcal{display:flex!important;flex-direction:column!important;gap:var(--s2)}
+  :root body.kerfi #view .wkday{flex-direction:row!important;min-height:56px!important;padding:var(--s2) var(--s3)!important;gap:var(--s3)}
+  :root body.kerfi #view .wkh{width:88px!important;flex:none!important}
+  :root body.kerfi #view .ptitle{white-space:normal!important;text-wrap:balance}
+  :root body.kerfi #view .wkh b{font-size:var(--t-xl)!important;font-weight:400!important}
+  :root body.kerfi #view .wkh span{font-size:var(--t-xs)!important;white-space:nowrap}
+  :root body.kerfi #view .wki{font-size:var(--t-sm)!important}
+  :root body.kerfi #view .links{flex-wrap:wrap}
+}
