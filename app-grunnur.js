@@ -118,7 +118,10 @@ document.getElementById("today").textContent=DAY[today.getDay()]+" "+today.getDa
 
 function d(iso){if(!iso) return null; const x=new Date(iso.length<=10?iso+"T00:00:00":iso); return isNaN(x)?null:x;}
 function daysTo(iso){const x=d(iso); if(!x) return null; const y=new Date(x); y.setHours(0,0,0,0); return Math.round((y-today)/864e5);}
-function rel(n){if(n===null) return ""; if(n===0) return "Í dag"; if(n===1) return "Á morgun"; if(n===-1) return "Í gær"; return n>0?"Eftir "+n+" daga":Math.abs(n)+" dögum liðið";}
+// Útlit I (2.34.3): nákvæmar dagsetningar alls staðar („23. okt“, ár ef annað en núverandi) í stað „í dag“ eða „eftir 4 daga“
+const MNS_IS=["jan","feb","mar","apr","maí","jún","júl","ágú","sep","okt","nóv","des"];
+function dateIS(x){if(!x) return ""; return x.getDate()+". "+MNS_IS[x.getMonth()]+(x.getFullYear()!==new Date().getFullYear()?" "+x.getFullYear():"");}
+function rel(n){if(n===null) return ""; if(window.ORG?.utlit==="I"){const x=new Date(); x.setHours(0,0,0,0); x.setDate(x.getDate()+n); return dateIS(x);} if(n===0) return "Í dag"; if(n===1) return "Á morgun"; if(n===-1) return "Í gær"; return n>0?"Eftir "+n+" daga":Math.abs(n)+" dögum liðið";}
 function relPill(n){if(n===null) return ""; const c=n<0?"late":n===0?"today":n<=3?"l3":n<=7?"l2":n<=14?"l1":"";
   let t=rel(n); if(n>30){const x=new Date(today); x.setDate(x.getDate()+n); t=x.getDate()+". "+MON[x.getMonth()]+(x.getFullYear()!==today.getFullYear()?" "+x.getFullYear():"");}
   return `<span class="pill ${c}">${n<0?"⚠ ":""}${t}</span>`;}
