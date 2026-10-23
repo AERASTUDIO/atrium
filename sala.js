@@ -96,7 +96,7 @@
   // Fyrir Heim (2.21.1): skjöl sem taka frá búnað (samþykkt tilboð, opnar pantanir) og opnar pantanir
   window.utlDocs = () => [...new Map(bokanir().map(b => [b.T.id, b.T])).values()].map(T => ({ T, fra: T.fra, til: tilOf(T), nr: T.nr, heiti: T.heiti || T.vidskiptavinur || "", vsk: T.vidskiptavinur || T.tengilidur || "", P: isP(T) }));
   // Útlit I (2.23.2): aðgangur fyrir Vörulisti › Yfirlit og undirflipa tilboða (Leiga · Sala · Þjónusta)
-  window.salaAPI = { TB, VR, PN, lSum, bokanir, upptekid, vDeild, tbLina: f => { TL.f = f || ""; } };
+  window.salaAPI = { TB, VR, PN, lSum, totals, bokanir, upptekid, vDeild, tbLina: f => { TL.f = f || ""; } };
   window.pnOpnar = () => PNON() ? PN().filter(P => !["Skilað", "Lokið"].includes(P.stada)) : [];
   // Laust á tímabili skjals (fyrir valglugga): pakki = hve margir heilir pakkar
   const lausFyrir = (v, T) => { if (!T?.fra || vDeild(v) !== "leiga" || v.tegund === "vinna") return null; const til = tilOf(T), mine = tharfir(T);

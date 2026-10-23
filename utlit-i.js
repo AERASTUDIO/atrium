@@ -62,6 +62,7 @@
     const v = document.getElementById("view");
     if (!desk() || !S || !LIST.has(tab)) {
       document.body.classList.remove("hassplit", "spfull"); _render();
+      if (desk() && S && !DETAIL && window.UI1V?.[tab]) { v.innerHTML = UI1V[tab](); return; }
       // Yfirflokkur í smáu letri fyrir ofan heiti undirsíðu (t.d. Tímar › Vikan)
       const sup = desk() && S && !DETAIL ? SUPER() : "", ph = v.querySelector(".phead"), tl = ph?.querySelector(".ptitle"), lab = (secOf(tab).tabs.find(t => t[0] === tab) || [])[1];
       if (sup && tl && lab) { tl.textContent = lab; ph.insertAdjacentHTML("afterbegin", `<div class="spsup">${esc(sup)}</div>`); }
@@ -70,7 +71,7 @@
     let det = "";
     if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); }
     else { full = false; _render(); }
-    const list = v.innerHTML, sup = SUPER();
+    const list = window.UI1V?.[tab] ? UI1V[tab]() : v.innerHTML, sup = window.UI1V?.[tab] ? "" : SUPER();
     document.body.classList.add("hassplit"); document.body.classList.toggle("spfull", !!DETAIL && full);
     v.innerHTML = `<div class="split"><section class="splist" aria-label="Listi">${sup ? `<div class="spsup">${esc(sup)}</div>` : ""}${list}</section>`
       + `<section class="spdet" aria-label="Nánar">${DETAIL ? `<button type="button" class="spexp" data-ui1="exp" aria-label="${full ? "Minnka" : "Stækka"} glugga" title="${full ? "Minnka" : "Stækka"}">${full ? COL : EXP}</button>${det}` : `<div class="spempty">Veldu atriði úr listanum</div>`}</section></div>`;
@@ -146,6 +147,8 @@
   const _heim = window.vHeim2;
   if (_heim) window.vHeim2 = function () {
     const l = ORG.merki || ORG.logo || {}, src = l.ljos || l.dokk || "";
-    return _heim() + (src ? `<div class="h2logo"><img src="${esc(src)}" alt="${esc(ORG.nafn || "")}"></div>` : "");
+    const k = klukka ? klukka() : null, g = +CFG().vikumark || 40, wk = (weekSum(0, STARFS().length > 1 ? ME() : null, true) || 0) + (k && window.liveWeekH ? liveWeekH(k.start) : 0);
+    const bar = ON("timar") ? `<div class="usum"><div><small>Vikan þín</small><b>${num(Math.round(wk * 10) / 10)} <small>af ${num(g)} klst.</small></b></div><div class="usb"><div class="ubar"><i style="width:${Math.min(100, wk / g * 100)}%"></i></div><div class="usl"><span>${num(Math.max(0, Math.round((g - wk) * 10) / 10))} klst. eftir af vikunni</span><span><a href="#" data-act="tab:timar">Opna vikuna →</a></span></div></div></div>` : "";
+    return _heim().replace(/Bíður þín/g, "Óklárað").replace('<div class="h2grid3">', bar + '<div class="h2grid3">') + (src ? `<div class="h2logo"><img src="${esc(src)}" alt="${esc(ORG.nafn || "")}"></div>` : "");
   };
 })();
