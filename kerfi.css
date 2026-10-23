@@ -181,3 +181,28 @@ body.kerfi[data-tab="dagatal"] #view .phead .pnew{display:none!important}
   :root body.kerfi #view .wki{font-size:var(--t-sm)!important}
   :root body.kerfi #view .links{flex-wrap:wrap}
 }
+
+/* Listahaus í síma (2.50.4): minna kraðak.
+   Röð: Til baka · yfirheiti · titill + hnappur · flipar hlutans (textaflipar, ekki flögur) · ein lína síu (flögur + val, skrunast til hliðar). */
+@media (max-width:1023px){
+  :root body.kerfi.simi1 #view .phead{display:flex!important;flex-direction:column;align-items:stretch;gap:0!important}
+  :root body.kerfi.simi1 #view .phead>.uback{order:0;margin-bottom:var(--s1)}
+  :root body.kerfi.simi1 #view .phead>.spsup{order:1}
+  :root body.kerfi.simi1 #view .phead>.phrow{order:2;align-items:center!important;gap:var(--s3)}
+  :root body.kerfi.simi1 #view .phead>.simsub{order:3}
+  :root body.kerfi.simi1 #view .phead>.ulbar{order:4}
+  :root body.kerfi.simi1 #view .phead>:not(.uback):not(.spsup):not(.phrow):not(.simsub):not(.ulbar){order:5}
+  /* Aðgerðarhnappur í hausnum: minni */
+  :root body.kerfi.simi1 #view .phead .phrow .btn{min-height:36px!important;height:36px;padding:0 var(--s3)!important;font-size:var(--t-sm)!important}
+  /* Flipar hlutans (Leiga · Sala · Þjónusta): textaflipar með undirstriki */
+  :root body.kerfi.simi1 #view .phead .simsub{gap:var(--s4)!important;margin:var(--s2) -16px 0!important;padding:0 16px!important;border-bottom:1px solid var(--line)}
+  :root body.kerfi.simi1 #view .phead .simsub button{background:none!important;border-radius:0!important;min-height:36px!important;padding:0 0 2px!important;color:var(--muted)!important;font-size:var(--t-md)!important;font-weight:400!important;border-bottom:2px solid transparent!important}
+  :root body.kerfi.simi1 #view .phead .simsub button[aria-selected="true"]{color:var(--ink)!important;font-weight:500!important;border-bottom-color:var(--ink)!important}
+  /* Síur: ein lína sem skrunast */
+  :root body.kerfi.simi1 #view .phead .ulbar{display:flex!important;flex-wrap:nowrap!important;align-items:center;gap:var(--s2)!important;overflow-x:auto;scrollbar-width:none;margin:var(--s3) -16px 0!important;padding:0 16px!important}
+  :root body.kerfi.simi1 #view .phead .ulbar::-webkit-scrollbar{display:none}
+  :root body.kerfi.simi1 #view .phead .ulbar :is(.uchips,.seg){display:flex!important;flex-wrap:nowrap!important;gap:var(--s2)!important;flex:none}
+  :root body.kerfi.simi1 #view .phead .ulbar :is(.uchip,.uchips button){flex:none;white-space:nowrap;min-height:32px!important;height:32px}
+  :root body.kerfi.simi1 #view .phead .ulbar :is(label,.uflsel){flex:none;margin:0!important;width:auto!important}
+  :root body.kerfi.simi1 #view .phead .ulbar select{height:32px!important;min-height:32px!important;border-radius:999px!important;width:auto!important;padding:0 28px 0 12px!important;background-color:var(--ui1chip)!important;border:0!important;color:var(--ink)}
+}
