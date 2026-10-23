@@ -1151,3 +1151,5 @@ body.pv.ui1[data-tab="stillingar"] .splist .mrow .mt small{display:block;font-si
 body.pv.ui1[data-tab="stillingar"] .splist .mrow .mv{font-size:12.5px;color:var(--muted)}
 body.pv.ui1[data-tab="stillingar"] .splist .mrow.spsel{background:#E3ECF5!important;box-shadow:inset 3px 0 0 #1F5A96!important}
 body.pv.ui1 .usvf{display:inline-flex;align-items:center;gap:6px;margin-left:12px;padding-left:12px;border-left:1px solid var(--line);color:var(--muted);font-size:13px}
+.ustart{position:relative}
+.ustart .uver{position:absolute;left:0;right:0;bottom:22px;text-align:center;font-size:11.5px;color:var(--muted);letter-spacing:.04em}
