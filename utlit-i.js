@@ -332,7 +332,10 @@
   const navKey = x => x ? [x.tab, x.o, x.d, x.st].join("|") : "";
   const navTrack = () => { if (!desk() || !document.body.classList.contains("ui1")) return; const n = navNow();
     if (navBusy) { navBusy = false; navLast = n; return; }
-    if (navLast && navKey(n) !== navKey(navLast)) { if (n.tab === "upphaf") NAV.length = 0; else { NAV.push(navLast); if (NAV.length > 60) NAV.shift(); } }
+    // Hliðarskref (2.47.2) fara ekki í söguna: að skipta um svið/undirflipa innan sama hluta (Leiga · Sala · Þjónusta …)
+    // eða um flipa á sama spjaldi. „Til baka“ fer þá þangað sem hlutinn eða spjaldið var opnað frá (t.d. Meira eða listinn).
+    const lateral = navLast && (!n.o && !navLast.o && n.st === navLast.st && secOf(n.tab) === secOf(navLast.tab)) || (n.o && n.o === navLast?.o && n.tab === navLast?.tab);
+    if (navLast && navKey(n) !== navKey(navLast)) { if (n.tab === "upphaf") NAV.length = 0; else if (!lateral) { NAV.push(navLast); if (NAV.length > 60) NAV.shift(); } }
     navLast = n; };
   const navBtn = () => { document.querySelectorAll("#view .uback").forEach(x => x.remove()); if (!NAV.length || tab === "upphaf" || !desk()) return;
     const prev = NAV[NAV.length - 1], lab = (secOf(prev.tab)?.tabs || []).find(t => t[0] === prev.tab)?.[1] || "";
