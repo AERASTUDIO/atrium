@@ -157,3 +157,12 @@
   /* Prentun QR-merkja aðeins í tölvu (2.47.3): nýr gluggi lokast ekki í heimaskjáappi */
   body.simi1 [data-act^="u1qr:"],body.pv [data-act^="u1qr:"]{display:none!important}
 }
+@media (max-width:1023px){
+  /* Fljótandi hlutir fyrir ofan neðri stikuna (2.48.1): lágmarkaðir gluggar, skilaboð; tölvuhlutir faldir */
+  body.simi1 #dock{left:12px!important;right:12px!important;max-width:none!important;justify-content:flex-start!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;z-index:26!important}
+  body.simi1.simhasact #dock{bottom:calc(136px + env(safe-area-inset-bottom,0px))!important}
+  body.simi1 .toast{left:50%!important;bottom:calc(80px + env(safe-area-inset-bottom,0px))!important;z-index:60}
+  body.simi1.simhasact .toast{bottom:calc(144px + env(safe-area-inset-bottom,0px))!important}
+  body.simi1.pv #subnav2,body.simi1.pv #pvnew,body.simi1.pv #pvver{display:none!important}
+}
+@media (max-width:1023px){body.simi1.hasdock .toast{bottom:calc(128px + env(safe-area-inset-bottom,0px))!important}}
