@@ -200,7 +200,7 @@
         const parts = [p.vidskiptavinur, T ? u1D.rngIS(T.fra, T.til) : p.skiladagur ? "skil " + u1D.dIS(p.skiladagur) : "", T?.stadsetning].filter(Boolean);
         const us = hd.querySelector(".usub"); if (us) us.textContent = parts.join(" · ");
         const lb = el.querySelector(".lokabtn")?.getAttribute("data-act"); el.querySelector(".lokabtn")?.remove();
-        if (MCP) act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div><button type="button" data-act="edit:verk:${esc(p.id)}">✎ Breyta verkefni</button><button type="button" data-act="dtab:stillingar">Stillingar verkefnis</button>${lb ? `<button type="button" data-act="${esc(lb)}">✓ Loka verkefni</button>` : ""}</div></details>`);
+        if (MCP) act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div><button type="button" data-act="edit:verk:${esc(p.id)}">✎ Breyta verkefni</button><button type="button" data-act="dtab:stillingar">Stillingar verkefnis</button>${lb ? `<button type="button" data-act="${esc(lb)}">✓ Loka verkefni</button>` : ""}${window.can && can("eyda") ? `<button type="button" class="danger" data-act="del:verk:${esc(p.id)}">Eyða verkefni…</button>` : ""}</div></details>`);
       }
       const nav = el.querySelector(".dtabs");
       const ct = p && window.u1VerkTab && (DTAB === "undir" || DTAB === "fundir") ? u1VerkTab(p, DTAB) : null;
