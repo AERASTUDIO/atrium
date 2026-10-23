@@ -43,7 +43,7 @@ function openReport(pred,meta){
       ${R.ks.map(k=>{const p=findProj(k.verkefniId); return `<tr><td>${esc(dIS(String(k.date).slice(0,10)))}</td><td>${esc(p?.nr||"")}</td><td>${esc(k.lysing||"")}${k.kvittun?` <a class="plink" href="${esc(k.kvittun)}" target="_blank" rel="noopener">🧾</a>`:""}</td>${R.multi?`<td>${esc(k.starfsmadur||ME())}</td>`:""}<td class="r">${esc(kr(k.upphaed))}</td></tr>`;}).join("")}
       <tr class="gt"><td colspan="${R.multi?4:3}">Samtals</td><td class="r">${esc(kr(R.ktot))}</td></tr></tbody></table></div>`:""}
     ${R.gs.length>1?`<div class="viewtitle">Samantekt eftir ${R.meta.flokka?"undirverkum":"verkefnum"}</div><div class="tw sum"><table style="min-width:0"><thead><tr><th></th><th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>${R.gs.map(g=>`<tr><td>${esc(g.label)}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}<tr class="gt"><td>Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>`:""}
-    ${window.MS&&MS.on()?`<p class="hint" style="margin:14px 0 0">PDF og Excel vistast í <b>Mín skjöl › Tímaskýrslur</b> í OneDrive.</p><label class="chk" style="flex-direction:row;align-items:center;gap:8px;margin-top:6px;color:var(--ink)"><input type="checkbox" id="rep-dl" style="width:auto;min-height:0"> Sækja á tækið í staðinn</label>`:""}
+    ${window.ORG?.utlit==="I"?"":window.MS&&MS.on()?`<p class="hint" style="margin:14px 0 0">PDF og Excel vistast í <b>Mín skjöl › Tímaskýrslur</b> í OneDrive.</p><label class="chk" style="flex-direction:row;align-items:center;gap:8px;margin-top:6px;color:var(--ink)"><input type="checkbox" id="rep-dl" style="width:auto;min-height:0"> Sækja á tækið í staðinn</label>`:""}
     <div class="actions" style="margin-top:12px;flex-wrap:wrap"><button type="button" class="btn" id="rep-close">Loka</button><button type="button" class="btn" id="rep-prev">Forskoða</button><button type="button" class="btn" id="rep-xlsx">Excel</button><button type="button" class="btn primary" id="rep-pdf">PDF</button></div></div>`;
   sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden=false;
   document.getElementById("rep-close").onclick=closeSheet; document.getElementById("rep-xlsx").onclick=()=>downloadXlsx(REP); document.getElementById("rep-pdf").onclick=()=>reportPdf(REP); document.getElementById("rep-prev").onclick=()=>reportPreview(REP);
@@ -106,6 +106,7 @@ async function renderPdf(blob,box){
 }
 async function reportPreview(R){toast("Bý til PDF…"); try{const bytes=await reportPdf(R,true); blobPreview(new Blob([bytes],{type:"application/pdf"}),repName(R)+".pdf",()=>openReportAgain());}catch(e){toast("PDF tókst ekki: "+(e?.message||e));}}
 async function deliverDoc(bytes,name,type,sub){
+  if(window.saveDoc&&window.ORG?.utlit==="I"){closeSheet(); return saveDoc({data:bytes,name,type,kind:"Tímaskýrslur",mineSub:sub,pid:(typeof REP_PID!=="undefined"?REP_PID:null)});}
   const dl=document.getElementById("rep-dl")?.checked;
   if(!dl&&window.MS&&MS.on()&&window.odSaveMine){toast("Vista í Mín skjöl…");
     try{const it=await odSaveMine(sub,name,new Blob([bytes],{type}),type); odSavedSheet(it,(ORG.od.mitt||"Atrium")+" › "+sub.replace(/\//g," › ")); return it;}

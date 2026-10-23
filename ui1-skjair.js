@@ -535,7 +535,7 @@
       const sup = (drog ? "Reikningsdrög " : "Reikningur ") + String(R.nr) + (og ? " · ógilt" : "");
       const sub = [p ? E(p.nr) : "", R.dags ? "dags. " + E(String(R.dags).split("-").reverse().join(".")) : "", R.gjalddagi ? "gjalddagi " + E(String(R.gjalddagi).split("-").reverse().join(".")) : ""].filter(Boolean).join(" · ");
       const stSel = MCP && !og && window.can && can("fjarmal") ? `<label class="ustsel">Staða<select onchange="this.value!=='${R.stada === "Greitt" ? "Greitt" : "Ógreitt"}'&&doAct('rkpaid:${E(R.id)}')"><option${R.stada !== "Greitt" ? " selected" : ""}>Ógreitt</option><option${R.stada === "Greitt" ? " selected" : ""}>Greitt</option></select></label>` : "";
-      const acts = `<button type="button" class="btn" data-act="rkpdf:${E(R.id)}">PDF</button>${stSel}` + more2([["Forskoða PDF", "rkpv:" + R.id], ["Prenta", "rkprint:" + R.id], ["Excel", "rkxlsx:" + R.id]]);
+      const acts = `<button type="button" class="btn" data-act="rkpdf:${E(R.id)}">PDF</button>${stSel}` + more2([["Vista PDF…", "u1rksv:" + R.id], ["Forskoða PDF", "rkpv:" + R.id], ["Prenta", "rkprint:" + R.id], ["Excel", "rkxlsx:" + R.id]]);
       const rows = (R.linur || []).map(l => `<div class="utbr r4"><span>${E(l.lysing || "")}</span><span>${E(String(l.magn ?? ""))}${l.eining && l.eining !== "stk." ? " " + E(l.eining) : ""}</span><span>${(+l.verd || 0).toLocaleString("de-DE")} kr.</span><span>${Math.round((+l.magn || 0) * (+l.verd || 0)).toLocaleString("de-DE")} kr.</span></div>`).join("");
       return dHead(sup, R.kaupandi?.name || "", sub, acts) + `<div class="uvb">${kp3([["Samtals með VSK", kr(R.tot)], ["Gjalddagi", R.stada === "Greitt" ? "greitt " + E(u1D.dIS(R.greitt)) : n == null ? "–" : n === 0 ? "í dag" : n > 0 ? "eftir " + n + " daga" : -n + " dögum liðið"], ["Staða", E(R.stada || "")]])}`
         + `<div class="utb"><div class="utbr r4 h"><span>Lína</span><span>Magn</span><span>Verð</span><span>Upphæð</span></div>${rows}</div><div class="utbt"><span>Samtals án VSK</span><b>${kr(R.net)}</b></div><div class="utbt"><span>VSK ${R.vskP || 24}%</span><b>${kr(R.vsk)}</b></div>`
@@ -925,7 +925,8 @@
         await saveSnapshot(s0 => { s0.timar = s0.timar || {}; s0.timar.faerslur = s0.timar.faerslur || []; prev.forEach(e => { const x = d(e.date); x.setDate(x.getDate() + 7); const di = isoD(x); s0.timar.faerslur.push({ ...e, id: newId(), date: di, timabil: timabilOf(di), reikningur: null, live: undefined }); }); });
         toast?.(prev.length + " færslur afritaðar"); render(); return; }
       if (k === "u1xl") { const rows = [[{ v: "Hvert fer tíminn · " + (st.hvLab || ""), s: 1 }], [], ["Flokkur", "Klst.", "%"], ...(st.hvRows || []).map(([n, h, pc]) => [n, +h, pc])];
-        const b = makeXlsx({ sheet: "Hvert fer tíminn", cols: [36, 10, 8], rows }); const u = URL.createObjectURL(new Blob([b], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })); const x = document.createElement("a"); x.href = u; x.download = "Hvert fer tíminn.xlsx"; document.body.append(x); x.click(); x.remove(); return; }
+        const b = makeXlsx({ sheet: "Hvert fer tíminn", cols: [36, 10, 8], rows }); saveDoc({ data: b, name: "Hvert fer tíminn " + (st.hvLab || "") + ".xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", kind: "Skýrslur" }); return; }
+      if (k === "u1rksv") { window.rkSaveDoc?.(v); return; }
       if (k === "u1tm") { st.tm = r.join(":"); render(); return; }
       if (k === "u1skil") { const me = meSk(); await saveSnapshot(s => { s.timar = s.timar || {}; const o = s.timar.skil = s.timar.skil || {}; o[me] = [...new Set([...(o[me] || []), v])]; }); toast?.("Vikunni skilað"); render(); return; }
     }

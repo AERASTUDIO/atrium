@@ -1167,3 +1167,9 @@ body.pv.ui1 .spdet{container-type:inline-size}
   body.pv.ui1 .ukps.k4{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
 @media (min-width:1024px) and (max-width:1360px){body.pv.ui1:not(.spfull) .split{grid-template-columns:400px minmax(0,1fr)}}
+/* 2.34.0: Vista skjal */
+.vsopts{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.vsopt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;cursor:pointer;flex-direction:row}
+.vsopt input{width:auto;min-height:0;margin-top:3px}
+.vsopt b{display:block;font-weight:500;font-size:14.5px}.vsopt small{display:block;color:var(--muted);font-size:12.5px}
+.vsopt:has(input:checked){border-color:#1F5A96;background:#EEF3F9}

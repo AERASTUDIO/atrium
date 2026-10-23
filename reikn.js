@@ -220,6 +220,8 @@
     }
     return P.finish(label);
   }
+  window.rkSaveDoc = async id => { const R = (S?.reikningar || []).find(x => String(x.id) === String(id)); if (!R || !window.saveDoc) return; toast("Bý til PDF…");
+    try { const b = await invoicePdf(R); saveDoc({ data: b, name: fileBase(R) + ".pdf", type: "application/pdf", kind: "Reikningar", coDir: ORG.od.reikningar + "/" + String(R.dags || "").slice(0, 4) }); } catch (e) { toast("PDF tókst ekki: " + (e?.message || e)); } };
   const fileBase = R => `${TT()} ${R.nr} ${R.kaupandi?.name || ""}`.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
   async function downloadPdf(R) {
     toast("Bý til PDF…"); let bytes; try { bytes = await invoicePdf(R); } catch (e) { return toast("PDF tókst ekki: " + (e?.message || e)); }

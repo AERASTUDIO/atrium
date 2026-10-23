@@ -233,7 +233,9 @@
             const conf = T.netfang && window.poCompose ? `<button type="button" class="btn" data-act="u1pnconf:${esc(T.id)}">Senda staðfestingu</button>` : "";
             bot.insertAdjacentHTML("afterbegin", (NX ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:${esc(NX[1])}">${esc(NX[0])}</button>` : "") + conf); }
           else { const sd = bot.querySelector('[data-act^="tbsend:"]'); if (sd) { sd.classList.add("primary"); bot.prepend(sd); } }
-          const del = bot.querySelector('[data-act^="tbdel:"]'); if (del) { act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div></div></details>`); act.querySelector(".umore>div").append(del); }
+          act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div><button type="button" data-act="tbpdf:save:${esc(T.id)}">Vista PDF…</button>${isP2 ? `<button type="button" data-act="tbpdf:pv:${esc(T.id)}">Forskoða PDF</button>` : ""}</div></details>`);
+          const del = bot.querySelector('[data-act^="tbdel:"]'); if (del) act.querySelector(".umore>div").append(del);
+          bot.querySelector('[data-act^="tbpdf:dl"]')?.replaceWith(Object.assign(document.createElement("button"), { type: "button", className: "btn", textContent: "Vista PDF…", onclick: () => doAct("tbpdf:save:" + T.id) }));
         }
         hd._top = kpis;
       }

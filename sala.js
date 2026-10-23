@@ -770,6 +770,7 @@
     if (k === "tbpdf") { const [op, id] = r, T = findT(id); if (!T) return; toast("Bý til PDF…");
       tbPdf(T).then(b => { const blob = new Blob([b], { type: "application/pdf" });
         if (op === "pv") return blobPreview(blob, fileBase(T) + ".pdf");
+        if (op === "save" && window.saveDoc) return saveDoc({ data: blob, name: fileBase(T) + ".pdf", type: "application/pdf", kind: T.pontun ? "Pantanir" : "Tilboð", pid: T.verkefniId });
         const x = document.createElement("a"); x.href = URL.createObjectURL(blob); x.download = fileBase(T) + ".pdf"; document.body.appendChild(x); x.click(); x.remove(); setTimeout(() => URL.revokeObjectURL(x.href), 5000); toast("PDF sótt"); })
         .catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (k === "tbsend") { const T = findT(a); if (!T || !window.poCompose) return; toast("Bý til PDF…");
