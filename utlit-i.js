@@ -322,7 +322,24 @@
   // Smellt aftur á opinn yfirflokk: hann lokast og upphafsskjárinn birtist
   document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo"); if (!b || !document.body.classList.contains("ui1") || !desk()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
-  const _ri = renderI; renderI = function () { const r = _ri.apply(this, arguments); syncHash(); return r; };
+  // Til baka (2.38.0): saga yfir skjái og spjöld sem opnuð eru (flipi, atriði, undirflipi, stillingasíða); ← Til baka, Alt+← og bakhnappur músar
+  const NAV = []; let navLast = null, navBusy = false;
+  const navNow = () => ({ tab, o: DETAIL || null, d: (typeof DTAB !== "undefined" && DETAIL ? DTAB : null) || null, st: window.STSUB || null });
+  const navKey = x => x ? [x.tab, x.o, x.d, x.st].join("|") : "";
+  const navTrack = () => { if (!desk() || !document.body.classList.contains("ui1")) return; const n = navNow();
+    if (navBusy) { navBusy = false; navLast = n; return; }
+    if (navLast && navKey(n) !== navKey(navLast)) { if (n.tab === "upphaf") NAV.length = 0; else { NAV.push(navLast); if (NAV.length > 60) NAV.shift(); } }
+    navLast = n; };
+  const navBtn = () => { document.querySelectorAll("#view .uback").forEach(x => x.remove()); if (!NAV.length || tab === "upphaf" || !desk()) return;
+    const prev = NAV[NAV.length - 1], lab = (secOf(prev.tab)?.tabs || []).find(t => t[0] === prev.tab)?.[1] || "";
+    const btn = `<button type="button" class="uback" data-ui1="back" title="Til baka${lab ? " – " + esc(lab) : ""} (Alt+←)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Til baka</button>`;
+    const det = DETAIL && document.querySelector("#view .spdet"), ph = document.querySelector("#view .phead, #view .uhead > div:first-child");
+    if (det) det.insertAdjacentHTML("afterbegin", btn); else if (ph) ph.insertAdjacentHTML("afterbegin", btn); else document.getElementById("view")?.insertAdjacentHTML("afterbegin", btn); };
+  window.u1Back = () => { const prev = NAV.pop(); if (!prev) return false; navBusy = true; tab = prev.tab; DETAIL = prev.o; if (prev.d && typeof DTAB !== "undefined") DTAB = prev.d; window.STSUB = prev.st; full = false; render(); return true; };
+  document.addEventListener("click", e => { if (!e.target.closest?.('[data-ui1="back"]')) return; e.preventDefault(); u1Back(); });
+  document.addEventListener("keydown", e => { if (e.altKey && e.key === "ArrowLeft" && document.body.classList.contains("ui1") && desk() && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) { if (u1Back()) e.preventDefault(); } });
+  document.addEventListener("mouseup", e => { if (e.button === 3 && document.body.classList.contains("ui1") && desk() && NAV.length) { e.preventDefault(); u1Back(); } });
+  const _ri = renderI; renderI = function () { const r = _ri.apply(this, arguments); syncHash(); try { navTrack(); navBtn(); } catch (e) {} return r; };
   window.render = renderI; try { render = renderI; } catch (e) {}
 
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="exp"]'); if (!b) return; full = !full; render(); });
