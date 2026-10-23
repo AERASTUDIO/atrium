@@ -924,3 +924,22 @@ body.pv.ui1 .utb{margin:10px 0 14px}
 body.pv.ui1 .utbr{display:grid;grid-template-columns:minmax(0,1fr) 80px 56px 120px;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}
 body.pv.ui1 .utbr>span:not(:first-child){text-align:right}
 body.pv.ui1 .utbr.h{font-size:12px;color:var(--muted);border-top:0}
+/* 2.27.0: Þjónusta, viðskiptavinaflipar, Stillingar, Póstur, Skjöl */
+body.pv.ui1 .ucols.uv3,body.pv.ui1 .urow.uv3{grid-template-columns:72px minmax(0,1fr) 60px 110px}
+body.pv.ui1 .u2c{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:6px 0 16px}
+body.pv.ui1 .spdet .uvt+.uvy{margin-top:4px}
+body.pv.ui1[data-tab="stillingar"] .splist .phead{padding-bottom:10px}
+body.pv.ui1[data-tab="stillingar"] .splist .viewtitle{margin:14px 16px 6px}
+body.pv.ui1[data-tab="stillingar"] .splist .card,body.pv.ui1[data-tab="stillingar"] .splist .llist{border-radius:0;box-shadow:none;margin:0;border-left:0;border-right:0}
+body.pv.ui1[data-tab="stillingar"] .splist .spsel{background:#E3ECF5;box-shadow:inset 3px 0 0 #1F5A96}
+body.pv.ui1 .stdet{padding-top:6px}
+body.pv.ui1[data-tab="postur"] .splist .porow{border-radius:0;margin:0;box-shadow:none;border:0;border-top:1px solid var(--line);padding:10px 16px}
+body.pv.ui1[data-tab="postur"] .splist .llist{gap:0;margin:0}
+body.pv.ui1[data-tab="postur"] .splist .spsel{background:#E3ECF5;box-shadow:inset 3px 0 0 #1F5A96}
+body.pv.ui1[data-tab^="skjol"] #view .llist{gap:0;border-radius:12px;overflow:hidden;background:var(--surface,#fff)}
+body.pv.ui1[data-tab^="skjol"] #view .llist .lrow{border-radius:0;margin:0;box-shadow:none;border:0;border-top:1px solid var(--line);padding:9px 14px;min-height:0}
+body.pv.ui1[data-tab^="skjol"] #view .llist .lrow:first-child{border-top:0}
+body.pv.ui1[data-tab^="skjol"] #view .lrow .ll{transform:scale(.85)}
+body.pv.ui1[data-tab^="skjol"] #view .lrow .lt{font-size:14px}
+body.pv.ui1[data-tab^="skjol"] #view .fsel,body.pv.ui1[data-tab^="skjol"] #view select{max-width:260px;min-height:38px;padding:6px 12px;font-size:13.5px}
+body.pv.ui1[data-tab^="skjol"] #view .fsels{display:flex;gap:10px;align-items:center;flex-wrap:wrap}

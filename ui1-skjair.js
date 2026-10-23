@@ -195,6 +195,36 @@
     return lhead("Vörulisti", "Sala", nbtn("Vara")) + `<div class="ucols ul"><span>Vnr.</span><span>Heiti</span><span>Lager</span><span>Laust</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engar söluvörur.</div>`);
   };
 
+  /* ---------- Vörulisti › Þjónusta (vinna og tæknifólk): enginn lager, ekkert dagatal ---------- */
+  U.vvinna = function () {
+    const api = window.salaAPI; if (!api) return "";
+    const all = api.VR().filter(v => v.tegund === "vinna"), fl = [...new Set(all.map(v => v.flokkur || "Annað"))], f = st.vf.vvinna || "";
+    const xs = all.filter(v => !f || (v.flokkur || "Annað") === f).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }));
+    let h = "", last = "";
+    xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; }
+      h += `<div class="urow uv3" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}</span><span class="m">${E(v.eining || "")}</span><span class="r">${pill(kr(v.soluverd || v.leiguverd))}</span></div>`; });
+    return lhead("Vörulisti", "Þjónusta", nbtn("Þjónusta")) + `<div class="ulbar">${chips([["", "Allar · " + all.length], ...fl.map(x => [x, x])], f, "u1vf:vvinna")}</div>`
+      + `<div class="ucols uv3"><span>Vnr.</span><span>Heiti</span><span>Eining</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engin þjónusta skráð.</div>`);
+  };
+  window.u1VinnaYfir = function (v) {
+    const api = window.salaAPI, mine = T => (T.linur || []).filter(l => String(l.v) === String(v.id)), q = T => mine(T).reduce((a, l) => a + (+l.magn || 0), 0);
+    const docs = [...api.TB().filter(T => T.stada === "Samþykkt"), ...api.PN().filter(P => P.stada !== "Ný")].filter(T => mine(T).length);
+    const ti = isoD(today), y0 = today.getFullYear() + "-01-01", m12 = isoD(new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()));
+    const when = T => String(T.fra || T.dags || "").slice(0, 10), past = docs.filter(T => when(T) <= ti), fut = docs.filter(T => when(T) > ti).sort((a, b) => when(a).localeCompare(when(b)));
+    const sold12 = past.filter(T => when(T) >= m12).reduce((a, T) => a + q(T), 0), rev = past.filter(T => when(T) >= y0).reduce((a, T) => a + mine(T).reduce((b, l) => b + (api.lSum(l, T) || 0), 0), 0);
+    const open = api.TB().filter(T => ["Drög", "Sent"].includes(T.stada) && mine(T).length), ein = v.eining || "klst.";
+    const fm = +v.soluverd && +v.innkaupsverd ? Math.round((1 - v.innkaupsverd / v.soluverd) * 100) + " %" : "–";
+    const rng = T => { const a = d(T.fra), b = d(T.til); return a ? a.getDate() + "." + (b && +b !== +a ? "–" + b.getDate() + "." : "") + " " + MNs[(b || a).getMonth()] : ""; };
+    const ln = (T, extra) => `<a class="uln" ${tapAttr("tb", T.id)}><span>${E(T.nr || "")} ${E(T.heiti || T.vidskiptavinur || "")}<small>${rng(T) ? " · " + rng(T) : ""}${extra ? " · " + extra : ""}</small></span>${pill(H(q(T)) + " " + ein)}</a>`;
+    const now = new Date(), vals = [...Array(12)].map((_, i) => { const dd = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1), k = dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0"); return [MNs[dd.getMonth()], past.filter(T => when(T).startsWith(k)).reduce((a, T) => a + q(T), 0)]; });
+    const mx = Math.max(1, ...vals.map(x => x[1]));
+    return `<div class="ukpis">${kpiB(ein === "klst." ? "Tímaverð" : "Verð", kr(v.soluverd || v.leiguverd))}${kpiB("Selt 12 mán.", H(sold12) + " " + ein)}${kpiB("Tekjur í ár", kr(rev))}${kpiB("Á tilboðum", open.length)}</div>`
+      + `<div class="uminis">${mini("Eining", E(ein))}${mini("Flokkur", E(v.flokkur || "–"))}${mini("Kostnaðarverð", v.innkaupsverd ? kr(v.innkaupsverd) : "–")}${mini("Framlegð", fm)}</div>`
+      + `<div class="u2c"><div><div class="ush2"><span>Bókað framundan</span></div>${fut.map(T => ln(T)).join("") || `<div class="usub" style="padding:6px 0">Ekkert bókað framundan.</div>`}</div>`
+      + `<div><div class="ush2"><span>Á tilboðum</span></div>${open.map(T => ln(T, T.stada.toLowerCase())).join("") || `<div class="usub" style="padding:6px 0">Ekki á opnum tilboðum.</div>`}</div></div>`
+      + `<div class="card ucard"><div class="ush">Selt á mánuði · ${H(sold12)} ${E(ein)} síðustu 12 mán.</div><div class="vybars">${vals.map(([l, n], i) => `<div class="vyb" style="height:120px"><span class="vyv${i === 11 ? " on" : ""}">${n ? H(n) : ""}</span><div class="vys"><i style="height:${Math.round(n / mx * 80)}px;background:${i === 11 ? "#1F5A96" : "#BFD0E3"}"></i></div><span class="vyl">${l}</span></div>`).join("")}</div></div>`;
+  };
+
   /* ---------- Vöruspjald (Leiga: dagatal yfir framboð; Sala: lager) ---------- */
   st.day = null;
   const kpiB = (l, v) => `<div class="vyk"><small>${l}</small><b>${v}</b></div>`;
@@ -235,6 +265,7 @@
 
   window.u1VaraTop = function (id) {
     const api = window.salaAPI, v = VRget(id); if (!api || !v) return "";
+    if (v.tegund === "vinna") return u1VinnaYfir(v);
     const leiga = api.vDeild(v) === "leiga", nO = u1OpinSkemmd(v), ink = (v.innkaup || []).filter(x => x.stada === "Pantað");
     const keys = leiga ? [["yfir", "Yfirlit"], ["eintok", "Eintök " + ((v.eintok || []).length || "")], ["astand", "Ástand" + (nO ? " " + nO : "")]] : [["yfir", "Yfirlit"], ["hreyf", "Hreyfingar"], ["innk", "Innkaup" + (ink.length ? " " + ink.length : "")]];
     if (!keys.some(x => x[0] === st.vt)) st.vt = "yfir";
@@ -390,6 +421,23 @@
     return `<div class="split ui1own"><div class="splist">${list}</div><div class="spdet"><div class="spdetin">${det}</div></div></div>`;
   };
 
+  /* ---------- Viðskiptavinaspjald: flipar Verkefni · Tilboð · Pantanir · Reikningar · Upplýsingar ---------- */
+  st.ct = "verk";
+  window.u1VskTabs = function (id) {
+    const c = (S?.vidskiptavinir || []).find(x => String(x.id) === String(id)); if (!c) return null;
+    const api = window.salaAPI, mine = o => String(o.vskId || "") === String(c.id) || (!o.vskId && (o.vidskiptavinur || o.kaupandi?.name) === c.name);
+    const vs = verkefni().filter(p => String(p.vskId || "") === String(c.id) || String(p.vkId || "") === String(c.id) || p.vidskiptavinur === c.name).sort((a, b) => (isDone(a) - isDone(b)) || String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
+    const tb = api ? api.TB().filter(mine).sort((a, b) => String(b.dags).localeCompare(String(a.dags))) : [], pn = api ? api.PN().filter(mine) : [], rk = (S?.reikningar || []).filter(r => String(r.vskId || "") === String(c.id) || r.kaupandi?.name === c.name);
+    const keys = [["verk", "Verkefni " + vs.length], ...(api ? [["tb", "Tilboð " + tb.length]] : []), ...(api && pn.length ? [["pn", "Pantanir " + pn.length]] : []), ...(ON("reikningar") ? [["rk", "Reikningar " + rk.length]] : []), ["upp", "Upplýsingar"]];
+    if (!keys.some(k => k[0] === st.ct)) st.ct = "verk";
+    const ln = (attr, a, b, pl, dark) => `<a class="uln" ${attr}><span>${a}<small>${b ? " · " + b : ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
+    const body = st.ct === "verk" ? vs.map(p => ln(tapAttr("verk", p.id), E(p.nr + " " + (p.stutt || "")), E(svidOf(p).join(", ")), p.stada, !isDone(p) && p.stada === STODUR()[1]?.n)).join("")
+      : st.ct === "tb" ? tb.map(T => ln(tapAttr("tb", T.id), E((T.nr || "") + " " + (T.heiti || "")), E((T.fra || T.dags || "").slice(0, 10).split("-").reverse().join(".")), T.stada, T.stada === "Samþykkt")).join("")
+      : st.ct === "pn" ? pn.map(P => ln(tapAttr("tb", P.id), E((P.nr || "") + " " + (P.heiti || "")), E((P.fra || "").split("-").reverse().join(".")), P.stada, P.stada === "Ný")).join("")
+      : st.ct === "rk" ? rk.map(r => ln(tapAttr("reikn", r.id), "Reikningur " + E(String(r.nr)), E(kr(r.tot)), r.stada, r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0)).join("") : null;
+    return { tabs: tabsV(keys.map(([k, l]) => [k, l]), st.ct).replace(/u1vt:/g, "u1ct:"), body: body === null ? null : (body || `<div class="usub" style="padding:8px 0">Ekkert hér enn.</div>`) };
+  };
+
   /* ---------- Heim: Yfirlit, Óklárað, Framundan, Tilkynningar ---------- */
   const fmtD = w => { const x = d(w); if (!x) return ""; const n = daysTo(w); return n === 0 ? "í dag" : n === 1 ? "á morgun" : n === -1 ? "í gær" : x.getDate() + ". " + MNs[x.getMonth()]; };
   const att = it => it.open ? tapAttr(it.open.split(":")[0], it.open.slice(it.open.indexOf(":") + 1)) : `data-act="${it.act}" role="button" tabindex="0"`;
@@ -488,6 +536,7 @@
         if (!p || (!ids.size && !kids.size)) return;
         await saveSnapshot(s => { (s.timar?.faerslur || []).forEach(e => { if (ids.has(String(e.id))) { e.verkefniId = p.id; e.nr = p.nr; } }); (s.kostnadur || []).forEach(x => { if (kids.has(String(x.id))) x.verkefniId = p.id; }); });
         toast?.(`${ids.size + kids.size} færslur færðar á ${p.nr}`); st.sel.clear(); render(); return; }
+      if (k === "u1ct") { st.ct = r[0]; render(); return; }
       if (k === "u1tm") { st.tm = r.join(":"); render(); return; }
       if (k === "u1skil") { const me = meSk(); await saveSnapshot(s => { s.timar = s.timar || {}; const o = s.timar.skil = s.timar.skil || {}; o[me] = [...new Set([...(o[me] || []), v])]; }); toast?.("Vikunni skilað"); render(); return; }
     }

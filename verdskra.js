@@ -31,7 +31,7 @@
   const fj = () => !!(window.can && can("stillingar"));
   let EDIT = false;
 
-  window.vsCard = () => { const v = VERD(), lo = Math.min(...v.lidir.map(l => +l.verd || 0)), hi = Math.max(...v.lidir.map(l => +l.verd || 0));
+  window.vsCard = () => { if (!(VERD().lidir || []).length) return ""; const v = VERD(), lo = Math.min(...v.lidir.map(l => +l.verd || 0)), hi = Math.max(...v.lidir.map(l => +l.verd || 0));
     return `<div class="viewtitle">Fest</div>${llist([`<div class="lrow tap" ${tapAttr("verdskra", "aera")}><div class="ll">${(typeof EI !== "undefined" && EI.rk) || ""}</div><div class="lm"><div class="lt">Verðskrá ${esc(ORG.nafn)}</div><div class="ls">Tímagjald ${esc(kr0(lo))}${hi !== lo ? "–" + esc(kr0(hi)) : ""} kr./klst. án VSK · ${v.lidir.length} verkþættir</div></div>${CHEV}</div>`])}`; };
 
   window.dVerdskra = function () {
