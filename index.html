@@ -23,10 +23,15 @@ h1{position:fixed;left:0;right:0;top:calc(50vh - max(3.65vw,6.48vh) + max(20vw,3
   h1{top:calc(50vh + 0.435 * min(64vh,130vw));font-size:clamp(24px,7vw,40px)}
 }
 @keyframes inn{from{opacity:0;letter-spacing:.6em;text-indent:.6em}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){h1{animation:none;background-position:50% 0}}
+@media (prefers-reduced-motion:reduce){h1{animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both;background-position:50% 0}}
+video::-webkit-media-controls,video::-webkit-media-controls-start-playback-button,video::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none}
 </style></head><body>
-<video autoplay muted loop playsinline preload="auto" poster="vefur/atrium-vaentanlegt.jpg?v=7" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4?v=7" type="video/mp4"></video>
+<video autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" poster="vefur/atrium-vaentanlegt.jpg?v=7" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4?v=7" type="video/mp4"></video>
 <h1>Væntanlegt</h1>
-<script>/* Spila ekki myndbandið hjá þeim sem biðja um minni hreyfingu – þá stendur kyrrmyndin */
-try{if(matchMedia("(prefers-reduced-motion: reduce)").matches){const v=document.querySelector("video");v.removeAttribute("autoplay");v.pause();}}catch(e){}</script>
+<script>/* Myndbandið spilast alltaf sjálfkrafa (hljóðlaust). Ef vafrinn stöðvar sjálfvirka spilun (t.d. orkusparnaður í síma) er reynt aftur og við fyrstu snertingu. */
+(function(){const v=document.querySelector("video");v.muted=true;v.defaultMuted=true;v.playsInline=true;
+const go=()=>{const p=v.play();if(p&&p.catch)p.catch(()=>{});};
+go();v.addEventListener("loadeddata",go);v.addEventListener("pause",()=>{if(!document.hidden)setTimeout(go,300);});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)go();});
+["pointerdown","touchstart","keydown","scroll"].forEach(e=>addEventListener(e,go,{once:true,passive:true}));})();</script>
 </body></html>
