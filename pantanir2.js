@@ -7,7 +7,7 @@
    6. Ferð dagsins (Stillingar › Pantanir): afhendingar og sóttar pantanir dagsins í röð, leið í Google Maps.
    7. Panta aftur og sniðmát.
    9. Shopify: tenging í boði í Stillingar › Pantanir (virkjuð síðar).
-   Ný gögn á pantanir/{id}: opinber (auðkenni pöntunarsíðu), vidskStadfest, afhending ("sent"|"sott"), afhStadur, afhKl, kvittun: { ut|inn: { nafn, undirskrift (PNG data-URL), mynd (JPEG data-URL),
+   Ný gögn á pantanir/{id}: opinber (auðkenni pöntunarsíðu), vidskStadfest, stadfPostur (staðfestingarpóstur sendur), afhending ("sent"|"sott"), afhStadur, afhKl, kvittun: { ut|inn: { nafn, undirskrift (PNG data-URL), mynd (JPEG data-URL),
    dags, af } }, tinsla: [eintaksnr], tinslaH: { vöruId: fjöldi }, aukagjold: [lína-id]. Stillingar: S.stillingar.pantanir = { skilagjold, ferd, snid, shopify }. */
 (function () {
   if (window.__pferli) return; window.__pferli = 1;
@@ -89,7 +89,7 @@
     return `<section class="pfsec pfafh"><div class="pfsh"><b>Afhending</b>
       <div class="pfseg" role="group" aria-label="Afhendingarmáti">${[["sent", "Sent"], ["sott", "Sótt"]].map(([v, l]) => `<button type="button"${a === v ? ' aria-pressed="true"' : ""} ${canEd ? `data-pf="afh:${E(P.id)}:${v}"` : "disabled"}>${l}</button>`).join("")}</div></div>
       ${a === "sent" ? `<div class="pfrow"><label>Heimilisfang<input data-pfs="afhStadur:${E(P.id)}" value="${E(P.afhStadur || P.stadsetning || "")}" placeholder="Hvert á að senda" ${canEd ? "" : "disabled"}></label><label>Klukkan<input data-pfs="afhKl:${E(P.id)}" value="${E(P.afhKl || "")}" placeholder="hh:mm" inputmode="decimal" maxlength="5" ${canEd ? "" : "disabled"}></label></div>`
-        : a === "sott" ? `<p class="pfhint">Viðskiptavinur sækir ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} og skilar ${E(dfmt(P.til))}.</p>` : `<p class="pfhint">Veldu hvort pöntunin er send eða sótt.</p>`}
+        : a === "sott" ? `<p class="pfhint">Viðskiptavinur sækir ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} og skilar ${E(dfmt(P.til))}</p>` : `<p class="pfhint">Veldu hvort pöntunin er send eða sótt.</p>`}
       ${kv(ut, "Afhent")}${kv(inn, "Móttekið")}${btnUt || btnIn ? `<div class="pfbb">${btnUt}${btnIn}</div>` : ""}</section>`;
   }
   // Undirskrift + mynd
@@ -362,16 +362,54 @@
   let LSF = null;
   const LS = () => { try { if (!LSF) { LSF = document.createElement("iframe"); LSF.hidden = true; LSF.setAttribute("aria-hidden", "true"); document.body.append(LSF); } return LSF.contentWindow.localStorage; } catch (e) { return window.localStorage; } };
   async function pubWrite(t, data) {
-    const cur = PUB[t] || {}; const doc = { ...data, stadfest: cur.stadfest || null, uppfaert: nowIso() };
-    if (DEMO()) { try { const old = JSON.parse(LS().getItem(lsKey(t)) || "null"); if (old?.stadfest) doc.stadfest = old.stadfest; LS().setItem(lsKey(t), JSON.stringify(doc)); } catch (e) {} PUB[t] = doc; return; }
+    const cur = PUB[t] || {}; const doc = { ...data, stadfest: cur.stadfest || null, postur: cur.postur || null, uppfaert: nowIso() };
+    if (DEMO()) { try { const old = JSON.parse(LS().getItem(lsKey(t)) || "null"); if (old?.stadfest) doc.stadfest = old.stadfest; if (old?.postur) doc.postur = old.postur; LS().setItem(lsKey(t), JSON.stringify(doc)); } catch (e) {} PUB[t] = doc; return; }
     if (!window.__DB) throw new Error("Ekki tengt gagnagrunni"); await window.__DB.set("opinber/" + t, doc); PUB[t] = doc;
   }
   function pubWatch(t, pid) {
     if (WATCHED.has(t)) return; WATCHED.add(t);
     const got = d => { if (!d) return; PUB[t] = d; const P = findP(pid); if (!P) return;
+      if (d.stadfest && !d.postur && ed()) mailConfirm(t, pid).catch(e => console.warn("staðfestingarpóstur", e));
       if (d.stadfest && !P.vidskStadfest && ed()) savePN(pid, Q0 => { Q0.vidskStadfest = d.stadfest; if (Q0.stada === "Ný") Q0.stada = "Staðfest"; }).then(() => { toast((P.nr || "Pöntun") + " staðfest af " + d.stadfest.nafn); render(); }).catch(() => {}); };
     if (DEMO()) { const rd = () => { try { got(JSON.parse(LS().getItem(lsKey(t)) || "null")); } catch (e) {} }; rd(); window.addEventListener("storage", e => { if (e.key === lsKey(t)) rd(); }); setInterval(rd, 4000); return; }
     window.__DB?.watch?.("opinber/" + t, s => got(s.exists ? s.data() : null), () => {});
+  }
+  /* Staðfestingarpóstur (2.57.0): sá sem fyrstur nemur staðfestingu viðskiptavinar (með Microsoft-tengingu) tekur sendinguna frá
+     á opinber/{t}.postur í færslu (transaction) og sendir – aðrir sjá að hún er tekin og senda ekki. Þegar Blaze kemur sendir þjónusta í staðinn. */
+  const msOn = () => tr(() => !!(window.MS && MS.on && MS.on()), false);
+  const box = () => { const sh = String(tr(() => ORG.postholf, "") || "").trim().toLowerCase(); return sh ? "/users/" + encodeURIComponent(sh) : "/me"; };
+  const b64 = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const SENDING = new Set();
+  async function mailConfirm(t, pid, manual) {
+    const P = findP(pid); if (!P || SENDING.has(t)) return; const to = P.netfang || tr(() => findVsk(P.vskId)?.netfang, ""); if (!to) return;
+    if (!DEMO() && !msOn()) return;   // annar með Microsoft-tengingu sendir, eða „Senda núna“ seinna
+    SENDING.add(t);
+    try {
+      const mark = { af: me(), dags: nowIso(), til: to };
+      let won = false;
+      if (DEMO()) { const cur = JSON.parse(LS().getItem(lsKey(t)) || "null"); if (cur && (!cur.postur || manual)) { cur.postur = mark; LS().setItem(lsKey(t), JSON.stringify(cur)); won = true; } }
+      else { const out = await window.__DB.tx("opinber/" + t, cur => (cur.postur && !manual) ? cur : { ...cur, postur: mark }); won = out?.postur?.dags === mark.dags && out?.postur?.af === mark.af; }
+      if (!won) return;
+      PUB[t] = { ...(PUB[t] || {}), postur: mark };
+      const st = P.vidskStadfest || PUB[t]?.stadfest || {}, co = tr(() => DOK.co(), {}) || {};
+      const subj = `Staðfesting á pöntun ${P.nr} – ${P.heiti || ""}`.trim();
+      const html = `<p>Sæl/l${st.nafn ? " " + E(String(st.nafn).split(" ")[0]) : ""},</p><p>Takk fyrir – pöntun <b>${E(P.nr)}</b> (${E(P.heiti || "")}) er staðfest.</p>
+        <p>Afhending: ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} · Skil: ${E(dfmt(P.til || P.fra))} · ${P.afhending === "sent" ? "Sent" + (P.afhStadur ? " á " + E(P.afhStadur) : "") : P.afhending === "sott" ? "Sótt" : ""}</p>
+        <p>Staðfest af ${E(st.nafn || "")} ${st.dags ? E(dfmt(st.dags)) + " kl. " + E(String(st.dags).slice(11, 16)) : ""}.${st.athugasemd ? "<br>Athugasemd: „" + E(st.athugasemd) + "“" : ""}</p>
+        <p>Pöntunin er í viðhengi. Þú getur alltaf skoðað hana hér: <a href="${E(pubUrl(t))}">${E(pubUrl(t))}</a></p><p>Kveðja,<br>${E(co.nafn || "")}${co.simi ? "<br>" + E(co.simi) : ""}</p>`;
+      if (DEMO()) { toast(`(Sýniútgáfa) Staðfestingarpóstur hefði farið til ${to}`); }
+      else {
+        const bytes = await window.tbPdfBytes(P);
+        await MS.g(box() + "/sendMail", { method: "POST", body: { message: { subject: subj, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: to } }],
+          attachments: [{ "@odata.type": "#microsoft.graph.fileAttachment", name: `Pöntun ${P.nr}.pdf`, contentType: "application/pdf", contentBytes: b64(bytes) }] }, saveToSentItems: true } });
+        toast("Staðfestingarpóstur sendur til " + to);
+      }
+      await savePN(pid, Q0 => { Q0.stadfPostur = mark; });
+      render();
+    } catch (e) {
+      toast("Staðfestingarpóstur tókst ekki: " + (e?.message || e));
+      try { if (!DEMO()) await window.__DB.tx("opinber/" + t, cur => ({ ...cur, postur: null })); } catch (x) {}   // losa svo annar geti reynt
+    } finally { SENDING.delete(t); }
   }
   function pubSync(P) {
     if (!P.opinber || !ed()) return; pubWatch(P.opinber, P.id);
@@ -402,6 +440,10 @@
     return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b>${v ? `<span class="t-grn">✓ Staðfest af ${E(v.nafn)} · ${E(dfmt(v.dags))} kl. ${E(String(v.dags).slice(11, 16))}</span>` : `<span class="t-amb">Bíður staðfestingar viðskiptavinar</span>`}</div>
       <div class="pfurl"><input readonly value="${E(url)}" aria-label="Tengill á pöntunarsíðu" onclick="this.select()"><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita</button><a class="btn sm" href="${E(url)}" target="_blank" rel="noopener">Opna</a></div>
       ${v?.athugasemd ? `<p class="pfhint">Athugasemd viðskiptavinar: „${E(v.athugasemd)}“</p>` : ""}
+      ${v ? (() => { const pm = P.stadfPostur || PUB[P.opinber]?.postur, to = P.netfang || tr(() => findVsk(P.vskId)?.netfang, "");
+        return pm ? `<p class="pfhint"><span class="t-grn">✓ Staðfestingarpóstur sendur</span> til ${E(pm.til || to)} · ${E(dfmt(pm.dags))} kl. ${E(String(pm.dags).slice(11, 16))}</p>`
+          : !to ? `<p class="pfhint"><span class="t-amb">Ekkert netfang á pöntuninni</span> – staðfestingarpóstur fór ekki.</p>`
+          : `<p class="pfhint"><span class="t-amb">Staðfestingarpóstur ekki farinn</span> – ${msOn() || DEMO() ? "" : "sendist þegar einhver með Microsoft-tengingu opnar appið. "}${ed() && (msOn() || DEMO()) ? `<button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Senda núna</button>` : ""}</p>`; })() : ""}
       ${ed() ? `<div class="pfbb"><button type="button" class="btn${v ? "" : " primary"}" data-pf="pubsend:${E(P.id)}">Senda í tölvupósti${P.netfang ? " · " + E(P.netfang) : ""}</button><button type="button" class="btn" data-pf="pubrev:${E(P.id)}">Loka síðunni</button></div>` : ""}</section>`;
   }
 
@@ -421,6 +463,7 @@
     if (op === "mail") return mailDlg();
     if (op === "pub") return pubCreate(id);
     if (op === "pubrev") return pubRevoke(id);
+    if (op === "pubmail") { const P = findP(id); if (P?.opinber) return mailConfirm(P.opinber, id, true); return; }
     if (op === "pubsend") return pubSend(id);
     if (op === "pubcopy") { const P = findP(id); if (P?.opinber) navigator.clipboard?.writeText(pubUrl(P.opinber)).then(() => toast("Tengill afritaður")); return; }
   }, true);
