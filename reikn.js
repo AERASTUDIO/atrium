@@ -22,7 +22,10 @@
     if (api) { const docs = [...api.TB(), ...api.PN()].filter(T => T.verkefniId === p.id || T.id === p.tilbodId || T.id === p.pontunId); if (docs.some(T => T.stada !== "Hafnað" && (T.linur || []).some(l => l.teg !== "vinna"))) return "tilbod"; }
     return INNH[CFG().innheimta] ? CFG().innheimta : "timar"; };
   // Á færsla að fara á reikning? Tímavinna: já nema merkt „ekki rukka“; fast verð / ekki rukkað: aðeins ef merkt sem aukavinna (e.rukka)
-  window.timiRukka = e => { if (!e || e.reikningur) return false; const p = e.verkefniId ? findProj(e.verkefniId) : null; return window.innheimtaOf(p) === "timar" ? !e.ekkiRk : e.rukka === true; };
+  // 2.66.0: tímar af ógiltum reikningi eru alltaf reikningshæfir aftur – þeir voru rukkaðir einu sinni, óháð innheimtuhætti verkefnisins
+  let _ogK = null, _ogT = new Set();
+  const ogiltirTimar = () => { const og = reikningar().filter(r => r.stada === "Ógilt"), k = og.map(r => r.id + ":" + (r.timaIds || []).length).join(); if (k !== _ogK) { _ogK = k; _ogT = new Set(og.flatMap(r => r.timaIds || []).map(String)); } return _ogT; };
+  window.timiRukka = e => { if (!e || e.reikningur) return false; if (e.id && ogiltirTimar().has(String(e.id))) return true; const p = e.verkefniId ? findProj(e.verkefniId) : null; return window.innheimtaOf(p) === "timar" ? !e.ekkiRk : e.rukka === true; };
   const obilled = pid => ({ es: faerslur().filter(e => keyOf(e) === (pid || NONE) && !e.reikningur && window.timiRukka(e) && e.id && !isTmp(e.id)), ks: kostn().filter(k => keyOf(k) === (pid || NONE) && !k.reikningur) });
   // Öll verkefni (og „án verkefnis“) sem eiga eitthvað óreikningsfært
   const openGroups = () => [...verkefni().map(p => p.id), NONE].map(k => ({ k, p: k === NONE ? null : findProj(k), ...obilled(k === NONE ? null : k) })).filter(g => g.es.length || g.ks.length);
