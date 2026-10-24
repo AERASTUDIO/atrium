@@ -266,19 +266,29 @@
   /* ---------- Tilboð: nýtt ---------- */
   function tbForm(D, pre) { // pre (2.12.0): { verkefniId } – nýtt tilboð úr Tilboð-flipa verkefnis
     const PP = pre?.verkefniId ? findProj(pre.verkefniId) : null;
+    // 2.62.0: verkefni má velja í forminu (líka úr Tilboð-valmynd); tímabil tilboðs er sjálfgefið sömu dagar og verkefnið
+    const pD = p => { if (!p) return {}; const o = x => x ? String(x).slice(0, 10) : ""; const f = o(p.timabilFra) || o(p.vidburdur) || o(p.skiladagur), t = o(p.timabilTil) || o(p.skiladagur) || f; return { fra: f || "", til: t && f && t < f ? f : t || "" }; };
+    const PD = pD(PP);
     const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), M = D === "blandad", L = D !== "sala" && (!M || ON("leiga")), SV = M && !L; // SV (2.22.0): þjónustutilboð – Leiga ekki virk
     sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${M ? "tilboð" : L ? "leigutilboð" : "sölutilboð"}</h3><form id="tbf" novalidate>
       <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" value="${esc(PP?.stutt || "")}" placeholder="${L ? "T.d. Árshátíð" : SV ? "T.d. Ljósahönnun – anddyri" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
-      ${PP ? `<p class="hint" style="margin:0 0 6px">Verkefni: <span class="nr">${esc(PP.nr)}</span> ${esc(PP.stutt || "")}</p>` : ""}
+      ${verkefni().length ? `<label>Verkefni<select id="tb-verk"><option value="">Ekkert verkefni</option>${verkefni().filter(p => !isDone(p) || (PP && p.id === PP.id)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(p => `<option value="${esc(p.id)}"${PP && p.id === PP.id ? " selected" : ""}>${esc(p.nafn || p.nr)}</option>`).join("")}</select></label>` : ""}
       ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
       <label>${L || SV ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
-      ${L ? `<div class="two"><label>Frá${M ? "" : " (afhending)"}<input id="tb-fra" type="date" value="${pre?.fra || (M ? "" : d0)}"></label><label>Til${M ? "" : " (skil)"}<input id="tb-til" type="date" value="${pre?.til || pre?.fra || (M ? "" : d0)}"></label></div>${M ? `<p class="hint" style="margin:-4px 0 8px">Tímabil verksins – leigulínur reiknast á þessa daga.</p>` : ""}` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
+      ${L ? `<div class="two"><label>Frá${M ? "" : " (afhending)"}<input id="tb-fra" type="date" value="${pre?.fra || PD.fra || (M ? "" : d0)}"></label><label>Til${M ? "" : " (skil)"}<input id="tb-til" type="date" value="${pre?.til || pre?.fra || PD.til || (M ? "" : d0)}"></label></div>${M ? `<p class="hint" id="tb-tbh" style="margin:-4px 0 8px">Tímabil verksins${PP ? " – sömu dagar og verkefnið" : ""}. Leigulínur reiknast á þessa daga.</p>` : ""}` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
       <label>Tilboð gildir til<input id="tb-gildir" type="date" value="${g0}"></label>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="tb-cancel">Hætta við</button><button class="btn primary" id="tb-save">Búa til og bæta við línum</button></div></form>`;
     sheetwrap.hidden = false; wireVskSelects(sheet);
     if (L) document.getElementById("tb-fra").onchange = e => { const t = document.getElementById("tb-til"); if (!t.value || t.value < e.target.value) t.value = e.target.value; };
     document.getElementById("tb-client").addEventListener("change", e => { const v = findVsk(e.target.value); if (v) { if (!val("tb-teng") && v.tengilidur) document.getElementById("tb-teng").value = v.tengilidur; if (!val("tb-net") && v.netfang) document.getElementById("tb-net").value = v.netfang; } });
+    // Val á verkefni fyllir í heiti, viðskiptavin og tímabil (ef reitirnir eru tómir eða enn með gildi fyrra verkefnis)
+    let lastPD = PD, lastH = PP?.stutt || "";
+    document.getElementById("tb-verk")?.addEventListener("change", e => { const p = findProj(e.target.value), d = pD(p), set = (id, v, old) => { const el = document.getElementById(id); if (el && (!el.value || el.value === old)) el.value = v || ""; };
+      if (p) { set("tb-heiti", p.stutt || "", lastH); const cs = document.getElementById("tb-client"); if (cs && (p.vskId || p.vkId) && !cs.value) { cs.value = p.vskId || p.vkId; cs.dispatchEvent(new Event("change")); } }
+      if (L) { set("tb-fra", d.fra, lastPD.fra); set("tb-til", d.til, lastPD.til); }
+      const h = document.getElementById("tb-tbh"); if (h) h.textContent = `Tímabil verksins${p ? " – sömu dagar og verkefnið" : ""}. Leigulínur reiknast á þessa daga.`;
+      lastPD = d; lastH = p?.stutt || ""; });
     document.getElementById("tb-cancel").onclick = closeSheet;
     document.getElementById("tbf").onsubmit = async e => { e.preventDefault();
       try {
@@ -287,7 +297,7 @@
         const cl = await pickVsk("tb", "client", "Viðskiptavinur"), id = gid(), n = +c[nK(D)] || 1001, nr = DL[D].pre + n;
         const T = { id, nr, heiti, deild: D, vskId: cl?.id || null, vidskiptavinur: cl?.name || null,
           tengilidur: val("tb-teng") || null, netfang: val("tb-net") || null, stadsetning: val("tb-stad") || null, fra, til, gildir: val("tb-gildir") || null, dags: d0,
-          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null };
+          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: (document.getElementById("tb-verk") ? val("tb-verk") : PP?.id) || null };
         if (pre?.vara) { const v = findV(pre.vara); if (v) T.linur = [{ ...lineFrom(v, T), magn: +pre.magn || 1 }]; } // „+ Á tilboð“ af vöruspjaldi (2.30.0)
         await saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(T); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; });
         toast("Tilboð " + nr + " stofnað"); closeSheet(); EDT = structuredClone(T); openDetail("tb:" + id);
@@ -944,7 +954,7 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
         .catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (k === "tbsend") { const T = findT(a); if (!T || !window.poCompose) return; toast("Bý til PDF…");
       tbLink(T).then(url => tbPdf(T).then(bytes => poCompose({ to: T.netfang || findVsk(T.vskId)?.netfang || "", subject: `Tilboð ${T.nr} – ${T.heiti || ""} frá ${DOK.co().nafn}`, pid: T.verkefniId || null,
-        body: `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nMeðfylgjandi er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).net)} án VSK.${T.gildir ? `\nTilboðið gildir til ${dIS(T.gildir)}.` : ""}${url ? `\n\nÞú getur skoðað tilboðið og samþykkt það hér:\n${url}` : ""}\n\nEndilega hafðu samband ef spurningar vakna.`,
+        body: `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nMeðfylgjandi er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).net)} án VSK.\n\nEf tilboðið hentar biðjum við þig að staðfesta það${T.gildir ? ` fyrir ${dIS(T.gildir)}, en þá rennur það út` : ""}${url ? ` – með því að samþykkja það hér:\n${url}\n\neða með því að svara þessum pósti.` : " með því að svara þessum pósti."}\n\nEndilega hafðu samband ef spurningar vakna.`,
         atts: [{ name: fileBase(T) + ".pdf", type: "application/pdf", size: bytes.length, data: bytes }],
         onSent: () => saveT(a, q => { if (q.stada === "Drög") q.stada = "Sent"; q.sent = isoDay(new Date()); }) }))).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (k === "tbpub") { const T = findT(a); if (!T) return; tbLink(T).then(url => { if (!url) return toast("Ekki tókst að búa til tengil."); navigator.clipboard?.writeText(url).then(() => toast("Samþykktartengill afritaður")).catch(() => prompt("Samþykktartengill:", url)); }); return; }
