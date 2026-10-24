@@ -315,7 +315,7 @@
         const cl = await pickVsk("pn", "client", "Viðskiptavinur"), teng = val("pn-teng") || null; if (!cl && !teng) return msg("Veldu viðskiptavin eða skráðu nafn þess sem pantar.", "err");
         const id = gid(), n = +CF().nastaNrP || 1001, nr = "P-" + n;
         const P = { id, pontun: true, nr, deild: "blandad", heiti: val("pn-heiti") || "Pöntun", vskId: cl?.id || null, vidskiptavinur: cl?.name || null, tengilidur: teng, simi: val("pn-simi") || null, netfang: val("pn-net") || null,
-          uppruni: val("pn-upp") || "simi", ytriNr: null, stadsetning: null, fra, til, dags: isoDay(new Date()), stada: "Ný", afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null, tilbodId: null };
+          uppruni: val("pn-upp") || "simi", ytriNr: null, stadsetning: null, fra, til, dags: isoDay(new Date()), stada: "Ný", svid: (() => { try { return ({ pnl: ["Leiga"], pns: ["Sala"], pnt: ["Þjónusta"] })[tab] || null; } catch (e) { return null; } })(), afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null, tilbodId: null };
         if (pre?.vara) { const v = findV(pre.vara); if (v) P.linur = [{ ...lineFrom(v, P), magn: +pre.magn || 1 }]; } // „Taka frá“ af vöruspjaldi (2.30.0)
         await saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; });
         toast("Pöntun " + nr + " stofnuð"); closeSheet(); EDT = structuredClone(P); openDetail("tb:" + id);

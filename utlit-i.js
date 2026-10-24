@@ -235,8 +235,11 @@
         if (ed) { ed.classList.remove("primary"); act.append(ed); } if (pv) { pv.textContent = "PDF"; act.append(pv); }
         const fs = el.querySelector(".fsels"), sel = fs?.querySelector("select");
         if (sel) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(sel); act.append(w); const kd = fs.previousElementSibling; if (kd?.matches(".kind")) kd.remove(); fs.remove(); }
-        const L = T.linur || [], has = t => L.some(l => l.teg === t), sv = [has("leiga") && "Leiga", has("sala") && "Sala", has("vinna") && "Þjónusta"].filter(Boolean);
-        if (sv.length) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}</div>`);
+        const L = T.linur || [], has = t => L.some(l => l.teg === t), svL = [has("leiga") && "Leiga", has("sala") && "Sala", has("vinna") && "Þjónusta"].filter(Boolean);
+        // Pöntun (2.56.1): sviðið er valið beint (P.svid) – smellt á Leiga · Sala · Þjónusta; án vals ræður tegund línanna eins og áður
+        const sv = T.pontun && T.svid?.length ? T.svid : svL, canSv = T.pontun && (() => { try { return !!MCP; } catch (e) { return false; } })();
+        if (canSv) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${["Leiga", "Sala", "Þjónusta"].map(x => `<button type="button" class="upill svtog${sv.includes(x) ? " dark on" : ""}" data-pnsvid="${esc(T.id)}:${x}" aria-pressed="${sv.includes(x)}" title="${sv.includes(x) ? "Taka af sviðinu" : "Setja á sviðið"}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</button>`).join("")}</div>`);
+        else if (sv.length) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}</div>`);
         const tt = api.totals(T) || {}, isP = !!T.pontun;
         let av = "–", avL = "Búnaður";
         if (has("leiga")) { let miss = 0; L.filter(l => l.teg === "leiga").forEach(l => { const v = api.VR().find(x => String(x.id) === String(l.v)); if (!v || v.tegund === "pakki") return; const cap = (+v.fjoldi || 0) - (window.u1Ovirk ? u1Ovirk(v) : 0), oth = api.upptekid(v.id, T.fra, T.til || T.fra, T.id).max || 0; miss += Math.max(0, (+l.magn || 0) - (cap - oth)); }); av = miss ? miss + " vantar" : "allt laust"; }
@@ -354,6 +357,12 @@
       const sl = document.querySelector("#view .splist"); if (sl && p.ly != null) sl.scrollTop = p.ly;
       const sd = document.querySelector("#view .spdet") || document.getElementById("view"); if (sd && p.vy != null) sd.scrollTop = p.vy; };
     requestAnimationFrame(() => { go(); requestAnimationFrame(go); }); setTimeout(go, 120); };
+  // Svið pöntunar valið beint (2.56.1)
+  document.addEventListener("click", e => { const b = e.target.closest("[data-pnsvid]"); if (!b) return; e.preventDefault(); e.stopPropagation();
+    const [id, x] = b.dataset.pnsvid.split(":"), T = window.salaAPI?.PN().find(P => String(P.id) === id); if (!T) return;
+    const L = T.linur || [], cur = T.svid?.length ? T.svid.slice() : [L.some(l => l.teg === "leiga") && "Leiga", L.some(l => l.teg === "sala") && "Sala", L.some(l => l.teg === "vinna") && "Þjónusta"].filter(Boolean);
+    const nx = cur.includes(x) ? cur.filter(y => y !== x) : [...cur, x].sort((a, b) => ["Leiga", "Sala", "Þjónusta"].indexOf(a) - ["Leiga", "Sala", "Þjónusta"].indexOf(b));
+    saveSnapshot(s => { const P = (s.pantanir || []).find(P => String(P.id) === id); if (P) P.svid = nx.length ? nx : null; }).then(() => render()).catch(() => {}); }, true);
   window.u1Back = () => { const prev = NAV.pop(); if (!prev) return false; navBusy = true; tab = prev.tab; DETAIL = prev.o; if (prev.d && typeof DTAB !== "undefined") DTAB = prev.d; window.STSUB = prev.st; full = false; render(); navRestore(prev); return true; };
   document.addEventListener("click", e => { if (!e.target.closest?.('[data-ui1="back"]')) return; e.preventDefault(); u1Back(); });
   document.addEventListener("keydown", e => { if (e.altKey && e.key === "ArrowLeft" && document.body.classList.contains("ui1") && desk() && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) { if (u1Back()) e.preventDefault(); } });

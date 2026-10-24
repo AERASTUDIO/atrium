@@ -198,7 +198,7 @@
   U.tbt = () => tlist("tbt", "Þjónusta", "vinna");
   const pnList = (title, teg) => function () {
     const api = window.salaAPI; if (!api) return "";
-    const all = api.PN().filter(P => !teg || (P.linur || []).some(l => l.teg === teg)), f = st.vf.pn || "opnar", OP = ["Ný", "Staðfest"];
+    const SVL = { leiga: "Leiga", sala: "Sala", vinna: "Þjónusta" }, all = api.PN().filter(P => !teg || (P.svid?.length ? P.svid.includes(SVL[teg]) : (P.linur || []).some(l => l.teg === teg))), f = st.vf.pn || "opnar", OP = ["Ný", "Staðfest"];
     const xs = all.filter(P => SQ() || (f === "opnar" ? OP.includes(P.stada) : f === "afh" ? P.stada === "Afhent" : ["Skilað", "Lokið"].includes(P.stada))).sort((a, b) => String(a.fra || "").localeCompare(String(b.fra || "")));
     const top = lhead("Pantanir", title, nbtn("Pöntun")) + `<div class="ulbar">${chips([["opnar", "Opnar · " + all.filter(P => OP.includes(P.stada)).length], ["afh", "Afhentar · " + all.filter(P => P.stada === "Afhent").length], ["lokid", "Lokið"]], f, "u1vf:pn")}</div>`;
     if (WIDE()) return top + wl("80px minmax(0,1.3fr) minmax(0,1fr) 84px 100px 100px 56px 120px 100px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Afhending", "Skil", "Línur", "Upphæð m. vsk", "Staða"])
@@ -790,7 +790,8 @@
   const drow = (attr, a, b, pl, dark) => `<a class="uhrow" ${attr}><span><b>${a}</b><small>${b || ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
   const svCards = (items, tabs, lab) => `<div class="usvc">${SV.filter(x => svidOn(x)).map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`;
   const tbSum = T => window.salaAPI.netOf(T); // án VSK, eftir afslátt á línum og skjali
-  const hasTeg = (T, x) => (T.linur || []).some(l => l.teg === SVT[x]);
+  // Pöntun með valið svið (P.svid, 2.56.1) fer eftir því; annars ræður tegund línanna
+  const hasTeg = (T, x) => T.pontun && T.svid?.length ? T.svid.includes(x) : (T.linur || []).some(l => l.teg === SVT[x]);
   const mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
 
   U.verkyf = function () {

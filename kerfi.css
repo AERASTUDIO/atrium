@@ -483,3 +483,8 @@ body.kerfi .t-red{color:var(--t-red)}body.kerfi .t-amb{color:var(--t-amb)}body.k
 .pfurl{display:flex;gap:8px;padding:10px 14px;align-items:center}
 .pfurl input{flex:1;min-width:0;height:32px!important;min-height:0!important;font-size:12.5px!important;color:var(--muted);padding:0 10px!important}
 .pfpub .pfsh>span{margin-right:auto}
+/* Svið pöntunar valið beint (2.56.1) */
+:root body.kerfi #view button.upill.svtog{cursor:pointer;border:1px solid var(--line)!important;padding:1px 9px!important;border-radius:6px!important;background:transparent;font:inherit}
+:root body.kerfi #view button.upill.svtog::before{display:none!important}
+:root body.kerfi #view button.upill.svtog.on{background:color-mix(in srgb,var(--t-blu,#2F6FB3) 14%,transparent)!important;border-color:var(--t-blu,#2F6FB3)!important;color:var(--ink)!important;font-weight:500!important}
+:root body.kerfi #view button.upill.svtog:not(.on){color:var(--muted)!important}
