@@ -88,6 +88,9 @@ exports.vidskStadfestir = onDocumentUpdated("opinber/{t}", async ev => {
   }
   if (a.stadfest || !b.stadfest) return;
   const t = ev.params.t, tilbod = b.teg === "tilbod", col = tilbod ? "tilbod" : "pantanir";
+  // 2.75.0: staðfesting af pöntunarsíðu fer strax á pöntunina (þótt enginn hafi appið opið) – þá sendist staðfestingarpósturinn
+  if (b.teg !== "tilbod" && b.teg !== "aukaverk") { try { const q = await db.collection("pantanir").where("opinber", "==", t).limit(1).get();
+    if (!q.empty) { const P0 = q.docs[0].data(); if (!P0.vidskStadfest) await q.docs[0].ref.update({ vidskStadfest: b.stadfest, ...(P0.stada === "Ný" ? { stada: "Staðfest" } : {}) }); } } catch (e) { logger.warn("staðfesting á pöntun", e); } }
   let id = "", doc = null;
   try { const q = await db.collection(col).where("opinber", "==", t).limit(1).get(); if (!q.empty) { doc = q.docs[0].data(); id = doc.id || q.docs[0].id; } } catch (e) { logger.warn("leit", e); }
   const nafn = (b.stadfest && b.stadfest.nafn) || b.tengilidur || b.vidskiptavinur || "Viðskiptavinur";
@@ -398,5 +401,44 @@ exports.tengillSjalfvirkt = onSchedule({ schedule: "*/15 * * * *", timeZone: TZ,
       await db.doc("pantanir/" + P.id).update({ tengillSendur: { dags: new Date().toISOString(), af: "sjálfvirkt", til: to } });
       logger.info("tengill sendur", { p: P.nr, to });
     } catch (e) { logger.warn("tengill tókst ekki", { p: P.nr, e: String(e.message || e) }); await db.doc("kerfi/tilksent").update({ ["tengill-" + P.id]: admin.firestore.FieldValue.delete() }).catch(() => {}); }
+  }
+});
+
+
+/* ---------- 10. Staðfestingarpóstur pöntunar af netþjóni (2.75.0) ----------
+   Þegar pöntun verður „Staðfest“ (viðskiptavinur staðfesti á pöntunarsíðu, pöntun stofnuð úr samþykktu tilboði eða
+   starfsmaður staðfesti) og staðfestingarpóstur hefur ekki farið (pantanir.stadfPostur / opinber.postur), sendir netþjónninn
+   hann úr sameiginlega pósthólfinu: dagsetningar, afhending, línur, samtals með VSK og tengill á pöntunarsíðuna.
+   Appið sendir sama póst (með PDF) ef einhver með Microsoft-tengingu er við – sá sem fyrstur nær opinber.postur sendir. */
+const kr = n => Math.round(+n || 0).toLocaleString("de-DE") + " kr.";
+exports.pontunStadfestPostur = onDocumentWritten({ document: "pantanir/{id}", secrets: [MS_SECRET] }, async ev => {
+  const b = ev.data.after.exists ? ev.data.after.data() : null, a = ev.data.before.exists ? ev.data.before.data() : null;
+  if (!b || b.prufa || b.stada !== "Staðfest" || (a && a.stada === "Staðfest") || b.stadfPostur || !POSTHOLF.value()) return;
+  await new Promise(r => setTimeout(r, 20000));   // gefa appinu tíma til að búa til pöntunarsíðuna og senda sjálft (með PDF)
+  const ref = db.doc("pantanir/" + ev.params.id), P = (await ref.get()).data(); if (!P || P.stadfPostur || P.stada !== "Staðfest") return;
+  let to = P.netfang; if (!to && P.vskId) { try { to = ((await db.doc("vidskiptavinir/" + P.vskId).get()).data() || {}).netfang; } catch (e) {} } if (!to || !/@/.test(to)) return;
+  const mark = { af: "sjálfvirkt", dags: new Date().toISOString(), til: to };
+  let o = {};
+  if (P.opinber) { const won = await db.runTransaction(async tx => { const r = db.doc("opinber/" + P.opinber), s = await tx.get(r); if (!s.exists) return true; o = s.data() || {}; if (o.postur) return false; tx.update(r, { postur: mark }); return true; }); if (!won) return; }
+  if (!(await once("stadfp-" + ev.params.id))) return;
+  const co = o.fyrirtaeki || {}, url = P.opinber ? PUBBASE + "?o=" + encodeURIComponent(INST) + "&t=" + encodeURIComponent(P.opinber) : "", st = P.vidskStadfest || o.stadfest || null;
+  const nm = [P.nr, P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""].filter(Boolean).join(" – "), nafn = String((st && st.nafn) || P.tengilidur || "").split(" ")[0];
+  const afh = P.afhending === "sent" ? "Sent" + (P.afhStadur ? " á " + escH(P.afhStadur) : "") : P.afhending === "sott" ? "Sótt" : "";
+  const L = o.linur || P.linur || [], sam = o.samtals || null;
+  const rows = L.map(l => `<tr><td style="padding:6px 0;border-bottom:1px solid #E3E7EB">${escH(l.heiti || "")}</td><td style="padding:6px 0;border-bottom:1px solid #E3E7EB;text-align:right">${escH(l.magn ?? "")}${l.ein && l.ein !== "stk." ? " " + escH(l.ein) : ""}</td></tr>`).join("");
+  const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#0F1720;max-width:560px">
+    <p>Sæl/l${nafn ? " " + escH(nafn) : ""},</p><p>Takk fyrir – pöntun <b>${escH(nm)}</b> er staðfest.</p>
+    <p>Afhending: <b>${escH(dIS(d10(P.fra)))}${P.afhKl ? " kl. " + escH(P.afhKl) : ""}</b>${P.til && d10(P.til) !== d10(P.fra) ? ` · Skil: <b>${escH(dIS(d10(P.til)))}</b>` : ""}${afh ? " · " + afh : ""}</p>
+    ${rows ? `<table style="width:100%;border-collapse:collapse;margin:8px 0 4px">${rows}</table>` : ""}${sam && sam.tot ? `<p style="text-align:right"><b>Samtals með VSK ${kr(sam.tot)}</b></p>` : ""}
+    ${st && st.ur ? `<p style="color:#6B7684">Samþykkt af ${escH(st.nafn || "")} með ${escH(st.ur)}.</p>` : ""}
+    ${url ? `<p><a href="${escH(url)}" style="display:inline-block;padding:12px 20px;background:#24578A;color:#fff;border-radius:9px;text-decoration:none">Skoða pöntunina</a></p>` : ""}
+    <p>Kveðja,<br>${escH(co.nafn || "")}${co.simi ? "<br>" + escH(co.simi) : ""}</p></div>`;
+  try {
+    await graph(`/users/${encodeURIComponent(POSTHOLF.value())}/sendMail`, { method: "POST", body: { message: { subject: `Staðfesting á pöntun ${nm}`, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: to } }] }, saveToSentItems: true } });
+    await ref.update({ stadfPostur: mark }); logger.info("staðfestingarpóstur", { p: P.nr, to });
+  } catch (e) {
+    logger.warn("staðfestingarpóstur tókst ekki", { p: P.nr, e: String(e.message || e) });
+    if (P.opinber) await db.doc("opinber/" + P.opinber).update({ postur: null }).catch(() => {});
+    await db.doc("kerfi/tilksent").update({ ["stadfp-" + ev.params.id]: admin.firestore.FieldValue.delete() }).catch(() => {});
   }
 });

@@ -122,7 +122,7 @@ function dVsk(c){
   <p class="sub">${[c.kennitala&&"kt. "+c.kennitala,[c.postnumer,c.stadur].filter(Boolean).join(" ")].filter(Boolean).map(esc).join(" · ")||"Fyrirtæki"}</p>
   <div class="kpis"><div class="card"><b>${act.length}</b><span>verkefni í gangi</span></div><div class="card"><b>${num(tim)}</b><span>klst. alls</span></div>${tb.length?`<div class="card"><b>${esc(kr(tb.reduce((a,p)=>a+(+p.tilbod||0),0)))}</b><span>tilboð · ${tb.length}</span></div>`:""}${rk.length?`<div class="card"><b>${esc(kr(rkT))}</b><span>reikningsfært${ogr?` · ${esc(kr(ogr))} ógreitt`:""}</span></div>`:""}</div>
   <div class="viewtitle">Fyrirtækjaupplýsingar</div><div class="card"><dl class="kv" style="margin:0">${kvRows([
-    ["Kennitala",esc(c.kennitala)],["VSK-númer",esc(c.vsknr)],["Heimilisfang",esc(c.heimilisfang)],["Póstnr. og staður",esc([c.postnumer,c.stadur].filter(Boolean).join(" "))],
+    ["Kennitala",esc(c.kennitala)],["VSK-númer",esc(c.vsknr)],["Heimilisfang",c.heimilisfang&&window.mapLink?mapLink([c.heimilisfang,[c.postnumer,c.stadur].filter(Boolean).join(" ")].filter(Boolean).join(", ")):esc(c.heimilisfang)],["Póstnr. og staður",esc([c.postnumer,c.stadur].filter(Boolean).join(" "))],
     ["Sími",telA(c.simi)],["Netfang",mailA(c.netfang)],["Vefsíða",webA(c.vefsida)]])}</dl>${linkBtns({id:c.id},{edit:"vsk"})}</div>
   <div class="viewtitle">Tengiliður</div><div class="card"><dl class="kv" style="margin:0">${kvRows([["Nafn",esc(c.tengilidur)],["Sími",telA(c.simiT)],["Netfang",mailA(c.netfangT)]])}</dl></div>
   ${textCard("Athugasemdir",c.athugasemdir)}

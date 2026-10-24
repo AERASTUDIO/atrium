@@ -78,6 +78,7 @@ input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg)
 @media print{.ty{min-height:0}.tybtn{display:none}}
 .svm{padding:10px 16px;border-bottom:1px solid #e3e8ec}.svm div{margin-top:4px;white-space:pre-wrap}.svb{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.svx{border:0;background:none;color:#8a5a12;text-decoration:underline;font:inherit;cursor:pointer;padding:8px 4px}.svok{background:#e9f5ee;color:#1e6b45;border-radius:10px;padding:10px 12px;margin-bottom:12px}
 /* 2.73.0: útlit Atrium (G) – alltaf ljóst */
+.mapl{color:var(--acc);text-decoration:none;border-bottom:1px solid var(--acc-s)}
 .t-red{color:var(--red)}.st.t-red{background:#FBE9E7}
 body{background:var(--bg);color:var(--ink)}
 .card{border:0;border-radius:12px;box-shadow:0 0 0 1px var(--line),0 1px 2px rgba(15,23,32,.04);margin-top:16px;overflow:hidden}
@@ -215,7 +216,7 @@ function drawQ(d, confirm, read) {
     <div class="top"><img src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:${JSON.stringify(c.nafn || "")}}))"><div class="co">${E([c.simi, c.netfang].filter(Boolean).join(" · "))}</div></div>
     <div class="kick">Tilboð ${E(d.nr)}${d.utgafa > 1 ? " · útgáfa " + E(d.utgafa) : ""}</div><h1>${E(d.heiti || "Tilboð")}</h1>
     <div class="sub">${E([d.vidskiptavinur, d.tengilidur].filter(Boolean).join(" · "))} &nbsp; <span class="st ${stt[1]}">${stt[0]}</span></div>
-    <section class="card"><div class="kv">${d.fra ? `<div><small>${d.til && d.til !== d.fra ? "Frá" : "Dagsetning"}</small><b>${E(dl(d.fra))}</b></div>${d.til && d.til !== d.fra ? `<div><small>Til</small><b>${E(dl(d.til))}</b></div>` : ""}` : ""}${d.stadsetning ? `<div><small>Staðsetning</small><b>${E(d.stadsetning)}</b></div>` : ""}<div><small>Gildir til</small><b>${E(dl(d.gildir))}</b></div><div><small>Samtals með VSK</small><b>${kr(d.samtals?.tot)}</b></div></div></section>
+    <section class="card"><div class="kv">${d.fra ? `<div><small>${d.til && d.til !== d.fra ? "Frá" : "Dagsetning"}</small><b>${E(dl(d.fra))}</b></div>${d.til && d.til !== d.fra ? `<div><small>Til</small><b>${E(dl(d.til))}</b></div>` : ""}` : ""}${d.stadsetning ? `<div><small>Staðsetning</small><b><a class="mapl" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.stadsetning)}" target="_blank" rel="noopener">${E(d.stadsetning)}</a></b></div>` : ""}<div><small>Gildir til</small><b>${E(dl(d.gildir))}</b></div><div><small>Samtals með VSK</small><b>${kr(d.samtals?.tot)}</b></div></div></section>
     <section class="card"><div class="ch">Tilboðið</div><table><thead><tr><th>Lína</th><th class="n">Magn</th>${dg ? '<th class="n">Dagar</th>' : ""}<th class="n">Upphæð</th></tr></thead><tbody>
       ${(d.linur || []).map(l => `<tr><td>${E(l.heiti)}</td><td class="n">${E(l.magn)}${l.ein && l.ein !== "stk." ? " " + E(l.ein) : ""}</td>${dg ? `<td class="n">${l.dagar || ""}</td>` : ""}<td class="n">${kr(l.upph)}</td></tr>`).join("")}
     </tbody></table>${d.samtals ? `<div class="tot">${d.samtals.afsl ? `<span>Afsláttur −${kr(d.samtals.afsl)}</span>` : ""}<span>Samtals án VSK ${kr(d.samtals.net)}</span><span>VSK ${kr(d.samtals.vsk)}</span><b>Samtals ${kr(d.samtals.tot)}</b></div>` : ""}</section>

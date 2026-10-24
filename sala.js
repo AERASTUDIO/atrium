@@ -835,7 +835,7 @@
         closeSheet();
         toast(["Tilboð " + T.nr + " samþykkt", wP ? "pöntun P-" + nP : "", wV ? "verkefni " + vnr : ""].filter(Boolean).join(" · "));
         // 2.73.0: undirritað tilboð → pöntunin er staðfest af viðskiptavini; valið færist yfir á pöntunina í Pöntunum
-        if (wP) { const V0 = findT(id)?.samthykkt?.vidsk || T.bidur; if (V0 && window.pnFraTilbodi) window.pnFraTilbodi(pid, { nafn: V0.nafn || "", dags: V0.dags || new Date().toISOString(), athugasemd: V0.athugasemd || null, ur: "Tilboð " + T.nr });
+        if (wP) { const V0 = findT(id)?.samthykkt?.vidsk || T.bidur; if (window.pnFraTilbodi) window.pnFraTilbodi(pid, V0 ? { nafn: V0.nafn || "", dags: V0.dags || new Date().toISOString(), athugasemd: V0.athugasemd || null, ur: "Tilboð " + T.nr } : null);
           try { tab = "pantanir"; } catch (e) {} openDetail("tb:" + pid); } else if (wV) openDetail("verk:" + vid); else render();
       } catch (err) { ok.disabled = false; msg(esc(errText(err)), "err"); } };
   }
@@ -930,7 +930,7 @@
     if (k === "pntb") { const T = findT(a); if (!T || isP(T) || pontunAf(T)) return; const n = +CF().nastaNrP || 1001, nr = "P-" + n, id = gid();
       const P = mkPontun(T, id, nr);
       saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; })
-        .then(() => { toast("Pöntun " + nr + " stofnuð úr tilboði " + T.nr); const V0 = T.samthykkt?.vidsk || T.bidur; if (V0 && window.pnFraTilbodi) window.pnFraTilbodi(id, { nafn: V0.nafn || "", dags: V0.dags || new Date().toISOString(), athugasemd: V0.athugasemd || null, ur: "Tilboð " + T.nr });
+        .then(() => { toast("Pöntun " + nr + " stofnuð úr tilboði " + T.nr); const V0 = T.samthykkt?.vidsk || T.bidur; if (window.pnFraTilbodi) window.pnFraTilbodi(id, V0 ? { nafn: V0.nafn || "", dags: V0.dags || new Date().toISOString(), athugasemd: V0.athugasemd || null, ur: "Tilboð " + T.nr } : null);
           try { tab = "pantanir"; } catch (e) {} openDetail("tb:" + id); }).catch(e => toast(errText(e))); return; }
     if (k === "tbs") { TS[r[0]] = r.slice(1).join(":"); render(); return; }
     if (k === "tbf") { TL.f = r[0] || ""; render(); return; }

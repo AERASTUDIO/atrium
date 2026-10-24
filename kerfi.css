@@ -796,3 +796,7 @@ body.kerfi .poattpv{border:0;background:none;padding:0;font:inherit;color:var(--
 .pfpaydlg .pfpl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 .pfpaydlg .pfpl button{min-height:46px;border-radius:10px;border:1px solid var(--line2,var(--line));background:var(--surface);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
 .pfpaydlg .pfpl button[aria-checked="true"]{border-color:var(--kacc);background:var(--acc-soft,var(--b0));color:var(--kacc);font-weight:500}
+/* Staðsetning sem tengill á kort (2.75.0) */
+body.kerfi a.maplnk{display:inline-flex;align-items:center;gap:4px;color:var(--kacc)!important;text-decoration:none}
+body.kerfi a.maplnk svg{width:13px;height:13px;flex:none}
+body.kerfi a.maplnk:hover{text-decoration:underline}

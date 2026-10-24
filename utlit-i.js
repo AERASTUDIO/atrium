@@ -250,7 +250,7 @@
     if (kind === "vsk" && window.u1VskTabs) {
       const r = u1VskTabs(id);
       if (r) { const c = (S?.vidskiptavinir || []).find(x => String(x.id) === String(id));
-        if (c) { hd.querySelector(".spsup").textContent = "Viðskiptavinur" + (c.kennitala ? " · kt. " + c.kennitala : ""); const us = hd.querySelector(".usub"); if (us) us.textContent = [c.heimilisfang, [c.postnumer, c.stadur].filter(Boolean).join(" "), c.netfang].filter(Boolean).join(" · "); }
+        if (c) { hd.querySelector(".spsup").textContent = "Viðskiptavinur" + (c.kennitala ? " · kt. " + c.kennitala : ""); const us = hd.querySelector(".usub"); if (us) { const ad = [c.heimilisfang, [c.postnumer, c.stadur].filter(Boolean).join(" ")].filter(Boolean).join(", "); us.innerHTML = [ad && window.mapLink ? mapLink(ad) : esc(ad), esc(c.netfang || "")].filter(Boolean).join(" · "); } }
         const ed = el.querySelector('[data-act^="edit:vsk:"]'), nv = [...el.querySelectorAll("button")].find(b => /\+ Verkefni/.test(b.textContent));
         if (ed) act.append(ed); if (nv) { nv.classList.add("primary"); act.append(nv); }
         const kp = el.querySelector(".kpis"), body = el.querySelector(".dbody") || kp?.parentElement;
@@ -291,7 +291,7 @@
         // Lýsingarlína án merkja; verkefni sem tengill í sviðslínunni; samtölur í einni línu; næsta skref neðst
         const isP2 = !!T.pontun, nD = T.fra ? Math.max(1, Math.round((new Date(T.til || T.fra) - new Date(T.fra)) / 864e5) + 1) : 0;
         const parts = isP2 ? [T.tengilidur || T.vidskiptavinur, T.simi, T.fra ? u1D.rngIS(T.fra, T.til) : ""] : [T.vidskiptavinur || T.tengilidur, T.fra ? u1D.rngIS(T.fra, T.til) : "", has("leiga") && nD ? nD + (nD === 1 ? " dagur" : " dagar") : "", T.stadsetning];
-        const us = hd.querySelector(".usub"); if (us) us.textContent = parts.filter(Boolean).join(" · ");
+        const us = hd.querySelector(".usub"); if (us) { const st = T.stadsetning || (isP2 ? T.afhStadur : ""); us.innerHTML = [...parts.filter(Boolean).filter(x => x !== T.stadsetning).map(x => esc(String(x))), st && window.mapLink ? mapLink(st) : st ? esc(st) : ""].filter(Boolean).join(" · "); }
         const pj = [...el.querySelectorAll("p.sub")].find(x => /Verkefni:/.test(x.textContent)); if (pj) { const a = pj.querySelector("a"); const sv = hd.querySelector(".usvid"); if (a && sv) { a.classList.add("usvp"); a.textContent = "Verkefni " + a.textContent + " →"; sv.append(a); } pj.remove(); }
         const sumc2 = el.querySelector(".rksum"); if (sumc2) sumc2.outerHTML = `<div class="utbt"><span>Samtals með VSK</span><b>${(Math.round(tt.tot || 0)).toLocaleString("de-DE")} kr.</b></div>`;
         const bot = [...el.querySelectorAll(".links")].find(x => x.querySelector('[data-act^="tbutg:"],[data-act^="tbverk:"],[data-act^="tbdel:"]'));

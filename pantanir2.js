@@ -530,8 +530,8 @@
   window.atrPub = { url: t => pubUrl(t), tok: () => newTok(), inst: () => instKey(), write: (t, d) => pubWrite(t, d), demo: DEMO, ls: () => LS(), lsKey };
   // 2.73.0: pöntun úr tilboði sem viðskiptavinur undirritaði telst staðfest – engin önnur undirskrift. Pöntunarsíðan verður til
   // með staðfestingunni úr tilboðinu og staðfestingarpósturinn (með pöntuninni í PDF) fer sjálfkrafa eins og annars.
-  window.pnFraTilbodi = async (pid, st) => { const P = findP(pid); if (!P || !st || P.opinber) return; const t = newTok();
-    try { await pubWrite(t, { ...snapOf(P), stadfest: st }); await savePN(pid, Q0 => { Q0.opinber = t; Q0.vidskStadfest = st; if (Q0.stada === "Ný") Q0.stada = "Staðfest"; }); pubWatch(t, pid); }
+  window.pnFraTilbodi = async (pid, st) => { const P = findP(pid); if (!P || P.opinber) return; const t = newTok();
+    try { await pubWrite(t, st ? { ...snapOf(P), stadfest: st } : snapOf(P)); await savePN(pid, Q0 => { Q0.opinber = t; if (st) Q0.vidskStadfest = st; if (Q0.stada === "Ný") Q0.stada = "Staðfest"; }); pubWatch(t, pid); }
     catch (e) { console.warn("pöntunarsíða úr tilboði", e); } };
   function pubWatch(t, pid) {
     if (WATCHED.has(t)) return; WATCHED.add(t);
