@@ -568,3 +568,46 @@ body.kerfi #view .tbbadv{padding:0 14px 8px!important}
   :root body.kerfi .pdbar{gap:8px}
   :root body.kerfi .pdchips{flex-wrap:nowrap;overflow-x:auto;max-width:100%}
 }
+
+/* ---------- Líf (2.63.0): hreyfing, tómir skjáir, tákn í síum, bjarmi, litaðar súlur ---------- */
+/* 5 Smáhreyfing */
+:root body.kerfi #view .lifin{animation:lifup .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--li,0) * 40ms)}
+@keyframes lifup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+:root body.kerfi .pfpr.ok .pfck,:root body.kerfi .pfpr.ok{animation:lifpop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes lifpop{0%{transform:scale(.97)}60%{transform:scale(1.015)}100%{transform:none}}
+:root body.kerfi #view :is(.card.tap,.ucard[data-open],.urow,.uln,.pdb,.pdsd,.lifs[role=button]){transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease,border-color .15s ease}
+:root body.kerfi #view :is(.pdb,.pdsd):hover{transform:translateY(-1px)}
+:root body.kerfi #view :is(.btn,.uchip):active{transform:scale(.97)}
+
+/* 6 Tómir skjáir */
+:root body.kerfi .life{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:36px 16px!important;color:var(--muted)}
+:root body.kerfi .life .lifart{color:var(--muted);opacity:.9}
+:root body.kerfi .life .lifart .a{color:var(--kacc);stroke:var(--kacc);animation:liffloat 3.2s ease-in-out infinite}
+@keyframes liffloat{50%{transform:translateY(-4px)}}
+:root body.kerfi .lifea{margin-top:4px}
+:root body.kerfi .lifes{display:flex;align-items:center;gap:8px;color:var(--muted)}
+:root body.kerfi .lifes .lifi{color:var(--t-grn);flex:none}
+
+/* 7 Tákn í síum */
+:root body.kerfi #view :is(.uchip,.pdseg button,.pfseg button,.ulbar .seg button){display:inline-flex;align-items:center;gap:6px}
+:root body.kerfi #view :is(.uchip,.pdseg button,.pfseg button,.ulbar .seg button) .lifi{opacity:.7;flex:none}
+:root body.kerfi #view :is(.uchip.on,[aria-pressed=true],[aria-selected=true]) .lifi{opacity:1}
+
+/* 8 Mjúkur blár bjarmi – aðeins Heim og innskráning */
+:root body.kerfi.lifglow #view{background:radial-gradient(1100px 380px at 30% -120px,color-mix(in srgb,var(--kacc) 13%,transparent),transparent 70%) no-repeat}
+:root body.kerfi #login{background:radial-gradient(900px 520px at 50% -10%,color-mix(in srgb,var(--kacc) 18%,transparent),transparent 70%),var(--bg)}
+
+/* Litaðar súlur í „Vikan þín“: bláar, dagurinn í dag dekkri; vaxa upp þegar skjár opnast */
+:root body.kerfi #view .uwkb i:is([style*="43, 49, 56"],[style*="2B3138"]){background:var(--kacc)!important}
+:root body.kerfi #view .uwkb i{background:color-mix(in srgb,var(--kacc) 30%,transparent)!important;border-radius:4px 4px 0 0}
+:root body.kerfi #view .uwkb i{transform-origin:bottom;animation:lifgrow .6s cubic-bezier(.2,.8,.2,1) both}
+:root body.kerfi #view .uwkb>div:nth-child(2) i{animation-delay:.04s}:root body.kerfi #view .uwkb>div:nth-child(3) i{animation-delay:.08s}:root body.kerfi #view .uwkb>div:nth-child(4) i{animation-delay:.12s}:root body.kerfi #view .uwkb>div:nth-child(5) i{animation-delay:.16s}:root body.kerfi #view .uwkb>div:nth-child(6) i{animation-delay:.2s}:root body.kerfi #view .uwkb>div:nth-child(7) i{animation-delay:.24s}
+@keyframes lifgrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+/* Villur: klukka sást ekki í ljósu þema (hvítt á hvítu) */
+:root body.kerfi #view .uklk:not(.on) .uklr .btn:not(.primary){color:var(--ink)!important;background:var(--surface)!important;border:1px solid var(--line)!important}
+:root body.kerfi #view .uklk:not(.on) .uklr b{color:var(--ink)!important}
+:root body.kerfi #view .sdk.on .sdkt b.kt,:root body.kerfi #view .uklk.on .uklr b{color:var(--ink)!important}
+:root body.kerfi #view .sdk.on .sdl{color:var(--muted)!important}
+@media (prefers-reduced-motion:reduce){
+  :root body.kerfi .life .lifart .a,:root body.kerfi #view .lifin,:root body.kerfi #view .uwkb i,:root body.kerfi .pfpr.ok{animation:none}
+}
