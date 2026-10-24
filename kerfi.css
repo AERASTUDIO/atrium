@@ -623,3 +623,16 @@ body.kerfi #view .tbbadv{padding:0 14px 8px!important}
 :root body.kerfi .pdleg .pdm.in{display:inline-block;transform:rotate(45deg);margin:0 2px}
 :root body.kerfi .pdlg{display:inline-block;width:14px;height:10px;border-radius:3px;background:var(--kacc)}
 :root body.kerfi .pdlg.late{background:var(--t-amb)}:root body.kerfi .pdlg.bad{background:var(--t-red)}:root body.kerfi .pdlg.hold{background:color-mix(in srgb,var(--muted) 35%,transparent)}
+
+/* ---------- Bilakerfi (2.68.2): eitt gildi milli allra reita, lárétt og lóðrétt ----------
+   --g 16 px milli spjalda og raða · --gi 8 px innan spjalda (t.d. dagar í „Næstu 7 dagar“) · --pad 20 px innri spássía spjalda.
+   Gildir á yfirlitssíðum (Heim, Pantanir, Verkefni, Tilboð, Tímar, Viðskiptavinir …). Breytir engu öðru í útliti. */
+:root body.kerfi{--g:16px;--gi:8px;--pad:20px}
+:root body.kerfi #view:has(> :is(.ukps,.udash,.uhtop,.snjgrid,.usvc,.uh3)) > *:not(.uhead):not(script):not(style){margin-top:0!important;margin-bottom:var(--g)!important}
+:root body.kerfi #view :is(.ukps,.usvc,.udash,.uh3,.uhtop,.snjgrid){gap:var(--g)!important;margin:0 0 var(--g)!important}
+:root body.kerfi #view :is(.ukps,.usvc,.udash,.uh3,.uhtop,.snjgrid) > :is(.card,.ucard,.ukp,.kp,.snjc){margin:0!important}
+:root body.kerfi #view .pds{gap:var(--gi)!important}
+:root body.kerfi #view :is(.ucard,.snjc,.pdstrip){padding:var(--pad)!important}
+:root body.kerfi #view :is(.ukps > .ukp,.ukps > .kp){padding:16px var(--pad)!important}
+:root body.kerfi #view .ucard > .uhch{margin:0 0 12px!important}
+@media (max-width:1023px){:root body.kerfi{--g:12px;--pad:16px}}
