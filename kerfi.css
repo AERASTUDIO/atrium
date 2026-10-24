@@ -611,3 +611,7 @@ body.kerfi #view .tbbadv{padding:0 14px 8px!important}
 @media (prefers-reduced-motion:reduce){
   :root body.kerfi .life .lifart .a,:root body.kerfi #view .lifin,:root body.kerfi #view .uwkb i,:root body.kerfi .pfpr.ok{animation:none}
 }
+/* Lykiltölur sem opna lista (2.63.1) */
+:root body.kerfi #view .ukp.tap{cursor:pointer;transition:border-color .15s ease,background-color .15s ease}
+:root body.kerfi #view .ukp.tap:hover{border-color:color-mix(in srgb,var(--kacc) 45%,var(--line))!important;background:color-mix(in srgb,var(--kacc) 5%,var(--surface))!important}
+:root body.kerfi #view .ukp.tap:focus-visible{outline:2px solid var(--kacc);outline-offset:2px}
