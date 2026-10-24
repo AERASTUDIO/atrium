@@ -353,6 +353,7 @@
     const t = tr(() => A().totals ? null : null, null), tt = tr(() => window.tbTotals(P), null), co = tr(() => DOK.co(), {}) || {}, C = tr(() => CFG().tilbod, {}) || {};
     return { o: instKey(), nr: P.nr || "", heiti: P.heiti || "", stada: P.stada || "", fra: P.fra || null, til: P.til || P.fra || null, afhending: P.afhending || null, afhStadur: P.afhending === "sent" ? (P.afhStadur || P.stadsetning || null) : null, afhKl: P.afhKl || null,
       tengilidur: P.tengilidur || null, vidskiptavinur: P.vidskiptavinur || null,
+      netfangM: (e => e && e.includes("@") ? e[0] + "•••" + e.slice(e.indexOf("@") - 1 > 0 ? e.indexOf("@") - 1 : e.indexOf("@")) : null)(P.netfang || tr(() => findVsk(P.vskId)?.netfang, "")),
       linur: (P.linur || []).map(l => ({ heiti: l.heiti || "", magn: +l.magn || 0, ein: l.ein || "", teg: l.teg || "", dagar: l.teg === "leiga" ? (+l.dagar || null) : null, upph: Math.round(tr(() => window.salaAPI.lSum(l, P), 0)) })),
       samtals: tt ? { net: tt.net, vsk: tt.vsk, tot: tt.tot, afsl: tt.afsl } : null, skilmalar: C.skilmalarL || null,
       fyrirtaeki: { nafn: co.nafn || tr(() => ORG.nafn, ""), simi: co.simi || "", netfang: co.netfang || "", vefur: co.vefur || "", merki: tr(() => ORG.docLogo, "") || "icons/doc-logo.png" } };

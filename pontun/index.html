@@ -63,6 +63,20 @@ input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg)
 .pr{padding:0 14px 14px}
 .btn2{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
 @media print{:root{--bg:#fff;--surface:#fff;--ink:#121416;--muted:#555;--line:#ccc}body{background:#fff}.wrap{padding:0;max-width:none}.pr,.foot{display:none}.card{break-inside:avoid}.top img{filter:none!important}}
+.ty{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:24px 8px}
+.tylogo{height:34px;max-width:220px;object-fit:contain;margin-bottom:8px}
+@media (prefers-color-scheme:dark){.tylogo{filter:invert(1) hue-rotate(180deg)}}
+.tyck{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--grn) 14%,transparent);color:var(--grn);animation:typop .45s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes typop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.tyck{animation:none}}
+.ty h1{font-size:28px;max-width:560px;text-wrap:balance}
+.tylead{margin:0;font-size:15px;max-width:520px}.tylead b{font-weight:500}
+.tysum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));width:100%;max-width:560px;background:var(--surface);border:1px solid var(--line);border-radius:6px;text-align:left;margin-top:6px}
+.tysum div{padding:12px 14px;border-right:1px solid var(--line)}.tysum div:last-child{border-right:0}
+.tysum small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.tysum b{font-weight:500}
+.tysub{margin:0;font-size:12.5px;color:var(--muted)}.tysub a{color:var(--acc)}
+.tybtn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+@media print{.ty{min-height:0}.tybtn{display:none}}
 </style>
 </head>
 <body>
@@ -130,9 +144,24 @@ function draw(d, confirm, read) {
     if (nm.length < 2) return er.textContent = "Skráðu nafn."; if (!any) return er.textContent = "Undirskrift vantar."; if (!document.getElementById("ok").checked) return er.textContent = "Hakaðu við til að staðfesta.";
     const b = document.getElementById("go"); b.disabled = true; b.textContent = "Staðfesti…";
     const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = document.getElementById("at").value.trim(); if (at) s.athugasemd = at;
-    try { await confirm(s); document.getElementById("conf").innerHTML = done(s); }
+    try { await confirm(s); d.stadfest = s; thanks(d, () => draw(d, confirm, read)); window.scrollTo(0, 0); }
     catch (x) { b.disabled = false; b.textContent = "Staðfesta pöntun"; er.textContent = "Tókst ekki að staðfesta. " + (x?.code === "permission-denied" ? "Pöntunin hefur þegar verið staðfest." : "Reyndu aftur."); }
   };
+}
+// Þakkarskjár eftir staðfestingu (2.57.1)
+function thanks(d, back) {
+  const c = d.fyrirtaeki || {}, s = d.stadfest || {}, afh = d.afhending === "sent" ? "Sent" + (d.afhStadur ? " á " + d.afhStadur : "") : d.afhending === "sott" ? "Sótt" : "";
+  app.innerHTML = `<div class="ty">
+    <img class="tylogo" src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.remove()">
+    <div class="tyck" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1>Takk fyrir að panta hjá ${E(c.nafn || "okkur")}</h1>
+    <p class="tylead">Pöntun <b>${E(d.nr)}</b> er staðfest. Staðfesting verður send í tölvupósti${d.netfangM ? " á <b>" + E(d.netfangM) + "</b>" : ""}.</p>
+    <div class="tysum"><div><small>Afhending</small><b>${E(dl(d.fra))}${d.afhKl ? " kl. " + E(d.afhKl) : ""}</b></div><div><small>Skil</small><b>${E(dl(d.til))}</b></div>${afh ? `<div><small>Sent eða sótt</small><b>${E(afh)}</b></div>` : ""}</div>
+    <p class="tysub">Staðfest af ${E(s.nafn || "")} · ${E(dl(s.dags))} kl. ${E(String(s.dags || "").slice(11, 16))}</p>
+    <div class="tybtn"><button type="button" class="btn" id="tyv">Skoða pöntunina</button><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>
+    ${c.simi || c.netfang ? `<p class="tysub">Spurningar? ${[c.simi && `<a href="tel:${E(String(c.simi).replace(/[^\d+]/g, ""))}">${E(c.simi)}</a>`, c.netfang && `<a href="mailto:${E(c.netfang)}">${E(c.netfang)}</a>`].filter(Boolean).join(" · ")}</p>` : ""}
+  </div>`;
+  document.getElementById("tyv").onclick = () => { back(); window.scrollTo(0, 0); };
 }
 function done(s) { return `<div class="ok"><img src="${s.undirskrift}" alt="Undirskrift"><div><b>✓ Pöntunin er staðfest</b><div class="sub">${E(s.nafn)} · ${E(dl(s.dags))} kl. ${E(String(s.dags).slice(11, 16))}</div>${s.athugasemd ? `<div class="sub">„${E(s.athugasemd)}“</div>` : ""}<div class="sub">Staðfesting verður líka send í tölvupósti.</div></div></div><div class="pr"><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>`; }
 </script>
