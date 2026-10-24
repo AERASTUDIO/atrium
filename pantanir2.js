@@ -27,6 +27,8 @@
   const CFP = () => tr(() => CFG().pantanir, null) || {};
   const SG = () => ({ on: false, seint: 1, tynt: 100, skemmd: 30, ...(CFP().skilagjold || {}) });
   const FERD = () => !!(CFP().ferd || {}).on;
+  // 2.74.0: staðfestingartengill sendur sjálfkrafa (netþjónn) ef starfsmaður hefur ekki sent hann innan klst fresti
+  const TENG = () => { const t = CFP().tengill || {}; return { on: t.on !== false, klst: +t.klst > 0 ? +t.klst : 2 }; };
   const SIGREQ = () => (CFP().undirskrift || {}).krafa !== false;   // sjálfgefið: undirskrift krafist við afhendingu
   const savePN = (id, fn) => saveSnapshot(s => { const P = (s.pantanir || []).find(x => String(x.id) === String(id)); if (P) fn(P, s); });
   const saveCfg = fn => saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.pantanir = s.stillingar.pantanir || {}; fn(s.stillingar.pantanir, s); });
@@ -475,6 +477,7 @@
       <div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>Týnt eintak</b><small>Hlutfall af innkaupsverði</small></div><div class="snjso snjlim">${num("tynt", sg.tynt, "% af innkaupsverði")}</div></div>
       <div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>Skemmt eintak</b><small>Hlutfall af innkaupsverði – breytanlegt á pöntun</small></div><div class="snjso snjlim">${num("skemmd", sg.skemmd, "% af innkaupsverði")}</div></div>` : ""}</div>
       <div class="viewtitle">Afhending</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(SIGREQ(), "pfSet('sig','krafa',this.checked)", "Krefjast undirskriftar")}</div><div class="snjst"><b>Krefjast undirskriftar við afhendingu og skil</b><small>Ef slökkt má sá sem afhendir sleppa kvittunarskrefinu („Sleppa undirskrift“)</small></div><div class="snjso"></div></div></div>
+      <div class="viewtitle">Staðfestingartengill</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(TENG().on, "pfSet('teng','on',this.checked)", "Senda sjálfkrafa")}</div><div class="snjst"><b>Senda staðfestingartengil sjálfkrafa</b><small>Ný pöntun með netfangi fær pöntunarsíðu strax. Ef enginn hefur sent tengilinn innan frestsins sendir netþjónninn hann úr sameiginlega pósthólfinu.</small></div><div class="snjso snjlim">${TENG().on ? `<input class="snjnum" type="number" min="0.25" step="0.25" value="${E(TENG().klst)}" onchange="pfSet('teng','klst',this.value)"><span class="snju">klst. frestur</span>` : ""}</div></div></div>
       <div class="viewtitle">Ferð dagsins</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(FERD(), "pfSet('ferd','on',this.checked)", "Ferð dagsins")}</div><div class="snjst"><b>Ferð dagsins á Pantanir › Yfirlit</b><small>Afhendingar og sóttar pantanir dagsins í röð, með leið í Google Maps</small></div><div class="snjso"></div></div></div>
       <div class="viewtitle">Sniðmát</div><div class="snjset">${sn.length ? sn.map(s => `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>${E(s.heiti)}</b><small>${(s.linur || []).length} línur${s.vidskiptavinur ? " · " + E(s.vidskiptavinur) : ""}</small></div><div class="snjso"><button type="button" class="btn sm" onclick="pfSet('snidDel','${E(s.id)}')">Eyða</button></div></div>`).join("") : `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><small>Engin sniðmát. Opnaðu pöntun og veldu „Vista sem sniðmát“.</small></div><div class="snjso"></div></div>`}</div>
       <div class="viewtitle">Vefverslun</div><div class="snjset"><div class="snjsr"><div class="snjsc"><span class="pfshop">S</span></div><div class="snjst"><b>Shopify ${sh.virk ? '<span class="t-grn">· tengt</span>' : '<span class="m">· ekki tengt</span>'}</b><small>Pantanir úr vefversluninni detta sjálfkrafa inn í Pantanir (uppruni Shopify) og eru staðfestar ef búnaðurinn er laus.</small></div><div class="snjso"><button type="button" class="btn sm" onclick="pfShopify()">${sh.verslun ? "Stillingar" : "Tengja"}</button></div></div></div>`;
@@ -482,6 +485,7 @@
   window.pfSet = (g, k, v) => { saveCfg(c => {
     if (g === "sg") { c.skilagjold = { ...(c.skilagjold || {}), [k]: k === "on" ? !!v : (parseFloat(String(v).replace(",", ".")) || 0) }; }
     if (g === "ferd") c.ferd = { ...(c.ferd || {}), on: !!v };
+    if (g === "teng") c.tengill = { ...(c.tengill || {}), [k]: k === "on" ? !!v : Math.max(0.25, parseFloat(String(v).replace(",", ".")) || 2) };
     if (g === "sig") c.undirskrift = { ...(c.undirskrift || {}), krafa: !!v };
     if (g === "snidDel") c.snid = (c.snid || []).filter(x => x.id !== k);
   }).then(() => render()).catch(e => toast("Tókst ekki: " + (e?.message || e))); };
@@ -491,7 +495,7 @@
       <ol class="pfsteps"><li>Skráðu slóð verslunarinnar og vistaðu.</li><li>Þegar tengingin er virkjuð birtist hér slóð fyrir webhook sem þú límir í Shopify › Settings › Notifications › Webhooks (Order creation).</li><li>Prófunarpöntun í Shopify birtist þá í Pantanir.</li></ol>
       <div class="pfact"><button type="button" class="btn" data-x="1">Loka</button><button type="button" class="btn primary" id="pfsvs">Vista</button></div>`);
     w.querySelector("#pfsvs").onclick = () => { const v = w.querySelector("#pfsv").value.trim(); saveCfg(c => { c.shopify = { ...(c.shopify || {}), verslun: v, virk: false }; }).then(() => { close(); toast("Shopify-verslun skráð – tengingin verður virkjuð síðar"); render(); }); }; };
-  const addPage = () => { if (typeof STPAGES === "undefined") return false; STPAGES.pferli = { l: "Pantanir", d: "Skilauppgjör, ferð dagsins, sniðmát og tenging við vefverslun", s: ["Skilauppgjör", "Ferð dagsins", "Sniðmát", "Shopify", "Vefverslun"], adm: 1, fn: () => settingsHTML() }; return true; };
+  const addPage = () => { if (typeof STPAGES === "undefined") return false; STPAGES.pferli = { l: "Pantanir", d: "Skilauppgjör, ferð dagsins, sniðmát og tenging við vefverslun", s: ["Skilauppgjör", "Staðfestingartengill", "Ferð dagsins", "Sniðmát", "Shopify", "Vefverslun"], adm: 1, fn: () => settingsHTML() }; return true; };
   if (!addPage()) { const iv = setInterval(() => { if (addPage()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 
 
@@ -579,6 +583,15 @@
     const j = JSON.stringify(snapOf(P)); if (LAST[P.opinber] === j) return; LAST[P.opinber] = j;
     pubWrite(P.opinber, JSON.parse(j)).catch(e => console.warn("opinber", e));
   }
+  // 2.74.0: ný pöntun með netfangi fær pöntunarsíðu strax (hljóðlaust) svo netþjónninn geti sent tengilinn eftir frestinn
+  const AUTOPUB = new Set();
+  async function autoPub() {
+    if (!ed() || !TENG().on || DEMO()) return; const lim = Date.now() - 48 * 36e5;
+    for (const P of PN()) { if (AUTOPUB.has(P.id) || P.opinber || P.prufa || P.stada !== "Ný" || P.vidskStadfest) continue;
+      if (!(P.netfang || tr(() => findVsk(P.vskId)?.netfang, ""))) continue; const t0 = Date.parse(P.stofnad_t || P.dags || ""); if (!(t0 > lim)) continue;
+      AUTOPUB.add(P.id); const t = newTok();
+      try { await pubWrite(t, snapOf(P)); await savePN(P.id, Q0 => { if (!Q0.opinber) Q0.opinber = t; }); LAST[t] = JSON.stringify(snapOf(findP(P.id) || P)); } catch (e) { console.warn("pöntunarsíða", e); } }
+  }
   async function pubCreate(pid) {
     const P = findP(pid); if (!P) return; const t = newTok();
     try { await pubWrite(t, snapOf(P)); await savePN(pid, Q0 => { Q0.opinber = t; }); LAST[t] = JSON.stringify(snapOf(findP(pid) || P)); toast("Pöntunarsíða búin til"); render(); }
@@ -590,7 +603,8 @@
     await savePN(pid, Q0 => { delete Q0.opinber; }); delete PUB[t]; toast("Pöntunarsíðu lokað"); render();
   }
   function pubSend(pid) {
-    const P = findP(pid); if (!P?.opinber) return; const url = pubUrl(P.opinber), co = tr(() => DOK.co().nafn, "") || tr(() => ORG.nafn, "");
+    const P = findP(pid); if (!P?.opinber) return;
+    if (!P.tengillSendur) savePN(pid, Q0 => { Q0.tengillSendur = { dags: nowIso(), af: me(), til: P.netfang || tr(() => findVsk(P.vskId)?.netfang, "") || null }; }).catch(() => {}); const url = pubUrl(P.opinber), co = tr(() => DOK.co().nafn, "") || tr(() => ORG.nafn, "");
     const subj = `Pöntun ${P.nr} – ${P.heiti || ""}`.trim(), body = `Sæl/l${P.tengilidur ? " " + P.tengilidur.split(" ")[0] : ""},\n\nHér getur þú séð pöntunina og staðfest hana:\n${url}\n\nKveðja,\n${co}`;
     if (window.poCompose && tr(() => MS.on(), false)) { // 2.73.0: pöntunin sem PDF í viðhengi (forskoðanleg)
       const A = window.salaAPI; (A?.pdf ? A.pdf(P).then(b => [{ name: A.fileBase(P) + ".pdf", type: "application/pdf", size: b.length, data: b }]).catch(() => []) : Promise.resolve([]))
@@ -609,6 +623,7 @@
         return pm ? `<p class="pfhint"><span class="t-grn">✓ Staðfestingarpóstur sendur</span> til ${E(pm.til || to)} · ${E(dfmt(pm.dags))} kl. ${E(String(pm.dags).slice(11, 16))}</p>`
           : !to ? `<p class="pfhint"><span class="t-amb">Ekkert netfang á pöntuninni</span> – staðfestingarpóstur fór ekki.</p>`
           : `<p class="pfhint"><span class="t-amb">Staðfestingarpóstur ekki farinn</span> – ${msOn() || DEMO() ? "" : "sendist þegar einhver með Microsoft-tengingu opnar appið. "}${ed() && (msOn() || DEMO()) ? `<button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Senda núna</button>` : ""}</p>`; })() : ""}
+      ${!v && P.tengillSendur ? `<p class="pfhint">✉ Tengill sendur${P.tengillSendur.af === "sjálfvirkt" ? " sjálfkrafa" : ""} ${E(dfmt(P.tengillSendur.dags))} kl. ${E(String(P.tengillSendur.dags).slice(11, 16))}${P.tengillSendur.til ? " á " + E(P.tengillSendur.til) : ""}</p>` : !v && TENG().on && P.stada === "Ný" ? `<p class="pfhint">Tengillinn fer sjálfkrafa í póst ${E(String(TENG().klst).replace(".", ","))} klst. eftir að pöntunin var stofnuð, ef hann hefur ekki verið sendur.</p>` : ""}
       ${ed() ? `<div class="pfbb"><button type="button" class="btn${v ? "" : " primary"}" data-pf="pubsend:${E(P.id)}">Senda í tölvupósti${P.netfang ? " · " + E(P.netfang) : ""}</button><button type="button" class="btn" data-pf="pubrev:${E(P.id)}">Loka síðunni</button></div>` : ""}</section>`;
   }
 
@@ -649,6 +664,7 @@
   function decorate() {
     if (!on()) return; let D = null, t = ""; try { D = DETAIL; t = tab; } catch (e) {}
     if (ed()) PN().forEach(P => { if (P.opinber && !P.vidskStadfest) pubWatch(P.opinber, P.id); });
+    try { autoPub(); } catch (e) {}
     const root = document.getElementById("view"); if (!root) return;
     if (D && String(D).startsWith("tb:")) { const P = findP(String(D).slice(3)); if (!P || !P.pontun) return; const host = root.querySelector(".spdet") || root; if (host.querySelector(".pfwrap")) return;
       { const slot = host.querySelector("#tbed .tbafhslot"); if (host.querySelector("#tbed")) { if (slot && !slot.firstChild) slot.innerHTML = afhHTML(P); return; } } // 2.71.0: í breytingasýn aðeins afhendingarmáti, í sínum hluta

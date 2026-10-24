@@ -366,3 +366,32 @@ exports.eftirfylgni = onSchedule({ schedule: "0 9 * * 1-5", timeZone: TZ }, asyn
     const to = T.stofnad_af && all.includes(lc(T.stofnad_af)) ? [T.stofnad_af] : all;
     await send(to, "eftirfylgni", { title: "Tilboð ósvarað í viku", body: [[T.nr, T.heiti].filter(Boolean).join(" "), T.vidskiptavinur || T.tengilidur].filter(Boolean).join(" · ") + ` – sent ${dIS(d10(T.sent || T.dags))}`, link: link("tilbod", "tb:" + T.id), tag: "ef-" + T.id }); }
 });
+
+/* ---------- 9. Staðfestingartengill sendur sjálfkrafa (2.74.0) ----------
+   Ný pöntun með netfangi fær pöntunarsíðu (opinber/{t}) strax í appinu. Ef enginn starfsmaður hefur sent tengilinn
+   (pantanir.tengillSendur) innan frestsins (Stillingar › Pantanir › Staðfestingartengill, sjálfgefið 2 klst.) sendir þetta
+   fall hann úr sameiginlega pósthólfinu (POSTHOLF) og skráir tengillSendur = { dags, af: "sjálfvirkt", til }.
+   Krefst forritaheimildarinnar Mail.Send (Application, admin consent) í Entra-forritinu „Atrium“. Aðeins pantanir 0–72 klst. gamlar. */
+const PUBBASE = "https://aerastudio.github.io/atrium/pontun/";
+const escH = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+exports.tengillSjalfvirkt = onSchedule({ schedule: "*/15 * * * *", timeZone: TZ, secrets: [MS_SECRET] }, async () => {
+  const st = await db.doc("app/state").get(), cfg = (((st.exists && st.data().stillingar) || {}).pantanir || {}).tengill || {};
+  if (cfg.on === false || !POSTHOLF.value()) return; const klst = +cfg.klst > 0 ? +cfg.klst : 2, now = Date.now();
+  const L = (await loadCol("pantanir")).filter(P => P.stada === "Ný" && P.opinber && !P.tengillSendur && !P.vidskStadfest);
+  if (!L.length) return; const V = new Map((await loadCol("vidskiptavinir")).map(c => [String(c.id), c]));
+  for (const P of L) {
+    const t0 = Date.parse(P.stofnad_t || P.dags || ""); if (!(t0 > 0) || now - t0 < klst * 36e5 || now - t0 > 72 * 36e5) continue;
+    const to = P.netfang || (V.get(String(P.vskId)) || {}).netfang; if (!to || !/@/.test(to)) continue;
+    if (!(await once("tengill-" + P.id))) continue;
+    const o = (await db.doc("opinber/" + P.opinber).get()).data() || {}, co = o.fyrirtaeki || {}, url = PUBBASE + "?o=" + encodeURIComponent(INST) + "&t=" + encodeURIComponent(P.opinber);
+    const nafn = String(P.tengilidur || "").split(" ")[0], nm = [P.nr, P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""].filter(Boolean).join(" – ");
+    const html = `<p>Sæl/l${nafn ? " " + escH(nafn) : ""},</p><p>Takk fyrir pöntunina. Hér getur þú séð pöntun <b>${escH(nm)}</b> og staðfest hana:</p>
+      <p><a href="${escH(url)}" style="display:inline-block;padding:12px 20px;background:#24578A;color:#fff;border-radius:9px;text-decoration:none">Skoða og staðfesta pöntun</a></p>
+      <p style="color:#6B7684;font-size:13px">${escH(url)}</p><p>Kveðja,<br>${escH(co.nafn || "")}${co.simi ? "<br>" + escH(co.simi) : ""}</p>`;
+    try {
+      await graph(`/users/${encodeURIComponent(POSTHOLF.value())}/sendMail`, { method: "POST", body: { message: { subject: `Pöntun ${nm} – vinsamlegast staðfestu`, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: to } }] }, saveToSentItems: true } });
+      await db.doc("pantanir/" + P.id).update({ tengillSendur: { dags: new Date().toISOString(), af: "sjálfvirkt", til: to } });
+      logger.info("tengill sendur", { p: P.nr, to });
+    } catch (e) { logger.warn("tengill tókst ekki", { p: P.nr, e: String(e.message || e) }); await db.doc("kerfi/tilksent").update({ ["tengill-" + P.id]: admin.firestore.FieldValue.delete() }).catch(() => {}); }
+  }
+});
