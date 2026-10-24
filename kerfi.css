@@ -733,3 +733,20 @@ html:root body.kerfi #view .splist .spfoot kbd{font:inherit;font-size:11px;min-w
 :root body.kerfi #view .smsvor .smsv small{color:var(--muted)}
 :root body.kerfi #view .smsvor .btn{align-self:flex-start}
 :root body.kerfi #view .smhaf{border-left:3px solid var(--t-red)!important}
+/* Eyða beint úr lista (2.72.1): ruslatunna hægra megin í röð við bendil */
+:root body.kerfi #view .splist .urow[data-open]{position:relative}
+:root body.kerfi #view .splist .urow[data-open] .fvck{left:4px}
+:root body.kerfi #view .fvtr{position:absolute;right:8px;top:50%;width:30px;height:30px;margin-top:-15px;border-radius:8px;display:grid;place-items:center;color:var(--muted);background:var(--surface);box-shadow:0 0 0 1px var(--line);opacity:0;transition:opacity .12s,color .12s;cursor:pointer;z-index:2}
+:root body.kerfi #view .splist .urow[data-open]:hover .fvtr{opacity:1}
+:root body.kerfi #view .fvtr:hover{color:var(--t-red);box-shadow:0 0 0 1px color-mix(in srgb,var(--t-red) 40%,transparent)}
+@media (max-width:1023px){:root body.kerfi #view .fvtr{display:none!important}}
+/* Verkfæraröð (2.72.1): hópar aðskildir með heiti og línu */
+html:root body.kerfi #view .splist .ultool{gap:12px 32px!important}
+html:root body.kerfi #view .splist .ultool > .spfilt{flex:1 1 220px!important;max-width:320px!important}
+html:root body.kerfi #view .splist .ultool > .ultg{display:inline-flex;align-items:center;gap:10px}
+html:root body.kerfi #view .splist .ultool .ultl{font-size:var(--t-xs);font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+html:root body.kerfi #view .splist .ultool .ultg > .ulbar.usvbar{margin:0!important}
+html:root body.kerfi #view .splist .ultool .ultg .usort{gap:0!important}
+/* Ruslatunna yfir stöðuflipa: staðan víkur meðan bendill er á röðinni */
+:root body.kerfi #view .splist .urow[data-open]:has(.fvtr):hover > .r{opacity:0}
+html:root body.kerfi #view .splist .ultool .ultl{min-width:44px}

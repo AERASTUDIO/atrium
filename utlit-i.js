@@ -159,7 +159,15 @@
     f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input type="search" placeholder="Leita eftir ${esc(SPH[tab] || SPH[secOf(tab).k] || "nafni eða númeri")}…" aria-label="Leita í lista" value="${esc(flt)}"><kbd>/</kbd>`;
     (ph ? ph.after(f) : sl.prepend(f));
     // 2.71.1: verkfæraröð – leit og síur í einni línu undir hausnum (dreift yfir breiddina í stað þess að hrúgast undir titlinum)
-    if (ph && desk()) { const tl = document.createElement("div"); tl.className = "ultool"; f.before(tl); tl.append(f); ph.querySelectorAll(":scope > .ulbar").forEach(x => tl.append(x)); const cs = getComputedStyle(ph); tl.style.paddingLeft = cs.paddingLeft; tl.style.paddingRight = cs.paddingRight; }
+    if (ph && desk()) { const tl = document.createElement("div"); tl.className = "ultool"; f.before(tl); tl.append(f); ph.querySelectorAll(":scope > .ulbar").forEach(x => tl.append(x));
+      // 2.72.1: hver síuhópur sér, með heiti og skilum á milli: Staða · Raða · Svið
+      const grp = (el, l) => { const g = document.createElement("div"); g.className = "ultg"; if (l) g.innerHTML = `<span class="ultl">${l}</span>`; el.before(g); g.append(el); };
+      [...tl.querySelectorAll(":scope > .ulbar")].forEach(bar => { const sv = bar.classList.contains("usvbar");
+        if (sv) { grp(bar, "Svið"); return; }
+        [...bar.children].forEach(ch => { tl.append(ch); if (ch.matches(".uchips")) grp(ch, "Staða"); else if (ch.matches(".usort")) { const sp = ch.querySelector(":scope > span"); sp?.remove(); grp(ch, "Raða"); } else grp(ch, ""); });
+        bar.remove(); });
+      const ORD = { "Staða": 1, "": 2, "Svið": 3, "Raða": 4 }; [...tl.querySelectorAll(":scope > .ultg")].sort((x, y) => (ORD[x.querySelector(".ultl")?.textContent || ""] || 2) - (ORD[y.querySelector(".ultl")?.textContent || ""] || 2)).forEach(g => tl.append(g));
+      const cs = getComputedStyle(ph); tl.style.paddingLeft = cs.paddingLeft; tl.style.paddingRight = cs.paddingRight; }
     const inp = f.querySelector("input");
     // Leit: í öllum stöðum og flokkum meðan eitthvað er slegið inn (listinn teiknaður aftur þegar leit hefst eða endar), Enter opnar fyrstu, Esc hreinsar
     const reList = () => { const pos = inp.selectionStart; render(); const i2 = document.querySelector(".splist .spfilt input"); if (i2) { i2.focus(); try { i2.setSelectionRange(pos, pos); } catch (e) {} } };

@@ -8,10 +8,11 @@
   const E = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const curTab = () => { try { return tab; } catch (e) { return ""; } };
   const canEd = () => { try { return !!MCP; } catch (e) { return false; } };
-  const rows = () => [...document.querySelectorAll("#view .splist .uwl .urow[data-open], #view .uwl .urow[data-open]")];
+  const rows = () => [...document.querySelectorAll("#view .splist .urow[data-open], #view .uwl .urow[data-open]")];
   const idOf = r => { const o = r.getAttribute("data-open") || ""; return o.slice(o.indexOf(":") + 1); };
   const isPant = () => /^(pantanir|pn[lst])$/.test(curTab());
   const findT = id => (window.salaAPI ? [...salaAPI.TB(), ...salaAPI.PN()] : []).find(x => String(x.id) === String(id));
+  const TR = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
   const CK = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
 
   function statuses(k) {
@@ -21,9 +22,11 @@
   }
   function deco() {
     const t = curTab(), k = kindOf(t); if (t !== selTab) { SEL.clear(); selTab = t; last = null; }
-    const list = document.querySelector("#view .uwl"); if (!k || !list || !canEd()) return;
+    const list = document.querySelector("#view .splist") || document.querySelector("#view .uwl"); if (!k || !list || !canEd()) return;
+    const delOk = k === "tb" || typeof can !== "function" || can("eyda");
     const rs = rows(); const ids = new Set(rs.map(idOf)); [...SEL].forEach(id => { if (!ids.has(id)) SEL.delete(id); });
     rs.forEach(r => { if (!r.querySelector(":scope > .fvck")) r.insertAdjacentHTML("afterbegin", `<span class="fvck" role="checkbox" tabindex="-1" aria-label="Velja">${CK}</span>`);
+      if (delOk && !r.querySelector(":scope > .fvtr")) r.insertAdjacentHTML("beforeend", `<span class="fvtr" role="button" tabindex="-1" title="Eyða" aria-label="Eyða">${TR}</span>`);
       const on = SEL.has(idOf(r)); r.classList.toggle("fvsel", on); r.querySelector(".fvck").setAttribute("aria-checked", on); });
     const hd = list.querySelector(".ucols"); if (hd && !hd.querySelector(".fvck")) hd.insertAdjacentHTML("afterbegin", `<span class="fvck fvall" role="checkbox" tabindex="0" aria-label="Velja allt">${CK}</span>`);
     const all = hd?.querySelector(".fvall"); if (all) { const n = rs.filter(r => SEL.has(idOf(r))).length; all.setAttribute("aria-checked", n && n === rs.length ? "true" : n ? "mixed" : "false"); }
@@ -33,7 +36,7 @@
   function bar(k) {
     const host = document.querySelector("#view .splist .phead") || document.querySelector("#view .phead"); let b = document.querySelector("#view .fvbar");
     if (!SEL.size) { b?.remove(); return; } if (!host) return;
-    const st = statuses(k), del = k === "tb" || !window.can || can("eyda");
+    const st = statuses(k), del = k === "tb" || typeof can !== "function" || can("eyda");
     const html = `<span class="fvn">${SEL.size} ${SEL.size === 1 ? "valið" : "valin"}</span>${st.length ? `<label class="fvst"><select aria-label="Breyta stöðu"><option value="">Breyta stöðu…</option>${st.map(s => `<option>${E(s)}</option>`).join("")}</select></label>` : ""}${del ? `<button type="button" class="btn fvdel">Eyða</button>` : ""}<button type="button" class="btn fvx">Hætta</button>`;
     if (!b) { host.insertAdjacentHTML("beforeend", `<div class="fvbar" role="toolbar" aria-label="Aðgerðir á valin atriði">${html}</div>`); b = host.querySelector(".fvbar"); }
     else if (b.dataset.n !== String(SEL.size) + k) b.innerHTML = html;
@@ -46,11 +49,11 @@
     else for (const id of ids) { const T = findT(id); if (!T || T.stada === st) continue; doAct("tbst:" + id + ":" + st); await pause(220); }
     toast(`${ids.length} ${ids.length === 1 ? "atriði" : "atriði"}: staða „${st}“`); SEL.clear(); render();
   }
-  async function delAll(k) {
+  async function delAll(k, nafn) {
     const ids = [...SEL]; if (!ids.length) return; const n = ids.length;
     const what = k === "verk" ? (n === 1 ? "verkefni" : "verkefnum") : k === "vsk" ? (n === 1 ? "viðskiptavini" : "viðskiptavinum") : isPant() ? (n === 1 ? "pöntun" : "pöntunum") : (n === 1 ? "tilboði" : "tilboðum");
     const extra = k === "verk" ? "\n\nTíma- og kostnaðarskráningar og undirverk verkefnanna eyðast líka. Fundir og skjöl haldast." : k === "vsk" ? "\n\nVerkefni sem tengjast þeim haldast en tengingin fellur niður." : "";
-    if (!confirm(`Eyða ${n} ${what}?${extra}`)) return;
+    if (!confirm(nafn ? `Eyða „${nafn}“?${extra}` : `Eyða ${n} ${what}?${extra}`)) { if (nafn) { SEL.clear(); deco(); } return; }
     const before = structuredClone(S), has = x => ids.includes(String(x.id));
     try {
       await saveSnapshot(s => {
@@ -77,10 +80,12 @@
         else SEL.has(id) ? SEL.delete(id) : SEL.add(id); last = id; }
       deco(); return; }
     const k = kindOf(curTab());
+    const tr = e.target.closest("#view .fvtr"); if (tr) { e.preventDefault(); e.stopPropagation(); const r = tr.closest(".urow"); SEL.clear(); SEL.add(idOf(r));
+      const nm = (r.querySelector(".t")?.childNodes[0]?.textContent || r.querySelector(".t")?.textContent || "").trim(); delAll(k, nm || null); return; }
     if (e.target.closest("#view .fvbar .fvx")) { SEL.clear(); deco(); return; }
     if (e.target.closest("#view .fvbar .fvdel")) { delAll(k); return; }
     // Með eitthvað valið velur smellur á röð (í stað þess að opna)
-    const r = e.target.closest("#view .uwl .urow[data-open]"); if (r && SEL.size && kindOf(curTab()) && !e.target.closest("a,button:not(.urow),select,input")) { e.preventDefault(); e.stopPropagation(); const id = idOf(r); SEL.has(id) ? SEL.delete(id) : SEL.add(id); last = id; deco(); }
+    const r = e.target.closest("#view .splist .urow[data-open], #view .uwl .urow[data-open]"); if (r && SEL.size && kindOf(curTab()) && !e.target.closest("a,button:not(.urow),select,input")) { e.preventDefault(); e.stopPropagation(); const id = idOf(r); SEL.has(id) ? SEL.delete(id) : SEL.add(id); last = id; deco(); }
   }, true);
   document.addEventListener("change", e => { const s = e.target.closest("#view .fvbar select"); if (!s || !s.value) return; setStatus(kindOf(curTab()), s.value); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && SEL.size && !document.querySelector(".dpop")) { SEL.clear(); deco(); } });
