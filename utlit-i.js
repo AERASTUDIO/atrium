@@ -152,12 +152,14 @@
       if (ph && sv.length && s.tabs.some(t => t[0] === tab && (t[2] === 2 || ALLSV[t[0]]))) { const all = s.tabs.find(t => ALLSV[t[0]]);
         const bs = [[all[0], ALLSV[all[0]]], ...sv.map(t => [t[0], window.svidHeiti ? svidHeiti(t[1]) : t[1]])];
         ph.insertAdjacentHTML("beforeend", `<div class="ulbar usvbar" role="tablist" aria-label="Svið">${bs.map(([k, l]) => `<button type="button" role="tab" class="uchip${k === tab ? " on" : ""}" aria-selected="${k === tab}" data-act="tab:${k}">${esc(l)}</button>`).join("")}</div>`); } }
-    if (!sl.querySelector(".spfoot")) sl.insertAdjacentHTML("beforeend", `<div class="spfoot">/ sía · ↑↓ fletta · Enter opna · N nýtt</div>`);
+    if (!sl.querySelector(".spfoot")) sl.insertAdjacentHTML("beforeend", `<div class="spfoot" role="toolbar" aria-label="Flýtilyklar"><button type="button" data-kb="/"><kbd>/</kbd> Leita</button><button type="button" data-kb="ArrowUp"><kbd>↑</kbd></button><button type="button" data-kb="ArrowDown"><kbd>↓</kbd> Fletta</button><button type="button" data-kb="Enter"><kbd>Enter</kbd> Opna</button><button type="button" data-kb="n"><kbd>N</kbd> Nýtt</button></div>`);
     if (tab === "postur") { if (DETAIL) { sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel"); fixDet(v.querySelector(".spdet")); } return; }
     if (fltTab !== tab) { flt = ""; window.u1Q = ""; fltTab = tab; }
     const f = document.createElement("label"); f.className = "spfilt";
     f.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input type="search" placeholder="Leita eftir ${esc(SPH[tab] || SPH[secOf(tab).k] || "nafni eða númeri")}…" aria-label="Leita í lista" value="${esc(flt)}"><kbd>/</kbd>`;
     (ph ? ph.after(f) : sl.prepend(f));
+    // 2.71.1: verkfæraröð – leit og síur í einni línu undir hausnum (dreift yfir breiddina í stað þess að hrúgast undir titlinum)
+    if (ph && desk()) { const tl = document.createElement("div"); tl.className = "ultool"; f.before(tl); tl.append(f); ph.querySelectorAll(":scope > .ulbar").forEach(x => tl.append(x)); const cs = getComputedStyle(ph); tl.style.paddingLeft = cs.paddingLeft; tl.style.paddingRight = cs.paddingRight; }
     const inp = f.querySelector("input");
     // Leit: í öllum stöðum og flokkum meðan eitthvað er slegið inn (listinn teiknaður aftur þegar leit hefst eða endar), Enter opnar fyrstu, Esc hreinsar
     const reList = () => { const pos = inp.selectionStart; render(); const i2 = document.querySelector(".splist .spfilt input"); if (i2) { i2.focus(); try { i2.setSelectionRange(pos, pos); } catch (e) {} } };
@@ -424,14 +426,24 @@
     if (r.getAttribute("data-open") !== String(DETAIL)) return; e.preventDefault(); e.stopImmediatePropagation(); closeDet(); }, true);
   document.addEventListener("keydown", e => { if (e.key !== "Escape" || !DETAIL || !document.body.classList.contains("hassplit") || !document.querySelector(".split .spdet") || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) return; const sw = document.getElementById("sheetwrap"); if (sw && !sw.hidden) return; if (document.querySelector("dialog[open], .modal.open")) return; e.preventDefault(); closeDet(); });
   // Flýtilyklar í listum: ↑↓ fletta, Enter opna, N nýtt
-  document.addEventListener("keydown", e => {
-    if (!document.body.classList.contains("hassplit") || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") || e.metaKey || e.ctrlKey || e.altKey) return; const sw = document.getElementById("sheetwrap"); if (sw && !sw.hidden) return;
-    const rows = [...document.querySelectorAll(".splist [data-open]")].filter(r => r.offsetParent); if (!rows.length) return;
+  // 2.71.1: sama aðgerð fyrir lykla og hnappana neðst í listanum (spfoot)
+  const kbList = k => {
+    if (k === "/") { const i = document.querySelector(".splist .spfilt input"); if (i) { i.focus(); i.select?.(); return true; } return false; }
+    const rows = [...document.querySelectorAll(".splist [data-open]")].filter(r => r.offsetParent && r.style.display !== "none"); 
+    const nb = document.querySelector('.splist .phead [data-act^="fabnew"], .splist .phead .pnew, .splist .phead .btn.primary');
+    if (k === "n" || k === "N") { if (nb) { nb.click(); return true; } return false; }
+    if (!rows.length) { toast("Enginn listi til að fletta í"); return false; }
     const cur = rows.findIndex(r => r.classList.contains("spsel"));
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const i = Math.max(0, Math.min(rows.length - 1, cur + (e.key === "ArrowDown" ? 1 : -1))); rows[i].click(); setTimeout(() => document.querySelector(".splist .spsel")?.scrollIntoView({ block: "nearest" }), 30); }
-    else if (e.key === "Enter" && cur < 0) { e.preventDefault(); rows[0].click(); }
-    else if ((e.key === "n" || e.key === "N") && document.querySelector('.splist .phead [data-act^="fabnew"], .splist .phead .pnew')) { e.preventDefault(); document.querySelector('.splist .phead [data-act^="fabnew"], .splist .phead .pnew').click(); }
+    if (k === "ArrowDown" || k === "ArrowUp") { const i = cur < 0 ? (k === "ArrowDown" ? 0 : rows.length - 1) : Math.max(0, Math.min(rows.length - 1, cur + (k === "ArrowDown" ? 1 : -1))); rows[i].click(); setTimeout(() => document.querySelector(".splist .spsel")?.scrollIntoView({ block: "nearest" }), 30); return true; }
+    if (k === "Enter") { (rows[cur] || rows[0]).click(); return true; }
+    return false; };
+  document.addEventListener("keydown", e => {
+    if (!document.querySelector("#view .splist") || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") || document.activeElement?.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return; const sw = document.getElementById("sheetwrap"); if (sw && !sw.hidden) return;
+    if (document.querySelector(".dpop, dialog[open]")) return;
+    if (e.key === "Enter" && document.activeElement?.matches?.("button, a, [role=button]") && !document.activeElement.closest(".splist [data-open]")) return;
+    if (["ArrowDown", "ArrowUp", "Enter", "n", "N"].includes(e.key) && kbList(e.key)) e.preventDefault();
   });
+  document.addEventListener("click", e => { const b = e.target.closest(".spfoot [data-kb]"); if (!b) return; e.preventDefault(); kbList(b.dataset.kb); });
   document.addEventListener("keydown", e => {
     if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.querySelector(".spfilt input")) { e.preventDefault(); const i = document.querySelector(".spfilt input"); i.focus(); i.select?.(); }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { const q = document.getElementById("topq"); if (q) { e.preventDefault(); q.focus(); } }

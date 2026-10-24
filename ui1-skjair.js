@@ -175,7 +175,7 @@
     const FV = { "": () => true, opin: v => cnt(v), an: v => !cnt(v), anv: v => !vskSvid(v).size };
     const xs = L.filter(v => SQ() || (FV[f] || FV[""])(v)).sort(so === "vid" ? (a, b) => (R.get(b.id) || 0) - (R.get(a.id) || 0) : (a, b) => String(a.name || "").localeCompare(String(b.name || ""), "is"));
     const kp = (typeof DETAIL !== "undefined" && DETAIL) ? "" : kp4([["Viðskiptavinir", L.length, key + ":"], ["Með opin verkefni", L.filter(FV.opin).length, key + ":opin"], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–", api ? key + ":vid" : ""], ["Án viðskipta", L0.filter(FV.anv).length, "vsk:anv"]]);
-    const top = lhead("", x ? svH(x) : "Viðskiptavinir", nbtn("Viðskiptavinur")) + kp + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"], ["anv", "Án viðskipta"]], f, "u1vf:vsk")}${chips([["nafn", "Raða: nafn"], ["vid", "Raða: viðskipti"]], so, "u1vf:vsksort")}</div>`;
+    const top = lhead("", x ? svH(x) : "Viðskiptavinir", nbtn("Viðskiptavinur")) + kp + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"], ["anv", "Án viðskipta"]], f, "u1vf:vsk")}<label class="usort"><span>Raða</span><select onchange="doAct('u1vf:vsksort:'+this.value)" aria-label="Raða eftir"><option value="nafn"${so === "nafn" ? " selected" : ""}>Nafni</option><option value="vid"${so === "vid" ? " selected" : ""}>Viðskiptum</option></select></label></div>`;
     const rk = v => R.get(v.id) ? kr(R.get(v.id)) : "";
     let h = "", last = "";
     xs.forEach(v => { if (so === "nafn") { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } } const n = cnt(v);
