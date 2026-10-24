@@ -346,7 +346,9 @@
     if (navBusy) { navBusy = false; navLast = n; return; }
     // Hliðarskref (2.47.2) fara ekki í söguna: að skipta um svið/undirflipa innan sama hluta (Leiga · Sala · Þjónusta …)
     // eða um flipa á sama spjaldi. „Til baka“ fer þá þangað sem hlutinn eða spjaldið var opnað frá (t.d. Meira eða listinn).
-    const lateral = navLast && (!n.o && !navLast.o && n.st === navLast.st && secOf(n.tab) === secOf(navLast.tab)) || (n.o && n.o === navLast?.o && n.tab === navLast?.tab);
+    // Frá yfirliti hluta (t.d. Pantanir › Yfirlit) er ekki hliðarskref (2.63.2): „Til baka“ fer aftur á yfirlitið
+    const fromYf = navLast && /yf$|^yfirlit$/.test(navLast.tab || "");
+    const lateral = navLast && (!fromYf && !n.o && !navLast.o && n.st === navLast.st && secOf(n.tab) === secOf(navLast.tab)) || (n.o && n.o === navLast?.o && n.tab === navLast?.tab);
     if (navLast && navKey(n) !== navKey(navLast)) { if (n.tab === "upphaf") NAV.length = 0; else if (!lateral) { NAV.push(navLast); if (NAV.length > 60) NAV.shift(); } }
     navLast = n; };
   const navBtn = () => { document.querySelectorAll("#view .uback").forEach(x => x.remove()); if (!NAV.length || tab === "upphaf" || !desk()) return;
