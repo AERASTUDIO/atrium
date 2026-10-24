@@ -1,0 +1,137 @@
+<!doctype html>
+<!-- Pöntunarsíða viðskiptavinar (Atrium 2.56.0, pantanir2.js). Slóð: pontun/?o=<uppsetning>&t=<auðkenni>.
+     Les eitt skjal, opinber/{t}, úr Firebase-verkefni uppsetningarinnar (ORG.firebase í <uppsetning>/fyrirtaeki.js) án innskráningar.
+     Viðskiptavinurinn getur staðfest pöntunina einu sinni með nafni og undirskrift (Firestore-reglur leyfa ekkert annað).
+     ?demo: les og skrifar localStorage í stað Firebase (sýniútgáfa). -->
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Pöntun</title>
+<link rel="icon" href="../icons/atrium-favicon.svg">
+<style>
+@font-face{font-family:Poppins;src:url(../fonts/Poppins-Light.ttf);font-weight:300}
+@font-face{font-family:Poppins;src:url(../fonts/Poppins-Regular.ttf);font-weight:400}
+@font-face{font-family:Poppins;src:url(../fonts/Poppins-Medium.ttf);font-weight:500}
+:root{--bg:#F4F6F8;--surface:#FFFFFF;--ink:#121416;--muted:#6B7480;--line:#E1E5EA;--acc:#2F6FB3;--on-acc:#fff;--grn:#1E8449;--amb:#A66A00;--red:#C0392B;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121416;--surface:#1A1D21;--ink:#E8ECEF;--muted:#98A2AD;--line:#2A2F35;--acc:#5B9BD8;--on-acc:#0B1622;--grn:#56D364;--amb:#E3B341;--red:#FF7B72;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.5 Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 64px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.top img{height:34px;max-width:220px;object-fit:contain}
+.top .co{font-size:12.5px;color:var(--muted);text-align:right}
+@media (prefers-color-scheme:dark){.top img{filter:invert(1) hue-rotate(180deg)}}
+.kick{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+h1{margin:2px 0 4px;font-weight:300;font-size:28px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:13px}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500}.st::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;margin-top:16px}
+.ch{padding:10px 14px;border-bottom:1px solid var(--line);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.kv div{padding:12px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kv small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kv b{font-weight:500;font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 14px;border-bottom:1px solid var(--line)}
+td{padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.tot{display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding:12px 14px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+.tot b{color:var(--ink);font-size:16px;font-weight:500}
+.terms{padding:12px 14px;font-size:12.5px;color:var(--muted);white-space:pre-line}
+form{padding:14px;display:flex;flex-direction:column;gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.sig{position:relative;border:1px dashed var(--line);border-radius:6px;background:#fff}
+.sig canvas{display:block;width:100%;aspect-ratio:3/1;touch-action:none;cursor:crosshair}
+.sig button{position:absolute;right:8px;top:8px;border:0;background:none;color:#2F6FB3;font:inherit;font-size:12.5px;cursor:pointer}
+.sig span{position:absolute;left:12px;bottom:8px;font-size:11px;color:#9AA4AD;text-transform:uppercase;letter-spacing:.06em;pointer-events:none}
+.chk{flex-direction:row;align-items:flex-start;gap:10px;color:var(--ink);font-size:13px}
+.chk input{width:18px;height:18px;margin-top:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:6px;border:1px solid var(--acc);background:var(--acc);color:var(--on-acc);font:inherit;font-weight:500;font-size:15px;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.ok{padding:16px 14px;display:flex;gap:14px;align-items:center}
+.ok img{width:150px;height:50px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:4px}
+.ok b{color:var(--grn);font-weight:500}
+.msg{padding:40px 16px;text-align:center;color:var(--muted)}
+.err{color:var(--red);font-size:13px}
+.foot{margin-top:28px;text-align:center;font-size:11.5px;color:var(--muted)}
+.t-grn{color:var(--grn)}.t-amb{color:var(--amb)}.t-blu{color:var(--acc)}
+@media (max-width:560px){h1{font-size:24px}.top .co{display:none}td,th{padding:8px 10px}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><div class="msg">Sæki pöntun…</div></main>
+<script type="module">
+const q = new URLSearchParams(location.search), O = (q.get("o") || "").replace(/[^a-z0-9-]/gi, ""), T = (q.get("t") || "").replace(/[^a-z0-9]/gi, ""), DEMO = q.has("demo");
+const app = document.getElementById("app");
+const E = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const kr = n => Math.round(+n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " kr.";
+const DN = ["sunnudagur", "mánudagur", "þriðjudagur", "miðvikudagur", "fimmtudagur", "föstudagur", "laugardagur"], MN = ["janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", "ágúst", "september", "október", "nóvember", "desember"];
+const dl = s => { if (!s) return "–"; const x = new Date(String(s).slice(0, 10) + "T00:00:00"); return DN[x.getDay()] + " " + x.getDate() + ". " + MN[x.getMonth()]; };
+const tone = s => /Staðfest|Afhent/.test(s) ? "t-blu" : /Skilað|Lokið/.test(s) ? "t-grn" : "t-amb";
+const fail = m => { app.innerHTML = `<div class="msg">${E(m)}</div>`; };
+if (!O || !T) fail("Tengillinn er ekki réttur. Hafðu samband við þann sem sendi hann.");
+else start().catch(e => fail("Ekki tókst að sækja pöntunina. " + (e?.code === "permission-denied" ? "Tengillinn er ekki lengur virkur." : "Reyndu aftur síðar.")));
+
+async function start() {
+  await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "../" + O + "/fyrirtaeki.js"; s.onload = ok; s.onerror = () => no(new Error("uppsetning")); document.head.append(s); });
+  let read, confirm;
+  if (DEMO) {
+    const k = "atrium-opinber:" + T;
+    read = async () => JSON.parse(localStorage.getItem(k) || "null");
+    confirm = async st => { const d = JSON.parse(localStorage.getItem(k) || "null"); if (!d || d.stadfest) throw new Error("þegar staðfest"); d.stadfest = st; d.uppfaert = new Date().toISOString(); localStorage.setItem(k, JSON.stringify(d)); };
+  } else {
+    const [{ initializeApp }, F] = await Promise.all([import("https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js"), import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js")]);
+    const fs = F.getFirestore(initializeApp(window.ORG.firebase)), ref = F.doc(fs, "opinber", T);
+    read = async () => { const s = await F.getDoc(ref); return s.exists() ? s.data() : null; };
+    confirm = st => F.updateDoc(ref, { stadfest: st, uppfaert: new Date().toISOString() });
+  }
+  const d = await read(); if (!d) return fail("Pöntunin fannst ekki eða tengillinn er ekki lengur virkur.");
+  draw(d, confirm, read);
+}
+function draw(d, confirm, read) {
+  const c = d.fyrirtaeki || {}; document.title = "Pöntun " + d.nr + " · " + (c.nafn || "");
+  const showPrice = d.samtals && (d.linur || []).some(l => l.upph);
+  const afh = d.afhending === "sent" ? "Sent" + (d.afhStadur ? " · " + d.afhStadur : "") : d.afhending === "sott" ? "Sótt" : "–";
+  const st = d.stadfest;
+  app.innerHTML = `
+    <div class="top"><img src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:${JSON.stringify(c.nafn || "")}}))"><div class="co">${E([c.simi, c.netfang].filter(Boolean).join(" · "))}</div></div>
+    <div class="kick">Pöntun ${E(d.nr)}</div><h1>${E(d.heiti || "Pöntun")}</h1>
+    <div class="sub">${E([d.vidskiptavinur, d.tengilidur].filter(Boolean).join(" · "))} &nbsp; <span class="st ${tone(st ? "Staðfest" : d.stada)}">${E(st && d.stada === "Ný" ? "Staðfest" : d.stada || "")}</span></div>
+    <section class="card"><div class="kv"><div><small>Afhending</small><b>${E(dl(d.fra))}${d.afhKl ? " kl. " + E(d.afhKl) : ""}</b></div><div><small>Skil</small><b>${E(dl(d.til))}</b></div><div><small>Sent eða sótt</small><b>${E(afh)}</b></div></div></section>
+    <section class="card"><div class="ch">Pöntunin</div><table><thead><tr><th>Lína</th><th class="n">Magn</th>${d.linur?.some(l => l.dagar) ? '<th class="n">Dagar</th>' : ""}${showPrice ? '<th class="n">Upphæð</th>' : ""}</tr></thead><tbody>
+      ${(d.linur || []).map(l => `<tr><td>${E(l.heiti)}</td><td class="n">${E(l.magn)}${l.ein && l.ein !== "stk." ? " " + E(l.ein) : ""}</td>${d.linur.some(x => x.dagar) ? `<td class="n">${l.dagar || ""}</td>` : ""}${showPrice ? `<td class="n">${kr(l.upph)}</td>` : ""}</tr>`).join("")}
+    </tbody></table>${showPrice ? `<div class="tot">${d.samtals.afsl ? `<span>Afsláttur −${kr(d.samtals.afsl)}</span>` : ""}<span>Samtals án VSK ${kr(d.samtals.net)}</span><span>VSK ${kr(d.samtals.vsk)}</span><b>Samtals ${kr(d.samtals.tot)}</b></div>` : ""}</section>
+    ${d.skilmalar ? `<section class="card"><div class="ch">Skilmálar</div><div class="terms">${E(d.skilmalar)}</div></section>` : ""}
+    <section class="card" id="conf">${st ? done(st) : `<div class="ch">Staðfesta pöntun</div><form id="f" novalidate>
+      <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
+      <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
+      <label>Athugasemd (valfrjálst)<textarea id="at" rows="2" maxlength="1000" placeholder="T.d. breyting á tíma eða aðkomu"></textarea></label>
+      <label class="chk"><input type="checkbox" id="ok">${d.skilmalar ? "Ég hef lesið skilmálana og staðfesti pöntunina" : "Ég staðfesti pöntunina"}</label>
+      <div class="err" id="er" role="alert"></div>
+      <div><button class="btn" id="go">Staðfesta pöntun</button></div></form>`}</section>
+    <div class="foot">${E(c.nafn || "")}${c.vefur ? " · " + E(c.vefur) : ""} · Atrium</div>`;
+  if (st) return;
+  const cv = document.getElementById("sg"), g = cv.getContext("2d"); let dr = false, any = false, last;
+  g.lineWidth = 2.4; g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#121416";
+  const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+  cv.onpointerdown = e => { dr = true; last = pt(e); cv.setPointerCapture(e.pointerId); e.preventDefault(); };
+  cv.onpointermove = e => { if (!dr) return; const p = pt(e); g.beginPath(); g.moveTo(...last); g.lineTo(...p); g.stroke(); last = p; any = true; };
+  cv.onpointerup = cv.onpointercancel = () => { dr = false; };
+  document.getElementById("clr").onclick = () => { g.clearRect(0, 0, cv.width, cv.height); any = false; };
+  document.getElementById("f").onsubmit = async e => {
+    e.preventDefault(); const er = document.getElementById("er"), nm = document.getElementById("nm").value.trim();
+    if (nm.length < 2) return er.textContent = "Skráðu nafn."; if (!any) return er.textContent = "Undirskrift vantar."; if (!document.getElementById("ok").checked) return er.textContent = "Hakaðu við til að staðfesta.";
+    const b = document.getElementById("go"); b.disabled = true; b.textContent = "Staðfesti…";
+    const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = document.getElementById("at").value.trim(); if (at) s.athugasemd = at;
+    try { await confirm(s); document.getElementById("conf").innerHTML = done(s); }
+    catch (x) { b.disabled = false; b.textContent = "Staðfesta pöntun"; er.textContent = "Tókst ekki að staðfesta. " + (x?.code === "permission-denied" ? "Pöntunin hefur þegar verið staðfest." : "Reyndu aftur."); }
+  };
+}
+function done(s) { return `<div class="ok"><img src="${s.undirskrift}" alt="Undirskrift"><div><b>✓ Pöntunin er staðfest</b><div class="sub">${E(s.nafn)} · ${E(dl(s.dags))} kl. ${E(String(s.dags).slice(11, 16))}</div>${s.athugasemd ? `<div class="sub">„${E(s.athugasemd)}“</div>` : ""}</div></div>`; }
+</script>
+</body>
+</html>

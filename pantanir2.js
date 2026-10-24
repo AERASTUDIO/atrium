@@ -7,7 +7,7 @@
    6. Ferð dagsins (Stillingar › Pantanir): afhendingar og sóttar pantanir dagsins í röð, leið í Google Maps.
    7. Panta aftur og sniðmát.
    9. Shopify: tenging í boði í Stillingar › Pantanir (virkjuð síðar).
-   Ný gögn á pantanir/{id}: afhending ("sent"|"sott"), afhStadur, afhKl, kvittun: { ut|inn: { nafn, undirskrift (PNG data-URL), mynd (JPEG data-URL),
+   Ný gögn á pantanir/{id}: opinber (auðkenni pöntunarsíðu), vidskStadfest, afhending ("sent"|"sott"), afhStadur, afhKl, kvittun: { ut|inn: { nafn, undirskrift (PNG data-URL), mynd (JPEG data-URL),
    dags, af } }, tinsla: [eintaksnr], tinslaH: { vöruId: fjöldi }, aukagjold: [lína-id]. Stillingar: S.stillingar.pantanir = { skilagjold, ferd, snid, shopify }. */
 (function () {
   if (window.__pferli) return; window.__pferli = 1;
@@ -339,6 +339,72 @@
   const addPage = () => { if (typeof STPAGES === "undefined") return false; STPAGES.pferli = { l: "Pantanir", d: "Skilauppgjör, ferð dagsins, sniðmát og tenging við vefverslun", s: ["Skilauppgjör", "Ferð dagsins", "Sniðmát", "Shopify", "Vefverslun"], adm: 1, fn: () => settingsHTML() }; return true; };
   if (!addPage()) { const iv = setInterval(() => { if (addPage()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 
+
+  /* ---------- 8. Pöntunarsíða viðskiptavinar (2.56.0) ----------
+     opinber/{t}: afrit pöntunarinnar sem viðskiptavinurinn sér á /pontun/?o=<uppsetning>&t=<t> án innskráningar; hann getur staðfest
+     með nafni og undirskrift einu sinni (Firestore-reglur leyfa aðeins það). Appið uppfærir afritið þegar pöntunin breytist og
+     setur pöntunina í „Staðfest“ þegar viðskiptavinurinn hefur staðfest. Í sýniútgáfu er afritið líka í localStorage svo síðan virki. */
+  const DEMO = () => !!window.AERA_DEMO;
+  const instKey = () => { const seg = location.pathname.replace(/index\.html$/, "").split("/").filter(Boolean); return seg[seg.length - 1] || "aera"; };
+  const pubUrl = t => { const seg = location.pathname.replace(/index\.html$/, "").split("/").filter(Boolean); seg.pop(); return location.origin + "/" + seg.map(x => x + "/").join("") + "pontun/?o=" + encodeURIComponent(instKey()) + "&t=" + encodeURIComponent(t) + (DEMO() ? "&demo" : ""); };
+  const newTok = () => { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(36).padStart(2, "0")).join("").slice(0, 26); };
+  const PUB = {}, WATCHED = new Set(), LAST = {};
+  function snapOf(P) {
+    const t = tr(() => A().totals ? null : null, null), tt = tr(() => window.tbTotals(P), null), co = tr(() => DOK.co(), {}) || {}, C = tr(() => CFG().tilbod, {}) || {};
+    return { o: instKey(), nr: P.nr || "", heiti: P.heiti || "", stada: P.stada || "", fra: P.fra || null, til: P.til || P.fra || null, afhending: P.afhending || null, afhStadur: P.afhending === "sent" ? (P.afhStadur || P.stadsetning || null) : null, afhKl: P.afhKl || null,
+      tengilidur: P.tengilidur || null, vidskiptavinur: P.vidskiptavinur || null,
+      linur: (P.linur || []).map(l => ({ heiti: l.heiti || "", magn: +l.magn || 0, ein: l.ein || "", teg: l.teg || "", dagar: l.teg === "leiga" ? (+l.dagar || null) : null, upph: Math.round(tr(() => window.salaAPI.lSum(l, P), 0)) })),
+      samtals: tt ? { net: tt.net, vsk: tt.vsk, tot: tt.tot, afsl: tt.afsl } : null, skilmalar: C.skilmalarL || null,
+      fyrirtaeki: { nafn: co.nafn || tr(() => ORG.nafn, ""), simi: co.simi || "", netfang: co.netfang || "", vefur: co.vefur || "", merki: tr(() => ORG.docLogo, "") || "icons/doc-logo.png" } };
+  }
+  const lsKey = t => "atrium-opinber:" + t;
+  // Raunverulega localStorage (sýniútgáfan skiptir því út fyrir sessionStorage á hverjum flipa) – svo síðan í öðrum flipa sjái afritið
+  let LSF = null;
+  const LS = () => { try { if (!LSF) { LSF = document.createElement("iframe"); LSF.hidden = true; LSF.setAttribute("aria-hidden", "true"); document.body.append(LSF); } return LSF.contentWindow.localStorage; } catch (e) { return window.localStorage; } };
+  async function pubWrite(t, data) {
+    const cur = PUB[t] || {}; const doc = { ...data, stadfest: cur.stadfest || null, uppfaert: nowIso() };
+    if (DEMO()) { try { const old = JSON.parse(LS().getItem(lsKey(t)) || "null"); if (old?.stadfest) doc.stadfest = old.stadfest; LS().setItem(lsKey(t), JSON.stringify(doc)); } catch (e) {} PUB[t] = doc; return; }
+    if (!window.__DB) throw new Error("Ekki tengt gagnagrunni"); await window.__DB.set("opinber/" + t, doc); PUB[t] = doc;
+  }
+  function pubWatch(t, pid) {
+    if (WATCHED.has(t)) return; WATCHED.add(t);
+    const got = d => { if (!d) return; PUB[t] = d; const P = findP(pid); if (!P) return;
+      if (d.stadfest && !P.vidskStadfest && ed()) savePN(pid, Q0 => { Q0.vidskStadfest = d.stadfest; if (Q0.stada === "Ný") Q0.stada = "Staðfest"; }).then(() => { toast((P.nr || "Pöntun") + " staðfest af " + d.stadfest.nafn); render(); }).catch(() => {}); };
+    if (DEMO()) { const rd = () => { try { got(JSON.parse(LS().getItem(lsKey(t)) || "null")); } catch (e) {} }; rd(); window.addEventListener("storage", e => { if (e.key === lsKey(t)) rd(); }); setInterval(rd, 4000); return; }
+    window.__DB?.watch?.("opinber/" + t, s => got(s.exists ? s.data() : null), () => {});
+  }
+  function pubSync(P) {
+    if (!P.opinber || !ed()) return; pubWatch(P.opinber, P.id);
+    const j = JSON.stringify(snapOf(P)); if (LAST[P.opinber] === j) return; LAST[P.opinber] = j;
+    pubWrite(P.opinber, JSON.parse(j)).catch(e => console.warn("opinber", e));
+  }
+  async function pubCreate(pid) {
+    const P = findP(pid); if (!P) return; const t = newTok();
+    try { await pubWrite(t, snapOf(P)); await savePN(pid, Q0 => { Q0.opinber = t; }); LAST[t] = JSON.stringify(snapOf(findP(pid) || P)); toast("Pöntunarsíða búin til"); render(); }
+    catch (e) { toast("Tókst ekki: " + (e?.message || e) + (String(e?.code || "").includes("permission") ? " – birta þarf nýjar Firestore-reglur" : "")); }
+  }
+  async function pubRevoke(pid) {
+    const P = findP(pid); if (!P?.opinber || !confirm("Loka pöntunarsíðunni? Tengillinn hættir að virka.")) return; const t = P.opinber;
+    try { if (DEMO()) LS().removeItem(lsKey(t)); else await window.__DB?.commit?.([{ path: "opinber/" + t, del: true }]); } catch (e) {}
+    await savePN(pid, Q0 => { delete Q0.opinber; }); delete PUB[t]; toast("Pöntunarsíðu lokað"); render();
+  }
+  function pubSend(pid) {
+    const P = findP(pid); if (!P?.opinber) return; const url = pubUrl(P.opinber), co = tr(() => DOK.co().nafn, "") || tr(() => ORG.nafn, "");
+    const subj = `Pöntun ${P.nr} – ${P.heiti || ""}`.trim(), body = `Sæl/l${P.tengilidur ? " " + P.tengilidur.split(" ")[0] : ""},\n\nHér getur þú séð pöntunina og staðfest hana:\n${url}\n\nKveðja,\n${co}`;
+    if (window.poCompose && tr(() => MS.on(), false)) { try { poCompose({ to: P.netfang || "", subject: subj, body }); return; } catch (e) {} }
+    location.href = "mailto:" + encodeURIComponent(P.netfang || "") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+  }
+  function pubHTML(P) {
+    if (!ed() && !P.opinber) return "";
+    const v = P.vidskStadfest || PUB[P.opinber]?.stadfest;
+    if (!P.opinber) return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b><span>Viðskiptavinurinn sér pöntunina og staðfestir með undirskrift</span><button type="button" class="btn sm" data-pf="pub:${E(P.id)}">Búa til tengil</button></div></section>`;
+    const url = pubUrl(P.opinber);
+    return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b>${v ? `<span class="t-grn">✓ Staðfest af ${E(v.nafn)} · ${E(dfmt(v.dags))} kl. ${E(String(v.dags).slice(11, 16))}</span>` : `<span class="t-amb">Bíður staðfestingar viðskiptavinar</span>`}</div>
+      <div class="pfurl"><input readonly value="${E(url)}" aria-label="Tengill á pöntunarsíðu" onclick="this.select()"><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita</button><a class="btn sm" href="${E(url)}" target="_blank" rel="noopener">Opna</a></div>
+      ${v?.athugasemd ? `<p class="pfhint">Athugasemd viðskiptavinar: „${E(v.athugasemd)}“</p>` : ""}
+      ${ed() ? `<div class="pfbb"><button type="button" class="btn${v ? "" : " primary"}" data-pf="pubsend:${E(P.id)}">Senda í tölvupósti${P.netfang ? " · " + E(P.netfang) : ""}</button><button type="button" class="btn" data-pf="pubrev:${E(P.id)}">Loka síðunni</button></div>` : ""}</section>`;
+  }
+
   /* ---------- Tengt inn í appið ---------- */
   document.addEventListener("click", e => {
     if (!on()) return; const b = e.target.closest("[data-pf]"); if (!b) return; e.preventDefault(); e.stopPropagation();
@@ -353,6 +419,10 @@
     if (op === "again") { const P = findP(id); if (P) againDlg(P, "Panta aftur · " + P.nr); return; }
     if (op === "tpl") return saveTemplate(id);
     if (op === "mail") return mailDlg();
+    if (op === "pub") return pubCreate(id);
+    if (op === "pubrev") return pubRevoke(id);
+    if (op === "pubsend") return pubSend(id);
+    if (op === "pubcopy") { const P = findP(id); if (P?.opinber) navigator.clipboard?.writeText(pubUrl(P.opinber)).then(() => toast("Tengill afritaður")); return; }
   }, true);
   document.addEventListener("change", e => { if (!on()) return; const i = e.target.closest("[data-pfs]"); if (!i) return; const [k, id] = i.dataset.pfs.split(":"); let v = i.value.trim();
     if (k === "afhKl" && v) { const m = v.match(/^(\d{1,2})[:.]?(\d{2})?$/); if (m) v = String(m[1]).padStart(2, "0") + ":" + (m[2] || "00"); }
@@ -360,9 +430,11 @@
 
   function decorate() {
     if (!on()) return; let D = null, t = ""; try { D = DETAIL; t = tab; } catch (e) {}
+    if (ed()) PN().forEach(P => { if (P.opinber && !P.vidskStadfest) pubWatch(P.opinber, P.id); });
     const root = document.getElementById("view"); if (!root) return;
     if (D && String(D).startsWith("tb:")) { const P = findP(String(D).slice(3)); if (!P || !P.pontun) return; const host = root.querySelector(".spdet") || root; if (host.querySelector(".pfwrap")) return;
-      const html = `<div class="pfwrap">${subsHTML(P)}${afhHTML(P)}${pickHTML(P)}${settleHTML(P)}${moreHTML(P)}</div>`;
+      try { pubSync(P); } catch (e) {}
+      const html = `<div class="pfwrap">${subsHTML(P)}${pubHTML(P)}${afhHTML(P)}${pickHTML(P)}${settleHTML(P)}${moreHTML(P)}</div>`;
       const anchor = host.querySelector(".qrbox") || host.querySelector(".utb") || [...host.querySelectorAll(".viewtitle")].find(x => /^Línur/.test(x.textContent.trim()));
       anchor ? anchor.insertAdjacentHTML("beforebegin", html) : host.insertAdjacentHTML("beforeend", html); return; }
     if (!D && /^(pnyf|pantanir|pnl|pns|pnt)$/.test(t)) {

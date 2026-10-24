@@ -92,5 +92,22 @@ service cloud.firestore {
 
     // Skeiðklukka: eitt skjal á hvern notanda (netfang), aðeins hann sjálfur.
     match /klukka/{email} { allow read, write: if active() && email == em(); }
+
+    // Pöntunarsíða viðskiptavinar (2.56.0): eitt skjal á hverja pöntun sem hefur fengið tengil. Auðkennið (t) er langur
+    // tilviljunarstrengur sem aðeins sá sem fær tengilinn þekkir. Hver sem er má SÆKJA eitt skjal eftir auðkenni (ekki lista),
+    // og staðfesta pöntunina EINU SINNI: aðeins reitirnir stadfest og uppfaert mega breytast og stadfest verður að vera tómt fyrir.
+    // Starfsfólk (active) býr til, uppfærir og eyðir.
+    match /opinber/{t} {
+      allow get: if true;
+      allow list: if false;
+      allow create, delete: if active();
+      allow update: if active() || (
+        resource.data.stadfest == null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["stadfest", "uppfaert"])
+        && request.resource.data.stadfest is map
+        && request.resource.data.stadfest.nafn is string && request.resource.data.stadfest.nafn.size() > 1 && request.resource.data.stadfest.nafn.size() < 120
+        && request.resource.data.stadfest.undirskrift is string && request.resource.data.stadfest.undirskrift.size() < 200000
+        && (!("athugasemd" in request.resource.data.stadfest) || (request.resource.data.stadfest.athugasemd is string && request.resource.data.stadfest.athugasemd.size() < 2000)));
+    }
   }
 }
