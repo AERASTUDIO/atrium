@@ -34,10 +34,10 @@
   const hide = (S0, k) => { const t = S0?.tabs.find(x => x[0] === k); if (t) t[2] = 1; };
   if (V) { hide(V, "verk"); V.tabs.unshift(["verkyf", "Yfirlit"]); }
   if (C) C.tabs = [["vskyf", "Yfirlit"], ["vsk", "Viðskiptavinir", 1], ["vskl", "Leiga"], ["vsks", "Sala"], ["vskt", "Þjónusta"]];
-  if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); }
+  if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); P.tabs.push(["pndag", "Dagatal"]); }  // Dagatal pantana og verkefna (2.59.0, pantanir2.js)
   if (T) { hide(T, "ltilbod"); T.tabs.unshift(["tbyf", "Yfirlit"]); }
   if (TI) TI.tabs.unshift(["timyf", "Yfirlit"]);
-  Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", tbyf: "tilbod", timyf: "timar" });
+  Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: ["pantanir", "pferli"], tbyf: "tilbod", timyf: "timar" });
   _einSig = null; applyEin();
   // Merki fyrirtækis í dökku stikunni: dökka útgáfan (ljóst merki) óháð þema
   const coSide = () => { const l = ORG.merki || ORG.logo || {}, src = l.dokk || l.ljos; const i = document.querySelector(".side .colog"); if (i && src && i.getAttribute("src") !== src) i.src = src; };

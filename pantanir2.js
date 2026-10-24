@@ -326,6 +326,79 @@
       ${xs.length ? xs.map((x, i) => `<div class="pfr" data-open="tb:${E(x.P.id)}" role="button" tabindex="0"><span class="pfrn">${x.adr ? i + 1 : "–"}</span><span class="pfrx"><b>${E(x.P.nr)} ${E(x.P.heiti || "")}</b><small>${E([x.adr || "Á staðnum", x.P.tengilidur || x.P.vidskiptavinur, x.P.simi].filter(Boolean).join(" · "))}</small></span><span class="pfrk ${/Afhenda|Sækja/.test(x.k) ? "t-blu" : "t-amb"}">${E(x.k)}${x.kl ? " · " + E(x.kl) : ""}</span></div>`).join("") : `<div class="uempty">Engar afhendingar eða skil í dag.</div>`}</section>`;
   }
 
+
+  /* ---------- Dagatal pantana (2.59.0): Pantanir › Dagatal – tímalína eftir pöntunum og eftir búnaði ---------- */
+  const PD = window.__pdc = window.__pdc || { mode: "pn", span: "vika", start: null, f: "", st: "opnar" };
+  const addD = (iso, n) => { const x = d(iso); x.setDate(x.getDate() + n); return isoDay(x); };
+  const range = () => { const t0 = PD.start || T0(), x = d(t0);
+    if (PD.span === "man") { const a = new Date(x.getFullYear(), x.getMonth(), 1), b = new Date(x.getFullYear(), x.getMonth() + 1, 0); const out = []; for (let y = new Date(a); y <= b; y.setDate(y.getDate() + 1)) out.push(isoDay(y)); return out; }
+    const m = tr(() => mondayOf(x), x), out = []; for (let i = 0; i < (PD.span === "2v" ? 14 : 7); i++) { const y = new Date(m); y.setDate(m.getDate() + i); out.push(isoDay(y)); } return out; };
+  const DNs = ["sun", "mán", "þri", "mið", "fim", "fös", "lau"], MNs = ["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ágú", "sep", "okt", "nóv", "des"];
+  const SVL = { leiga: "Leiga", sala: "Sala", vinna: "Þjónusta" };
+  const onSvid = (P, f) => !f || (P.linur || []).some(l => SVL[l.teg] === f || (f === "Leiga" && l.teg === "pakki")) || (P.svid || []).includes(f);
+  const IC = { sent: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Sent"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>',
+    sott: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Sótt"><path d="M4 10l1.5-5h13L20 10M4 10v9h16v-9M4 10h16M9 19v-5h6v5"/></svg>' };
+  function calHead(days) {
+    const t = T0(), lab = PD.span === "man" ? (() => { const x = d(days[0]); return ["janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", "ágúst", "september", "október", "nóvember", "desember"][x.getMonth()] + " " + x.getFullYear(); })()
+      : (() => { const a = d(days[0]), b = d(days[days.length - 1]); return a.getDate() + ". " + (a.getMonth() !== b.getMonth() ? MNs[a.getMonth()] + " " : "") + "– " + b.getDate() + ". " + MNs[b.getMonth()]; })();
+    const seg = (k, opts) => `<div class="pfseg pdseg" role="group">${opts.map(([v, l]) => `<button type="button" data-pdc="${k}:${v}"${PD[k] === v ? ' aria-pressed="true"' : ""}>${l}</button>`).join("")}</div>`;
+    return `<div class="uhead uhh pdhead"><div><div class="spsup">Pantanir</div><h2 class="ptitle">Dagatal · ${E(lab)}</h2></div><div class="uhr">${ed() ? `<button type="button" class="btn primary" data-act="fabnew:pantanir">+ Pöntun</button>` : ""}</div></div>
+      <div class="pdbar">${seg("mode", [["pn", "Eftir pöntunum"], ["bun", "Eftir búnaði"]])}${seg("span", [["vika", "Vika"], ["2v", "2 vikur"], ["man", "Mánuður"]])}
+        <div class="pdnav"><button type="button" class="btn sm" data-pdc="nav:-1" aria-label="Fyrra tímabil">‹</button><button type="button" class="btn sm" data-pdc="nav:0">Í dag</button><button type="button" class="btn sm" data-pdc="nav:1" aria-label="Næsta tímabil">›</button></div>
+        ${PD.mode === "pn" ? `<div class="pdchips">${["", "Leiga", "Sala", "Þjónusta"].map(f => `<button type="button" class="uchip${PD.f === f ? " on" : ""}" data-pdc="f:${f}">${f || "Öll svið"}</button>`).join("")}${[["opnar", "Opnar"], ["allar", "Allar"]].map(([v, l]) => `<button type="button" class="uchip${PD.st === v ? " on" : ""}" data-pdc="st:${v}">${l}</button>`).join("")}</div>` : ""}</div>`;
+  }
+  const dayHdr = days => { const t = T0(); return `<div class="pdl pdh"></div>${days.map(x => { const y = d(x), we = y.getDay() % 6 === 0; return `<div class="pdh${x === t ? " today" : ""}${we ? " we" : ""}"><span>${DNs[y.getDay()]}</span><b>${y.getDate()}</b></div>`; }).join("")}`; };
+  function calPN(days) {
+    const a = days[0], b = days[days.length - 1], t = T0(), n = days.length;
+    const xs = PN().filter(P => P.fra && String(P.fra).slice(0, 10) <= b && String(P.til || P.fra).slice(0, 10) >= a && (PD.st === "allar" || ["Ný", "Staðfest", "Afhent"].includes(P.stada) || (P.stada === "Afhent")) && onSvid(P, PD.f))
+      .sort((x, y) => String(x.fra).localeCompare(String(y.fra)) || String(x.nr).localeCompare(String(y.nr)));
+    if (!xs.length) return `<div class="uempty">Engar pantanir á þessu tímabili.</div>`;
+    const col = iso => Math.max(0, Math.min(n - 1, Math.round((d(iso) - d(a)) / 864e5)));
+    const rows = xs.map((P, ri) => { const R = ri + 2; const f = String(P.fra).slice(0, 10), tl = String(P.til || P.fra).slice(0, 10), late = P.stada === "Afhent" && tl < t, ar = ["Ný", "Staðfest"].includes(P.stada) && tr(() => A().arekstrar(P).length, 0) > 0;
+      const c1 = col(f < a ? a : f) + 2, c2 = col(tl > b ? b : tl) + 3, cls = ar ? "bad" : late ? "late" : P.stada === "Ný" ? "ny" : ["Skilað", "Lokið"].includes(P.stada) ? "done" : "on";
+      const lateBar = late && t >= a && tl <= b ? `<div class="pdb lateext" style="grid-row:${R};grid-column:${col(tl) + 3}/${col(t > b ? b : t) + 3}" title="Skil komin fram yfir"></div>` : "";
+      const ico = AFH(P) === "sent" ? IC.sent : AFH(P) === "sott" ? IC.sott : "";
+      return `<div class="pdl" style="grid-row:${R}" data-act="u1go:pantanir:tb:${E(P.id)}" role="button" tabindex="0"><b>${E(P.nr)}</b><span>${E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : (P.vidskiptavinur || P.tengilidur || ""))}</span><small>${E(P.vidskiptavinur || P.tengilidur || "")}</small></div>
+        <div class="pdtrack" style="grid-row:${R};grid-column:2/${n + 2}"></div>${lateBar}
+        <div class="pdb ${cls}${f < a ? " cut-l" : ""}${tl > b ? " cut-r" : ""}" style="grid-row:${R};grid-column:${c1}/${c2}" data-act="u1go:pantanir:tb:${E(P.id)}" role="button" tabindex="0" title="${E(P.nr + " · " + (P.heiti || "") + " · " + dfmt(f) + "–" + dfmt(tl) + " · " + (P.stada || "") + (ar ? " · árekstur" : late ? " · skil sein" : ""))}">${ico ? `<i>${ico}</i>` : ""}<span>${E(P.nr)} · ${E(P.stada)}${ar ? " · árekstur" : late ? " · seint" : ""}</span>${ico && f !== tl ? `<i class="r">${ico}</i>` : ""}</div>`; }).join("");
+    return `<div class="pdgrid" style="--n:${n};--cw:${n > 14 ? 24 : 30}px">${dayHdr(days)}${rows}</div>`;
+  }
+  function calBUN(days) {
+    const a = days[0], b = days[days.length - 1], n = days.length;
+    const vs = VR().filter(v => (A().vDeild ? A().vDeild(v) === "leiga" : true) && v.tegund !== "pakki" && v.tegund !== "vinna" && (+v.fjoldi || (v.eintok || []).length));
+    const data = vs.map(v => { const fj = +v.fjoldi || (v.eintok || []).length; const cells = days.map(x => { const u = tr(() => A().upptekid(String(v.id), x, x, null), { max: 0, bs: [] }); return { x, m: u.max, docs: [...new Set(u.bs.filter(z => z.fra <= x && z.til >= x).map(z => z.T.nr))] }; }); return { v, fj, cells, any: cells.some(c => c.m) }; })
+      .filter(r => r.any || PD.allt);
+    if (!data.length) return `<div class="uempty">Enginn búnaður bókaður á þessu tímabili.${!PD.allt ? ` <button type="button" class="pflink" data-pdc="allt:1">Sýna allan búnað</button>` : ""}</div>`;
+    let last = null, out = "";
+    data.sort((x, y) => String(x.v.flokkur || "").localeCompare(String(y.v.flokkur || ""), "is") || String(x.v.heiti).localeCompare(String(y.v.heiti), "is")).forEach(r => {
+      if (r.v.flokkur !== last) { last = r.v.flokkur; out += `<div class="pdg" style="grid-column:1/${n + 2}">${E(last || "Án flokks")}</div>`; }
+      out += `<div class="pdl" data-act="u1go:lvorur:vara:${E(r.v.id)}" role="button" tabindex="0"><b>${E(r.v.heiti)}</b><small>${E(r.v.nr || "")} · ${r.fj} til</small></div>` +
+        r.cells.map(c => { const p = c.m / r.fj, cls = c.m > r.fj ? "over" : c.m === r.fj && c.m ? "full" : c.m ? "part" : "";
+          return `<div class="pdc ${cls}" style="--p:${Math.min(1, p)}" title="${E(r.v.heiti)} ${dfmt(c.x)}: ${c.m} af ${r.fj} bókuð${c.docs.length ? " – " + c.docs.join(", ") : ""}"${c.docs.length ? ` data-pdc="day:${E(r.v.id)}:${c.x}" role="button" tabindex="0"` : ""}>${c.m ? `<span>${c.m > r.fj ? c.m + "/" + r.fj : c.m}</span>` : ""}</div>`; }).join("");
+    });
+    return `<div class="pdgrid bun" style="--n:${n};--cw:${n > 14 ? 24 : 30}px">${dayHdr(days)}${out}</div><p class="pdleg"><span class="pdc part"></span> bókað að hluta <span class="pdc full"></span> allt bókað <span class="pdc over"></span> tvíbókað ${!PD.allt ? `· <button type="button" class="pflink" data-pdc="allt:1">Sýna allan búnað</button>` : `· <button type="button" class="pflink" data-pdc="allt:0">Aðeins bókaður búnaður</button>`}</p>`;
+  }
+  function calHTML() { const days = range(); setTimeout(() => { const w = document.querySelector(".pdwrap"), t = w && w.querySelector(".pdh.today"), l = w && w.querySelector(".pdl"); if (t && w.scrollWidth > w.clientWidth) w.scrollLeft = Math.max(0, t.offsetLeft - (l ? l.offsetWidth : 0) - t.offsetWidth); }, 0); return calHead(days) + `<div class="pdwrap">${PD.mode === "bun" ? calBUN(days) : calPN(days)}</div>`; }
+  window.pfCalHTML = calHTML;
+  const regCal = () => { const U = window.UI1V; if (!U) return false; if (!U.pndag) U.pndag = () => on() ? calHTML() : `<div class="uempty">Kveiktu á einingunni Pöntunarferli í Stillingar › Einingar.</div>`; return true; };
+  if (!regCal()) { const iv = setInterval(() => { if (regCal()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
+  function dayDlg(vid, x) { const v = findV(vid); if (!v) return; const u = tr(() => A().upptekid(String(v.id), x, x, null), { bs: [] }); const docs = [...new Map(u.bs.filter(z => z.fra <= x && z.til >= x).map(z => [z.T.id, z])).values()];
+    const { w, close } = modal(v.heiti + " · " + dfmt(x), `<div class="pfml">${docs.map(z => `<a class="pfmlr pdlink" href="#" data-id="${E(z.T.id)}"><span><b>${E(z.T.nr)}</b> ${E(z.T.heiti || "")}<small>${E(z.T.vidskiptavinur || z.T.tengilidur || "")}</small></span><b>${z.m} stk.</b></a>`).join("")}</div>`);
+    w.addEventListener("click", e => { const a = e.target.closest(".pdlink"); if (!a) return; e.preventDefault(); e.stopPropagation(); close(); tab = "pantanir"; DETAIL = "tb:" + a.dataset.id; window.STSUB = null; render(); }); }
+  // „Næstu 7 dagar“ á Pantanir › Yfirlit
+  function stripHTML() { const t = T0(), days = [...Array(7)].map((_, i) => addD(t, i));
+    const P = PN().filter(x => !["Lokið"].includes(x.stada));
+    return `<section class="card ucard pdstrip"><div class="uhch"><h3>Næstu 7 dagar</h3><a href="#" data-act="tab:pndag">Dagatal →</a></div><div class="pds">${days.map(x => { const y = d(x), af = P.filter(p => String(p.fra || "").slice(0, 10) === x && ["Ný", "Staðfest"].includes(p.stada)).length, sk = P.filter(p => String(p.til || p.fra || "").slice(0, 10) === x && p.stada === "Afhent").length;
+      return `<button type="button" class="pdsd${x === t ? " today" : ""}" data-pdc="goto:${x}"><span>${x === t ? "Í dag" : DNs[y.getDay()] + " " + y.getDate() + "."}</span><b class="${af ? "t-blu" : "m"}">${af} <small>út</small></b><b class="${sk ? "t-amb" : "m"}">${sk} <small>inn</small></b></button>`; }).join("")}</div></section>`; }
+  document.addEventListener("click", e => { const b = e.target.closest("[data-pdc]"); if (!b || !on()) return; e.preventDefault(); e.stopPropagation();
+    const [k, v, w] = b.dataset.pdc.split(":");
+    if (k === "nav") { const span = PD.span === "man" ? null : PD.span === "2v" ? 14 : 7; if (v === "0") PD.start = null; else if (span) PD.start = addD(PD.start || T0(), +v * span); else { const x = d(PD.start || T0()); x.setMonth(x.getMonth() + +v, 1); PD.start = isoDay(x); } }
+    else if (k === "day") return dayDlg(v, w);
+    else if (k === "goto") { PD.start = v; PD.span = "vika"; try { doAct("tab:pndag"); } catch (x) {} return; }
+    else if (k === "allt") PD.allt = v === "1";
+    else PD[k] = v;
+    render(); }, true);
+
   /* ---------- Stillingar › Pantanir ---------- */
   function settingsHTML() {
     const sg = SG(), sh = CFP().shopify || {}, sn = CFP().snid || [];
@@ -509,6 +582,7 @@
     if (!D && /^(pnyf|pantanir|pnl|pns|pnt)$/.test(t)) {
       const ph = root.querySelector(".phead .phrow, .uhead"), nb = ph && (ph.querySelector('[data-act^="fabnew"]') || ph.querySelector(".btn.primary"));
       if (nb && ed() && !root.querySelector('[data-pf="mail"]')) nb.insertAdjacentHTML("beforebegin", `<button type="button" class="btn pfmailb" data-pf="mail:" title="Ný pöntun úr pósti eða sniðmáti">Úr pósti / sniðmáti</button>`);
+      if (t === "pnyf" && !root.querySelector(".pdstrip")) { const k = root.querySelector(".ukps"); if (k) k.insertAdjacentHTML("afterend", stripHTML()); else { const h = root.querySelector(".uhead"); h ? h.insertAdjacentHTML("afterend", stripHTML()) : root.insertAdjacentHTML("afterbegin", stripHTML()); } }
       if (t === "pnyf" && FERD() && !root.querySelector(".pfferd")) { const at = root.querySelector(".uh3") || root.querySelector(".foot") ; const h = ferdHTML(); at ? at.insertAdjacentHTML("beforebegin", h) : root.insertAdjacentHTML("beforeend", h); }
     }
   }
