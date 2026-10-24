@@ -360,7 +360,7 @@
       const ico = AFH(P) === "sent" ? IC.sent : AFH(P) === "sott" ? IC.sott : "";
       return `<div class="pdl" style="grid-row:${R}" data-act="u1go:pantanir:tb:${E(P.id)}" role="button" tabindex="0"><b>${E(P.nr)}</b><span>${E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : (P.vidskiptavinur || P.tengilidur || ""))}</span><small>${E(P.vidskiptavinur || P.tengilidur || "")}</small></div>
         <div class="pdtrack" style="grid-row:${R};grid-column:2/${n + 2}"></div>${lateBar}
-        <div class="pdb ${cls}${f < a ? " cut-l" : ""}${tl > b ? " cut-r" : ""}" style="grid-row:${R};grid-column:${c1}/${c2}" data-act="u1go:pantanir:tb:${E(P.id)}" role="button" tabindex="0" title="${E(P.nr + " · " + (P.heiti || "") + " · " + dfmt(f) + "–" + dfmt(tl) + " · " + (P.stada || "") + (ar ? " · árekstur" : late ? " · skil sein" : ""))}">${ico ? `<i>${ico}</i>` : ""}<span>${E(P.nr)} · ${E(P.stada)}${ar ? " · árekstur" : late ? " · seint" : ""}</span>${ico && f !== tl ? `<i class="r">${ico}</i>` : ""}</div>`; }).join("");
+        <div class="pdb ${cls}${f < a ? " cut-l" : ""}${tl > b ? " cut-r" : ""}" style="grid-row:${R};grid-column:${c1}/${c2}" data-act="u1go:pantanir:tb:${E(P.id)}" role="button" tabindex="0" title="${E(P.nr + " · " + (P.heiti || "") + " · " + dfmt(f) + "–" + dfmt(tl) + " · " + (P.stada || "") + (ar ? " · árekstur" : late ? " · skil sein" : ""))}">${ico ? `<i>${ico}</i>` : ""}<span>${E(P.nr)}<em> · ${E(P.stada)}${ar ? " · árekstur" : late ? " · seint" : ""}</em></span>${ico && f !== tl ? `<i class="r">${ico}</i>` : ""}</div>`; }).join("");
     return `<div class="pdgrid" style="--n:${n};--cw:${n > 14 ? 24 : 30}px">${dayHdr(days)}${rows}</div>`;
   }
   function calBUN(days) {

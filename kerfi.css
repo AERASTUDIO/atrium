@@ -511,24 +511,25 @@ body.kerfi #view .tbbadv{padding:0 14px 8px!important}
 :root body.kerfi .pdbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:4px 0 14px}
 :root body.kerfi .pdnav{display:flex;gap:4px}
 :root body.kerfi .pdchips{display:flex;flex-wrap:wrap;gap:6px}
-:root body.kerfi .pdwrap{overflow-x:auto;border:1px solid var(--line,#e3e7ee);border-radius:12px;background:var(--card,#fff)}
+:root body.kerfi .pdwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 :root body.kerfi .pdgrid{display:grid;grid-template-columns:minmax(150px,210px) repeat(var(--n),minmax(var(--cw,30px),1fr));grid-auto-rows:minmax(40px,auto);min-width:calc(170px + var(--n)*var(--cw,30px));position:relative}
-:root body.kerfi .pdh{position:sticky;top:0;z-index:2;background:var(--card,#fff);border-bottom:1px solid var(--line,#e3e7ee);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:var(--t-xs,11px);color:var(--mut,#7a8494);padding:6px 0}
-:root body.kerfi .pdh b{font-size:var(--t-sm,13px);color:var(--ink,#1d2433);font-weight:600}
-:root body.kerfi .pdh.we{background:color-mix(in srgb,var(--card,#fff) 92%,#8090a8)}
+:root body.kerfi .pdh{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:var(--t-xs,11px);color:var(--muted);padding:6px 0}
+:root body.kerfi .pdh b{font-size:var(--t-sm,13px);color:var(--ink);font-weight:600}
+:root body.kerfi .pdh.we{background:color-mix(in srgb,var(--surface) 95%,var(--ink))}
 :root body.kerfi .pdh.today b{color:var(--t-red,#c53030)}
 :root body.kerfi .pdh.today{box-shadow:inset 0 -2px 0 var(--t-red,#c53030)}
-:root body.kerfi .pdl{grid-column:1;display:flex;flex-direction:column;justify-content:center;padding:6px 12px;border-bottom:1px solid var(--line,#eef1f5);cursor:pointer;min-width:0;position:sticky;left:0;z-index:1;background:var(--card,#fff)}
+:root body.kerfi .pdl{grid-column:1;display:flex;flex-direction:column;justify-content:center;padding:6px 12px;border-bottom:1px solid var(--line);cursor:pointer;min-width:0;position:sticky;left:0;z-index:1;background:var(--surface)}
 :root body.kerfi .pdl.pdh{flex-direction:row}
 :root body.kerfi .pdl b{font-size:var(--t-sm,13px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-:root body.kerfi .pdl span,:root body.kerfi .pdl small{font-size:var(--t-xs,11px);color:var(--mut,#7a8494);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-:root body.kerfi .pdl span{color:var(--ink,#1d2433)}
-:root body.kerfi .pdl:hover{background:color-mix(in srgb,var(--kacc,#2b5fd9) 6%,var(--card,#fff))}
-:root body.kerfi .pdtrack{border-bottom:1px solid var(--line,#eef1f5);grid-row:auto}
+:root body.kerfi .pdl span,:root body.kerfi .pdl small{font-size:var(--t-xs,11px);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root body.kerfi .pdl span{color:var(--ink)}
+:root body.kerfi .pdl:hover{background:color-mix(in srgb,var(--kacc,#2b5fd9) 6%,var(--surface))}
+:root body.kerfi .pdtrack{border-bottom:1px solid var(--line);grid-row:auto}
 :root body.kerfi .pdgrid>.pdl:not(.pdh)+.pdtrack{grid-row:span 1}
 :root body.kerfi .pdb{align-self:center;margin:0 2px;height:26px;border-radius:7px;display:flex;align-items:center;gap:4px;padding:0 8px;font-size:var(--t-xs,11px);font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;z-index:1;background:color-mix(in srgb,var(--kacc,#2b5fd9) 16%,transparent);color:var(--kacc,#2b5fd9);border:1px solid color-mix(in srgb,var(--kacc,#2b5fd9) 35%,transparent)}
 :root body.kerfi .pdb span{overflow:hidden;text-overflow:ellipsis}
 :root body.kerfi .pdb i{display:inline-flex;font-style:normal}
+:root body.kerfi .pdb em{font-style:normal}
 :root body.kerfi .pdb i.r{margin-left:auto}
 :root body.kerfi .pdb.on{background:var(--kacc,#2b5fd9);color:#fff;border-color:transparent}
 :root body.kerfi .pdb.ny{background:transparent;border-style:dashed}
@@ -538,30 +539,32 @@ body.kerfi #view .tbbadv{padding:0 14px 8px!important}
 :root body.kerfi .pdb.lateext{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--t-red,#c53030) 30%,transparent) 0 5px,transparent 5px 10px);border:1px dashed var(--t-red,#c53030);cursor:default;padding:0;z-index:0}
 :root body.kerfi .pdb.cut-l{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:0}
 :root body.kerfi .pdb.cut-r{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:0}
-:root body.kerfi .pdg{padding:10px 12px 4px;font-size:var(--t-xs,11px);font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--mut,#7a8494);background:color-mix(in srgb,var(--card,#fff) 94%,#8090a8);border-bottom:1px solid var(--line,#eef1f5);position:sticky;left:0}
-:root body.kerfi .pdc{border-bottom:1px solid var(--line,#eef1f5);border-left:1px solid color-mix(in srgb,var(--line,#eef1f5) 60%,transparent);display:flex;align-items:center;justify-content:center;font-size:var(--t-xs,11px);font-weight:600;position:relative}
+:root body.kerfi .pdg{padding:10px 12px 4px;font-size:var(--t-xs,11px);font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:color-mix(in srgb,var(--surface) 94%,var(--ink));border-bottom:1px solid var(--line);position:sticky;left:0}
+:root body.kerfi .pdc{border-bottom:1px solid var(--line);border-left:1px solid color-mix(in srgb,var(--line) 60%,transparent);display:flex;align-items:center;justify-content:center;font-size:var(--t-xs,11px);font-weight:600;position:relative}
 :root body.kerfi .pdc[role=button]{cursor:pointer}
 :root body.kerfi .pdc.part{background:color-mix(in srgb,var(--kacc,#2b5fd9) calc(10% + var(--p)*25%),transparent);color:var(--kacc,#2b5fd9)}
 :root body.kerfi .pdc.full{background:var(--kacc,#2b5fd9);color:#fff}
 :root body.kerfi .pdc.over{background:var(--t-red,#c53030);color:#fff}
-:root body.kerfi .pdleg{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:var(--t-xs,11px);color:var(--mut,#7a8494);margin:10px 2px}
+:root body.kerfi .pdleg{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:var(--t-xs,11px);color:var(--muted);margin:10px 2px}
 :root body.kerfi .pdleg .pdc{--p:.5;display:inline-block;width:14px;height:14px;border-radius:4px;border:0}
 :root body.kerfi .pdstrip .uhch{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 :root body.kerfi .pdstrip .uhch h3{margin:0;font-size:var(--t-md,15px)}
 :root body.kerfi .pdstrip .uhch a{font-size:var(--t-sm,13px);color:var(--kacc,#2b5fd9);text-decoration:none}
 :root body.kerfi .pds{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-:root body.kerfi .pdsd{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line,#e3e7ee);border-radius:10px;background:transparent;font:inherit;cursor:pointer;text-align:left;color:inherit}
-:root body.kerfi .pdsd span{font-size:var(--t-xs,11px);color:var(--mut,#7a8494)}
+:root body.kerfi .pdsd{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:transparent;font:inherit;cursor:pointer;text-align:left;color:inherit}
+:root body.kerfi .pdsd span{font-size:var(--t-xs,11px);color:var(--muted)}
 :root body.kerfi .pdsd.today{border-color:var(--t-red,#c53030)}
 :root body.kerfi .pdsd.today span{color:var(--t-red,#c53030);font-weight:600}
 :root body.kerfi .pdsd b{font-size:var(--t-sm,13px)}
-:root body.kerfi .pdsd b.m{color:var(--mut,#9aa3b2);font-weight:500}
+:root body.kerfi .pdsd b.m{color:var(--muted);font-weight:500}
 :root body.kerfi .pdsd b small{font-weight:400;font-size:var(--t-xs,11px)}
 @media (max-width:720px){
   :root body.kerfi .pds{grid-template-columns:repeat(7,minmax(64px,1fr));overflow-x:auto}
   :root body.kerfi #view .pdgrid{grid-template-columns:110px repeat(var(--n),minmax(34px,1fr))!important;min-width:calc(110px + var(--n)*34px)}
   :root body.kerfi .pdchips .uchip,:root body.kerfi .pdbar button{white-space:nowrap}
   :root body.kerfi .pdl{padding:6px 8px}
+  :root body.kerfi .pdb em,:root body.kerfi .pdb i.r{display:none}
+  :root body.kerfi .pdb{padding:0 5px}
   :root body.kerfi .pdbar{gap:8px}
   :root body.kerfi .pdchips{flex-wrap:nowrap;overflow-x:auto;max-width:100%}
 }
