@@ -232,6 +232,8 @@
       } });
   }
   window.qrScanOrder = scanOrder;
+  // Notað af pantanir2.js (2.55.0): tínslulisti og kvittanir
+  window.qrAPI = { need, openScanner, closeScanner, findE, refreshPanel: () => refreshPanel(), orderState };
 
   // Kassi á pöntunarspjaldi: staða skönnunar + hnappar (sími og tölva)
   function orderBox(P) {
