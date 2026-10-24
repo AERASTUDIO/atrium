@@ -3,7 +3,7 @@
      Les eitt skjal, opinber/{t}, úr Firebase-verkefni uppsetningarinnar (ORG.firebase í <uppsetning>/fyrirtaeki.js) án innskráningar.
      Viðskiptavinurinn getur staðfest pöntunina einu sinni með nafni og undirskrift (Firestore-reglur leyfa ekkert annað).
      ?demo: les og skrifar localStorage í stað Firebase (sýniútgáfa).
-     2.61.0: sama síða sýnir tilboð (teg: "tilbod") – viðskiptavinurinn samþykkir það með nafni og undirskrift; starfsmaður staðfestir í appinu. -->
+     2.67.0: líka aukaverk (teg: "aukaverk"). 2.61.0: sama síða sýnir tilboð (teg: "tilbod") – viðskiptavinurinn samþykkir það með nafni og undirskrift; starfsmaður staðfestir í appinu. -->
 <html lang="is">
 <head>
 <meta charset="utf-8">
@@ -112,6 +112,7 @@ async function start() {
 }
 function draw(d, confirm, read) {
   if (d.teg === "tilbod") return drawQ(d, confirm, read);
+  if (d.teg === "aukaverk") return drawA(d, confirm, read);
   const c = d.fyrirtaeki || {}; document.title = "Pöntun " + d.nr + " · " + (c.nafn || "");
   const showPrice = d.samtals && (d.linur || []).some(l => l.upph);
   const afh = d.afhending === "sent" ? "Sent" + (d.afhStadur ? " · " + d.afhStadur : "") : d.afhending === "sott" ? "Sótt" : "–";
@@ -149,6 +150,36 @@ function draw(d, confirm, read) {
     try { await confirm(s); d.stadfest = s; thanks(d, () => draw(d, confirm, read)); window.scrollTo(0, 0); }
     catch (x) { b.disabled = false; b.textContent = "Staðfesta pöntun"; er.textContent = "Tókst ekki að staðfesta. " + (x?.code === "permission-denied" ? "Pöntunin hefur þegar verið staðfest." : "Reyndu aftur."); }
   };
+}
+/* Aukaverk (2.67.0): vinna utan tilboðs á verkefni – viðskiptavinurinn samþykkir einu sinni með nafni og undirskrift */
+function drawA(d, confirm, read) {
+  const c = d.fyrirtaeki || {}, st = d.stadfest;
+  document.title = "Aukaverk · " + d.nr + " · " + (c.nafn || "");
+  const stt = st || d.stada === "Samþykkt" ? ["Samþykkt", "t-grn"] : d.stada === "Hafnað" ? ["Afturkallað", "t-amb"] : ["Bíður samþykkis", "t-blu"];
+  const h = +d.klst ? String(Math.round(d.klst * 10) / 10).replace(".", ",") + " klst." : "";
+  app.innerHTML = `
+    <div class="top"><img src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:${JSON.stringify(c.nafn || "")}}))"><div class="co">${E([c.simi, c.netfang].filter(Boolean).join(" · "))}</div></div>
+    <div class="kick">Aukaverk · ${E(d.nr)} ${E(d.verkefni || "")}</div><h1>${E(d.heiti || "Aukaverk")}</h1>
+    <div class="sub">${E([d.vidskiptavinur, d.tengilidur].filter(Boolean).join(" · "))} &nbsp; <span class="st ${stt[1]}">${stt[0]}</span></div>
+    <section class="card"><div class="kv">${h ? `<div><small>Vinna</small><b>${E(h)}</b></div>` : ""}<div><small>Upphæð án VSK</small><b>${+d.upphaed ? kr(d.upphaed) : "Rukkað samkvæmt tímaskráningu"}</b></div><div><small>Verkefni</small><b>${E(d.nr)} ${E(d.verkefni || "")}</b></div></div></section>
+    <section class="card"><div class="ch">Lýsing</div><div class="terms">${E(d.heiti || "")}</div></section>
+    <section class="card" id="conf">${st ? `<div class="ok"><img src="${st.undirskrift}" alt="Undirskrift"><div><b>✓ Aukaverkið er samþykkt</b><div class="sub">${E(st.nafn)} · ${E(dl(st.dags))} kl. ${E(String(st.dags).slice(11, 16))}</div></div></div>` : d.stada === "Hafnað" ? `<div class="sub">Aukaverkið hefur verið afturkallað. Hafðu samband við ${E(c.nafn || "okkur")} ef spurningar vakna.</div>` : `<div class="ch">Samþykkja aukaverk</div><form id="f" novalidate>
+      <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
+      <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
+      <label>Athugasemd (valfrjálst)<textarea id="at" rows="2" maxlength="1000"></textarea></label>
+      <label class="chk"><input type="checkbox" id="ok">Ég samþykki aukaverkið${+d.upphaed ? " og að það verði rukkað" : ""}</label>
+      <div class="err" id="er" role="alert"></div>
+      <div><button class="btn" id="go">Samþykkja aukaverk</button></div></form>`}</section>
+    <div class="foot">${E(c.nafn || "")}${c.vefur ? " · " + E(c.vefur) : ""} · Atrium</div>`;
+  if (st || d.stada === "Hafnað") return;
+  sign(d, confirm, () => {
+    app.innerHTML = `<div class="ty"><img class="tylogo" src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.remove()">
+      <div class="tyck" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1>Takk – aukaverkið er samþykkt</h1><p class="tylead">${E(c.nafn || "Við")} ${c.nafn ? "hefur" : "höfum"} fengið samþykkið${+d.upphaed ? " og aukaverkið bætist við reikning verkefnisins" : ""}.</p>
+      <div class="tysum"><div><small>Aukaverk</small><b>${E(d.heiti || "")}</b></div>${+d.upphaed ? `<div><small>Upphæð án VSK</small><b>${kr(d.upphaed)}</b></div>` : ""}</div>
+      <div class="tybtn"><button type="button" class="btn" id="tyv">Skoða aukaverkið</button><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div></div>`;
+    document.getElementById("tyv").onclick = () => { drawA(d, confirm, read); window.scrollTo(0, 0); };
+  }, "Samþykkja aukaverk", "Aukaverkið hefur þegar verið samþykkt.");
 }
 /* Tilboð (2.61.0): sama útlit; samþykkt einu sinni með nafni og undirskrift. Útrunnið tilboð er ekki hægt að samþykkja. */
 function drawQ(d, confirm, read) {

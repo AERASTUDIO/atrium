@@ -33,7 +33,7 @@
   const HL = { cmd: ["Skipanalína", "Skráðu í mæltu máli, t.d. „2 tímar á Hótel Lind í gær – teikningar“"], loka: ["Loka deginum", "Drög að tímaskráningu dagsins úr fundum, skönnunum og athugasemdum"],
     vidv: ["Viðvaranir", "Yfir áætlun, tvíbókaður búnaður, óstaðfestar afhendingar og skil án tíma"], hver: ["Hver er hvar", "Staða teymisins í dag – aðeins í tölvu"], pulse: ["Rekstrarpúls", "Óinnheimt, reikningshæft, nýting – aðeins með fjármálaaðgang, í tölvu"] };
   const VT = { yfir: "Verkefni yfir eða stefnir yfir áætlun", tvib: "Tvíbókaður búnaður", ostad: "Óstaðfest afhending", skil: "Skil nálgast og enginn tími skráður" };
-  const LT = { fund: "Fundir dagsins", qr: "QR-skannanir (afhending og móttaka)", ath: "Athugasemdir á verkefnum" };
+  const LT = { fund: "Fundir dagsins", qr: "QR-skannanir (afhending og móttaka)", ath: "Athugasemdir á verkefnum", m365: "Outlook, Teams og SharePoint (krefst Blaze)" };
   const LSK = "snj-pref:" + tr(() => ORG.lsForskeyti, "");
   let UP = tr(() => JSON.parse(localStorage.getItem(LSK) || "null"), null);
   const mrg = (a, b) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => { o[k] = v && typeof v === "object" && !Array.isArray(v) ? mrg(a[k] || {}, v) : v; }); return o; };
@@ -158,6 +158,9 @@
     if (lOn("ath")) active().forEach(p => { const cs = (p.athugasemdir || []).filter(c => c.sk === mine && String(c.d || "").slice(0, 10) === day && hm(c.d)); if (!cs.length) return;
       const ts = cs.map(c => toMin(hm(c.d))).sort((x, y) => x - y), a = ts[0] - 30, b = Math.max(ts[ts.length - 1], a + 30);
       if (free(a, b)) out.push({ src: cs.length > 1 ? cs.length + " athugasemdir" : "Athugasemd", pid: p.id, fra: fromMin(a), til: fromMin(b), desc: String(cs[cs.length - 1].t || "Vinna við verkefnið").slice(0, 80) }); });
+    // Tillögur úr Microsoft 365 (2.67.0): fundir í Outlook/Teams og vinna í skjölum á SharePoint – reiknað af Cloud Functions (tillogur/{netfang})
+    if (lOn("m365")) (tr(() => window.__tillogur[day], []) || []).forEach(x => { if (!x.fra || !x.til) return; const a = toMin(x.fra), b = toMin(x.til);
+      if (b > a && free(a, b) && !out.some(o => o.fra === x.fra)) out.push({ src: x.src || "Microsoft 365", pid: x.pid || "", fra: x.fra, til: x.til, desc: x.desc || "" }); });
     return out.sort((x, y) => x.fra.localeCompare(y.fra));
   }
   async function saveDrafts(list, day) {

@@ -37,6 +37,9 @@
     // Frá 2.55.0 (fyrst í dev/): Pöntunarferli – sent/sótt, afhending og móttaka með kvittun, tínslulisti, skilauppgjör, staðgengill, pöntun úr pósti, sniðmát, ferð dagsins (pantanir2.js). Sjálfgefið óvirk.
     pferli:         ["Pöntunarferli", "Sent eða sótt, afhending og móttaka með undirskrift og mynd, tínslulisti með QR, skilauppgjör, staðgengill við árekstur, pöntun úr pósti, sniðmát og ferð dagsins", "pantanir", 1],
     // Frá 2.53.0 (fyrst í dev/): Snjall-Heim – Loka deginum, viðvaranir, hver er hvar, skipanalína og rekstrarpúls á Heim (snjall.js). Sjálfgefið óvirk.
+    // Frá 2.67.0 (fyrst í dev/): Verkefnagreining og Aukaverk (verkplus.js). Sjálfgefið óvirkar.
+    vgreind:        ["Verkefnagreining", "Afkoma verkefna í rauntíma (tekjur, kostnaður, framlegð og spá), lokauppgjör við lok verkefnis og tillaga að áætlun út frá fyrri verkefnum", null, 1],
+    aukaverk:       ["Aukaverk", "Aukaverk á verkefnum sem viðskiptavinurinn samþykkir með tengli og undirskrift; samþykkt aukaverk fara í áætlun og á reikning", null, 1],
     snjall:         ["Snjall-Heim", "Á Heim: drög að tímaskráningu dagsins (Loka deginum), viðvaranir um áætlun og bókanir, hver er hvar, skipanalína í mæltu máli og rekstrarpúls", null, 1],
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };

@@ -461,12 +461,17 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
   document.addEventListener("search", e => { if (e.target.id === "poqi" && !e.target.value && q) { q = ""; reset(); render(); } }, true);
 
   // Póstþræðir á síðu verkefnis – sóttir beint úr pósthólfinu, svo nýir póstar í þræðinum birtast sjálfkrafa
+  // Ósvarað (2.67.0): síðasti póstur í þræðinum er frá utanaðkomandi (ekki @lén fyrirtækisins) og eldri en sólarhringur
+  const osvDays = ms => { const m = ms && ms[0], a = String(m?.from?.emailAddress?.address || "").toLowerCase(), dom = String(ORG.len || "").toLowerCase();
+    if (!m || !a || (dom && a.endsWith("@" + dom)) || (SH && a === SH)) return 0; const d = (Date.now() - new Date(m.receivedDateTime)) / 864e5; return d >= 1 ? Math.floor(d) : 0; };
+  const osv = ms => { const n = osvDays(ms); return n ? ` · <b style="color:var(--t-red,#c0392b)">Ósvarað í ${n} ${n === 1 ? "dag" : "daga"}</b>` : ""; };
+  window.poOsvarad = p => THR().filter(t => t.verkefniId === p.id).map(t => TC[t.conv]?.msgs).filter(Boolean).reduce((a, ms) => Math.max(a, osvDays(ms)), 0);
   window.poProjSection = function (p) {
     const ts = THR().filter(t => t.verkefniId === p.id), leg = (S?.postar || []).filter(m => m.verkefniId === p.id).sort((a, b) => String(b.dags).localeCompare(String(a.dags)));
     const x = id => MCP ? `<button type="button" class="btn" data-act="${id}" style="padding:4px 10px;min-height:30px" aria-label="Aftengja">✕</button>` : "";
     const msg = m => `<div class="lrow tap fl" ${tapAttr("post", m.id)}><div class="ll">${EI.mail}</div><div class="lm"><div class="lt">${esc(fromName(m))}${m.hasAttachments ? " · viðhengi" : ""}</div><div class="ls">${esc(fmtDate(m.receivedDateTime))} · ${esc((m.bodyPreview || "").slice(0, 90))}</div></div>${CHEV}</div>`;
     const blk = t => { const c = msOn() ? thread(t.conv) : null, ms = c?.msgs;
-      return `<div class="pothr"><div class="lrow"><div class="lm"><div class="lt">${esc(t.efni)}</div><div class="ls">${ms ? ms.length + (ms.length === 1 ? " póstur" : " póstar") + (ms[0] ? " · síðast " + esc(fmtDate(ms[0].receivedDateTime)) : "") : msOn() ? "Sæki þráð…" : "Tengdu Microsoft til að sjá póstana"}${c?.err ? " · " + esc(c.err) : ""}</div></div><div class="lr">${x("pounl:" + t.id)}</div></div>
+      return `<div class="pothr"><div class="lrow"><div class="lm"><div class="lt">${esc(t.efni)}</div><div class="ls">${ms ? ms.length + (ms.length === 1 ? " póstur" : " póstar") + (ms[0] ? " · síðast " + esc(fmtDate(ms[0].receivedDateTime)) : "") + osv(ms) : msOn() ? "Sæki þráð…" : "Tengdu Microsoft til að sjá póstana"}${c?.err ? " · " + esc(c.err) : ""}</div></div><div class="lr">${x("pounl:" + t.id)}</div></div>
         ${ms && ms.length ? ms.slice(0, 6).map(msg).join("") + (ms.length > 6 ? `<div class="hint" style="margin:4px 0 0 12px">+ ${ms.length - 6} eldri í þræðinum</div>` : "") : ""}</div>`; };
     const legRow = m => `<div class="lrow"><div class="ll">${EI.mail}</div><a class="lm" href="${esc(m.url || "#")}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><div class="lt">${esc(m.efni)}</div><div class="ls">${esc([m.fra, fmtDate(m.dags)].filter(Boolean).join(" · "))}</div></a><div class="lr">${x("poleg:" + m.id)}</div></div>`;
     return `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Póstþræðir${ts.length ? " · " + ts.length : ""}${MCP && msOn() ? `<a class="plink" data-act="pofind:${esc(p.id)}" style="margin-left:auto">Finna pósta</a><a class="plink" data-act="ponew:${esc(p.id)}">+ Nýr póstur</a>` : ""}</div>

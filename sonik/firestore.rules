@@ -94,6 +94,9 @@ service cloud.firestore {
     // Tilkynningar (2.64.0): tæki (FCM-auðkenni) og val hvers notanda – aðeins hann sjálfur. Cloud Functions lesa með stjórnandaaðgangi.
     match /tilkynningar/{email} { allow read, write: if active() && email == em(); }
 
+    // Tímatillögur úr Microsoft 365 (2.67.0): Cloud Functions skrifa, notandinn les aðeins sínar.
+    match /tillogur/{email} { allow read: if active() && email == em(); allow write: if false; }
+
     // Skeiðklukka: eitt skjal á hvern notanda (netfang), aðeins hann sjálfur.
     match /klukka/{email} { allow read, write: if active() && email == em(); }
 

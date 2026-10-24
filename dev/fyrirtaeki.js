@@ -33,7 +33,7 @@ window.ORG = {
   // „Loka verkefni“ setur (verkefnið fer þá úr verkefnum í gangi). Admin getur breytt í Stillingum.
   stodur: [{ n: "Fyrirspurn", c: "slate" }, { n: "Í vinnslu", c: "blue" }, { n: "Í bið", c: "amber" }, { n: "Afhent", c: "teal" }, { n: "Lokið", c: "green", lokid: true, falin: true }],
   // Einingar: engar læstar og kveikt á öllum, líka þeim sem eru sjálfgefið óvirkar (Leiga, Sala, Deildir) – til að þróa og prófa.
-  einingar: { leiga: true, sala: true, deildir: true, pantanir: true, qr: true, snjall: true, pferli: true },
+  einingar: { leiga: true, sala: true, deildir: true, pantanir: true, qr: true, snjall: true, pferli: true, vgreind: true, aukaverk: true },
   // Nýtt símaútlit (2.45.0, simi.js og simi.css): listar beint úr neðri stiku, flipar sem renna, hreinni haus og Heim. Prófað hér fyrst.
   simi: "I",
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma. Prófað hér fyrst.
