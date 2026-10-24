@@ -611,21 +611,36 @@
         .then(atts => { try { poCompose({ to: P.netfang || "", subject: subj, body, atts }); } catch (e) {} }); return; }
     location.href = "mailto:" + encodeURIComponent(P.netfang || "") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
   }
+  // 2.76.0: ferill pöntunar efst – Ný → Staðfest → Afhent → Skilað/Lokið, með hver og hvenær
+  function ferillHTML(P) {
+    const sk = !window.pnSkil || pnSkil(P), ord = ["Ný", "Staðfest", "Afhent", sk ? "Skilað" : "Lokið"], cur = Math.max(0, P.stada === "Lokið" ? 3 : ord.indexOf(P.stada));
+    const hm = x => x ? `${E(dfmt(x))} kl. ${E(String(x).slice(11, 16))}` : "";
+    const v = P.vidskStadfest, tb = P.tilbodId ? tr(() => window.salaAPI.TB().find(T => T.id === P.tilbodId), null) : null;
+    const info = [
+      [E(tr(() => ({ simi: "Sími", postur: "Tölvupóstur", shopify: "Shopify", vefur: "Vefur", stadur: "Á staðnum", tilbod: "Úr tilboði", annad: "" })[P.uppruni], "") || ""), (P.stofnad_t ? hm(P.stofnad_t) : E(dfmt(P.dags || "")))],
+      [v ? `af ${E(v.nafn)}` : tb ? `úr tilboði <a class="plink" data-open="tb:${E(tb.id)}">${E(tb.nr)}</a>` : "", v ? hm(v.dags) : ""],
+      [P.afhent ? `af ${E(P.afhent.nafn || "")}` : "", P.afhent ? hm(P.afhent.dags) : `${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""}`],
+      [P.mottekid ? `af ${E(P.mottekid.nafn || "")}` : "", P.mottekid ? hm(P.mottekid.dags) : sk ? E(dfmt(P.til || P.fra)) : ""]];
+    return `<ol class="pfferill">${ord.map((l, i) => `<li class="${i < cur || (i === cur && i === 3) ? "done" : i === cur ? "cur" : ""}"><i></i><b>${E(l)}</b>${info[i][0] ? `<span>${info[i][0]}</span>` : ""}${info[i][1] ? `<small>${info[i][1]}</small>` : ""}</li>`).join("")}</ol>`;
+  }
+  // 2.76.0: eitt spjald „Viðskiptavinur“ – staðfesting, póstar og pöntunarsíða (tengill sem hnappar, ekki langur reitur)
   function pubHTML(P) {
     if (!ed() && !P.opinber) return "";
-    const v = P.vidskStadfest || PUB[P.opinber]?.stadfest;
-    if (!P.opinber) return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b><span>Viðskiptavinurinn sér pöntunina og staðfestir með undirskrift</span><button type="button" class="btn sm" data-pf="pub:${E(P.id)}">Búa til tengil</button></div></section>`;
-    const url = pubUrl(P.opinber);
-    return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b>${v ? `<span class="t-grn">✓ Staðfest af ${E(v.nafn)}${v.ur ? " með undirskrift á " + E(v.ur) : ""} · ${E(dfmt(v.dags))} kl. ${E(String(v.dags).slice(11, 16))}</span>` : `<span class="t-amb">Bíður staðfestingar viðskiptavinar</span>`}</div>
-      <div class="pfurl"><input readonly value="${E(url)}" aria-label="Tengill á pöntunarsíðu" onclick="this.select()"><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita</button><a class="btn sm" href="${E(url)}" target="_blank" rel="noopener">Opna</a></div>
-      ${v?.athugasemd ? `<p class="pfhint">Athugasemd viðskiptavinar: „${E(v.athugasemd)}“</p>` : ""}
-      ${v ? (() => { const pm = P.stadfPostur || PUB[P.opinber]?.postur, to = P.netfang || tr(() => findVsk(P.vskId)?.netfang, "");
-        return pm ? `<p class="pfhint"><span class="t-grn">✓ Staðfestingarpóstur sendur</span> til ${E(pm.til || to)} · ${E(dfmt(pm.dags))} kl. ${E(String(pm.dags).slice(11, 16))}</p>`
-          : !to ? `<p class="pfhint"><span class="t-amb">Ekkert netfang á pöntuninni</span> – staðfestingarpóstur fór ekki.</p>`
-          : `<p class="pfhint"><span class="t-amb">Staðfestingarpóstur ekki farinn</span> – ${msOn() || DEMO() ? "" : "sendist þegar einhver með Microsoft-tengingu opnar appið. "}${ed() && (msOn() || DEMO()) ? `<button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Senda núna</button>` : ""}</p>`; })() : ""}
-      ${!v && P.tengillSendur ? `<p class="pfhint">✉ Tengill sendur${P.tengillSendur.af === "sjálfvirkt" ? " sjálfkrafa" : ""} ${E(dfmt(P.tengillSendur.dags))} kl. ${E(String(P.tengillSendur.dags).slice(11, 16))}${P.tengillSendur.til ? " á " + E(P.tengillSendur.til) : ""}</p>` : !v && TENG().on && P.stada === "Ný" ? `<p class="pfhint">Tengillinn fer sjálfkrafa í póst ${E(String(TENG().klst).replace(".", ","))} klst. eftir að pöntunin var stofnuð – en í síðasta lagi ${E(String(TENG().fyrir))} klst. fyrir afhendingu – ef hann hefur ekki verið sendur.</p>` : ""}
-      ${ed() ? `<div class="pfbb"><button type="button" class="btn${v ? "" : " primary"}" data-pf="pubsend:${E(P.id)}">Senda í tölvupósti${P.netfang ? " · " + E(P.netfang) : ""}</button><button type="button" class="btn" data-pf="pubrev:${E(P.id)}">Loka síðunni</button></div>` : ""}</section>`;
+    const v = P.vidskStadfest || PUB[P.opinber]?.stadfest, to = P.netfang || tr(() => findVsk(P.vskId)?.netfang, ""), pm = P.stadfPostur || PUB[P.opinber]?.postur;
+    const hm = x => `${E(dfmt(x))} kl. ${E(String(x).slice(11, 16))}`;
+    const row = (cls, txt) => `<div class="pfln${cls ? " " + cls : ""}">${txt}</div>`;
+    const lines = [
+      v ? row("ok", `✓ Staðfest af ${E(v.nafn)}${v.ur ? ` <span class="m">· undirskrift á ${E(v.ur)}</span>` : ""}<small>${hm(v.dags)}</small>`) : P.stada === "Ný" ? row("wait", "Bíður staðfestingar viðskiptavinar") : row("ok", `✓ ${E(P.stada)}${P.tilbodId ? ' <span class="m">· úr samþykktu tilboði</span>' : ""}`),
+      v?.athugasemd ? row("note", `„${E(v.athugasemd)}“`) : "",
+      !v && P.tengillSendur ? row("", `✉ Tengill sendur${P.tengillSendur.af === "sjálfvirkt" ? " sjálfkrafa" : ""}<small>${hm(P.tengillSendur.dags)}${P.tengillSendur.til ? " · " + E(P.tengillSendur.til) : ""}</small>`) : "",
+      !v && !P.tengillSendur && P.opinber && TENG().on && P.stada === "Ný" ? row("m", `Tengillinn fer sjálfkrafa ${E(String(TENG().klst).replace(".", ","))} klst. eftir stofnun, í síðasta lagi ${E(String(TENG().fyrir))} klst. fyrir afhendingu`) : "",
+      P.stada !== "Ný" ? (pm ? row("ok", `✓ Staðfestingarpóstur sendur<small>${hm(pm.dags)} · ${E(pm.til || to)}</small>`) : !to ? row("wait", "Ekkert netfang – staðfestingarpóstur fer ekki") : row("wait", `Staðfestingarpóstur ekki farinn${ed() && (msOn() || DEMO()) && P.opinber ? ` · <button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Senda núna</button>` : " · fer sjálfkrafa frá netþjóni"}`)) : ""
+    ].filter(Boolean).join("");
+    const acts = !ed() ? "" : !P.opinber ? `<button type="button" class="btn sm" data-pf="pub:${E(P.id)}">Búa til pöntunarsíðu</button>`
+      : `<button type="button" class="btn sm" data-pf="pubsend:${E(P.id)}">✉ Senda tengil</button><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita tengil</button><a class="btn sm" href="${E(pubUrl(P.opinber))}" target="_blank" rel="noopener">Opna síðu</a><button type="button" class="pflink pfx" data-pf="pubrev:${E(P.id)}">Loka síðu</button>`;
+    return `<section class="pfsec pfpub pfcard"><div class="pfsh"><b>Viðskiptavinur</b><span class="m">${E(P.vidskiptavinur || P.tengilidur || "")}${to ? " · " + E(to) : ""}</span></div><div class="pfbd">${lines}</div>${acts ? `<div class="pfft">${acts}</div>` : ""}</section>`;
   }
+
 
   /* ---------- Tengt inn í appið ---------- */
   document.addEventListener("click", e => {
@@ -669,10 +684,14 @@
     if (D && String(D).startsWith("tb:")) { const P = findP(String(D).slice(3)); if (!P || !P.pontun) return; const host = root.querySelector(".spdet") || root; if (host.querySelector(".pfwrap")) return;
       { const slot = host.querySelector("#tbed .tbafhslot"); if (host.querySelector("#tbed")) { if (slot && !slot.firstChild) slot.innerHTML = afhHTML(P); return; } } // 2.71.0: í breytingasýn aðeins afhendingarmáti, í sínum hluta
       try { pubSync(P); } catch (e) {}
-      const html = `<div class="pfwrap">${subsHTML(P)}${pubHTML(P)}${payHTML(P)}${afhHTML(P)}${pickHTML(P)}${settleHTML(P)}${moreHTML(P)}</div>`;
+      const html = `<div class="pfwrap">${ferillHTML(P)}${subsHTML(P)}<div class="pfgrid">${pubHTML(P)}${payHTML(P)}${afhHTML(P)}</div>${pickHTML(P)}${settleHTML(P)}</div>`;
       const anchor = host.querySelector(".qrbox") || host.querySelector(".utb") || [...host.querySelectorAll(".viewtitle")].find(x => /^Línur/.test(x.textContent.trim()));
       anchor ? anchor.insertAdjacentHTML("beforebegin", html) : host.insertAdjacentHTML("beforeend", html);
-      host.querySelectorAll(".qrbox .qrbb").forEach(x => x.remove());   // skönnun er hluti af „Afhenda“ / „Taka á móti“
+      host.querySelectorAll(".qrbox .qrbb").forEach(x => x.remove());
+      // 2.76.0: hver afhenti og „Úr tilboði“ eru í ferlinum; Panta aftur / Vista sem sniðmát í ⋯
+      host.querySelectorAll(".pnhver").forEach(x => x.remove()); [...host.querySelectorAll("p.sub")].filter(x => /^Úr tilboði/.test(x.textContent.trim())).forEach(x => x.remove());
+      { const mm = host.querySelector(".uact .umore > div"); if (mm && ed() && !mm.querySelector('[data-pf^="again:"]')) mm.insertAdjacentHTML("afterbegin", `<button type="button" data-pf="again:${E(P.id)}">↻ Panta aftur</button><button type="button" data-pf="tpl:${E(P.id)}">Vista sem sniðmát</button>`);
+        else if (!mm) host.querySelector(".pfwrap")?.insertAdjacentHTML("beforeend", moreHTML(P)); }   // skönnun er hluti af „Afhenda“ / „Taka á móti“
       document.querySelectorAll('#view button[data-act^="tbst:' + P.id + ':Afhent"], #view button[data-act^="tbst:' + P.id + ':Skilað"]').forEach(b => { if (b.closest(".fsels")) return; b.textContent = b.dataset.act.endsWith("Afhent") ? (AFH(P) === "sott" ? "Afhenda (sótt)" : "Afhenda") : "Taka á móti"; });
       return; }
     if (!D && /^(pnyf|pantanir|pnl|pns|pnt)$/.test(t)) {

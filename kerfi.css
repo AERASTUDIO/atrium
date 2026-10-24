@@ -800,3 +800,37 @@ body.kerfi .poattpv{border:0;background:none;padding:0;font:inherit;color:var(--
 body.kerfi a.maplnk{display:inline-flex;align-items:center;gap:4px;color:var(--kacc)!important;text-decoration:none}
 body.kerfi a.maplnk svg{width:13px;height:13px;flex:none}
 body.kerfi a.maplnk:hover{text-decoration:underline}
+/* Pöntun skipulögð (2.76.0): ferill efst, þrjú spjöld (Viðskiptavinur · Greiðsla · Afhending), svo pökkun og línur */
+:root body.kerfi #view .pfwrap{gap:var(--g,16px)!important;margin:16px 0!important}
+:root body.kerfi #view .pfferill{list-style:none;margin:0;padding:16px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--surface);border-radius:12px;box-shadow:var(--e1,0 0 0 1px var(--line))}
+:root body.kerfi #view .pfferill li{position:relative;padding:22px 8px 0 0;display:flex;flex-direction:column;gap:1px;min-width:0}
+:root body.kerfi #view .pfferill li i{position:absolute;top:4px;left:0;width:12px;height:12px;border-radius:50%;background:var(--surface);box-shadow:inset 0 0 0 2px var(--line2,var(--line));z-index:1}
+:root body.kerfi #view .pfferill li::before{content:"";position:absolute;top:9px;left:12px;right:0;height:2px;background:var(--line)}
+:root body.kerfi #view .pfferill li:last-child::before{display:none}
+:root body.kerfi #view .pfferill li.done i{background:var(--t-grn);box-shadow:none}
+:root body.kerfi #view .pfferill li.done::before{background:var(--t-grn)}
+:root body.kerfi #view .pfferill li.cur i{background:var(--kacc);box-shadow:0 0 0 4px var(--acc-soft,rgba(36,87,138,.15))}
+:root body.kerfi #view .pfferill li b{font-weight:500;font-size:var(--t-md)}
+:root body.kerfi #view .pfferill li:not(.done):not(.cur) b{color:var(--muted)}
+:root body.kerfi #view .pfferill li span{font-size:var(--t-sm);color:var(--ink2,var(--ink));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root body.kerfi #view .pfferill li small{font-size:var(--t-xs);color:var(--muted)}
+:root body.kerfi #view .pfgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--g,16px);align-items:stretch}
+:root body.kerfi #view .pfgrid > .pfsec{margin:0!important;display:flex;flex-direction:column;border:0!important;border-radius:12px!important;box-shadow:var(--e1,0 0 0 1px var(--line))}
+:root body.kerfi #view .pfgrid .pfsh{padding:14px 16px 10px!important;border-bottom:0!important}
+:root body.kerfi #view .pfgrid .pfsh b{font-size:var(--t-md);font-weight:500}
+:root body.kerfi #view .pfgrid .pfsh .m{font-size:var(--t-sm);color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 100%}
+:root body.kerfi #view .pfcard .pfbd{padding:0 16px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
+:root body.kerfi #view .pfln{font-size:var(--t-sm);line-height:1.4}
+:root body.kerfi #view .pfln small{display:block;color:var(--muted);font-size:var(--t-xs)}
+:root body.kerfi #view .pfln.ok{color:var(--t-grn)}:root body.kerfi #view .pfln.wait{color:var(--t-amb)}:root body.kerfi #view .pfln.m{color:var(--muted)}
+:root body.kerfi #view .pfln.note{color:var(--ink2,var(--ink));font-style:italic}
+:root body.kerfi #view .pfln .m{color:var(--muted)}
+:root body.kerfi #view .pfcard .pfft{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+:root body.kerfi #view .pfcard .pfft .pfx{margin-left:auto;color:var(--muted)}
+:root body.kerfi #view .pfgrid .pfpay,.pfgrid .pfafh{min-width:0}
+:root body.kerfi #view .pfgrid .pfpay.due,:root body.kerfi #view .pfgrid .pfpay.ok{box-shadow:var(--e1,0 0 0 1px var(--line)),inset 3px 0 0 var(--t-amb)!important}
+:root body.kerfi #view .pfgrid .pfpay.ok{box-shadow:var(--e1,0 0 0 1px var(--line)),inset 3px 0 0 var(--t-grn)!important}
+:root body.kerfi #view .pfgrid .pfpay .pfsh{flex-wrap:wrap}
+:root body.kerfi #view .pfgrid .pfpay .pfsh > span{flex:1 1 100%;font-size:var(--t-sm)}
+:root body.kerfi #view .pfgrid .pfafh .pfsh{justify-content:space-between}
+@media (max-width:700px){:root body.kerfi #view .pfferill{grid-template-columns:repeat(2,1fr);row-gap:14px}:root body.kerfi #view .pfferill li:nth-child(2)::before{display:none}}
