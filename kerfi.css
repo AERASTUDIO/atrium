@@ -490,3 +490,15 @@ body.kerfi .t-red{color:var(--t-red)}body.kerfi .t-amb{color:var(--t-amb)}body.k
 :root body.kerfi #view button.upill.svtog:not(.on){color:var(--muted)!important}
 :root body.kerfi #view button.upill.svtog.lock{cursor:default;opacity:1}
 :root body.kerfi #view button.upill.svtog.lock::after{content:"";display:inline-block;width:5px;height:5px;margin-left:5px;border-radius:50%;background:var(--t-blu,#2F6FB3);vertical-align:2px}
+
+/* Árekstur á búnaði (2.57.2): rautt á spjaldinu og á línunum sjálfum */
+body.kerfi #view .card.arek{border:1px solid var(--t-red)!important;background:color-mix(in srgb,var(--t-red) 7%,var(--surface))!important}
+body.kerfi #view .card.arek>b{color:var(--t-red)}
+body.kerfi #view .card.arek .arek-r b{color:var(--t-red)}
+body.kerfi #view .tbbad{box-shadow:inset 3px 0 0 var(--t-red);background:color-mix(in srgb,var(--t-red) 6%,transparent)}
+body.kerfi #view .tbbad input[data-l^="heiti:"],body.kerfi #view .tbbad input[data-l^="magn:"]{color:var(--t-red)!important;border-color:color-mix(in srgb,var(--t-red) 55%,var(--line))!important}
+body.kerfi #view .utbr.tbbad>*{color:var(--t-red)}
+body.kerfi #view .tbbadn{grid-column:1/-1;flex-basis:100%;font-size:12px;color:var(--t-red);padding:2px 2px 0}
+body.kerfi #view .tbl.tbbad,body.kerfi #view .tbc.tbbad{flex-wrap:wrap}
+body.kerfi #view .tbbadn{width:100%;box-sizing:border-box;padding:2px 10px 6px!important;white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+body.kerfi #view .tbbadv{padding:0 14px 8px!important}

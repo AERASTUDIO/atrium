@@ -369,7 +369,21 @@
   document.addEventListener("click", e => { if (!e.target.closest?.('[data-ui1="back"]')) return; e.preventDefault(); u1Back(); });
   document.addEventListener("keydown", e => { if (e.altKey && e.key === "ArrowLeft" && document.body.classList.contains("ui1") && desk() && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) { if (u1Back()) e.preventDefault(); } });
   document.addEventListener("mouseup", e => { if (e.button === 3 && document.body.classList.contains("ui1") && desk() && NAV.length) { e.preventDefault(); u1Back(); } });
-  const _ri = renderI; renderI = function () { const r = _ri.apply(this, arguments); syncHash(); try { navTrack(); navBtn(); } catch (e) {} return r; };
+  // Árekstur flaggaður á línunum sjálfum með rauðu (2.57.2): lína með búnaði sem er ekki laus, eða pakki sem inniheldur hann
+  function flagLines() {
+    let D = null; try { D = DETAIL; } catch (e) {} if (!D || !String(D).startsWith("tb:")) return; const api = window.salaAPI; if (!api?.arekstrar) return;
+    const id = String(D).slice(3), T = api.PN().find(x => String(x.id) === id) || api.TB().find(x => String(x.id) === id); if (!T) return;
+    const el = document.getElementById("view"); if (!el) return;
+    const ar = api.arekstrar(T); if (!ar.length) return;
+    const bad = new Map(ar.map(a => [String(a.v.id), a])), VR = api.VR();
+    const lineBad = l => { if (l.v == null) return null; const v = VR.find(x => String(x.id) === String(l.v)); if (!v) return null; if (bad.has(String(v.id))) return [bad.get(String(v.id))];
+      if (v.tegund === "pakki") { const hits = (v.innihald || []).map(i => bad.get(String(i.v))).filter(Boolean); return hits.length ? hits : null; } return null; };
+    const note = hs => hs.map(a => `${a.v.heiti}: vantar ${Math.max(0, a.need - a.laus)} (${a.laus} laus af ${a.fj})`).join(" · ");
+    (T.linur || []).forEach(l => { const hs = lineBad(l); if (!hs) return;
+      el.querySelectorAll(`[data-lid="${CSS.escape(String(l.id))}"]`).forEach(r => { r.classList.add("tbbad"); if (!r.querySelector(".tbbadn")) r.insertAdjacentHTML("beforeend", `<div class="tbbadn">⚠ ${esc(note(hs))}</div>`); });
+      el.querySelectorAll(".utb .utbr").forEach(r => { const f = r.firstElementChild; if (f && f.textContent.trim() === String(l.heiti || "").trim() && !r.classList.contains("tbbad")) { r.classList.add("tbbad"); f.title = note(hs); r.insertAdjacentHTML("afterend", `<div class="tbbadn tbbadv">⚠ ${esc(note(hs))}</div>`); } }); });
+  }
+  const _ri = renderI; renderI = function () { const r = _ri.apply(this, arguments); syncHash(); try { navTrack(); navBtn(); } catch (e) {} try { flagLines(); } catch (e) {} return r; };
   window.render = renderI; try { render = renderI; } catch (e) {}
 
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="exp"]'); if (!b) return; full = !full; render(); });
