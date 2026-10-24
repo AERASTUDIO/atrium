@@ -200,8 +200,8 @@
     const api = window.salaAPI; if (!api) return "";
     const SVL = { leiga: "Leiga", sala: "Sala", vinna: "Þjónusta" }, all = api.PN().filter(P => !teg || (P.linur || []).some(l => l.teg === teg) || (P.svid || []).includes(SVL[teg])), f = st.vf.pn || "opnar", OP = ["Ný", "Staðfest"];
     // Síur (2.63.1): Opnar · Nýjar · Staðfestar · Afhentar · Seint · Lokið – lykiltölurnar á Pantanir › Yfirliti opna listann með réttri síu
-    const ti = isoD(today), seint = P => P.stada === "Afhent" && String(P.til || P.fra || "").slice(0, 10) < ti;
-    const FL = { opnar: P => OP.includes(P.stada), ny: P => P.stada === "Ný", stf: P => P.stada === "Staðfest", afh: P => P.stada === "Afhent", seint, lokid: P => ["Skilað", "Lokið"].includes(P.stada) };
+    const ti = isoD(today), seint = P => P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)) && String(P.til || P.fra || "").slice(0, 10) < ti;
+    const sk = P => !window.pnSkil || pnSkil(P), FL = { opnar: P => OP.includes(P.stada) || (P.stada === "Afhent" && !sk(P)), ny: P => P.stada === "Ný", stf: P => P.stada === "Staðfest", afh: P => P.stada === "Afhent" && sk(P), seint, lokid: P => ["Skilað", "Lokið"].includes(P.stada) };
     const fn = FL[f] || FL.opnar, nL = seint ? all.filter(seint).length : 0;
     const xs = all.filter(P => SQ() || fn(P)).sort((a, b) => String(a.fra || "").localeCompare(String(b.fra || "")));
     const top = lhead("Pantanir", title, nbtn("Pöntun")) + `<div class="ulbar">${chips([["opnar", "Opnar · " + all.filter(FL.opnar).length], ["ny", "Nýjar · " + all.filter(FL.ny).length], ["stf", "Staðfestar · " + all.filter(FL.stf).length], ["afh", "Afhentar · " + all.filter(FL.afh).length], ...(nL || f === "seint" ? [["seint", "Seint · " + nL]] : []), ["lokid", "Lokið"]], f, "u1vf:pn")}</div>`;
@@ -844,7 +844,7 @@
 
   U.pnyf = function () {
     const api = window.salaAPI; if (!api) return head("Pantanir", "Yfirlit");
-    const all = api.PN(), ti = isoD(today), ny = all.filter(P => P.stada === "Ný"), stf = all.filter(P => P.stada === "Staðfest"), af = all.filter(P => P.stada === "Afhent");
+    const all = api.PN(), ti = isoD(today), ny = all.filter(P => P.stada === "Ný"), stf = all.filter(P => P.stada === "Staðfest"), af = all.filter(P => P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)));
     const late = af.filter(P => (P.til || P.fra) < ti), wk = all.filter(P => ["Ný", "Staðfest"].includes(P.stada) && daysTo(P.fra) >= 0 && daysTo(P.fra) <= 7).sort((a, b) => String(a.fra).localeCompare(String(b.fra)));
     const skil = af.slice().sort((a, b) => String(a.til || a.fra).localeCompare(String(b.til || b.fra)));
     const nm = P => E((P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : "")), who = P => E(P.vidskiptavinur || P.tengilidur || "");
@@ -887,7 +887,7 @@
     const R = [], api = window.salaAPI;
     upcoming().filter(i => daysTo(i.when) < 0).forEach(i => R.push({ grp: "Komið fram yfir", k: "Verkefni", title: i.title, sub: [i.kind, i.nr].filter(Boolean).join(" · "), date: i.when, pill: "Seint", dark: 1, open: i.open }));
     if (window.pnOpnar) { const ti = isoD(today); pnOpnar().forEach(P => { if (P.stada === "Ný") R.push({ grp: "Pantanir", k: "Pöntun", title: (P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""), sub: P.vidskiptavinur || P.tengilidur || "", date: P.fra, pill: "Ný", dark: 1, open: "tb:" + P.id });
-      else if (P.stada === "Afhent" && (P.til || P.fra) < ti) R.push({ grp: "Pantanir", k: "Pöntun", title: (P.nr || "") + " skil", sub: P.vidskiptavinur || "", date: P.til || P.fra, pill: "Seint", dark: 1, open: "tb:" + P.id }); }); }
+      else if (P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)) && (P.til || P.fra) < ti) R.push({ grp: "Pantanir", k: "Pöntun", title: (P.nr || "") + " skil", sub: P.vidskiptavinur || "", date: P.til || P.fra, pill: "Seint", dark: 1, open: "tb:" + P.id }); }); }
     if (api?.vantarPontun) { const ti = isoD(today), vp = api.TB().filter(api.vantarPontun), old = vp.filter(T => String(T.til || T.fra || T.dags || "").slice(0, 10) < ti);
       vp.filter(T => !old.includes(T)).forEach(T => R.push({ grp: "Pantanir", k: "Tilboð", title: (T.nr || "") + " " + (T.heiti || ""), sub: "Samþykkt – vantar pöntun" + (T.vidskiptavinur ? " · " + T.vidskiptavinur : ""), date: T.fra || T.dags, pill: "Stofna pöntun", open: "tb:" + T.id }));
       if (old.length) R.push({ grp: "Pantanir", k: "Tilboð", title: old.length + " eldri samþykkt tilboð án pöntunar", sub: "Teljast ekki með í sölutölum fyrr en þau eru skráð sem pantanir", date: "", pill: "Skrá sem pantanir", act: "pntbAll:" }); }
@@ -954,7 +954,7 @@
     (window.salaAPI?.PN?.() || []).forEach(P => {
       const fra = String(P.fra || "").slice(0, 10), til = String(P.til || P.fra || "").slice(0, 10), who = P.tengilidur || P.vidskiptavinur || "";
       if (fra === t && ["Ný", "Staðfest"].includes(P.stada)) ag.push({ time: hm(P.fra), title: [P.nr, P.heiti].filter(Boolean).join(" "), sub: who, kind: "Afhending", open: "tb:" + P.id });
-      if (P.stada === "Afhent" && til && til <= t) ag.push({ time: hm(P.til), title: [P.nr, P.heiti].filter(Boolean).join(" "), sub: who, kind: til < t ? "Skil – seint" : "Skil pöntunar", open: "tb:" + P.id, late: til < t });
+      if (P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)) && til && til <= t) ag.push({ time: hm(P.til), title: [P.nr, P.heiti].filter(Boolean).join(" "), sub: who, kind: til < t ? "Skil – seint" : "Skil pöntunar", open: "tb:" + P.id, late: til < t });
     });
     ag.sort((x, y) => (x.time || "99").localeCompare(y.time || "99"));
     const rows = ag.map(a => `<div class="udsr${a.late ? " late" : ""}" ${a.open ? `data-open="${E(a.open)}" role="button" tabindex="0"` : ""}><span class="udst">${E(a.time || "–")}</span><span class="udsx"><b>${E(a.title)}</b>${a.sub ? `<small>${E(a.sub)}</small>` : ""}</span><span class="r">${pill(a.kind, a.late ? "late" : "")}</span></div>`).join("");

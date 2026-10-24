@@ -287,7 +287,7 @@
         const sumc2 = el.querySelector(".rksum"); if (sumc2) sumc2.outerHTML = `<div class="utbt"><span>Samtals með VSK</span><b>${(Math.round(tt.tot || 0)).toLocaleString("de-DE")} kr.</b></div>`;
         const bot = [...el.querySelectorAll(".links")].find(x => x.querySelector('[data-act^="tbutg:"],[data-act^="tbverk:"],[data-act^="tbdel:"]'));
         if (bot && MCP) {
-          if (isP2) { const NX = { "Ný": ["Staðfesta", "Staðfest"], "Staðfest": ["Afhenda →", "Afhent"], "Afhent": ["Skila →", "Skilað"], "Skilað": ["Loka pöntun", "Lokið"] }[T.stada];
+          if (isP2) { const NX = { "Ný": ["Staðfesta", "Staðfest"], "Staðfest": ["Afhenda →", "Afhent"], "Afhent": !window.pnSkil || pnSkil(T) ? ["Skila →", "Skilað"] : ["Loka pöntun", "Lokið"], "Skilað": ["Loka pöntun", "Lokið"] }[T.stada];
             const conf = T.netfang && window.poCompose ? `<button type="button" class="btn" data-act="u1pnconf:${esc(T.id)}">Senda staðfestingu</button>` : "";
             bot.insertAdjacentHTML("afterbegin", (NX ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:${esc(NX[1])}">${esc(NX[0])}</button>` : "") + conf); }
           else { const sd = bot.querySelector('[data-act^="tbsend:"]');

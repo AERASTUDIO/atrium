@@ -71,7 +71,9 @@
   const PSTADA = ["Ný", "Staðfest", "Afhent", "Skilað", "Lokið"], PSTC = { "Ný": "pc-blue", "Staðfest": "pc-teal", "Afhent": "pc-amber", "Skilað": "pc-slate", "Lokið": "pc-gray" };
   const UPPRUNI = [["simi", "Sími"], ["postur", "Tölvupóstur"], ["shopify", "Shopify"], ["vefur", "Vefur"], ["stadur", "Á staðnum"], ["tilbod", "Tilboð"], ["annad", "Annað"]];
   const UPL = k => (UPPRUNI.find(x => x[0] === k) || [null, ""])[1];
-  const STOD = T => isP(T) ? PSTADA : STADA, STCOL = T => (isP(T) ? PSTC : STC)[T.stada] || "";
+  // 2.69.2: aðeins leigubúnaði er skilað – pöntun með söluvörum/þjónustu eingöngu fer Afhent → Lokið (ekkert „Taka á móti“)
+  const pnSkil = P => (P?.linur || []).some(l => l.teg === "leiga") || (!(P?.linur || []).length && (P?.svid || []).includes("Leiga")); window.pnSkil = pnSkil;
+  const STOD = T => isP(T) ? (pnSkil(T) || T.stada === "Skilað" ? PSTADA : PSTADA.filter(s => s !== "Skilað")) : STADA, STCOL = T => (isP(T) ? PSTC : STC)[T.stada] || "";
   const PNON = () => PV() && !!window.ON && ON("pantanir");
   const blokkar = T => isP(T) ? ["Ný", "Staðfest", "Afhent"].includes(T.stada) : T.stada === "Samþykkt" && !PN().some(P => P.tilbodId === T.id);
   // Leigubúnaður sem skjal þarf (pakkar leystir upp): { vId: magn }

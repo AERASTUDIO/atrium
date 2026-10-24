@@ -92,7 +92,7 @@
     return `<section class="pfsec pfafh"><div class="pfsh"><b>Afhending</b>
       <div class="pfseg" role="group" aria-label="Afhendingarmáti">${[["sent", "Sent"], ["sott", "Sótt"]].map(([v, l]) => `<button type="button"${a === v ? ' aria-pressed="true"' : ""} ${canEd ? `data-pf="afh:${E(P.id)}:${v}"` : "disabled"}>${l}</button>`).join("")}</div></div>
       ${a === "sent" ? `<div class="pfrow"><label>Heimilisfang<input data-pfs="afhStadur:${E(P.id)}" value="${E(P.afhStadur || P.stadsetning || "")}" placeholder="Hvert á að senda" ${canEd ? "" : "disabled"}></label><label>Klukkan<input data-pfs="afhKl:${E(P.id)}" value="${E(P.afhKl || "")}" placeholder="hh:mm" inputmode="decimal" maxlength="5" ${canEd ? "" : "disabled"}></label></div>`
-        : a === "sott" ? `<p class="pfhint">Viðskiptavinur sækir ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} og skilar ${E(dfmt(P.til))}</p>` : `<p class="pfhint">Veldu hvort pöntunin er send eða sótt.</p>`}
+        : a === "sott" ? `<p class="pfhint">Viðskiptavinur sækir ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} ${!window.pnSkil || pnSkil(P) ? "og skilar " + E(dfmt(P.til)) : ""}</p>` : `<p class="pfhint">Veldu hvort pöntunin er send eða sótt.</p>`}
       ${kv(ut, "Afhent")}${warnUt}${kv(inn, "Móttekið")}${warnIn}</section>`;
   }
   async function setStatus(pid, nx) { const P = findP(pid); if (!P || P.stada === nx || P.stada === "Lokið" || (nx === "Afhent" && P.stada === "Skilað")) return; try { __pfFlow = true; doAct("tbst:" + P.id + ":" + nx); } catch (e) {} finally { __pfFlow = false; } }
@@ -318,7 +318,7 @@
     const t = T0(), xs = [];
     PN().forEach(P => { const fra = String(P.fra || "").slice(0, 10), til = String(P.til || P.fra || "").slice(0, 10);
       if (fra === t && ["Ný", "Staðfest"].includes(P.stada)) xs.push({ P, k: AFH(P) === "sott" ? "Sækir" : "Afhenda", kl: P.afhKl || "", adr: AFH(P) === "sent" ? (P.afhStadur || P.stadsetning || "") : "" });
-      if (til === t && P.stada === "Afhent") xs.push({ P, k: AFH(P) === "sent" ? "Sækja" : "Skilar", kl: "", adr: AFH(P) === "sent" ? (P.afhStadur || P.stadsetning || "") : "" }); });
+      if (til === t && P.stada === "Afhent" && (!window.pnSkil || pnSkil(P))) xs.push({ P, k: AFH(P) === "sent" ? "Sækja" : "Skilar", kl: "", adr: AFH(P) === "sent" ? (P.afhStadur || P.stadsetning || "") : "" }); });
     xs.sort((a, b) => (a.kl || "99").localeCompare(b.kl || "99"));
     const stops = xs.filter(x => x.adr).map(x => x.adr);
     const maps = stops.length ? "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" + encodeURIComponent(stops[stops.length - 1]) + (stops.length > 1 ? "&waypoints=" + encodeURIComponent(stops.slice(0, -1).join("|")) : "") : "";
@@ -382,7 +382,7 @@
       .sort((x, y) => String(x.fra).localeCompare(String(y.fra)) || String(x.nr).localeCompare(String(y.nr)));
     if (!xs.length) return `<div class="uempty">Engar pantanir á þessu tímabili.</div>`;
     const col = iso => Math.max(0, Math.min(n - 1, Math.round((d(iso) - d(a)) / 864e5)));
-    const rows = xs.map((P, ri) => { const R = ri + 2; const f = String(P.fra).slice(0, 10), tl = String(P.til || P.fra).slice(0, 10), late = P.stada === "Afhent" && tl < t, ar = ["Ný", "Staðfest"].includes(P.stada) && tr(() => A().arekstrar(P).length, 0) > 0;
+    const rows = xs.map((P, ri) => { const R = ri + 2; const f = String(P.fra).slice(0, 10), tl = String(P.til || P.fra).slice(0, 10), late = P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)) && tl < t, ar = ["Ný", "Staðfest"].includes(P.stada) && tr(() => A().arekstrar(P).length, 0) > 0;
       const c1 = col(f < a ? a : f) + 2, c2 = col(tl > b ? b : tl) + 3, cls = ar ? "bad" : late ? "late" : P.stada === "Ný" ? "ny" : ["Skilað", "Lokið"].includes(P.stada) ? "done" : "on";
       const lateBar = late && t >= a && tl <= b ? `<div class="pdb lateext" style="grid-row:${R};grid-column:${col(tl) + 3}/${col(t > b ? b : t) + 3}" title="Skil komin fram yfir"></div>` : "";
       const ico = AFH(P) === "sent" ? IC.sent : AFH(P) === "sott" ? IC.sott : "";
@@ -416,7 +416,7 @@
   // „Næstu 7 dagar“ á Pantanir › Yfirlit
   function stripHTML() { const t = T0(), days = [...Array(7)].map((_, i) => addD(t, i));
     const P = PN().filter(x => !["Lokið"].includes(x.stada));
-    return `<section class="card ucard pdstrip"><div class="uhch"><h3>Næstu 7 dagar</h3><a href="#" data-act="tab:pndag">Dagatal →</a></div><div class="pds">${days.map(x => { const y = d(x), af = P.filter(p => String(p.fra || "").slice(0, 10) === x && ["Ný", "Staðfest"].includes(p.stada)).length, sk = P.filter(p => String(p.til || p.fra || "").slice(0, 10) === x && p.stada === "Afhent").length;
+    return `<section class="card ucard pdstrip"><div class="uhch"><h3>Næstu 7 dagar</h3><a href="#" data-act="tab:pndag">Dagatal →</a></div><div class="pds">${days.map(x => { const y = d(x), af = P.filter(p => String(p.fra || "").slice(0, 10) === x && ["Ný", "Staðfest"].includes(p.stada)).length, sk = P.filter(p => String(p.til || p.fra || "").slice(0, 10) === x && ["Ný", "Staðfest", "Afhent"].includes(p.stada) && (!window.pnSkil || pnSkil(p))).length;
       return `<button type="button" class="pdsd${x === t ? " today" : ""}" data-pdc="goto:${x}"><span>${x === t ? "Í dag" : DNs[y.getDay()] + " " + y.getDate() + "."}</span><b class="${af ? "t-blu" : "m"}">${af} <small>út</small></b><b class="${sk ? "t-amb" : "m"}">${sk} <small>inn</small></b></button>`; }).join("")}</div></section>`; }
   document.addEventListener("click", e => { const b = e.target.closest("[data-pdc]"); if (!b) return; e.preventDefault(); e.stopPropagation();
     const [k, v, w] = b.dataset.pdc.split(":");
