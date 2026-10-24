@@ -237,8 +237,10 @@
         if (sel) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(sel); act.append(w); const kd = fs.previousElementSibling; if (kd?.matches(".kind")) kd.remove(); fs.remove(); }
         const L = T.linur || [], has = t => L.some(l => l.teg === t), svL = [has("leiga") && "Leiga", has("sala") && "Sala", has("vinna") && "Þjónusta"].filter(Boolean);
         // Pöntun (2.56.1): sviðið er valið beint (P.svid) – smellt á Leiga · Sala · Þjónusta; án vals ræður tegund línanna eins og áður
-        const sv = T.pontun && T.svid?.length ? T.svid : svL, canSv = T.pontun && (() => { try { return !!MCP; } catch (e) { return false; } })();
-        if (canSv) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${["Leiga", "Sala", "Þjónusta"].map(x => `<button type="button" class="upill svtog${sv.includes(x) ? " dark on" : ""}" data-pnsvid="${esc(T.id)}:${x}" aria-pressed="${sv.includes(x)}" title="${sv.includes(x) ? "Taka af sviðinu" : "Setja á sviðið"}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</button>`).join("")}</div>`);
+        // 2.56.2: svið úr línum eru alltaf á (læst); valið (T.svid) bætir aðeins við sviðum sem engin lína gefur
+        const sv = T.pontun ? [...new Set([...svL, ...(T.svid || [])])].sort((a, b) => ["Leiga", "Sala", "Þjónusta"].indexOf(a) - ["Leiga", "Sala", "Þjónusta"].indexOf(b)) : svL, canSv = T.pontun && (() => { try { return !!MCP; } catch (e) { return false; } })();
+        if (canSv) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${["Leiga", "Sala", "Þjónusta"].map(x => { const lk = svL.includes(x), o = sv.includes(x);
+          return `<button type="button" class="upill svtog${o ? " dark on" : ""}${lk ? " lock" : ""}" ${lk ? "disabled" : `data-pnsvid="${esc(T.id)}:${x}"`} aria-pressed="${o}" title="${lk ? "Kemur úr línum pöntunarinnar" : o ? "Taka af sviðinu" : "Bæta pöntuninni á sviðið"}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</button>`; }).join("")}</div>`);
         else if (sv.length) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}</div>`);
         const tt = api.totals(T) || {}, isP = !!T.pontun;
         let av = "–", avL = "Búnaður";
@@ -360,7 +362,7 @@
   // Svið pöntunar valið beint (2.56.1)
   document.addEventListener("click", e => { const b = e.target.closest("[data-pnsvid]"); if (!b) return; e.preventDefault(); e.stopPropagation();
     const [id, x] = b.dataset.pnsvid.split(":"), T = window.salaAPI?.PN().find(P => String(P.id) === id); if (!T) return;
-    const L = T.linur || [], cur = T.svid?.length ? T.svid.slice() : [L.some(l => l.teg === "leiga") && "Leiga", L.some(l => l.teg === "sala") && "Sala", L.some(l => l.teg === "vinna") && "Þjónusta"].filter(Boolean);
+    const cur = (T.svid || []).slice();
     const nx = cur.includes(x) ? cur.filter(y => y !== x) : [...cur, x].sort((a, b) => ["Leiga", "Sala", "Þjónusta"].indexOf(a) - ["Leiga", "Sala", "Þjónusta"].indexOf(b));
     saveSnapshot(s => { const P = (s.pantanir || []).find(P => String(P.id) === id); if (P) P.svid = nx.length ? nx : null; }).then(() => render()).catch(() => {}); }, true);
   window.u1Back = () => { const prev = NAV.pop(); if (!prev) return false; navBusy = true; tab = prev.tab; DETAIL = prev.o; if (prev.d && typeof DTAB !== "undefined") DTAB = prev.d; window.STSUB = prev.st; full = false; render(); navRestore(prev); return true; };

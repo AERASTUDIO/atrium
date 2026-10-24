@@ -488,3 +488,5 @@ body.kerfi .t-red{color:var(--t-red)}body.kerfi .t-amb{color:var(--t-amb)}body.k
 :root body.kerfi #view button.upill.svtog::before{display:none!important}
 :root body.kerfi #view button.upill.svtog.on{background:color-mix(in srgb,var(--t-blu,#2F6FB3) 14%,transparent)!important;border-color:var(--t-blu,#2F6FB3)!important;color:var(--ink)!important;font-weight:500!important}
 :root body.kerfi #view button.upill.svtog:not(.on){color:var(--muted)!important}
+:root body.kerfi #view button.upill.svtog.lock{cursor:default;opacity:1}
+:root body.kerfi #view button.upill.svtog.lock::after{content:"";display:inline-block;width:5px;height:5px;margin-left:5px;border-radius:50%;background:var(--t-blu,#2F6FB3);vertical-align:2px}
