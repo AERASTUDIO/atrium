@@ -143,7 +143,10 @@
   /* ---------- Einn póstur ---------- */
   async function loadMsg(id) {
     try {
-      MSG[id] = await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}?$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,body,webLink,hasAttachments,bodyPreview,conversationId,isRead,flag,importance`);
+      const QS = `?$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,body,webLink,hasAttachments,bodyPreview,conversationId,isRead,flag,importance`;
+      // Opnað úr tilkynningu (2.65.1): ef pósturinn finnst ekki í eigin pósthólfi er reynt í sameiginlega pósthólfinu
+      try { MSG[id] = await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}` + QS); }
+      catch (e0) { if (BOX[id] || !SHB) throw e0; MSG[id] = await MS.g(`${SHB}/messages/${encodeURIComponent(id)}` + QS); BOX[id] = SHB; }
       noteConv([MSG[id]]); const m = MSG[id], html = m.body?.contentType === "html" ? m.body.content || "" : "", hasCid = /src\s*=\s*["']?cid:/i.test(html);
       if (m.hasAttachments || hasCid) {
         // contentId er aðeins til á fileAttachment, svo það er ekki valið í listanum (annars villa frá Graph)

@@ -77,6 +77,17 @@
     STPAGES.tilk = { l: "Tilkynningar", d: "Ýtitilkynningar í síma og tölvu", s: ["Tilkynningar", "Ýtitilkynningar", "Morgunyfirlit"], fn: pageHTML }; return true; };
   if (!addPage()) { const iv = setInterval(() => { if (addPage()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 
+  // Smellt á tilkynningu (2.65.1): slóðin ber #t=<flipi>&o=<atriði>[&b=<pósthólf>]. Tölvan les #t/#o sjálf (utlit-i.js);
+  // hér er því sinnt í síma líka, og pósthólf póstsins skráð svo hann opnist úr réttu pósthólfi.
+  const fromNote = () => { const h = location.hash; if (!/^#t=/.test(h)) return false;
+    const g = k => { const m = h.match(new RegExp("[#&]" + k + "=([^&]*)")); return m ? decodeURIComponent(m[1]) : ""; };
+    const t = g("t"), o = g("o"), b = g("b"); if (!t) return false;
+    if (b && o.startsWith("post:") && window.poBox) window.poBox([{ id: o.slice(5) }], "/users/" + encodeURIComponent(b.toLowerCase()));
+    if (typeof S === "undefined" || !S || typeof render !== "function") return false;
+    tab = t; DETAIL = o || null; window.STSUB = null; render(); return true; };
+  (() => { let n = 0; const iv = setInterval(() => { if (fromNote() || ++n > 40) clearInterval(iv); }, 250); })();
+  window.addEventListener("hashchange", fromNote);
+
   // Talan á tákni appsins hreinsast þegar appið er opnað
   const clr = () => { if (document.visibilityState === "visible" && navigator.clearAppBadge) navigator.clearAppBadge().catch(() => {}); };
   document.addEventListener("visibilitychange", clr); clr();

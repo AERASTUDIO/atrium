@@ -212,7 +212,8 @@ exports.posturVinnsla = onDocumentCreated({ document: "postbox/{id}", secrets: [
     const fa = lc(m.from && m.from.emailAddress && m.from.emailAddress.address), fn = (m.from && m.from.emailAddress && m.from.emailAddress.name) || fa;
     if (!fa || fa === lc(sub.mailbox)) return;
     // Verkefni: verknúmer í efni (t.d. 2026-21) eða netfang viðskiptavinar
-    let lnk = link("postur"), um = "";
+    // Smellt á tilkynningu opnar póstinn sjálfan í Pósti (b = pósthólfið sem hann er í)
+    const lnk = link("postur", "post:" + q.msg) + (sub.teg === "sameig" ? "&b=" + encodeURIComponent(sub.mailbox) : ""); let um = "";
     const nr = (String(m.subject || "").match(/\b(20\d\d-\d{2,3})\b/) || [])[1];
     try {
       let p = null;
@@ -220,7 +221,7 @@ exports.posturVinnsla = onDocumentCreated({ document: "postbox/{id}", secrets: [
       if (!p && fa) { const v = await db.collection("vidskiptavinir").where("netfang", "==", fa).limit(1).get();
         if (!v.empty) { const c = v.docs[0].data(); um = c.name || c.nafn || "";
           const r = await db.collection("verkefni").where("vskId", "==", c.id || v.docs[0].id).get(); const op = r.docs.map(d => d.data()).filter(x => !x.lokid && x.stada !== "Lokið"); if (op.length === 1) p = op[0]; } }
-      if (p) { lnk = link("verk", "verk:" + p.id); um = [p.nr, p.stutt || p.nafn].filter(Boolean).join(" "); }
+      if (p) um = [p.nr, p.stutt || p.nafn].filter(Boolean).join(" ");
     } catch (e) { logger.warn("verkefnaleit", e.message); }
     const to = sub.teg === "sameig" ? (await activeUsers()).map(u => u.email) : [sub.mailbox];
     await send(to, sub.teg === "sameig" ? "postur" : "minnpostur", {
