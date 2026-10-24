@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "atrium-499a2",
+    "dev": "atrium-499a2",
+    "aera": "aera-app-cfdb3",
+    "sonik": "atrium-sonik",
+    "party": "atrium-party"
+  }
+}

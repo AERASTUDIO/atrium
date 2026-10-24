@@ -1,0 +1,11 @@
+{
+  "name": "atrium-functions",
+  "private": true,
+  "description": "Cloud Functions fyrir Atrium (tilkynningar o.fl.). Sett upp með: firebase deploy --only functions --project <dev|aera|sonik|party>",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0"
+  }
+}

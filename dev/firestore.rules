@@ -90,6 +90,9 @@ service cloud.firestore {
     // Persónulegar stillingar notanda (t.d. útlit Heim-skjás), frá 1.5.0: aðeins hann sjálfur.
     match /notandi/{email} { allow read, write: if active() && email == em(); }
 
+    // Tilkynningar (2.64.0): tæki (FCM-auðkenni) og val hvers notanda – aðeins hann sjálfur. Cloud Functions lesa með stjórnandaaðgangi.
+    match /tilkynningar/{email} { allow read, write: if active() && email == em(); }
+
     // Skeiðklukka: eitt skjal á hvern notanda (netfang), aðeins hann sjálfur.
     match /klukka/{email} { allow read, write: if active() && email == em(); }
 
