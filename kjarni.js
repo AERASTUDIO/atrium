@@ -50,7 +50,7 @@
   // lykill: [heiti, lýsing, einingar pakkans]
   const PAKKAR = {
     verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
-    timar:      ["Tímar", "Tímaskráning, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
+    timar:      ["Tímaskráning", "Tímar, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
     tilbod:     ["Tilboð og þjónustur", "Tilboð og þjónustulisti: þjónusta á tímagjaldi eða föstu verði, tímagjald á verkefnum og færslum", ["tilbod", "verdskra"]],
     bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", "qr", ...(window.ORG?.pakkaval && window.ORG?.utlit !== "I" ? ["pantanir"] : [])]],
     fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]

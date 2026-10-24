@@ -73,7 +73,7 @@
     const hd = `<div class="ucols uf"><span></span><span>Dags.</span><span>Lýsing · Verkefni</span><span>Magn</span><span class="r">Tegund</span></div>`;
     const body = rows.map(r => { const key = r.k + ":" + r.id, on = st.sel.has(key), x = d(r.date);
       return `<div class="urow uf${on ? " sel" : ""}" ${tapAttr(r.k, r.id)}><button type="button" class="ubox${on ? " on" : ""}" data-act="u1sel:${E(key)}" aria-label="Velja">${on ? "✓" : ""}</button><span class="m">${x ? x.getDate() + ". " + MNs[x.getMonth()] : ""}</span><span class="t">${E(r.lys)}<span class="m"> · ${E(r.p?.nr || "Innra")}</span></span><span class="m">${E(r.mag)}</span><span class="r">${pill(r.teg)}</span></div>`; }).join("") || `<div class="uempty">Engar færslur.</div>`;
-    const top = lhead("Tímar", "Færslur", nb) + `<div class="ulbar">${chips([["", "Allt"], ["Tími", "Tímar"], ["Kostnaður", "Kostnaður"], ["Akstur", "Akstur"], ["Innra", "Innra"]], st.ff, "u1ff")}</div>` + bar;
+    const top = lhead("Tímaskráning", "Færslur", nb) + `<div class="ulbar">${chips([["", "Allt"], ["Tími", "Tímar"], ["Kostnaður", "Kostnaður"], ["Akstur", "Akstur"], ["Innra", "Innra"]], st.ff, "u1ff")}</div>` + bar;
     if (WIDE()) return top + wl("18px 96px minmax(0,1.6fr) minmax(0,1.2fr) minmax(0,1fr) 96px 100px", wcols(["", "Dags.", "Lýsing", "Verkefni", "Starfsmaður", "Magn", "Tegund"])
       + (rows.map(r => { const key = r.k + ":" + r.id, on = st.sel.has(key), x = d(r.date);
         return `<div class="urow${on ? " sel" : ""}" ${tapAttr(r.k, r.id)}><button type="button" class="ubox${on ? " on" : ""}" data-act="u1sel:${E(key)}" aria-label="Velja">${on ? "✓" : ""}</button>${wc(x ? dateIS(x) : "")}${wc(E(r.lys), "t")}${wc(E(r.p ? r.p.nr + " " + (r.p.stutt || "") : "Innra"))}${wc(E(r.e?.starfsmadur ? starfName(r.e.starfsmadur) : ""))}${wc(E(r.mag))}${wc(pill(r.teg), "r")}</div>`; }).join("") || `<div class="uempty">Engar færslur.</div>`));
@@ -119,9 +119,9 @@
     const [a, b, lab] = range(), es = faerslur().filter(e => { const x = d(e.date); return x && x >= a && x <= b && !e.live; });
     const right = `<select aria-label="Tímabil" onchange="doAct('u1rp:'+this.value)">${[["m0", "Þessi mánuður"], ["m1", "Síðasti mánuður"], ["y", "Síðustu 12 mánuðir"]].map(([k, l]) => `<option value="${k}"${k === st.rp ? " selected" : ""}>${l}</option>`).join("")}</select>`;
     const tiles = `<div class="utiles">${REP.map(([k, t, dsc]) => `<button type="button" class="utile${k === st.rep ? " on" : ""}" data-act="u1rep:${k}"><b>${E(t)}</b><small>${E(dsc)}</small></button>`).join("")}</div>`;
-    if (st.rep === "vidsk") return head("Tímar", "Skýrslur", right) + tiles + `<div class="card ucard">${vTimar("skyr")}</div>`;
+    if (st.rep === "vidsk") return head("Tímaskráning", "Skýrslur", right) + tiles + `<div class="card ucard">${vTimar("skyr")}</div>`;
     const side = st.rep === "skylda" ? "aaetl" : "skylda";
-    return head("Tímar", "Skýrslur", right) + tiles + `<div class="u2"><section class="card ucard">${repBody(st.rep, es, lab)}</section><section class="card ucard">${repBody(side, es, lab)}</section></div>`;
+    return head("Tímaskráning", "Skýrslur", right) + tiles + `<div class="u2"><section class="card ucard">${repBody(st.rep, es, lab)}</section><section class="card ucard">${repBody(side, es, lab)}</section></div>`;
   };
 
   /* ---------- Listar með dálkum (Verkefni, Viðskiptavinir, Tilboð, Pantanir, Vörulisti) ---------- */
@@ -889,7 +889,7 @@
     const m0 = new Date(today.getFullYear(), today.getMonth(), 1), mo = fs.filter(e => d(e.date) >= m0);
     const by = {}; mo.forEach(e => { const p = findProj(e.verkefniId), k = p ? svidOf(p)[0] : "Innra"; by[k] = (by[k] || 0) + (+e.timar || 0); });
     const moT = Object.values(by).reduce((s, x) => s + x, 0), unb = window.rkUnbilled ? verkefni().reduce((s, p) => s + sumT(rkUnbilled(p.id).es), 0) : 0;
-    return head("Tímar", "Yfirlit", btn("Opna vikuna", "tab:timar", "primary")) + kp4([["Þín vika", H(me) + " af " + H(g) + " klst."], ["Teymið í viku", H(team) + " klst."], ["Þessi mánuður", H(moT) + " klst."], ["Óreikningsfært", H(unb) + " klst."]])
+    return head("Tímaskráning", "Yfirlit", btn("Opna vikuna", "tab:timar", "primary")) + kp4([["Þín vika", H(me) + " af " + H(g) + " klst."], ["Teymið í viku", H(team) + " klst."], ["Þessi mánuður", H(moT) + " klst."], ["Óreikningsfært", H(unb) + " klst."]])
       + `<div class="udash">${dcard("Vikan hjá teyminu", staff.map(x => { const h = wk.filter(e => e.starfsmadur === x.sk).reduce((s, e) => s + (+e.timar || 0), 0); return `<div class="ubr"><span>${E(x.nafn || x.sk)}</span><div class="ubar"><i style="width:${Math.min(100, h / g * 100)}%"></i></div><span>${H(h)} klst.</span></div>`; }), "tskyr", "Engir tímar skráðir.")}`
       + dcard("Hvert fer tíminn · " + MNs[today.getMonth()], [...SV, "Innra"].filter(k => by[k]).map(k => `<div class="ubr"><span>${E(k === "Innra" ? k : svH(k))}</span><div class="ubar"><i style="width:${moT ? by[k] / moT * 100 : 0}%"></i></div><span>${Math.round(moT ? by[k] / moT * 100 : 0)} %</span></div>`), "tskyr", "Engir tímar í mánuðinum.") + `</div>`;
   };

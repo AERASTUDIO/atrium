@@ -834,3 +834,6 @@ body.kerfi a.maplnk:hover{text-decoration:underline}
 :root body.kerfi #view .pfgrid .pfpay .pfsh > span{flex:1 1 100%;font-size:var(--t-sm)}
 :root body.kerfi #view .pfgrid .pfafh .pfsh{justify-content:space-between}
 @media (max-width:700px){:root body.kerfi #view .pfferill{grid-template-columns:repeat(2,1fr);row-gap:14px}:root body.kerfi #view .pfferill li:nth-child(2)::before{display:none}}
+/* Eigin gluggi (2.77.0): engin vinstri stika */
+@media (min-width:1024px){html body.solowin{padding-left:0!important}html body.solowin .side,html body.solowin #wcodrag{display:none!important}}
+:root body.kerfi #view .pdwin{display:inline-flex;align-items:center;gap:6px}
