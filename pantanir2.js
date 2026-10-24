@@ -27,6 +27,7 @@
   const CFP = () => tr(() => CFG().pantanir, null) || {};
   const SG = () => ({ on: false, seint: 1, tynt: 100, skemmd: 30, ...(CFP().skilagjold || {}) });
   const FERD = () => !!(CFP().ferd || {}).on;
+  const SIGREQ = () => (CFP().undirskrift || {}).krafa !== false;   // sjálfgefið: undirskrift krafist við afhendingu
   const savePN = (id, fn) => saveSnapshot(s => { const P = (s.pantanir || []).find(x => String(x.id) === String(id)); if (P) fn(P, s); });
   const saveCfg = fn => saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.pantanir = s.stillingar.pantanir || {}; fn(s.stillingar.pantanir, s); });
   const dfmt = s => { const x = tr(() => d(String(s).slice(0, 10)), null); return x ? x.getDate() + "." + (x.getMonth() + 1) + "." : ""; };
@@ -84,23 +85,37 @@
   function afhHTML(P) {
     const k = P.kvittun || {}, ut = k.ut, inn = k.inn, a = AFH(P), canEd = ed() && !["Lokið"].includes(P.stada);
     const kv = (x, l) => x ? `<div class="pfkv"><img src="${x.undirskrift}" alt="Undirskrift ${E(x.nafn || "")}"><span><b class="t-grn">✓ ${l}</b><small>${E(x.nafn || "")} · ${E(dfmt(x.dags))} kl. ${E(String(x.dags).slice(11, 16))}${x.mynd ? " · með mynd" : ""}</small></span><button type="button" class="btn sm" data-pf="pdf:${E(P.id)}:${l === "Afhent" ? "ut" : "inn"}">Seðill (PDF)</button></div>` : "";
-    const btnUt = canEd && !ut && ["Ný", "Staðfest", "Afhent"].includes(P.stada) ? `<button type="button" class="btn${P.stada !== "Afhent" ? " primary" : ""}" data-pf="kv:${E(P.id)}:ut">${a === "sott" ? "Afhenda (sótt) með kvittun" : "Afhenda með kvittun"}</button>` : "";
-    const btnIn = canEd && ut && !inn && ["Afhent", "Skilað"].includes(P.stada) ? `<button type="button" class="btn primary" data-pf="kv:${E(P.id)}:inn">Taka á móti með kvittun</button>` : "";
+    // Engir sérhnappar lengur (2.58.0): „Afhenda“ / „Taka á móti“ neðst leiðir í gegnum skönnun og kvittun. Hér sést aðeins staðan.
+    const warnUt = !ut && ["Afhent", "Skilað", "Lokið"].includes(P.stada) ? `<p class="pfhint"><span class="t-amb">Afhent án kvittunar</span>${canEd && P.stada === "Afhent" ? ` · <button type="button" class="pflink" data-pf="kv:${E(P.id)}:ut">Taka kvittun núna</button>` : ""}</p>` : "";
+    const warnIn = ut && !inn && ["Skilað", "Lokið"].includes(P.stada) ? `<p class="pfhint"><span class="t-amb">Móttekið án kvittunar</span></p>` : "";
+    const btnUt = "", btnIn = "";
     return `<section class="pfsec pfafh"><div class="pfsh"><b>Afhending</b>
       <div class="pfseg" role="group" aria-label="Afhendingarmáti">${[["sent", "Sent"], ["sott", "Sótt"]].map(([v, l]) => `<button type="button"${a === v ? ' aria-pressed="true"' : ""} ${canEd ? `data-pf="afh:${E(P.id)}:${v}"` : "disabled"}>${l}</button>`).join("")}</div></div>
       ${a === "sent" ? `<div class="pfrow"><label>Heimilisfang<input data-pfs="afhStadur:${E(P.id)}" value="${E(P.afhStadur || P.stadsetning || "")}" placeholder="Hvert á að senda" ${canEd ? "" : "disabled"}></label><label>Klukkan<input data-pfs="afhKl:${E(P.id)}" value="${E(P.afhKl || "")}" placeholder="hh:mm" inputmode="decimal" maxlength="5" ${canEd ? "" : "disabled"}></label></div>`
         : a === "sott" ? `<p class="pfhint">Viðskiptavinur sækir ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} og skilar ${E(dfmt(P.til))}</p>` : `<p class="pfhint">Veldu hvort pöntunin er send eða sótt.</p>`}
-      ${kv(ut, "Afhent")}${kv(inn, "Móttekið")}${btnUt || btnIn ? `<div class="pfbb">${btnUt}${btnIn}</div>` : ""}</section>`;
+      ${kv(ut, "Afhent")}${warnUt}${kv(inn, "Móttekið")}${warnIn}</section>`;
+  }
+  async function setStatus(pid, nx) { const P = findP(pid); if (!P || P.stada === nx || P.stada === "Lokið" || (nx === "Afhent" && P.stada === "Skilað")) return; try { __pfFlow = true; doAct("tbst:" + P.id + ":" + nx); } catch (e) {} finally { __pfFlow = false; } }
+  let __pfFlow = false;
+  /* Eitt afhendingarferli (2.58.0): „Afhenda“ / „Taka á móti“ → skanna (ef QR og leigubúnaður með eintökum) → kvittun → staða. */
+  function flow(pid, dir) {
+    const P = findP(pid); if (!P) return; const out = dir === "ut";
+    const N = tr(() => Q().need(P), []), qr = tr(() => qrIsOn(), false) && N.some(r => r.eint);
+    const sig = () => kvittun(pid, dir, { step: qr ? (out ? "Skref 2 af 2 · kvittun" : "Skref 2 af 2 · kvittun") : "" });
+    if (qr) { const st = tr(() => Q().orderState(P, dir), null); if (st && st.done >= st.tot) return sig(); return window.qrScanOrder(pid, dir, () => setTimeout(sig, 150)); }
+    sig();
   }
   // Undirskrift + mynd
-  function kvittun(pid, dir) {
+  function kvittun(pid, dir, opt = {}) {
     const P = findP(pid); if (!P) return; const out = dir === "ut";
     const { w, close } = modal(out ? "Afhending · " + P.nr : "Móttaka · " + P.nr, `
       <p class="pfhint">${out ? "Viðtakandi staðfestir að hafa fengið búnaðinn í lagi." : "Staðfest að búnaðinum hafi verið skilað."} ${E(P.heiti || "")}</p>
       <label>Nafn ${out ? "viðtakanda" : "þess sem skilar"}<input id="pfnafn" value="${E(P.tengilidur || "")}" autocomplete="name"></label>
       <div class="pfsigw"><canvas id="pfsig" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" class="pfclr" data-clr="1">Hreinsa</button><span class="pfsigl">Undirskrift</span></div>
       <label class="pfphoto"><input id="pfmynd" type="file" accept="image/*" capture="environment" hidden><span class="btn">📷 Taka mynd af búnaðinum</span><small id="pfmyndn">Valfrjálst</small></label>
-      <div class="pfact"><button type="button" class="btn" data-x="1">Hætta við</button><button type="button" class="btn primary" id="pfsave">${out ? "Staðfesta afhendingu" : "Staðfesta móttöku"}</button></div>`);
+      ${opt.step ? `<p class="pfstep">${E(opt.step)}</p>` : ""}
+      <div class="pfact">${!SIGREQ() ? `<button type="button" class="btn pfskip" id="pfskip">Sleppa undirskrift</button>` : ""}<button type="button" class="btn" data-x="1">Hætta við</button><button type="button" class="btn primary" id="pfsave">${out ? "Staðfesta afhendingu" : "Staðfesta móttöku"}</button></div>`);
+    w.querySelector("#pfskip")?.addEventListener("click", async () => { close(); await setStatus(pid, out ? "Afhent" : "Skilað"); toast(out ? "Afhent án undirskriftar" : "Móttekið án undirskriftar"); render(); });
     const c = w.querySelector("#pfsig"), g = c.getContext("2d"); let drawing = false, any = false, last = null;
     g.lineWidth = 2.4; g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#121416";
     const pt = e => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
@@ -116,7 +131,7 @@
       const x = { nafn, undirskrift: c.toDataURL("image/png"), mynd: photo, dags: nowIso(), af: me() };
       try { await savePN(pid, Q0 => { Q0.kvittun = { ...(Q0.kvittun || {}), [dir]: x }; });
         close(); toast(out ? "Afhending staðfest" : "Móttaka staðfest");
-        const P2 = findP(pid); if (P2) { const nx = out ? "Afhent" : "Skilað"; if (P2.stada !== nx && P2.stada !== "Lokið" && !(out && P2.stada === "Skilað")) { try { doAct("tbst:" + P2.id + ":" + nx); } catch (e) {} } }
+        await setStatus(pid, out ? "Afhent" : "Skilað");
         render();
       } catch (e2) { b.disabled = false; b.textContent = "Reyna aftur"; toast("Tókst ekki að vista: " + (e2?.message || e2)); }
     };
@@ -321,6 +336,7 @@
       ${sg.on ? `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>Seinkun</b><small>Leiguverð á dag × dagar sem skil eru sein</small></div><div class="snjso snjlim">${num("seint", sg.seint, "× dagsverð")}</div></div>
       <div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>Týnt eintak</b><small>Hlutfall af innkaupsverði</small></div><div class="snjso snjlim">${num("tynt", sg.tynt, "% af innkaupsverði")}</div></div>
       <div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>Skemmt eintak</b><small>Hlutfall af innkaupsverði – breytanlegt á pöntun</small></div><div class="snjso snjlim">${num("skemmd", sg.skemmd, "% af innkaupsverði")}</div></div>` : ""}</div>
+      <div class="viewtitle">Afhending</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(SIGREQ(), "pfSet('sig','krafa',this.checked)", "Krefjast undirskriftar")}</div><div class="snjst"><b>Krefjast undirskriftar við afhendingu og skil</b><small>Ef slökkt má sá sem afhendir sleppa kvittunarskrefinu („Sleppa undirskrift“)</small></div><div class="snjso"></div></div></div>
       <div class="viewtitle">Ferð dagsins</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(FERD(), "pfSet('ferd','on',this.checked)", "Ferð dagsins")}</div><div class="snjst"><b>Ferð dagsins á Pantanir › Yfirlit</b><small>Afhendingar og sóttar pantanir dagsins í röð, með leið í Google Maps</small></div><div class="snjso"></div></div></div>
       <div class="viewtitle">Sniðmát</div><div class="snjset">${sn.length ? sn.map(s => `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>${E(s.heiti)}</b><small>${(s.linur || []).length} línur${s.vidskiptavinur ? " · " + E(s.vidskiptavinur) : ""}</small></div><div class="snjso"><button type="button" class="btn sm" onclick="pfSet('snidDel','${E(s.id)}')">Eyða</button></div></div>`).join("") : `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><small>Engin sniðmát. Opnaðu pöntun og veldu „Vista sem sniðmát“.</small></div><div class="snjso"></div></div>`}</div>
       <div class="viewtitle">Vefverslun</div><div class="snjset"><div class="snjsr"><div class="snjsc"><span class="pfshop">S</span></div><div class="snjst"><b>Shopify ${sh.virk ? '<span class="t-grn">· tengt</span>' : '<span class="m">· ekki tengt</span>'}</b><small>Pantanir úr vefversluninni detta sjálfkrafa inn í Pantanir (uppruni Shopify) og eru staðfestar ef búnaðurinn er laus.</small></div><div class="snjso"><button type="button" class="btn sm" onclick="pfShopify()">${sh.verslun ? "Stillingar" : "Tengja"}</button></div></div></div>`;
@@ -328,6 +344,7 @@
   window.pfSet = (g, k, v) => { saveCfg(c => {
     if (g === "sg") { c.skilagjold = { ...(c.skilagjold || {}), [k]: k === "on" ? !!v : (parseFloat(String(v).replace(",", ".")) || 0) }; }
     if (g === "ferd") c.ferd = { ...(c.ferd || {}), on: !!v };
+    if (g === "sig") c.undirskrift = { ...(c.undirskrift || {}), krafa: !!v };
     if (g === "snidDel") c.snid = (c.snid || []).filter(x => x.id !== k);
   }).then(() => render()).catch(e => toast("Tókst ekki: " + (e?.message || e))); };
   window.pfShopify = () => { const sh = CFP().shopify || {};
@@ -450,6 +467,11 @@
 
   /* ---------- Tengt inn í appið ---------- */
   document.addEventListener("click", e => {
+    if (!on() || __pfFlow) return; const t = e.target.closest('button[data-act^="tbst:"], a[data-act^="tbst:"]'); if (!t) return;
+    const [, id, nx] = t.dataset.act.split(":"), P = findP(id); if (!P?.pontun || !["Afhent", "Skilað"].includes(nx)) return;
+    e.preventDefault(); e.stopImmediatePropagation(); flow(id, nx === "Afhent" ? "ut" : "inn");
+  }, true);
+  document.addEventListener("click", e => {
     if (!on()) return; const b = e.target.closest("[data-pf]"); if (!b) return; e.preventDefault(); e.stopPropagation();
     const [op, id, a, c, n] = b.dataset.pf.split(":");
     if (op === "pick") return pickScan(id);
@@ -480,7 +502,10 @@
       try { pubSync(P); } catch (e) {}
       const html = `<div class="pfwrap">${subsHTML(P)}${pubHTML(P)}${afhHTML(P)}${pickHTML(P)}${settleHTML(P)}${moreHTML(P)}</div>`;
       const anchor = host.querySelector(".qrbox") || host.querySelector(".utb") || [...host.querySelectorAll(".viewtitle")].find(x => /^Línur/.test(x.textContent.trim()));
-      anchor ? anchor.insertAdjacentHTML("beforebegin", html) : host.insertAdjacentHTML("beforeend", html); return; }
+      anchor ? anchor.insertAdjacentHTML("beforebegin", html) : host.insertAdjacentHTML("beforeend", html);
+      host.querySelectorAll(".qrbox .qrbb").forEach(x => x.remove());   // skönnun er hluti af „Afhenda“ / „Taka á móti“
+      document.querySelectorAll('#view button[data-act^="tbst:' + P.id + ':Afhent"], #view button[data-act^="tbst:' + P.id + ':Skilað"]').forEach(b => { if (b.closest(".fsels")) return; b.textContent = b.dataset.act.endsWith("Afhent") ? (AFH(P) === "sott" ? "Afhenda (sótt)" : "Afhenda") : "Taka á móti"; });
+      return; }
     if (!D && /^(pnyf|pantanir|pnl|pns|pnt)$/.test(t)) {
       const ph = root.querySelector(".phead .phrow, .uhead"), nb = ph && (ph.querySelector('[data-act^="fabnew"]') || ph.querySelector(".btn.primary"));
       if (nb && ed() && !root.querySelector('[data-pf="mail"]')) nb.insertAdjacentHTML("beforebegin", `<button type="button" class="btn pfmailb" data-pf="mail:" title="Ný pöntun úr pósti eða sniðmáti">Úr pósti / sniðmáti</button>`);

@@ -199,7 +199,7 @@
     const tot = rows.reduce((a, r) => a + r.magn, 0), done = rows.reduce((a, r) => a + r.got, 0);
     return { rows, tot, done, list };
   }
-  function scanOrder(pid, dir) {
+  function scanOrder(pid, dir, onDone) {  // onDone (2.58.0): afhendingarferli – kallað í stað þess að breyta stöðu
     const P0 = PN().find(x => String(x.id) === String(pid)); if (!P0) return;
     const out = dir === "ut", ed = can();
     const panel = () => { const P = PN().find(x => String(x.id) === String(pid)) || P0, s = orderState(P, dir);
@@ -226,6 +226,7 @@
         if (q.startsWith("h:")) { const [, id, d] = q.split(":"); const s = orderState(P, dir), r = s.rows.find(x => x.id === id); if (!r) return; const n = Math.max(0, Math.min(r.magn, r.got + +d));
           await saveSnapshot(S0 => { const Q = (S0.pantanir || []).find(x => String(x.id) === String(P.id)); if (!Q) return; Q.skann = Q.skann || {}; Q.skann[dir + "H"] = { ...(Q.skann[dir + "H"] || {}), [id]: n }; Q.skann[dir + "Dags"] = nowIso(); }).catch(() => {}); refreshPanel(); return; }
         if (q === "finish") { const s = orderState(P, dir);
+          if (onDone) { if (s.done < s.tot) { const miss = s.rows.filter(r => r.got < r.magn).map(r => (r.magn - r.got) + " × " + r.heiti).join(", "); if (!confirm((out ? "Ekki allt skannað út:\n" : "Vantar enn:\n") + miss + "\n\nHalda áfram?")) return; } closeScanner(); onDone(s.done >= s.tot); return; }
           if (s.done >= s.tot) { const nx = out ? "Afhent" : "Skilað"; closeScanner(); if (P.stada !== nx && P.stada !== "Lokið") { try { doAct("tbst:" + P.id + ":" + nx); } catch (e) {} } toast?.((P.nr || "Pöntun") + ": " + (out ? "allt skannað út" : "allt komið inn")); return; }
           const miss = s.rows.filter(r => r.got < r.magn).map(r => (r.magn - r.got) + " × " + r.heiti).join(", ");
           if (confirm((out ? "Ekki allt skannað út:\n" : "Vantar enn:\n") + miss + "\n\nLjúka samt? Pöntunin helst í núverandi stöðu.")) closeScanner(); }
