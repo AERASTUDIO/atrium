@@ -602,6 +602,7 @@
     if (ed()) PN().forEach(P => { if (P.opinber && !P.vidskStadfest) pubWatch(P.opinber, P.id); });
     const root = document.getElementById("view"); if (!root) return;
     if (D && String(D).startsWith("tb:")) { const P = findP(String(D).slice(3)); if (!P || !P.pontun) return; const host = root.querySelector(".spdet") || root; if (host.querySelector(".pfwrap")) return;
+      { const slot = host.querySelector("#tbed .tbafhslot"); if (host.querySelector("#tbed")) { if (slot && !slot.firstChild) slot.innerHTML = afhHTML(P); return; } } // 2.71.0: í breytingasýn aðeins afhendingarmáti, í sínum hluta
       try { pubSync(P); } catch (e) {}
       const html = `<div class="pfwrap">${subsHTML(P)}${pubHTML(P)}${afhHTML(P)}${pickHTML(P)}${settleHTML(P)}${moreHTML(P)}</div>`;
       const anchor = host.querySelector(".qrbox") || host.querySelector(".utb") || [...host.querySelectorAll(".viewtitle")].find(x => /^Línur/.test(x.textContent.trim()));

@@ -3,7 +3,7 @@
    sömu víðværu breytum og hlaðast í þeirri röð sem index.html telur þær upp. */
 /* Stillingar skiptast í undirsíður (v1.2). Kaflarnir koma úr vStillingarAll() og er raðað á síður eftir fyrirsögn. */
 window.STSUB=null;
-const STPAGES={utlit:{l:"Útlit",s:["Útlit"]},ms:{l:"Microsoft 365",s:["Microsoft 365"]},sig:{l:"Undirskrift í pósti",s:["Undirskrift í pósti"]},amin:{l:"Áminningar",s:["Áminningar"]},
+const STPAGES={utlit:{l:"Útlit",d:"Ljóst, dökkt eða sjálfvirkt",s:["Útlit"]},ms:{l:"Microsoft 365",d:"Outlook, Teams og SharePoint",s:["Microsoft 365"]},sig:{l:"Undirskrift í pósti",d:"Neðst í tölvupósti úr appinu",s:["Undirskrift í pósti"]},amin:{l:"Áminningar",d:"Áminningar um tímaskráningu",s:["Áminningar"]},
   folk:{l:"Fólk",d:"Notendur, hlutverk og starfsmenn",s:["Notendur","Starfsmenn"],adm:1},fyrir:{l:"Reikningar og fyrirtæki",d:"Seljandi, tímagjald, VSK og vinnuvika",s:["Reikningar","Vinnuvika"],adm:1},
   adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
   einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()},
@@ -16,9 +16,9 @@ const mrow=(act,label,opts={})=>`<button type="button" class="mrow" ${act.starts
 function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB]; 
   if(sub&&(!sub.adm||can("stillingar"))){if(sub.fn) return sub.fn(); const m=stChunks(); return sub.s.map(t=>m[t]||"").join("")||'<div class="empty">Ekkert hér.</div>';}
   const msOn=window.MS&&MS.on?MS.on():false;
-  const me=["utlit","ms","sig","amin",...(STPAGES.snjheim&&window.ON&&ON("snjall")?["snjheim"]:[]),...(STPAGES.tilk?["tilk"]:[])].map(k=>mrow("stsub:"+k,STPAGES[k].l,{v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
+  const me=["utlit","ms","sig","amin",...(STPAGES.snjheim&&window.ON&&ON("snjall")?["snjheim"]:[]),...(STPAGES.tilk?["tilk"]:[])].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
   const co=can("stillingar")?["adgangur","folk","einingar",...(STPAGES.snjfyr&&window.ON&&ON("snjall")?["snjfyr"]:[]),...(STPAGES.pferli&&window.ON&&ON("pferli")?["pferli"]:[]),...(STPAGES.vgreind&&window.ON&&ON("vgreind")?["vgreind"]:[]),"fyrir","vstill",...(window.ON&&(ON("leiga")||ON("sala"))?["tilbod"]:[]),"prufa"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
-  return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið · admin</div><div class="mlist">${co}</div>`:""}
+  return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn og persónuvernd</div><div class="mlist">${STPAGES.personuvernd?mrow("stsub:personuvernd",STPAGES.personuvernd.l,{d:STPAGES.personuvernd.d}):""}${can("stillingar")?mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins (aðeins admin – inniheldur persónuupplýsingar)",noch:1}):""}</div>`;}
 function vMeira(){const U=window.USER, ini=String(U?.nafn||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
   const bs=window.ORG?.pakkaval&&window.barSecs?barSecs():null, rest=bs?SECTIONS.filter(x=>!x.nobar&&!bs.includes(x)):[], c=secCounts();

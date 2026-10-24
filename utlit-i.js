@@ -178,18 +178,17 @@
     const sub = window.STSUB || null; window.STSUB = null; _render(); window.STSUB = sub;
     if (typeof STPAGES !== "undefined" && STPAGES.svid && can("stillingar")) { const r = v.querySelector('[data-act="stsub:einingar"]'); if (r && !v.querySelector('[data-act="stsub:svid"]')) r.insertAdjacentHTML("afterend", mrow("stsub:svid", "Svið", { d: STPAGES.svid.d })); }
     v.querySelector(".pback")?.remove();
-    // Flatur listi: hópur (Ég/Admin) undir heiti, síuflipar Allt/Ég/Fyrirtækið
-    let grp = ""; const f0 = window._stf || "";
-    v.querySelectorAll(".mgroup, .mrow").forEach(n => { if (n.matches(".mgroup")) { grp = /admin|fyrirt/i.test(n.textContent) ? "Admin" : /^ég/i.test(n.textContent.trim()) ? "Ég" : n.textContent.trim(); return; }
-      const mt = n.querySelector(".mt"); if (mt) { mt.querySelectorAll("small").forEach(x => x.remove()); mt.insertAdjacentHTML("beforeend", `<small>${esc(grp)}</small>`); }
-      if (f0 && !(f0 === "eg" ? grp === "Ég" : grp === "Admin")) n.style.display = "none"; });
-    const ph0 = v.querySelector(".phead"); if (ph0) ph0.insertAdjacentHTML("beforeend", `<div class="ulbar">${[["", "Allt"], ["eg", "Ég"], ["fyr", "Fyrirtækið"]].map(([k, l]) => `<button type="button" class="uchip${k === f0 ? " on" : ""}" onclick="window._stf='${k}';render()">${l}</button>`).join("")}</div>`);
+    // 2.71.0: einfaldari listi – hópar (Ég · Fyrirtækið · Gögn) sem fyrirsagnir, tákn og stutt lýsing við hverja stillingu; engar síuflögur
+    const SIC = { utlit: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>', ms: '<rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/>', sig: '<path d="M4 17c3-6 5-9 7-9s0 8 2 8 3-4 4-4 1 2 3 2"/><path d="M4 21h16"/>', amin: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>', snjheim: '<path d="M4 11l8-7 8 7v9.5H4z"/>', tilk: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+      adgangur: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', folk: '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.6a3.5 3.5 0 0 1 0 6.8M21 20c0-2.6-1.6-4.8-4-5.6"/>', einingar: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><path d="M17 14v6M14 17h6"/>', svid: '<path d="M4 6h16M4 12h10M4 18h6"/>', snjfyr: '<path d="M4 11l8-7 8 7v9.5H4z"/><path d="M10 20.5v-6h4v6"/>', pferli: '<path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/>', vgreind: '<path d="M3 12h4l3-7 4 14 3-7h4"/>', fyrir: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>', vstill: '<path d="M3 6h6l2 2h10v11H3z"/>', tilbod: '<path d="M3 7.5l9-4.5 9 4.5v9l-9 4.5-9-4.5z"/><path d="M3 7.5l9 4.5 9-4.5M12 12v9"/>', prufa: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/>', personuvernd: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>' };
+    v.querySelectorAll(".mrow").forEach(n => { const k = (n.getAttribute("data-act") || "").slice(6); if (SIC[k] && !n.querySelector(".stic")) n.insertAdjacentHTML("afterbegin", `<span class="stic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${SIC[k]}</svg></span>`); });
+    const ph0 = v.querySelector(".phead");
     // Leit í stillingum: heiti, lýsing og undirkaflar hverrar síðu (STPAGES[k].s)
     const kw = r => { const k = (r.getAttribute("data-act") || "").slice(6), P0 = typeof STPAGES !== "undefined" ? STPAGES[k] : null; return [r.textContent, P0?.l, P0?.d, ...(P0?.s || [])].filter(Boolean).join(" "); };
     v.querySelectorAll(".mrow").forEach(r => r.setAttribute("data-kw", kw(r)));
     if (ph0) ph0.insertAdjacentHTML("afterend", `<label class="spfilt stq"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input type="search" id="u1stq" placeholder="Leita í stillingum…" aria-label="Leita í stillingum" value="${esc(window._stq || "")}"><kbd>/</kbd></label>`);
     const list = v.innerHTML;
-    const cur = sub;  // ekkert valið þegar Stillingar eru opnaðar
+    const cur = sub || "utlit";  // 2.71.0: fyrsta stilling opin svo hægri hliðin sé aldrei tóm
     let det = `<div class="spempty">Veldu stillingu úr listanum</div>`;
     if (cur && typeof STPAGES !== "undefined" && STPAGES[cur]) { window.STSUB = cur; _render(); window.STSUB = sub;
       const ph = v.querySelector(".phead"); const t = STPAGES[cur].l; ph?.remove();
