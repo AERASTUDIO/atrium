@@ -1,4 +1,4 @@
-/* Tilkynningar (2.64.0): ýtitilkynningar í síma og tölvu í gegnum Firebase Cloud Messaging (Heim nr. 3).
+/* Tilkynningar (2.64.0, póstur 2.65.0): ýtitilkynningar í síma og tölvu í gegnum Firebase Cloud Messaging (Heim nr. 3).
    Virkar aðeins þar sem uppsetningin hefur ORG.firebase.vapidKey (opinber lykill – Firebase › Project settings › Cloud Messaging
    › Web Push certificates) og Cloud Functions eru uppsett (functions/index.js, krefst Blaze).
    Gögn: tilkynningar/{netfang} = { tokens: { <token>: { tegund, uppfaert } }, val: { pantanir, stadfest, spjall, morgun }, prufa }
@@ -12,8 +12,9 @@
   const me = () => String(tr(() => DB.email, "") || "").toLowerCase();
   const path = () => "tilkynningar/" + me();
   const LS = "tilk-token:" + tr(() => ORG.lsForskeyti || "", "");
+  const DEFOFF = new Set(["postur", "minnpostur"]);   // sjálfgefið slökkt – kveikt sérstaklega
   const KINDS = [["pantanir", "Nýjar pantanir", "Þegar pöntun er stofnuð, t.d. úr pósti eða vefverslun"], ["stadfest", "Staðfestingar viðskiptavina", "Þegar viðskiptavinur staðfestir pöntun eða samþykkir tilboð með tengli"],
-    ["spjall", "Spjall", "Einkaskilaboð til þín og skilaboð á almennu rásinni"], ["morgun", "Morgunyfirlit", "Kl. 8 virka daga: afhendingar, skil og það sem bíður"]];
+    ["spjall", "Spjall", "Einkaskilaboð til þín og skilaboð á almennu rásinni"], ["postur", "Nýr póstur – sameiginlega pósthólfið", "Póstur sem berst í sameiginlega pósthólf fyrirtækisins, með verkefninu sem hann á við"], ["minnpostur", "Nýr póstur – mitt pósthólf", "Póstur sem berst í þitt eigið pósthólf"], ["morgun", "Morgunyfirlit", "Kl. 8 virka daga: afhendingar, skil og það sem bíður"]];
   const st = window.__tilk = window.__tilk || { doc: null, busy: false, msg: "" };
   const myToken = () => { try { return localStorage.getItem(LS) || ""; } catch (e) { return ""; } };
   const setMyToken = t => { try { t ? localStorage.setItem(LS, t) : localStorage.removeItem(LS); } catch (e) {} };
@@ -49,7 +50,7 @@
   async function load() { try { const s = await window.__DB.get(path()); st.doc = s.exists ? s.data() : {}; } catch (e) { st.doc = st.doc || {}; } }
   window.tilkAct = async (op, a) => {
     if (op === "on") return enable(); if (op === "off") return disable(); if (op === "rm") return disable(a);
-    if (op === "val") { await save(x => { x.val[a] = x.val[a] === false; }); await load(); return render(); }
+    if (op === "val") { await save(x => { x.val[a] = DEFOFF.has(a) ? x.val[a] !== true : x.val[a] === false; }); await load(); return render(); }
     if (op === "prufa") { st.msg = "Prufa send – hún ætti að birtast eftir nokkrar sekúndur."; await save(x => { x.prufa = new Date().toISOString(); }); render(); }
   };
 
@@ -64,7 +65,7 @@
       <div class="snjset"><div class="snjsr tlkr"><div class="snjst"><b>${here ? "Kveikt" : "Slökkt"} · ${E(devName())}</b><small>${perm === "denied" ? "Tilkynningar eru bannaðar í stillingum vafrans eða tækisins – leyfðu þær þar fyrst." : iosNeedsInstall() ? "Á iPhone virka tilkynningar aðeins þegar appið er opnað af heimaskjánum." : here ? "Þetta tæki fær tilkynningar." : "Þetta tæki fær ekki tilkynningar."}</small></div>
         <div class="snjso"><button type="button" class="btn${here ? "" : " primary"}" ${st.busy ? "disabled" : ""} onclick="tilkAct('${here ? "off" : "on"}')">${st.busy ? "Augnablik…" : here ? "Slökkva" : "Kveikja á tilkynningum"}</button></div></div></div>
       <div class="viewtitle">Hvað á að tilkynna</div>
-      <div class="snjset">${KINDS.map(([k, l, s]) => `<div class="snjsr"><div class="snjsc">${sw((d.val || {})[k] !== false, `tilkAct('val','${k}')`, l)}</div><div class="snjst"><b>${E(l)}</b><small>${E(s)}</small></div></div>`).join("")}</div>
+      <div class="snjset">${KINDS.map(([k, l, s]) => `<div class="snjsr"><div class="snjsc">${sw(DEFOFF.has(k) ? (d.val || {})[k] === true : (d.val || {})[k] !== false, `tilkAct('val','${k}')`, l)}</div><div class="snjst"><b>${E(l)}</b><small>${E(s)}</small></div></div>`).join("")}</div>
       ${devs.length ? `<div class="viewtitle">Tæki með tilkynningar</div><div class="snjset">${devs.map(([t, x]) => `<div class="snjsr tlkr"><div class="snjst"><b>${E(x.tegund || "Tæki")}${t === mine ? ' <span class="m">· þetta tæki</span>' : ""}</b><small>Síðast uppfært ${E(String(x.uppfaert || "").slice(0, 10).split("-").reverse().join("."))}</small></div><div class="snjso"><button type="button" class="btn sm" onclick="tilkAct('rm','${E(t)}')">Fjarlægja</button></div></div>`).join("")}</div>
         <div class="links" style="margin-top:16px"><button type="button" class="btn" onclick="tilkAct('prufa')">Senda prufutilkynningu</button></div>` : ""}`;
   }
