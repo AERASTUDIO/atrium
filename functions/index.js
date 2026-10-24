@@ -160,15 +160,16 @@ async function wanted() {
   return out;
 }
 async function syncSubs() {
-  if (!MS_TENANT.value() || !MS_CLIENT_ID.value()) { logger.warn("postur: MS_TENANT/MS_CLIENT_ID vantar"); return; }
+  if (!MS_TENANT.value() || !MS_CLIENT_ID.value()) { logger.warn("postur: MS_TENANT/MS_CLIENT_ID vantar"); await KREF().set({ villur: ["MS_TENANT/MS_CLIENT_ID vantar í functions/.env"] }, { merge: true }); return; }
   const ks = await KREF().get(), k = ks.exists ? ks.data() : {}, subs = { ...(k.subs || {}) };
   const cs = k.clientState || crypto.randomBytes(24).toString("hex");
   const want = await wanted(), exp = new Date(Date.now() + 2 * 864e5).toISOString();
+  const villur = [];   // síðustu villur – sjást í Firestore (kerfi/postur.villur) svo ekki þurfi að lesa logga
   for (const [id, x] of Object.entries(subs)) {
     if (!want[x.mailbox]) { try { await graph("/subscriptions/" + id, { method: "DELETE" }); } catch (e) {} delete subs[id]; continue; }
     if (new Date(x.exp) - Date.now() < 30 * 3600e3) {
       try { await graph("/subscriptions/" + id, { method: "PATCH", body: { expirationDateTime: exp } }); subs[id].exp = exp; }
-      catch (e) { logger.warn("endurnýjun", x.mailbox, e.message); delete subs[id]; }
+      catch (e) { logger.warn("endurnýjun", x.mailbox, e.message); villur.push(x.mailbox + " (endurnýjun): " + e.message); delete subs[id]; }
     }
   }
   const have = new Set(Object.values(subs).map(x => x.mailbox));
@@ -178,9 +179,9 @@ async function syncSubs() {
       const r = await graph("/subscriptions", { method: "POST", body: { changeType: "created", notificationUrl: HOOK, lifecycleNotificationUrl: HOOK,
         resource: `users/${w.mailbox}/mailFolders('inbox')/messages`, expirationDateTime: exp, clientState: cs } });
       subs[r.id] = { mailbox: w.mailbox, teg: w.teg, exp: r.expirationDateTime || exp };
-    } catch (e) { logger.error("áskrift", w.mailbox, e.message); }
+    } catch (e) { logger.error("áskrift " + w.mailbox + ": " + e.message); villur.push(w.mailbox + ": " + e.message); }
   }
-  await KREF().set({ subs, clientState: cs, uppfaert: new Date().toISOString() });
+  await KREF().set({ subs, clientState: cs, uppfaert: new Date().toISOString(), villur, vaktad: Object.keys(want) });
   logger.info("postur áskriftir", Object.values(subs).map(x => x.mailbox));
 }
 
