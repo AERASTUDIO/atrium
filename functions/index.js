@@ -14,6 +14,7 @@
                                          → „Sigga Jóns staðfesti P-0901“                     (val: stadfest)
    - spjall/{id} búið til               → einkaskilaboð til viðtakanda, almennt til allra  (val: spjall)
    - Kl. 08:00 alla virka daga          → „Í dag: 2 afhendingar · 1 skil · 1 seint“        (val: morgun)
+   - 2.72.0: skil, tinsla, tvibokun, vidsvar, klukka, uthlutun, aaetlun, eftirfylgni – sjá neðst í skránni
 */
 const { onDocumentCreated, onDocumentUpdated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
@@ -36,7 +37,7 @@ const INST = { "atrium-499a2": "dev", "aera-app-cfdb3": "aera", "atrium-sonik": 
 /* ---------- Viðtakendur ---------- */
 async function activeUsers() {
   const s = await db.doc("app/notendur").get(); const N = (s.exists && s.data().notendur) || {};
-  return Object.entries(N).filter(([, u]) => u && u.virkur !== false).map(([email, u]) => ({ email: lc(email), nafn: u.nafn || "", hlutverk: u.hlutverk || "" }));
+  return Object.entries(N).filter(([, u]) => u && u.virkur !== false).map(([email, u]) => ({ email: lc(email), nafn: u.nafn || "", hlutverk: u.hlutverk || "", sk: u.sk || "" }));
 }
 
 /* ---------- Senda ---------- */
@@ -77,6 +78,14 @@ exports.nyPontun = onDocumentCreated("pantanir/{id}", async ev => {
 /* ---------- Viðskiptavinur staðfestir pöntun eða samþykkir tilboð (pöntunarsíðan) ---------- */
 exports.vidskStadfestir = onDocumentUpdated("opinber/{t}", async ev => {
   const a = ev.data.before.data() || {}, b = ev.data.after.data() || {};
+  // 2.72.0: viðskiptavinur hafnar tilboði eða sendir spurningu/athugasemd af tilboðssíðunni
+  const nSv = (b.svor || []).length, nSa = (a.svor || []).length, nyHafn = !a.hafnad && b.hafnad;
+  if (nyHafn || nSv > nSa) {
+    const nm = [b.nr, b.heiti].filter(Boolean).join(" "), sv = nyHafn ? b.hafnad : b.svor[nSv - 1], hver = sv.nafn || b.tengilidur || b.vidskiptavinur || "Viðskiptavinur";
+    let id = ""; try { const q = await db.collection(b.teg === "tilbod" ? "tilbod" : "pantanir").where("opinber", "==", ev.params.t).limit(1).get(); if (!q.empty) id = q.docs[0].data().id || q.docs[0].id; } catch (e) {}
+    await send((await activeUsers()).map(u => u.email), "vidsvar", { title: nyHafn ? `${hver} hafnaði tilboði` : `Spurning frá ${hver}`, body: nm + (sv.texti || sv.astaeda ? ` – „${String(sv.texti || sv.astaeda).slice(0, 120)}“` : ""), link: id ? link("tilbod", "tb:" + id) : "", tag: "sv-" + ev.params.t + "-" + nSv });
+    return;
+  }
   if (a.stadfest || !b.stadfest) return;
   const t = ev.params.t, tilbod = b.teg === "tilbod", col = tilbod ? "tilbod" : "pantanir";
   let id = "", doc = null;
@@ -97,6 +106,10 @@ exports.spjall = onDocumentCreated("spjall/{id}", async ev => {
   if (m.ras === "almennt") to = (await activeUsers()).map(u => u.email).filter(e => e !== af);
   else to = (m.adilar || []).map(lc).filter(e => e !== af);
   await send(to, "spjall", { title: (m.nafn || "Skilaboð") + (m.ras === "almennt" ? " · Almennt" : ""), body: String(m.texti || "").slice(0, 180), link: link("spjall"), tag: "sp-" + (m.ras === "almennt" ? "almennt" : af) });
+  // @nafn (2.72.0): sá sem minnst er á fær tilkynningu þótt hann sé ekki með spjalltilkynningar
+  const tags = [...String(m.texti || "").matchAll(/@([\p{L}][\p{L}.-]*)/gu)].map(x => lc(x[1])); if (!tags.length) return;
+  const nefnd = (await activeUsers()).filter(u => u.email !== af && tags.some(t => t === lc(u.sk) || t === lc(String(u.nafn).split(/\s+/)[0]) || t === lc(u.email.split("@")[0]))).map(u => u.email);
+  await send(nefnd, "uthlutun", { title: (m.nafn || "Einhver") + " minntist á þig", body: String(m.texti || "").slice(0, 180), link: link("spjall"), tag: "sp-" + (m.ras === "almennt" ? "almennt" : af) });
 });
 
 /* ---------- Morgunyfirlit kl. 08:00 virka daga ---------- */
@@ -237,4 +250,119 @@ exports.posturVal = onDocumentWritten({ document: "tilkynningar/{email}", secret
   const a = (ev.data.before && ev.data.before.data()) || {}, b = (ev.data.after && ev.data.after.data()) || {};
   const f = x => [(x.val || {}).minnpostur === true, (x.val || {}).postur === true, Object.keys(x.tokens || {}).length > 0].join();
   if (f(a) === f(b)) return; await syncSubs();
+});
+
+
+/* ==========================================================================================================
+   Fleiri tilkynningar (2.72.0). Hver notandi kveikir/slekkur í Stillingar › Ég › Tilkynningar.
+   - skil        Kl. 09 mán–lau: leigubúnaður sem átti að skila (pöntun „Afhent“, skiladagur liðinn)
+   - tinsla      Á 30 mín fresti 07–20: afhending á næstu 2 klst. (afhKl) en ekkert tínt og engin afhendingarkvittun
+   - tvibokun    Þegar pöntun er stofnuð eða breytt: búnaður ekki laus á tímabilinu (sama regla og í appinu)
+   - vidsvar     Viðskiptavinur hafnar tilboði eða sendir spurningu af tilboðssíðunni (sjá vidskStadfestir)
+   - klukka      Kl. 19 og 22: stimpilklukka enn í gangi (aðeins til eiganda klukkunnar)
+   - uthlutun    Settur á verkefni (starfsmenn) eða minnst á þig með @nafni í spjalli
+   - aaetlun     Skráðir tímar á verkefni ná 90 % og 100 % af áætlun (aklst) – til starfsfólks verkefnisins
+   - eftirfylgni Kl. 09 virka daga: tilboð sent fyrir 7+ dögum og ekkert svar – til þess sem stofnaði það
+   Hver áminning er send einu sinni; skráð í kerfi/tilksent (lykill → tími).
+   ========================================================================================================== */
+const d10 = x => String(x || "").slice(0, 10);
+const pnSkil = P => (P.linur || []).some(l => l.teg === "leiga") || (!(P.linur || []).length && (P.svid || []).includes("Leiga"));
+const dIS = s => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ""); return m ? `${+m[3]}. ${["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ágú", "sep", "okt", "nóv", "des"][+m[2] - 1]}` : ""; };
+const nowTZ = () => { const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date()).map(x => [x.type, x.value]));
+  return { iso: `${p.year}-${p.month}-${p.day}`, min: (+p.hour % 24) * 60 + +p.minute }; };
+const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+async function once(key) {
+  const ref = db.doc("kerfi/tilksent"), k = String(key).replace(/[^\w-]/g, "_");
+  return db.runTransaction(async tx => { const s = await tx.get(ref), d = (s.exists && s.data()) || {}; if (d[k]) return false; tx.set(ref, { [k]: new Date().toISOString() }, { merge: true }); return true; });
+}
+const allEmails = async () => (await activeUsers()).map(u => u.email);
+const skEmails = async sks => { const U = await activeUsers(), S = new Set((sks || []).map(lc)); return U.filter(u => u.sk && S.has(lc(u.sk))).map(u => u.email); };
+const loadCol = async c => (await db.collection(c).get()).docs.map(d => ({ id: d.id, ...d.data() })).filter(x => !x.prufa);
+
+/* ---------- 1. Skil komin fram yfir ---------- */
+exports.skilSeint = onSchedule({ schedule: "0 9 * * 1-6", timeZone: TZ }, async () => {
+  const t = nowTZ().iso, L = (await loadCol("pantanir")).filter(P => P.stada === "Afhent" && pnSkil(P) && d10(P.til || P.fra) && d10(P.til || P.fra) < t)
+    .sort((a, b) => d10(a.til || a.fra).localeCompare(d10(b.til || b.fra)));
+  if (!L.length) return; const P = L[0];
+  await send(await allEmails(), "skil", { title: L.length === 1 ? "Skil komin fram yfir" : `${L.length} skil komin fram yfir`,
+    body: `${nmP(P)} · ${who(P)} – átti að skila ${dIS(d10(P.til || P.fra))}` + (L.length > 1 ? ` · +${L.length - 1} í viðbót` : ""), link: L.length === 1 ? link("pantanir", "tb:" + (P.id)) : link("pnyf"), tag: "skil-" + t, badge: String(L.length) });
+});
+
+/* ---------- 2. Afhending á næstu 2 klst. en ekki tínt ---------- */
+exports.otint = onSchedule({ schedule: "*/30 7-20 * * *", timeZone: TZ }, async () => {
+  const n = nowTZ(), L = (await loadCol("pantanir")).filter(P => ["Ný", "Staðfest"].includes(P.stada) && d10(P.fra) === n.iso && /^\d{1,2}:\d{2}/.test(P.afhKl || ""));
+  for (const P of L) {
+    const [h, m] = String(P.afhKl).split(":").map(Number), til = h * 60 + m - n.min;
+    const tint = Object.values(P.tinslaH || {}).some(x => +x > 0) || (P.kvittun && P.kvittun.ut);
+    if (til < 0 || til > 120 || tint || !(await once("tinsla-" + P.id + "-" + n.iso))) continue;
+    await send(await allEmails(), "tinsla", { title: `Afhending kl. ${P.afhKl} – ekki tínt`, body: [nmP(P), who(P), P.afhending === "sent" ? "send" + (P.afhStadur ? " á " + P.afhStadur : "") : P.afhending === "sott" ? "sótt" : ""].filter(Boolean).join(" · "), link: link("pantanir", "tb:" + P.id), tag: "tinsla-" + P.id });
+  }
+});
+
+/* ---------- 3. Tvíbókun búnaðar ---------- */
+exports.tvibokun = onDocumentWritten("pantanir/{id}", async ev => {
+  const b = ev.data.after.exists ? ev.data.after.data() : null, a = ev.data.before.exists ? ev.data.before.data() : null;
+  if (!b || b.prufa || !b.fra || !["Ný", "Staðfest", "Afhent"].includes(b.stada)) return;
+  const J = x => JSON.stringify(x || null); if (a && J(a.linur) === J(b.linur) && a.fra === b.fra && a.til === b.til && a.stada === b.stada) return;
+  const [V, P, T] = await Promise.all([loadCol("vorur"), loadCol("pantanir"), loadCol("tilbod")]), VM = new Map(V.map(v => [String(v.id), v]));
+  const tilOf = X => X.til && X.til >= X.fra ? d10(X.til) : d10(X.fra);
+  const tharf = X => { const o = {}; (X.linur || []).forEach(l => { if (l.teg !== "leiga" || !l.v) return; const v = VM.get(String(l.v)); if (!v) return; const m = +l.magn || 0;
+    if (v.tegund === "pakki") (v.innihald || []).forEach(i => { if (i.v) o[i.v] = (o[i.v] || 0) + m * (+i.m || 1); }); else if (v.tegund !== "vinna") o[v.id] = (o[v.id] || 0) + m; }); return o; };
+  const blokk = [...P.filter(x => ["Ný", "Staðfest", "Afhent"].includes(x.stada)), ...T.filter(x => x.stada === "Samþykkt" && !P.some(p => p.tilbodId === x.id))].filter(x => x.fra && String(x.id) !== String(b.id || ev.params.id));
+  const fra = d10(b.fra), til = tilOf(b), need = tharf(b), out = [];
+  for (const [vId, m] of Object.entries(need)) {
+    const v = VM.get(String(vId)), fj = +(v && v.fjoldi) || 0; if (!v || !fj) continue;
+    const bs = blokk.filter(x => d10(x.fra) <= til && tilOf(x) >= fra).map(x => ({ x, m: tharf(x)[vId] || 0 })).filter(y => y.m > 0); if (!bs.length) continue;
+    let max = 0; for (let d = fra; d <= til; d = addDays(d, 1)) { const s = bs.reduce((acc, y) => acc + (d10(y.x.fra) <= d && tilOf(y.x) >= d ? y.m : 0), 0); if (s > max) max = s; }
+    if (m + max > fj) out.push({ v, m, laus: Math.max(0, fj - max), docs: bs.map(y => y.x.nr).filter(Boolean) });
+  }
+  if (!out.length) return;
+  const key = "tvib-" + (b.id || ev.params.id) + "-" + fra + "-" + til + "-" + out.map(o => o.v.id + "x" + o.m).join(".");
+  if (!(await once(key))) return;
+  const o = out[0];
+  await send(await allEmails(), "tvibokun", { title: `Tvíbókun: ${nmP(b)}`, body: `${o.v.heiti}: ${o.m} þarf, ${o.laus} laus ${dIS(fra)}${til !== fra ? "–" + dIS(til) : ""}` + (o.docs.length ? ` (frátekið í ${[...new Set(o.docs)].slice(0, 3).join(", ")})` : "") + (out.length > 1 ? ` · +${out.length - 1} vörur` : ""), link: link("pantanir", "tb:" + (b.id || ev.params.id)), tag: "tvib-" + (b.id || ev.params.id) });
+});
+
+/* ---------- 5. Stimpilklukka enn í gangi ---------- */
+exports.klukkaIGangi = onSchedule({ schedule: "0 19,22 * * *", timeZone: TZ }, async () => {
+  const s = await db.collection("klukka").get(), n = nowTZ();
+  for (const d of s.docs) { const k = d.data() || {}; if (!k.start) continue; const st = new Date(k.start); const h = (Date.now() - st) / 36e5; if (h < 1) continue;
+    if (!(await once("klukka-" + d.id + "-" + k.start + "-" + n.min))) continue;
+    let pn = ""; if (k.pid) { try { const p = await db.doc("verkefni/" + k.pid).get(); if (p.exists) pn = [p.data().nr, p.data().stutt || p.data().nafn].filter(Boolean).join(" "); } catch (e) {} }
+    const hm = new Intl.DateTimeFormat("is-IS", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(st);
+    await send([d.id], "klukka", { title: "Klukkan er enn í gangi", body: `Byrjaðir kl. ${hm}${pn ? " á " + pn : ""} – ${Math.floor(h)} klst. ${Math.round((h % 1) * 60)} mín.`, link: link("timar"), tag: "klukka" });
+  }
+});
+
+/* ---------- 6. Úthlutun á verkefni ---------- */
+exports.uthlutun = onDocumentWritten("verkefni/{id}", async ev => {
+  const b = ev.data.after.exists ? ev.data.after.data() : null, a = ev.data.before.exists ? ev.data.before.data() : null; if (!b || b.prufa) return;
+  const was = new Set(((a && a.starfsmenn) || []).map(lc)), nyir = (b.starfsmenn || []).filter(x => !was.has(lc(x))); if (!nyir.length) return;
+  const af = lc(b.breytt_af || b.stofnad_af || ""), to = (await skEmails(nyir)).filter(e => e !== af);
+  await send(to, "uthlutun", { title: "Þú ert komin(n) á verkefni", body: [[b.nr, b.stutt || b.nafn].filter(Boolean).join(" "), b.vidskiptavinur].filter(Boolean).join(" · "), link: link("verk", "verk:" + (b.id || ev.params.id)), tag: "uth-" + ev.params.id });
+});
+
+/* ---------- 7. Tímar á verkefni ná 90 % / 100 % af áætlun ---------- */
+exports.aaetlun = onDocumentWritten("timar/{id}", async ev => {
+  const b = ev.data.after.exists ? ev.data.after.data() : null, a = ev.data.before.exists ? ev.data.before.data() : null;
+  const pid = (b && b.verkefniId) || (a && a.verkefniId); if (!pid || (b && a && +b.timar === +a.timar && b.verkefniId === a.verkefniId)) return;
+  const ps = await db.doc("verkefni/" + pid).get(); if (!ps.exists) return; const p = ps.data(), ak = +p.aklst || 0; if (!ak) return;
+  const q = await db.collection("timar").where("verkefniId", "==", pid).get(), sum = q.docs.reduce((s, d) => s + (+d.data().timar || 0), 0);
+  const prev = sum - (b && b.verkefniId === pid ? +b.timar || 0 : 0) + (a && a.verkefniId === pid ? +a.timar || 0 : 0);
+  for (const [pct, txt] of [[1, "komið yfir áætlun"], [0.9, "komið í 90 % af áætlun"]]) {
+    if (!(prev < pct * ak && sum >= pct * ak)) continue; if (!(await once("aaetl-" + pid + "-" + pct))) break;
+    let to = await skEmails(p.starfsmenn || []); if (!to.length) to = (await activeUsers()).filter(u => /admin/i.test(u.hlutverk)).map(u => u.email);
+    const nm = [p.nr, p.stutt || p.nafn].filter(Boolean).join(" ");
+    await send(to, "aaetlun", { title: `${nm} ${txt}`, body: `${String(Math.round(sum * 10) / 10).replace(".", ",")} af ${String(ak).replace(".", ",")} klst. (${Math.round(sum / ak * 100)} %)` + (pct < 1 ? " – skráðu aukaverk ef verkið stækkar" : ""), link: link("verk", "verk:" + pid), tag: "aaetl-" + pid });
+    break;
+  }
+});
+
+/* ---------- 8. Tilboð ósvarað í 7 daga ---------- */
+exports.eftirfylgni = onSchedule({ schedule: "0 9 * * 1-5", timeZone: TZ }, async () => {
+  const t = nowTZ().iso, L = (await loadCol("tilbod")).filter(T => T.stada === "Sent" && d10(T.sent || T.dags) && d10(T.sent || T.dags) <= addDays(t, -7) && !T.bidur);
+  const all = await allEmails();
+  for (const T of L) { if (!(await once("eftirf-" + T.id))) continue;
+    const to = T.stofnad_af && all.includes(lc(T.stofnad_af)) ? [T.stofnad_af] : all;
+    await send(to, "eftirfylgni", { title: "Tilboð ósvarað í viku", body: [[T.nr, T.heiti].filter(Boolean).join(" "), T.vidskiptavinur || T.tengilidur].filter(Boolean).join(" · ") + ` – sent ${dIS(d10(T.sent || T.dags))}`, link: link("tilbod", "tb:" + T.id), tag: "ef-" + T.id }); }
 });

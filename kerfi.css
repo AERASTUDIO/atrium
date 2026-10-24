@@ -727,3 +727,9 @@ html:root body.kerfi #view .splist .spfoot{display:flex;gap:6px;align-items:cent
 html:root body.kerfi #view .splist .spfoot button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:var(--t-xs);padding:3px 6px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 html:root body.kerfi #view .splist .spfoot button:hover{background:var(--hover,var(--b0));color:var(--ink)}
 html:root body.kerfi #view .splist .spfoot kbd{font:inherit;font-size:11px;min-width:18px;padding:1px 5px;border-radius:5px;border:1px solid var(--line2,var(--line));background:var(--surface);color:var(--ink2,var(--ink));text-align:center}
+/* Svör viðskiptavina á tilboði (2.72.0) */
+:root body.kerfi #view .smsvor{display:flex;flex-direction:column;gap:10px;padding:16px 20px!important}
+:root body.kerfi #view .smsvor .smsv{border-left:3px solid var(--kacc);padding:2px 0 2px 12px}
+:root body.kerfi #view .smsvor .smsv small{color:var(--muted)}
+:root body.kerfi #view .smsvor .btn{align-self:flex-start}
+:root body.kerfi #view .smhaf{border-left:3px solid var(--t-red)!important}

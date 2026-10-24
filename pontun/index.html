@@ -78,6 +78,7 @@ input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg)
 .tysub{margin:0;font-size:12.5px;color:var(--muted)}.tysub a{color:var(--acc)}
 .tybtn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 @media print{.ty{min-height:0}.tybtn{display:none}}
+.svm{padding:10px 16px;border-bottom:1px solid #e3e8ec}.svm div{margin-top:4px;white-space:pre-wrap}.svb{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.svx{border:0;background:none;color:#8a5a12;text-decoration:underline;font:inherit;cursor:pointer;padding:8px 4px}.svok{background:#e9f5ee;color:#1e6b45;border-radius:10px;padding:10px 12px;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -94,6 +95,7 @@ const fail = m => { app.innerHTML = `<div class="msg">${E(m)}</div>`; };
 if (!O || !T) fail("Tengillinn er ekki réttur. Hafðu samband við þann sem sendi hann.");
 else start().catch(e => fail("Ekki tókst að sækja skjalið. " + (e?.code === "permission-denied" ? "Tengillinn er ekki lengur virkur." : "Reyndu aftur síðar.")));
 
+const OPS = {};
 async function start() {
   await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "../" + O + "/fyrirtaeki.js"; s.onload = ok; s.onerror = () => no(new Error("uppsetning")); document.head.append(s); });
   let read, confirm;
@@ -101,11 +103,15 @@ async function start() {
     const k = "atrium-opinber:" + T;
     read = async () => JSON.parse(localStorage.getItem(k) || "null");
     confirm = async st => { const d = JSON.parse(localStorage.getItem(k) || "null"); if (!d || d.stadfest) throw new Error("þegar staðfest"); d.stadfest = st; d.uppfaert = new Date().toISOString(); localStorage.setItem(k, JSON.stringify(d)); };
+    const put = f => { const d = JSON.parse(localStorage.getItem(k) || "null"); if (!d || d.stadfest) throw new Error("lokað"); f(d); d.uppfaert = new Date().toISOString(); localStorage.setItem(k, JSON.stringify(d)); };
+    OPS.reply = async m => put(d => { d.svor = [...(d.svor || []), m]; }); OPS.reject = async h => put(d => { if (d.hafnad) throw new Error("þegar hafnað"); d.hafnad = h; });
   } else {
     const [{ initializeApp }, F] = await Promise.all([import("https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js"), import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js")]);
     const fs = F.getFirestore(initializeApp(window.ORG.firebase)), ref = F.doc(fs, "opinber", T);
     read = async () => { const s = await F.getDoc(ref); return s.exists() ? s.data() : null; };
     confirm = st => F.updateDoc(ref, { stadfest: st, uppfaert: new Date().toISOString() });
+    OPS.reply = m => F.updateDoc(ref, { svor: F.arrayUnion(m), uppfaert: new Date().toISOString() });
+    OPS.reject = h => F.updateDoc(ref, { hafnad: h, uppfaert: new Date().toISOString() });
   }
   const d = await read(); if (!d) return fail("Skjalið fannst ekki eða tengillinn er ekki lengur virkur. Hafðu samband við þann sem sendi hann.");
   draw(d, confirm, read);
@@ -186,7 +192,8 @@ function drawQ(d, confirm, read) {
   const c = d.fyrirtaeki || {}, st = d.stadfest, today = new Date().toISOString().slice(0, 10), uti = !st && d.gildir && d.gildir < today;
   document.title = "Tilboð " + d.nr + " · " + (c.nafn || "");
   const dg = (d.linur || []).some(l => l.dagar);
-  const stt = st ? ["Samþykkt", "t-grn"] : d.stada === "Samþykkt" ? ["Samþykkt", "t-grn"] : uti ? ["Útrunnið", "t-amb"] : ["Bíður samþykkis", "t-blu"];
+  const hf = !st && d.hafnad;
+  const stt = st ? ["Samþykkt", "t-grn"] : d.stada === "Samþykkt" ? ["Samþykkt", "t-grn"] : hf ? ["Hafnað", "t-amb"] : uti ? ["Útrunnið", "t-amb"] : ["Bíður samþykkis", "t-blu"];
   app.innerHTML = `
     <div class="top"><img src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:${JSON.stringify(c.nafn || "")}}))"><div class="co">${E([c.simi, c.netfang].filter(Boolean).join(" · "))}</div></div>
     <div class="kick">Tilboð ${E(d.nr)}${d.utgafa > 1 ? " · útgáfa " + E(d.utgafa) : ""}</div><h1>${E(d.heiti || "Tilboð")}</h1>
@@ -197,16 +204,33 @@ function drawQ(d, confirm, read) {
     </tbody></table>${d.samtals ? `<div class="tot">${d.samtals.afsl ? `<span>Afsláttur −${kr(d.samtals.afsl)}</span>` : ""}<span>Samtals án VSK ${kr(d.samtals.net)}</span><span>VSK ${kr(d.samtals.vsk)}</span><b>Samtals ${kr(d.samtals.tot)}</b></div>` : ""}</section>
     ${d.athugasemd ? `<section class="card"><div class="ch">Athugasemd</div><div class="terms">${E(d.athugasemd)}</div></section>` : ""}
     ${d.skilmalar ? `<section class="card"><div class="ch">Skilmálar</div><div class="terms">${E(d.skilmalar)}</div></section>` : ""}
-    <section class="card" id="conf">${st ? doneQ(st, c) : uti ? `<div class="ok"><div><b style="color:var(--amb)">Tilboðið rann út ${E(dl(d.gildir))}</b><div class="sub">Hafðu samband við ${E(c.nafn || "okkur")} ef þú vilt fá það endurnýjað.</div></div></div>` : `<div class="ch">Samþykkja tilboð</div><form id="f" novalidate>
+    <section class="card" id="conf">${st ? doneQ(st, c) : hf ? `<div class="ok"><div><b style="color:var(--amb)">Tilboðinu var hafnað</b><div class="sub">${E(hf.nafn)} · ${E(dl(hf.dags))}${hf.astaeda ? " – „" + E(hf.astaeda) + "“" : ""}</div><div class="sub">Hafðu samband við ${E(c.nafn || "okkur")} ef þú vilt fá nýtt tilboð.</div></div></div>` : uti ? `<div class="ok"><div><b style="color:var(--amb)">Tilboðið rann út ${E(dl(d.gildir))}</b><div class="sub">Hafðu samband við ${E(c.nafn || "okkur")} ef þú vilt fá það endurnýjað.</div></div></div>` : `<div class="ch">Samþykkja tilboð</div><form id="f" novalidate>
       <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
       <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
       <label>Athugasemd (valfrjálst)<textarea id="at" rows="2" maxlength="1000" placeholder="T.d. breyting á tíma eða magni"></textarea></label>
       <label class="chk"><input type="checkbox" id="ok">${d.skilmalar ? "Ég hef lesið skilmálana og samþykki tilboðið" : "Ég samþykki tilboðið"}</label>
       <div class="err" id="er" role="alert"></div>
       <div><button class="btn" id="go">Samþykkja tilboð</button></div></form>`}</section>
+    ${!st && !hf ? `<section class="card" id="svar"><div class="ch">Spurning eða breyting?</div>
+      ${(d.svor || []).map(m => `<div class="svm"><b>${E(m.nafn)}</b> <span class="sub">${E(dl(m.dags))}</span><div>${E(m.texti)}</div></div>`).join("")}
+      <form id="sf"><label>Nafn<input id="snm" autocomplete="name" value="${E(d.tengilidur || "")}"></label><label>Skilaboð<textarea id="stx" rows="3" maxlength="1000" placeholder="T.d. getið þið bætt við einum hátalara, eða er hægt að breyta tímanum?"></textarea></label>
+      <div class="err" id="ser" role="alert"></div><div class="svb"><button class="btn2" id="sgo">Senda spurningu</button><button type="button" class="svx" id="hfn">Hafna tilboðinu</button></div></form></section>` : ""}
     <div class="foot">${E(c.nafn || "")}${c.vefur ? " · " + E(c.vefur) : ""} · Atrium</div>`;
-  if (st || uti) return;
+  if (!st && !hf) svar(d, () => drawQ(d, confirm, read));
+  if (st || uti || hf) return;
   sign(d, confirm, () => thanksQ(d, () => drawQ(d, confirm, read)), "Samþykkja tilboð", "Tilboðið hefur þegar verið samþykkt.");
+}
+// Spurning eða höfnun af tilboðssíðunni (2.72.0) – starfsfólk fær tilkynningu og sér svarið á tilboðinu
+function svar(d, redraw) {
+  const nm = () => document.getElementById("snm").value.trim(), er = document.getElementById("ser");
+  document.getElementById("sf").onsubmit = async e => { e.preventDefault(); const t = document.getElementById("stx").value.trim();
+    if (nm().length < 2) return er.textContent = "Skráðu nafn."; if (t.length < 2) return er.textContent = "Skrifaðu skilaboðin.";
+    const b = document.getElementById("sgo"); b.disabled = true; b.textContent = "Sendi…"; const m = { nafn: nm(), texti: t, dags: new Date().toISOString() };
+    try { await OPS.reply(m); d.svor = [...(d.svor || []), m]; redraw(); setTimeout(() => { const x = document.getElementById("svar"); if (x) { x.insertAdjacentHTML("afterbegin", '<div class="svok">✓ Skilaboðin voru send – við svörum eins fljótt og hægt er.</div>'); x.scrollIntoView({ block: "center" }); } }, 30); }
+    catch (x) { b.disabled = false; b.textContent = "Senda spurningu"; er.textContent = "Tókst ekki að senda. Reyndu aftur."; } };
+  document.getElementById("hfn").onclick = async () => { if (nm().length < 2) return er.textContent = "Skráðu nafn áður en þú hafnar.";
+    if (!confirm("Hafna tilboði " + d.nr + "?")) return; const h = { nafn: nm(), dags: new Date().toISOString() }, t = document.getElementById("stx").value.trim(); if (t) h.astaeda = t;
+    try { await OPS.reject(h); d.hafnad = h; redraw(); window.scrollTo(0, 0); } catch (x) { er.textContent = "Tókst ekki. Reyndu aftur."; } };
 }
 function thanksQ(d, back) {
   const c = d.fyrirtaeki || {}, s = d.stadfest || {};
