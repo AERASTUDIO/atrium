@@ -39,6 +39,7 @@
     if (window.MS && MS.hadLogin && MS.hadLogin() && !MS.on()) row("mslogin", "Tenging við Microsoft rann út – tengjast aftur", "Microsoft 365");
     const late = upcoming().filter(i => daysTo(i.when) < 0); if (late.length) row("tab:hfrag", `${late.length} ${late.length === 1 ? "atriði komið" : "atriði komin"} fram yfir`, G("verkstjorn"));
     const ofl = (window.MS_OFL || []).length; if (ON("postur") && ofl) row("tab:postur", `${ofl} ${ofl === 1 ? "póstur" : "póstar"} til að tengja verkefni`, G("m365postur"));
+    if (tilbodOn()) { tbAll().filter(T => T.bidur && !["Samþykkt", "Hafnað"].includes(T.stada)).forEach(T => row(`tbst:${esc(T.id)}:Samþykkt`, `${esc(T.bidur.nafn || "Viðskiptavinur")} samþykkti tilboð ${esc(T.nr)} – staðfesta`, G("tilbod"))); }
     if (tilbodOn()) { const old = tbAll().filter(T => T.stada === "Sent" && daysTo(T.sent || T.dags) <= -7);
       if (old.length) row(`tab:${!window.ORG?.pakkaval && (old[0].deild || "leiga") === "sala" ? "stilbod" : "ltilbod"}`, old.length === 1 ? `Tilboð ${esc(old[0].nr)} bíður svars í ${-daysTo(old[0].sent || old[0].dags)} daga` : `${old.length} tilboð bíða svars í meira en viku`, G("tilbod")); }
     if (fjOn()) {

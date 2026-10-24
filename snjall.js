@@ -54,6 +54,8 @@
   /* ---------- 2. Viðvaranir ---------- */
   function warnings() {
     const out = [], t = T(), now = new Date(), F = tr(() => faerslur(), []);
+    // Tilboð sem viðskiptavinur hefur samþykkt með tengli og bíða staðfestingar starfsmanns (2.61.0)
+    tr(() => window.salaAPI.TB(), []).filter(q => q.bidur && !["Samþykkt", "Hafnað"].includes(q.stada)).forEach(q => out.push({ lvl: 1, title: `${q.bidur.nafn || "Viðskiptavinur"} samþykkti tilboð ${q.nr} – staðfesta`, sub: `${q.heiti || ""}${q.vidskiptavinur ? " · " + q.vidskiptavinur : ""}`, open: "tb:" + q.id }));
     // Verkefni sem stefna yfir áætlun (hraði síðustu 14 daga)
     const d14 = iso(new Date(now.getTime() - 14 * 864e5));
     const V = PR().vidv, lim = (+V.yfir || 105) / 100;

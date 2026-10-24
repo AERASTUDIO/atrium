@@ -1232,3 +1232,14 @@ body.pv.ui1 .phead>.uback{align-self:flex-start}
 /* 2.44.0 – Persónuvernd */
 .pvy .pvtxt{font-size:13.5px;line-height:1.6;color:var(--ink)}.pvy .pvtxt p{margin:4px 0 10px}.pvy .pvtxt ul{margin:4px 0 10px;padding-left:18px}.pvy .pvtxt li{margin:3px 0}
 .pvy .ush2:first-child{margin-top:0}
+/* Samþykktargluggi tilboða (2.61.0) */
+.smsum{display:flex;flex-direction:column;gap:2px;padding:12px 14px}.smsum b{font-weight:500}.smsum span{color:var(--muted);font-size:13px}.smsum .smkr{color:var(--ink);font-size:16px;margin-top:4px}
+.smopts{display:flex;flex-direction:column;gap:8px}
+label.chk.smopt{flex-direction:row;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;color:var(--ink);cursor:pointer}
+label.chk.smopt input{margin-top:2px}.smopt span{display:flex;flex-direction:column;gap:2px}.smopt b{font-weight:500;font-size:14px}.smopt small{color:var(--muted);font-size:12.5px}
+.smopt:has(input:checked){border-color:var(--accent)}
+.smar{display:flex;flex-direction:column;gap:2px;margin-top:10px}.smar small{opacity:.8}
+.smbid{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:10px 14px;margin:10px 0;border-left:3px solid var(--accent)}.smbid b{font-weight:500;flex:1 1 100%}.smbid span{color:var(--muted);font-size:13px;flex:1}
+.smlock,.smsent{margin:8px 0}
+/* Hver afhenti / tók á móti (2.61.0) */
+.pnhver{display:flex;flex-wrap:wrap;gap:6px 28px;margin:8px 0 4px;font-size:13px}.pnhver span{display:flex;flex-direction:column}.pnhver small{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}

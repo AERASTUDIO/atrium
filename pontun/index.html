@@ -2,7 +2,8 @@
 <!-- Pöntunarsíða viðskiptavinar (Atrium 2.56.0, pantanir2.js). Slóð: pontun/?o=<uppsetning>&t=<auðkenni>.
      Les eitt skjal, opinber/{t}, úr Firebase-verkefni uppsetningarinnar (ORG.firebase í <uppsetning>/fyrirtaeki.js) án innskráningar.
      Viðskiptavinurinn getur staðfest pöntunina einu sinni með nafni og undirskrift (Firestore-reglur leyfa ekkert annað).
-     ?demo: les og skrifar localStorage í stað Firebase (sýniútgáfa). -->
+     ?demo: les og skrifar localStorage í stað Firebase (sýniútgáfa).
+     2.61.0: sama síða sýnir tilboð (teg: "tilbod") – viðskiptavinurinn samþykkir það með nafni og undirskrift; starfsmaður staðfestir í appinu. -->
 <html lang="is">
 <head>
 <meta charset="utf-8">
@@ -80,7 +81,7 @@ input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg)
 </style>
 </head>
 <body>
-<main class="wrap" id="app"><div class="msg">Sæki pöntun…</div></main>
+<main class="wrap" id="app"><div class="msg">Sæki…</div></main>
 <script type="module">
 const q = new URLSearchParams(location.search), O = (q.get("o") || "").replace(/[^a-z0-9-]/gi, ""), T = (q.get("t") || "").replace(/[^a-z0-9]/gi, ""), DEMO = q.has("demo");
 const app = document.getElementById("app");
@@ -91,7 +92,7 @@ const dl = s => { if (!s) return "–"; const x = new Date(String(s).slice(0, 10
 const tone = s => /Staðfest|Afhent/.test(s) ? "t-blu" : /Skilað|Lokið/.test(s) ? "t-grn" : "t-amb";
 const fail = m => { app.innerHTML = `<div class="msg">${E(m)}</div>`; };
 if (!O || !T) fail("Tengillinn er ekki réttur. Hafðu samband við þann sem sendi hann.");
-else start().catch(e => fail("Ekki tókst að sækja pöntunina. " + (e?.code === "permission-denied" ? "Tengillinn er ekki lengur virkur." : "Reyndu aftur síðar.")));
+else start().catch(e => fail("Ekki tókst að sækja skjalið. " + (e?.code === "permission-denied" ? "Tengillinn er ekki lengur virkur." : "Reyndu aftur síðar.")));
 
 async function start() {
   await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "../" + O + "/fyrirtaeki.js"; s.onload = ok; s.onerror = () => no(new Error("uppsetning")); document.head.append(s); });
@@ -106,10 +107,11 @@ async function start() {
     read = async () => { const s = await F.getDoc(ref); return s.exists() ? s.data() : null; };
     confirm = st => F.updateDoc(ref, { stadfest: st, uppfaert: new Date().toISOString() });
   }
-  const d = await read(); if (!d) return fail("Pöntunin fannst ekki eða tengillinn er ekki lengur virkur.");
+  const d = await read(); if (!d) return fail("Skjalið fannst ekki eða tengillinn er ekki lengur virkur. Hafðu samband við þann sem sendi hann.");
   draw(d, confirm, read);
 }
 function draw(d, confirm, read) {
+  if (d.teg === "tilbod") return drawQ(d, confirm, read);
   const c = d.fyrirtaeki || {}; document.title = "Pöntun " + d.nr + " · " + (c.nafn || "");
   const showPrice = d.samtals && (d.linur || []).some(l => l.upph);
   const afh = d.afhending === "sent" ? "Sent" + (d.afhStadur ? " · " + d.afhStadur : "") : d.afhending === "sott" ? "Sótt" : "–";
@@ -146,6 +148,66 @@ function draw(d, confirm, read) {
     const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = document.getElementById("at").value.trim(); if (at) s.athugasemd = at;
     try { await confirm(s); d.stadfest = s; thanks(d, () => draw(d, confirm, read)); window.scrollTo(0, 0); }
     catch (x) { b.disabled = false; b.textContent = "Staðfesta pöntun"; er.textContent = "Tókst ekki að staðfesta. " + (x?.code === "permission-denied" ? "Pöntunin hefur þegar verið staðfest." : "Reyndu aftur."); }
+  };
+}
+/* Tilboð (2.61.0): sama útlit; samþykkt einu sinni með nafni og undirskrift. Útrunnið tilboð er ekki hægt að samþykkja. */
+function drawQ(d, confirm, read) {
+  const c = d.fyrirtaeki || {}, st = d.stadfest, today = new Date().toISOString().slice(0, 10), uti = !st && d.gildir && d.gildir < today;
+  document.title = "Tilboð " + d.nr + " · " + (c.nafn || "");
+  const dg = (d.linur || []).some(l => l.dagar);
+  const stt = st ? ["Samþykkt", "t-grn"] : d.stada === "Samþykkt" ? ["Samþykkt", "t-grn"] : uti ? ["Útrunnið", "t-amb"] : ["Bíður samþykkis", "t-blu"];
+  app.innerHTML = `
+    <div class="top"><img src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:${JSON.stringify(c.nafn || "")}}))"><div class="co">${E([c.simi, c.netfang].filter(Boolean).join(" · "))}</div></div>
+    <div class="kick">Tilboð ${E(d.nr)}${d.utgafa > 1 ? " · útgáfa " + E(d.utgafa) : ""}</div><h1>${E(d.heiti || "Tilboð")}</h1>
+    <div class="sub">${E([d.vidskiptavinur, d.tengilidur].filter(Boolean).join(" · "))} &nbsp; <span class="st ${stt[1]}">${stt[0]}</span></div>
+    <section class="card"><div class="kv">${d.fra ? `<div><small>${d.til && d.til !== d.fra ? "Frá" : "Dagsetning"}</small><b>${E(dl(d.fra))}</b></div>${d.til && d.til !== d.fra ? `<div><small>Til</small><b>${E(dl(d.til))}</b></div>` : ""}` : ""}${d.stadsetning ? `<div><small>Staðsetning</small><b>${E(d.stadsetning)}</b></div>` : ""}<div><small>Gildir til</small><b>${E(dl(d.gildir))}</b></div><div><small>Samtals án VSK</small><b>${kr(d.samtals?.net)}</b></div></div></section>
+    <section class="card"><div class="ch">Tilboðið</div><table><thead><tr><th>Lína</th><th class="n">Magn</th>${dg ? '<th class="n">Dagar</th>' : ""}<th class="n">Upphæð</th></tr></thead><tbody>
+      ${(d.linur || []).map(l => `<tr><td>${E(l.heiti)}</td><td class="n">${E(l.magn)}${l.ein && l.ein !== "stk." ? " " + E(l.ein) : ""}</td>${dg ? `<td class="n">${l.dagar || ""}</td>` : ""}<td class="n">${kr(l.upph)}</td></tr>`).join("")}
+    </tbody></table>${d.samtals ? `<div class="tot">${d.samtals.afsl ? `<span>Afsláttur −${kr(d.samtals.afsl)}</span>` : ""}<span>Samtals án VSK ${kr(d.samtals.net)}</span><span>VSK ${kr(d.samtals.vsk)}</span><b>Samtals ${kr(d.samtals.tot)}</b></div>` : ""}</section>
+    ${d.athugasemd ? `<section class="card"><div class="ch">Athugasemd</div><div class="terms">${E(d.athugasemd)}</div></section>` : ""}
+    ${d.skilmalar ? `<section class="card"><div class="ch">Skilmálar</div><div class="terms">${E(d.skilmalar)}</div></section>` : ""}
+    <section class="card" id="conf">${st ? doneQ(st, c) : uti ? `<div class="ok"><div><b style="color:var(--amb)">Tilboðið rann út ${E(dl(d.gildir))}</b><div class="sub">Hafðu samband við ${E(c.nafn || "okkur")} ef þú vilt fá það endurnýjað.</div></div></div>` : `<div class="ch">Samþykkja tilboð</div><form id="f" novalidate>
+      <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
+      <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
+      <label>Athugasemd (valfrjálst)<textarea id="at" rows="2" maxlength="1000" placeholder="T.d. breyting á tíma eða magni"></textarea></label>
+      <label class="chk"><input type="checkbox" id="ok">${d.skilmalar ? "Ég hef lesið skilmálana og samþykki tilboðið" : "Ég samþykki tilboðið"}</label>
+      <div class="err" id="er" role="alert"></div>
+      <div><button class="btn" id="go">Samþykkja tilboð</button></div></form>`}</section>
+    <div class="foot">${E(c.nafn || "")}${c.vefur ? " · " + E(c.vefur) : ""} · Atrium</div>`;
+  if (st || uti) return;
+  sign(d, confirm, () => thanksQ(d, () => drawQ(d, confirm, read)), "Samþykkja tilboð", "Tilboðið hefur þegar verið samþykkt.");
+}
+function thanksQ(d, back) {
+  const c = d.fyrirtaeki || {}, s = d.stadfest || {};
+  app.innerHTML = `<div class="ty">
+    <img class="tylogo" src="../${E(c.merki || "icons/doc-logo.png")}" alt="${E(c.nafn || "")}" onerror="this.remove()">
+    <div class="tyck" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1>Takk – tilboð ${E(d.nr)} er samþykkt</h1>
+    <p class="tylead">${E(c.nafn || "Við")} ${c.nafn ? "fer" : "förum"} yfir samþykkið og ${c.nafn ? "hefur" : "höfum"} samband til að staðfesta${d.netfangM ? " á <b>" + E(d.netfangM) + "</b>" : ""}.</p>
+    <div class="tysum"><div><small>Samtals án VSK</small><b>${kr(d.samtals?.net)}</b></div>${d.fra ? `<div><small>Dagsetning</small><b>${E(dl(d.fra))}</b></div>` : ""}</div>
+    <p class="tysub">Samþykkt af ${E(s.nafn || "")} · ${E(dl(s.dags))} kl. ${E(String(s.dags || "").slice(11, 16))}</p>
+    <div class="tybtn"><button type="button" class="btn" id="tyv">Skoða tilboðið</button><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>
+    ${c.simi || c.netfang ? `<p class="tysub">Spurningar? ${[c.simi && `<a href="tel:${E(String(c.simi).replace(/[^\d+]/g, ""))}">${E(c.simi)}</a>`, c.netfang && `<a href="mailto:${E(c.netfang)}">${E(c.netfang)}</a>`].filter(Boolean).join(" · ")}</p>` : ""}
+  </div>`;
+  document.getElementById("tyv").onclick = () => { back(); window.scrollTo(0, 0); };
+}
+function doneQ(s, c) { return `<div class="ok"><img src="${s.undirskrift}" alt="Undirskrift"><div><b>✓ Tilboðið er samþykkt</b><div class="sub">${E(s.nafn)} · ${E(dl(s.dags))} kl. ${E(String(s.dags).slice(11, 16))}</div>${s.athugasemd ? `<div class="sub">„${E(s.athugasemd)}“</div>` : ""}<div class="sub">${E(c.nafn || "Við")} staðfest${c.nafn ? "ir" : "um"} og ${c.nafn ? "hefur" : "höfum"} samband.</div></div></div><div class="pr"><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>`; }
+// Undirskrift og innsending – sameiginlegt fyrir pöntun og tilboð
+function sign(d, confirm, after, label, twice) {
+  const cv = document.getElementById("sg"), g = cv.getContext("2d"); let dr = false, any = false, last;
+  g.lineWidth = 2.4; g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#121416";
+  const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+  cv.onpointerdown = e => { dr = true; last = pt(e); cv.setPointerCapture(e.pointerId); e.preventDefault(); };
+  cv.onpointermove = e => { if (!dr) return; const p = pt(e); g.beginPath(); g.moveTo(...last); g.lineTo(...p); g.stroke(); last = p; any = true; };
+  cv.onpointerup = cv.onpointercancel = () => { dr = false; };
+  document.getElementById("clr").onclick = () => { g.clearRect(0, 0, cv.width, cv.height); any = false; };
+  document.getElementById("f").onsubmit = async e => {
+    e.preventDefault(); const er = document.getElementById("er"), nm = document.getElementById("nm").value.trim();
+    if (nm.length < 2) return er.textContent = "Skráðu nafn."; if (!any) return er.textContent = "Undirskrift vantar."; if (!document.getElementById("ok").checked) return er.textContent = "Hakaðu við til að staðfesta.";
+    const b = document.getElementById("go"); b.disabled = true; b.textContent = "Augnablik…";
+    const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = document.getElementById("at").value.trim(); if (at) s.athugasemd = at;
+    try { await confirm(s); d.stadfest = s; after(); window.scrollTo(0, 0); }
+    catch (x) { b.disabled = false; b.textContent = label; er.textContent = "Tókst ekki. " + (x?.code === "permission-denied" ? twice : "Reyndu aftur."); }
   };
 }
 // Þakkarskjár eftir staðfestingu (2.57.1)

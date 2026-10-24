@@ -267,7 +267,11 @@
           if (isP2) { const NX = { "Ný": ["Staðfesta", "Staðfest"], "Staðfest": ["Afhenda →", "Afhent"], "Afhent": ["Skila →", "Skilað"], "Skilað": ["Loka pöntun", "Lokið"] }[T.stada];
             const conf = T.netfang && window.poCompose ? `<button type="button" class="btn" data-act="u1pnconf:${esc(T.id)}">Senda staðfestingu</button>` : "";
             bot.insertAdjacentHTML("afterbegin", (NX ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:${esc(NX[1])}">${esc(NX[0])}</button>` : "") + conf); }
-          else { const sd = bot.querySelector('[data-act^="tbsend:"]'); if (sd) { sd.classList.add("primary"); bot.prepend(sd); } }
+          else { const sd = bot.querySelector('[data-act^="tbsend:"]');
+            // 2.61.0: sent tilboð – næsta skref er samþykki (samþykktargluggi); samþykki viðskiptavinar bíður staðfestingar
+            if (T.bidur && !["Samþykkt", "Hafnað"].includes(T.stada)) bot.insertAdjacentHTML("afterbegin", `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:Samþykkt">Staðfesta samþykki…</button>`);
+            else if (T.stada === "Sent") { bot.insertAdjacentHTML("afterbegin", `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:Samþykkt">Samþykkt…</button>`); if (sd) { sd.textContent = "✉ Senda aftur"; bot.append(sd); } }
+            else if (sd) { sd.classList.add("primary"); bot.prepend(sd); } }
           act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div><button type="button" data-act="tbpdf:save:${esc(T.id)}">Vista PDF…</button>${isP2 ? `<button type="button" data-act="tbpdf:pv:${esc(T.id)}">Forskoða PDF</button>` : ""}</div></details>`);
           const del = bot.querySelector('[data-act^="tbdel:"]'); if (del) act.querySelector(".umore>div").append(del);
           bot.querySelector('[data-act^="tbpdf:dl"]')?.replaceWith(Object.assign(document.createElement("button"), { type: "button", className: "btn", textContent: "Vista PDF…", onclick: () => doAct("tbpdf:save:" + T.id) }));

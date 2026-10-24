@@ -186,11 +186,11 @@
     const xs = all.filter(T => SQ() || (f === "opin" ? ["Drög", "Sent"].includes(T.stada) : f === "samth" ? T.stada === "Samþykkt" : true)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const no = all.filter(T => ["Drög", "Sent"].includes(T.stada)).length, ns = all.filter(T => T.stada === "Samþykkt").length;
     const top = lhead("Tilboð", title, nbtn("Tilboð")) + `<div class="ulbar">${chips([["opin", "Opin · " + no], ["samth", "Samþykkt · " + ns], ["allt", "Allar stöður"]], f, "u1vf:" + key)}</div>`;
-    if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 56px 120px 104px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Línur", "Upphæð m. vsk", "Staða"])
-      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc(E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(fjL(T)), wc(E(totK(T))), wc(pill(T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
+    if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 56px 120px 150px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Línur", "Upphæð m. vsk", "Staða"])
+      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc(E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
     return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Dags.", "Staða")
-      + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E(T.vidskiptavinur || ""), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
+      + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E(T.vidskiptavinur || ""), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
   }
   U.ltilbod = () => tlist("ltilbod", "Öll tilboð", "");
   U.tbl = () => tlist("tbl", "Leiga", "leiga");

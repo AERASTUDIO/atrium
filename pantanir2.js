@@ -457,6 +457,8 @@
     if (DEMO()) { try { const old = JSON.parse(LS().getItem(lsKey(t)) || "null"); if (old?.stadfest) doc.stadfest = old.stadfest; if (old?.postur) doc.postur = old.postur; LS().setItem(lsKey(t), JSON.stringify(doc)); } catch (e) {} PUB[t] = doc; return; }
     if (!window.__DB) throw new Error("Ekki tengt gagnagrunni"); await window.__DB.set("opinber/" + t, doc); PUB[t] = doc;
   }
+  // 2.61.0: tilboð nota sömu opinberu síðu (opinber/{t}, teg: "tilbod") – sala.js notar þessi föll
+  window.atrPub = { url: t => pubUrl(t), tok: () => newTok(), inst: () => instKey(), write: (t, d) => pubWrite(t, d), demo: DEMO, ls: () => LS(), lsKey };
   function pubWatch(t, pid) {
     if (WATCHED.has(t)) return; WATCHED.add(t);
     const got = d => { if (!d) return; PUB[t] = d; const P = findP(pid); if (!P) return;
