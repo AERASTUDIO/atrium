@@ -636,4 +636,5 @@ body.kerfi #view .tbbadv{padding:0 14px 8px!important}
 :root body.kerfi #view :is(.ukps > .ukp,.ukps > .kp){padding:16px var(--pad)!important}
 :root body.kerfi #view .ucard > .uhch{margin:0 0 12px!important}
 @media (max-width:1023px){:root body.kerfi{--g:12px;--pad:16px}}
-@media (max-width:1023px){:root body.kerfi #view .usvbar{display:none!important}} /* 2.69.1: í síma eru sviðin flipar efst (simi.js) – flögurnar aðeins í tölvu */
+@media (max-width:1023px){html:root body.kerfi #view .phead .ulbar.usvbar,html:root body.kerfi #view .phead > .ukps.ulkps{display:none!important}} /* 2.69.1: í síma eru sviðin flipar efst (simi.js) – flögurnar aðeins í tölvu */
+:root body.kerfi #view .phead > .ukps.ulkps{margin:12px 0 4px!important}

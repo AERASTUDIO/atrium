@@ -21,7 +21,7 @@
   }
   if (V && !V.tabs.some(t => t[0] === "tverk")) { const i = V.tabs.findIndex(t => t[0] === "sverk"); V.tabs.splice(i >= 0 ? i + 1 : 1, 0, ["tverk", "Þjónusta"]); }
   if (P) P.tabs = [["pantanir", "Allar"], ["pnl", "Leiga"], ["pns", "Sala"], ["pnt", "Þjónusta"]];
-  if (T) { const i = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i >= 0) T.tabs.splice(i, 1, ["ltilbod", "Öll tilboð"], ["tbl", "Leiga", 2], ["tbs", "Sala", 2], ["tbt", "Þjónusta", 2]); }
+  if (T) { const i = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i >= 0) T.tabs.splice(i, 1, ["ltilbod", "Tilboð"], ["tbl", "Leiga", 2], ["tbs", "Sala", 2], ["tbt", "Þjónusta", 2]); }
   if (B) B.tabs.unshift(["vyfir", "Yfirlit"]);
   Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { tbl: ["tilbod", "leiga"], tbs: ["tilbod", "sala"], tbt: "tilbod", vyfir: "bunadur", tverk: "verkefni", pnl: ["pantanir", "leiga"], pns: ["pantanir", "sala"], pnt: "pantanir" });
   if (TI) TI.tabs = TI.tabs.map(t => t[0] === "timar" ? ["timar", "Vikan"] : t);
@@ -34,7 +34,7 @@
   const hide = (S0, k) => { const t = S0?.tabs.find(x => x[0] === k); if (t) t[2] = 1; };
   if (V) { hide(V, "verk"); V.tabs.unshift(["verkyf", "Yfirlit"]); }
   // 2.69.1: svið eru ekki sér flipar í stikunni (2 = falið í stiku) – listinn síast eftir sviði með flögum efst
-  if (C) C.tabs = [["vskyf", "Yfirlit"], ["vsk", "Viðskiptavinir"], ["vskl", "Leiga", 2], ["vsks", "Sala", 2], ["vskt", "Þjónusta", 2]];
+  if (C) C.tabs = [["vsk", "Viðskiptavinir"], ["vskyf", "Yfirlit", 1], ["vskl", "Leiga", 2], ["vsks", "Sala", 2], ["vskt", "Þjónusta", 2]];
   if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); }
   // Verkdagatal (2.68.0): eitt sameiginlegt dagatal í Kjarna – verkefni, pantanir og búnaður (pantanir2.js) – aðskilið persónulega Dagatalinu
   if (!by("verkdag")) { const VD = { k: "verkdag", l: "Verkdagatal", ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h6M10 16.5h7"/></svg>', tabs: [["pndag", "Verkdagatal"]] };
@@ -49,7 +49,7 @@
     return x => { const i = ORD.indexOf(x.k); return i < 0 ? (x.k === "meira" ? 999 : 500) : i; }; };
   { const r = secRank(), sorted = SECTIONS_ALL.slice().sort((x, y) => r(x) - r(y)); SECTIONS_ALL.length = 0; sorted.forEach(x => SECTIONS_ALL.push(x)); }
   window.secRank = secRank;
-  if (T) T.tabs.unshift(["tbyf", "Yfirlit"]); // 2.69.1: „Öll tilboð“ sýnilegt í stiku – svið síuð með flögum
+  if (T) { const i0 = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i0 > 0) T.tabs.unshift(T.tabs.splice(i0, 1)[0]); T.tabs.push(["tbyf", "Yfirlit", 1]); } // 2.70.0: Tilboð ein síða – yfirlitið efst í listanum
   if (TI) TI.tabs.unshift(["timyf", "Yfirlit"]);
   Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: "verkefni", tbyf: "tilbod", timyf: "timar" });
   _einSig = null; applyEin();
@@ -146,7 +146,7 @@
     // Sía efst í listanum (síar línur og spjöld eftir texta)
     const sl = v.querySelector(".splist"), ph = sl.querySelector(".phead");
     // Síuflipar inn í gráa hausinn (eins og á útlitsborðinu) og flýtilyklar neðst
-    if (ph) { const lb = sl.querySelector(":scope > .ulbar"); if (lb) ph.append(lb); }
+    if (ph) { const kp = sl.querySelector(":scope > .ukps"); if (kp) { kp.classList.add("ulkps"); ph.append(kp); } const lb = sl.querySelector(":scope > .ulbar"); if (lb) ph.append(lb); } // 2.70.0: lykiltölur efst í haus listans
     // Svið sem flögur efst í listanum (2.69.1): Allir · Leiga · Sala · Þjónusta í stað sér flipa í stikunni
     { const s = secOf(tab), sv = s.tabs.filter(t => t[2] === 2 && (!window.tabOn || tabOn(t[0])));
       if (ph && sv.length && s.tabs.some(t => t[0] === tab && (t[2] === 2 || ALLSV[t[0]]))) { const all = s.tabs.find(t => ALLSV[t[0]]);

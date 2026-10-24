@@ -164,35 +164,49 @@
   U.lverk = () => vlist("lverk", "Leiga", p => svidOf(p).includes("Leiga"));
   U.sverk = () => vlist("sverk", "Sala", p => svidOf(p).includes("Sala"));
   U.tverk = () => vlist("tverk", "Þjónusta", p => svidOf(p).includes("Þjónusta"), true);
-  U.vsk = function () {
-    const L = (S?.vidskiptavinir || []).filter(v => !window.inDeild || true).slice().sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "is"));
+  // 2.70.0: Viðskiptavinir eru ein síða – lykiltölur efst (smellanlegar síur), síur (staða + svið) og listinn með viðskiptum síðustu 12 mánaða.
+  const vskMain = (key, x) => function () {
+    const api = window.salaAPI, L0 = (S?.vidskiptavinir || []), L = (x ? L0.filter(c => vskSvid(c).has(x)) : L0).slice();
     const cnt = v => verkefni().filter(p => p.vskId === v.id && !isDone(p)).length;
-    const f = st.vf.vsk || "", xs = L.filter(v => SQ() || (f === "opin" ? cnt(v) : f === "an" ? !cnt(v) : true));
+    const m12 = isoD(new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())), seld = api ? api.seld().filter(T => String(T.fra || T.dags) >= m12 && String(T.fra || T.dags).slice(0, 10) <= isoD(today)) : [];
+    const rev = c => seld.filter(T => T.vskId ? String(T.vskId) === String(c.id) : T.vidskiptavinur === c.name).reduce((a, T) => a + tbSum(T), 0);
+    const R = new Map(L.map(c => [c.id, rev(c)])), tot = [...R.values()].reduce((a, v) => a + v, 0);
+    const f = st.vf.vsk || "", so = st.vf.vsksort || "nafn";
+    const FV = { "": () => true, opin: v => cnt(v), an: v => !cnt(v), anv: v => !vskSvid(v).size };
+    const xs = L.filter(v => SQ() || (FV[f] || FV[""])(v)).sort(so === "vid" ? (a, b) => (R.get(b.id) || 0) - (R.get(a.id) || 0) : (a, b) => String(a.name || "").localeCompare(String(b.name || ""), "is"));
+    const kp = (typeof DETAIL !== "undefined" && DETAIL) ? "" : kp4([["Viðskiptavinir", L.length, key + ":"], ["Með opin verkefni", L.filter(FV.opin).length, key + ":opin"], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–", api ? key + ":vid" : ""], ["Án viðskipta", L0.filter(FV.anv).length, "vsk:anv"]]);
+    const top = lhead("", x ? svH(x) : "Viðskiptavinir", nbtn("Viðskiptavinur")) + kp + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"], ["anv", "Án viðskipta"]], f, "u1vf:vsk")}${chips([["nafn", "Raða: nafn"], ["vid", "Raða: viðskipti"]], so, "u1vf:vsksort")}</div>`;
+    const rk = v => R.get(v.id) ? kr(R.get(v.id)) : "";
     let h = "", last = "";
-    xs.forEach(v => { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } const n = cnt(v);
-      h += `<div class="urow uv" ${tapAttr("vsk", v.id)}><span class="t">${E(v.name || "")}${v.tengilidur ? `<span class="m"> · ${E(v.tengilidur)}</span>` : ""}</span><span class="m">${n ? n + " verkefni" : ""}</span><span class="r">${pill(n ? "Í gangi" : "Óvirkur")}</span></div>`; });
-    const top = lhead("", "Viðskiptavinir", nbtn("Viðskiptavinur")) + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"]], f, "u1vf:vsk")}</div>`;
+    xs.forEach(v => { if (so === "nafn") { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { h += grpH(l); last = l; } } const n = cnt(v);
+      h += `<div class="urow uv" ${tapAttr("vsk", v.id)}><span class="t">${E(v.name || "")}${v.tengilidur ? `<span class="m"> · ${E(v.tengilidur)}</span>` : ""}</span><span class="m">${n ? n + " verkefni" : E(rk(v))}</span><span class="r">${pill(n ? "Í gangi" : "Óvirkur")}</span></div>`; });
     if (WIDE()) { let w = ""; last = "";
-      xs.forEach(v => { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { w += grpH(l); last = l; } const n = cnt(v);
-        w += wrow(tapAttr("vsk", v.id), [wc(E(v.name || ""), "t"), wc(E(v.tengilidur || "")), wc(E(v.simiT || v.simi || "")), wc(E(v.netfangT || v.netfang || "")), wc(E(v.kennitala || "")), wc(n ? n + " verkefni" : ""), wc(pill(n ? "Í gangi" : "Óvirkur"), "r")]); });
-      return top + wl("minmax(0,1.4fr) minmax(0,1fr) 110px minmax(0,1.3fr) 110px 96px 96px", wcols(["Heiti", "Tengiliður", "Sími", "Netfang", "Kennitala", "Verkefni", "Staða"]) + (w || `<div class="uempty">Engir viðskiptavinir.</div>`)); }
-    return top
-      + `<div class="ucols uv"><span>Heiti · Tengiliður</span><span>Verkefni</span><span class="r">Staða</span></div>` + (h || `<div class="uempty">Engir viðskiptavinir.</div>`);
+      xs.forEach(v => { if (so === "nafn") { const l = String(v.name || "?").charAt(0).toLocaleUpperCase("is"); if (l !== last) { w += grpH(l); last = l; } } const n = cnt(v);
+        w += wrow(tapAttr("vsk", v.id), [wc(E(v.name || ""), "t"), wc(E(v.tengilidur || "")), wc(E(v.simiT || v.simi || "")), wc(E(v.netfangT || v.netfang || "")), wc(n ? n + " verkefni" : ""), wc(E(rk(v))), wc(pill(n ? "Í gangi" : "Óvirkur"), "r")]); });
+      return top + wl("minmax(0,1.4fr) minmax(0,1fr) 110px minmax(0,1.3fr) 96px 130px 96px", wcols(["Heiti", "Tengiliður", "Sími", "Netfang", "Verkefni", "Viðskipti 12 mán.", "Staða"]) + (w || `<div class="uempty">Engir viðskiptavinir.</div>`)); }
+    return top + `<div class="ucols uv"><span>Heiti · Tengiliður</span><span>Verkefni</span><span class="r">Staða</span></div>` + (h || `<div class="uempty">Engir viðskiptavinir.</div>`);
   };
+  U.vsk = vskMain("vsk", "");
+
   // Tilboð eftir sviði
   function tlist(key, title, teg) {
     const api = window.salaAPI; if (!api) return "";
-    const all = api.TB().filter(T => !teg || (T.linur || []).some(l => l.teg === teg)), f = st.vf[key] || "opin";
-    const xs = all.filter(T => SQ() || (f === "opin" ? ["Drög", "Sent"].includes(T.stada) : f === "samth" ? T.stada === "Samþykkt" : true)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
-    const no = all.filter(T => ["Drög", "Sent"].includes(T.stada)).length, ns = all.filter(T => T.stada === "Samþykkt").length;
-    const top = lhead("Tilboð", title, nbtn("Tilboð")) + `<div class="ulbar">${chips([["opin", "Opin · " + no], ["samth", "Samþykkt · " + ns], ["allt", "Allar stöður"]], f, "u1vf:" + key)}</div>`;
+    // 2.70.0: Tilboð eru ein síða – lykiltölur efst (smellanlegar síur), síðan síur og listinn. Svið eru flögur (utlit-i.js).
+    const all = api.TB().filter(T => !teg || (T.linur || []).some(l => l.teg === teg)), f = st.vf.ltilbod || "opin";
+    const FT = { opin: T => ["Drög", "Sent"].includes(T.stada), drog: T => T.stada === "Drög", sent: T => T.stada === "Sent", samth: T => T.stada === "Samþykkt", allt: () => true };
+    const xs = all.filter(T => SQ() || (FT[f] || FT.opin)(T)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
+    const cn = k => all.filter(FT[k]).length, open = all.filter(FT.opin), d90 = all.filter(T => daysTo(T.dags) >= -90);
+    const won = d90.filter(T => T.stada === "Samþykkt"), lost = d90.filter(T => T.stada === "Hafnað"), rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) + " %" : "–";
+    const w7 = all.filter(T => T.stada === "Sent" && daysTo(T.sent || T.dags) <= -7).length;
+    const kp = (typeof DETAIL !== "undefined" && DETAIL) ? "" : kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), key + ":opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), key + ":samth"], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", w7, key + ":sent"]]);
+    const top = lhead("", teg ? title : "Tilboð", nbtn("Tilboð")) + kp + `<div class="ulbar">${chips([["opin", "Opin · " + cn("opin")], ["drog", "Drög · " + cn("drog")], ["sent", "Bíða svars · " + cn("sent")], ["samth", "Samþykkt · " + cn("samth")], ["allt", "Allar stöður"]], f, "u1vf:ltilbod")}</div>`;
     if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 56px 120px 150px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Línur", "Upphæð m. vsk", "Staða"])
       + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc(E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
     return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Dags.", "Staða")
       + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E(T.vidskiptavinur || ""), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
   }
-  U.ltilbod = () => tlist("ltilbod", "Öll tilboð", "");
+  U.ltilbod = () => tlist("ltilbod", "Tilboð", "");
   U.tbl = () => tlist("tbl", "Leiga", "leiga");
   U.tbs = () => tlist("tbs", "Sala", "sala");
   U.tbt = () => tlist("tbt", "Þjónusta", "vinna");
@@ -828,8 +842,8 @@
     return lhead("Viðskiptavinir", svH(x), nbtn("Viðskiptavinur")) + `<div class="ulbar">${chips([["", "Allir · " + all.length], ["opin", "Með opin verkefni"]], f, "u1vf:" + key)}</div>`
       + `<div class="ucols uv"><span>Heiti · Tengiliður</span><span>Verkefni</span><span class="r">Staða</span></div>` + (h || `<div class="uempty">Engir viðskiptavinir á þessu sviði.</div>`);
   };
-  U.vskl = vskList("vskl", "Leiga"); U.vsks = vskList("vsks", "Sala"); U.vskt = vskList("vskt", "Þjónusta");
-  U.vskyf = function () {
+  U.vskl = vskMain("vskl", "Leiga"); U.vsks = vskMain("vsks", "Sala"); U.vskt = vskMain("vskt", "Þjónusta");
+  U.vskyf_gamalt = function () {
     const api = window.salaAPI, L = S?.vidskiptavinir || [], m12 = isoD(new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()));
     const rev = c => api ? api.seld().filter(T => String(T.fra || T.dags) >= m12 && String(T.fra || T.dags).slice(0, 10) <= isoD(today) && (T.vskId ? String(T.vskId) === String(c.id) : T.vidskiptavinur === c.name)).reduce((a, T) => a + tbSum(T), 0) : 0;
     const act = L.filter(c => verkefni().some(p => p.vskId === c.id && !isDone(p))), none = L.filter(c => !vskSvid(c).size);
@@ -855,7 +869,7 @@
       + dcard("Bíða skila", skil.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · skil " + E(fmtD(P.til || P.fra)), (P.til || P.fra) < ti ? "Seint" : "Úti", (P.til || P.fra) < ti)), "pantanir", "Ekkert úti.") + `</div>`;
   };
 
-  U.tbyf = function () {
+  U.tbyf_gamalt = function () {
     const api = window.salaAPI; if (!api) return head("Tilboð", "Yfirlit");
     const all = api.TB(), open = all.filter(T => ["Drög", "Sent"].includes(T.stada)), d90 = all.filter(T => daysTo(T.dags) >= -90);
     const won = d90.filter(T => T.stada === "Samþykkt"), lost = d90.filter(T => T.stada === "Hafnað"), rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) + " %" : "–";
@@ -867,6 +881,7 @@
       + dcard("Nýlega samþykkt", won.sort((a, b) => String(b.dags).localeCompare(String(a.dags))).map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)), true)), "ltilbod", "Ekkert samþykkt síðustu 90 daga.") + `</div>`;
   };
 
+  U.vskyf = () => U.vsk(); U.tbyf = () => U.ltilbod(); // 2.70.0: yfirlitið er efst í listanum
   U.timyf = function () {
     const a = mondayOf(today), fs = faerslur(), wk = fs.filter(e => d(e.date) >= a), g = goal();
     const staff = STARFS().filter(x => fs.some(e => e.starfsmadur === x.sk));
@@ -1028,7 +1043,7 @@
       if (k === "u1rk") { const [id, did] = r; rukka(id, did); return; }
       if (k === "u1rkp") { const [pc] = r, b = +document.getElementById("rk-base")?.value || 0, el = document.getElementById("rk-upp"); if (el) el.value = Math.round(b * (+pc) / 100 / 100) * 100; return; }
       if (k === "u1day") { st.day = v && v !== st.day ? v : null; render(); return; }
-      if (k === "u1kpf") { const [t2, f2] = String(v || "").split(":"); const vk = { vsk: "vsk", ltilbod: "ltilbod" }[t2] || t2; st.vf[vk] = f2 || ""; tab = t2; DETAIL = null; window.STSUB = null; render(); return; }
+      if (k === "u1kpf") { const [t2, f2] = String(v || "").split(":"); const vk = /^vsk/.test(t2) ? "vsk" : /^(ltilbod|tb[lst])$/.test(t2) ? "ltilbod" : t2; if (f2 === "vid") { st.vf.vsksort = "vid"; st.vf.vsk = ""; } else st.vf[vk] = f2 || ""; tab = t2; DETAIL = null; window.STSUB = null; render(); return; }
       if (k === "u1pnf") { st.vf.pn = v || "opnar"; tab = "pantanir"; DETAIL = null; window.STSUB = null; render(); return; }
       if (k === "u1vf") { const [key, val] = [r[0], r.slice(1).join(":")]; st.vf[key] = val; render(); return; }
       if (k === "u1mv") { const p = findProj(v), ids = new Set([...st.sel].filter(x => x.startsWith("time:")).map(x => x.slice(5))), kids = new Set([...st.sel].filter(x => x.startsWith("kostn:")).map(x => x.slice(6)));
