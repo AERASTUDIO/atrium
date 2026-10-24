@@ -34,16 +34,26 @@
   const hide = (S0, k) => { const t = S0?.tabs.find(x => x[0] === k); if (t) t[2] = 1; };
   if (V) { hide(V, "verk"); V.tabs.unshift(["verkyf", "Yfirlit"]); }
   if (C) C.tabs = [["vskyf", "Yfirlit"], ["vsk", "Viðskiptavinir", 1], ["vskl", "Leiga"], ["vsks", "Sala"], ["vskt", "Þjónusta"]];
-  if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); P.tabs.push(["pndag", "Dagatal"]); }  // Dagatal pantana og verkefna (2.59.0, pantanir2.js)
+  if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); }
+  // Verkdagatal (2.68.0): eitt sameiginlegt dagatal í Kjarna – verkefni, pantanir og búnaður (pantanir2.js) – aðskilið persónulega Dagatalinu
+  if (!by("verkdag")) { const VD = { k: "verkdag", l: "Verkdagatal", ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h6M10 16.5h7"/></svg>', tabs: [["pndag", "Verkdagatal"]] };
+    SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(P || V) + 1, 0, VD); }
+  // Persónulega dagatalið: fyrsti undirflipi heitir Yfirlit (ekki sama nafn og hlutinn)
+  { const D = by("dagatal"); if (D) D.tabs = D.tabs.map(t => t[0] === "dagatal" ? ["dagatal", "Yfirlit"] : t); }
+  // Röð í vinstri stiku (2.68.0): Heim, Dagatal, Tímar efst (án fyrirsagnar) · Kjarni · Verkfæri · Samskipti
+  { const ORD = ["heim", "dagatal", "timar", "verkefni", "pantanir", "verkdag", "vidsk", "tilbod", "bunadur", "fjarmal", "skjol", "postur", "spjall"];
+    const rank = x => { const i = ORD.indexOf(x.k); return i < 0 ? (x.k === "meira" ? 999 : 500) : i; };
+    const sorted = SECTIONS_ALL.slice().sort((x, y) => rank(x) - rank(y)); SECTIONS_ALL.length = 0; sorted.forEach(x => SECTIONS_ALL.push(x)); }
   if (T) { hide(T, "ltilbod"); T.tabs.unshift(["tbyf", "Yfirlit"]); }
   if (TI) TI.tabs.unshift(["timyf", "Yfirlit"]);
-  Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: ["pantanir", "pferli"], tbyf: "tilbod", timyf: "timar" });
+  Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: "verkefni", tbyf: "tilbod", timyf: "timar" });
   _einSig = null; applyEin();
   // Merki fyrirtækis í dökku stikunni: dökka útgáfan (ljóst merki) óháð þema
   const coSide = () => { const l = ORG.merki || ORG.logo || {}, src = l.dokk || l.ljos; const i = document.querySelector(".side .colog"); if (i && src && i.getAttribute("src") !== src) i.src = src; };
   coSide(); new MutationObserver(coSide).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  const GRP = { heim: "Kjarni", verkefni: "Kjarni", vidsk: "Kjarni", pantanir: "Kjarni", dagatal: "Verkfæri", timar: "Verkfæri", tilbod: "Verkfæri", bunadur: "Verkfæri", fjarmal: "Verkfæri", skjol: "Tengingar", postur: "Tengingar", spjall: "Tengingar" };
+  // 2.68.0: Heim, Dagatal og Tímar efst án fyrirsagnar · Kjarni · Verkfæri · Samskipti
+  const GRP = { heim: "", dagatal: "", timar: "", verkefni: "Kjarni", pantanir: "Kjarni", verkdag: "Kjarni", vidsk: "Kjarni", tilbod: "Verkfæri", bunadur: "Verkfæri", fjarmal: "Verkfæri", skjol: "Verkfæri", postur: "Samskipti", spjall: "Samskipti" };
   // Símaútlit I (2.46.0, ORG.simi === "I"): síminn notar sama útlit og tölvan (listi og spjald, simi-ui1.css + simi.css);
   // wideScr() = raunverulegur breiður skjár, desk() = tölvuútlitið er í notkun
   const SIMI = window.ORG?.simi === "I";
@@ -57,7 +67,7 @@
     const el = document.getElementById("sitems"); if (!el) return;
     const cur = tab === "upphaf" ? null : secOf(tab); let last = null, h = "";
     SECTIONS.filter(x => !x.nobar).forEach(x => {
-      const g = GRP[x.k] || ""; if (g !== last) { h += `<div class="sgrp">${g}</div>`; last = g; }
+      const g = GRP[x.k] || ""; if (g !== last) { if (g) h += `<div class="sgrp">${g}</div>`; last = g; }
       const on = x === cur && tab !== "leit" && tab !== "stillingar";
       h += `<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${esc(x.l)}</span></button>`;
       const vis = x.tabs.filter(t => !t[2]);
