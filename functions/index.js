@@ -369,10 +369,12 @@ exports.eftirfylgni = onSchedule({ schedule: "0 9 * * 1-5", timeZone: TZ }, asyn
 
 /* ---------- 9. Staðfestingartengill sendur sjálfkrafa (2.74.0) ----------
    Ný pöntun með netfangi fær pöntunarsíðu (opinber/{t}) strax í appinu. Ef enginn starfsmaður hefur sent tengilinn
-   (pantanir.tengillSendur) innan frestsins (Stillingar › Pantanir › Staðfestingartengill, sjálfgefið 2 klst.) sendir þetta
+   (pantanir.tengillSendur) innan frestsins (Stillingar › Pantanir › Staðfestingartengill, sjálfgefið 2 klst., en í síðasta lagi 12 klst. fyrir afhendingu) sendir þetta
    fall hann úr sameiginlega pósthólfinu (POSTHOLF) og skráir tengillSendur = { dags, af: "sjálfvirkt", til }.
    Krefst forritaheimildarinnar Mail.Send (Application, admin consent) í Entra-forritinu „Atrium“. Aðeins pantanir 0–72 klst. gamlar. */
 const PUBBASE = "https://aerastudio.github.io/atrium/pontun/";
+// Afhendingartími pöntunar í ms (dagsetning + afhKl, annars kl. 08:00 að íslenskum tíma = UTC)
+const afhMs = P => { const d = d10(P.fra); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return 0; const k = /^(\d{1,2}):(\d{2})/.exec(P.afhKl || "") || [0, "08", "00"]; return Date.parse(`${d}T${String(k[1]).padStart(2, "0")}:${k[2]}:00Z`); };
 const escH = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 exports.tengillSjalfvirkt = onSchedule({ schedule: "*/15 * * * *", timeZone: TZ, secrets: [MS_SECRET] }, async () => {
   const st = await db.doc("app/state").get(), cfg = (((st.exists && st.data().stillingar) || {}).pantanir || {}).tengill || {};
@@ -380,7 +382,10 @@ exports.tengillSjalfvirkt = onSchedule({ schedule: "*/15 * * * *", timeZone: TZ,
   const L = (await loadCol("pantanir")).filter(P => P.stada === "Ný" && P.opinber && !P.tengillSendur && !P.vidskStadfest);
   if (!L.length) return; const V = new Map((await loadCol("vidskiptavinir")).map(c => [String(c.id), c]));
   for (const P of L) {
-    const t0 = Date.parse(P.stofnad_t || P.dags || ""); if (!(t0 > 0) || now - t0 < klst * 36e5 || now - t0 > 72 * 36e5) continue;
+    // Sendist þegar fresturinn frá stofnun er liðinn – en í síðasta lagi `fyrir` klst. (sjálfgefið 12) fyrir afhendingu
+    const t0 = Date.parse(P.stofnad_t || P.dags || ""); if (!(t0 > 0)) continue;
+    const afh = afhMs(P), fyrir = +cfg.fyrir > 0 ? +cfg.fyrir : 12, when = Math.min(t0 + klst * 36e5, afh ? afh - fyrir * 36e5 : Infinity);
+    if (now < when || (afh && now > afh) || (!afh && now - t0 > 72 * 36e5)) continue;
     const to = P.netfang || (V.get(String(P.vskId)) || {}).netfang; if (!to || !/@/.test(to)) continue;
     if (!(await once("tengill-" + P.id))) continue;
     const o = (await db.doc("opinber/" + P.opinber).get()).data() || {}, co = o.fyrirtaeki || {}, url = PUBBASE + "?o=" + encodeURIComponent(INST) + "&t=" + encodeURIComponent(P.opinber);
