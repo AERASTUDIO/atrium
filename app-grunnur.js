@@ -140,7 +140,10 @@ const weekSum=(off=0,sk=null,noLive=false)=>{const a=mondayOf(today); a.setDate(
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 const STC={"Beiðni":"l1","Í vinnslu":"l2","Í yfirferð":"l3","Afhent":"done","Not started":"","Up next":"l1","In progress":"l2","Done":"done"};
 const STL={"Done":"Lokið","In progress":"Í vinnslu","Up next":"Næst","Not started":"Ekki hafið"};
-const statusPill=s=>STODUR().some(x=>x.n===s)?`<span class="pill pc-${stColor(s)}">${esc(s)}</span>`:`<span class="pill ${STC[s]??""}">${esc(STL[s]||s)}</span>`;
+// Litur í texta eftir merkingu stöðu (2.54.0): rautt = seint, gult = bíður/óklárað, blátt = í gangi, grænt = klárað
+const toneOf=t=>{const x=String(t||"").toLowerCase(); if(/seint|fram yfir|ógreitt|ógild|yfir áætlun|vantar|skemmd|tvíbók/.test(x)) return "t-red"; if(/lokið|greitt|afhent|skilað|samþykkt|klárað|tilbúið|í lagi|virk$/.test(x)) return "t-grn"; if(/í vinnslu|staðfest|í gangi|opin|úti|í yfirferð|vinnsla/.test(x)) return "t-blu"; if(/bið|fyrirspurn|^ný|næst|drög|beiðni|sent|ekki hafið|tilboð|óstaðfest|bíður|óreikn/.test(x)) return "t-amb"; return "";};
+window.toneOf=toneOf;
+const statusPill=s=>STODUR().some(x=>x.n===s)?`<span class="pill pc-${stColor(s)} ${toneOf(s)}">${esc(s)}</span>`:`<span class="pill ${STC[s]??""} ${toneOf(STL[s]||s)}">${esc(STL[s]||s)}</span>`;
 /* Einföld listaröð: [fremst] titill / undirlína [hægra megin] › */
 const lrow=(open,o)=>`<div class="lrow tap" ${tapAttr(open.split(":")[0],open.slice(open.indexOf(":")+1))}>${o.lead!=null?`<div class="ll">${o.lead}</div>`:""}<div class="lm"><div class="lt">${o.title}</div>${o.sub?`<div class="ls">${o.sub}</div>`:""}</div>${o.right?`<div class="lr">${o.right}</div>`:""}${MCP&&!(/^(verk|vsk):/.test(open)&&window.can&&!can("eyda"))?`<button type="button" class="ldel" data-act="del:${esc(open)}" aria-label="Eyða"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>`:""}${CHEV}</div>`;
 const llist=rows=>`<div class="llist">${rows.join("")}</div>`;

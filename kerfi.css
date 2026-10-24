@@ -365,3 +365,44 @@ html:not([data-theme="light"]) :is(.snjk.warn b,.snjpv i){color:#FF7B72}
   .sdtm .snjdot{margin-top:2px}
 }
 body.kerfi #view .snjc .snjr:not(.snjp) .snjrx b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+/* ---------- Litir í texta (2.54.0): merking með lit – rautt seint, gult bíður, blátt í gangi, grænt klárað ---------- */
+body.kerfi{--t-red:#C0392B;--t-amb:#A66A00;--t-blu:var(--kacc,#2F6FB3);--t-grn:#1E8449}
+html:not([data-theme="light"]) body.kerfi{--t-red:#FF7B72;--t-amb:#E3B341;--t-grn:#56D364}
+body.kerfi :is(.upill,.pill,.dbadge).t-red{color:var(--t-red)!important}body.kerfi :is(.upill,.pill,.dbadge).t-red::before{background:var(--t-red)!important}
+body.kerfi :is(.upill,.pill,.dbadge).t-amb{color:var(--t-amb)!important}body.kerfi :is(.upill,.pill,.dbadge).t-amb::before{background:var(--t-amb)!important}
+body.kerfi :is(.upill,.pill,.dbadge).t-blu{color:var(--t-blu)!important}body.kerfi :is(.upill,.pill,.dbadge).t-blu::before{background:var(--t-blu)!important}
+body.kerfi :is(.upill,.pill,.dbadge).t-grn{color:var(--t-grn)!important}body.kerfi :is(.upill,.pill,.dbadge).t-grn::before{background:var(--t-grn)!important}
+body.kerfi em.t-red{color:var(--t-red);font-style:normal}body.kerfi em.t-grn{color:var(--t-grn);font-style:normal}
+/* Tenglar og aðgerðir í textalínum: blátt */
+body.kerfi #view :is(.uhch a,.uhch .plink,.viewtitle a.plink,.ush a,.snjcopy,a.plink){color:var(--t-blu)!important}
+/* Snjall-Heim */
+body.kerfi .snjr.l2 .snjrx b,body.kerfi .snjpw.l2 .sdtx b{color:var(--t-red)}
+body.kerfi .snjr.l1 .snjrx small,body.kerfi .snjpw.l1 .sdtx small{color:var(--t-amb)}
+body.kerfi .snjdot{background:var(--t-amb)}body.kerfi .snjdot.l2{background:var(--t-red)}
+body.kerfi .snjrx small.k-on{color:var(--t-grn)}body.kerfi .snjrx small.k-fund{color:var(--t-amb)}body.kerfi .snjrx small:is(.k-ut,.k-inn){color:var(--t-blu)}
+body.kerfi .snjk.warn b,body.kerfi .udsr.late :is(.udst,b),body.kerfi .dsr.late :is(.dst,b){color:var(--t-red)}
+body.kerfi .snjav.on::after{background:var(--t-grn)}
+/* Stillingar › Heim */
+.snjset{border:1px solid var(--line);border-radius:6px;background:var(--surface);margin-bottom:8px}
+.snjsr{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);min-height:52px;box-sizing:border-box}
+.snjsr:last-child{border-bottom:0}
+.snjst{display:flex;flex-direction:column;min-width:0}.snjst b{font-size:14px;font-weight:500}.snjst small{font-size:12.5px;color:var(--muted)}
+.snjso{display:flex;align-items:center;gap:6px}
+.snjmv{width:32px;height:32px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.snjmv:disabled{opacity:.3;cursor:default}.snjmv:not(:disabled):hover{border-color:var(--t-blu);color:var(--t-blu)}
+.snjlim{gap:8px}.snjnum{width:72px!important;height:32px!important;min-height:0!important;padding:0 8px!important;text-align:right;font-variant-numeric:tabular-nums;font-size:14px!important}
+.snju{font-size:12.5px;color:var(--muted);white-space:nowrap;min-width:150px}
+.snjsw{display:inline-block;position:relative;width:40px;height:24px}
+.snjsw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+.snjsw i{position:absolute;inset:0;border-radius:12px;background:var(--line);transition:.2s}
+.snjsw i::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:.2s}
+.snjsw input:checked+i{background:var(--t-blu)}.snjsw input:checked+i::after{left:19px}
+.snjsw input:focus-visible+i{outline:2px solid var(--t-blu);outline-offset:2px}
+@media (max-width:1023px){
+  .snjsr:has(.snjlim){grid-template-columns:44px minmax(0,1fr);grid-template-areas:"s t" ". o"}
+  .snjsr:has(.snjlim) .snjsc{grid-area:s}.snjsr:has(.snjlim) .snjst{grid-area:t}.snjsr:has(.snjlim) .snjso{grid-area:o}
+  .snjsr .snjso{flex-direction:column;gap:4px}.snjsr .snjlim{flex-direction:row}
+  .snjmv{width:30px;height:26px}
+  .snjnum{font-size:16px!important}
+}

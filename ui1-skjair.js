@@ -10,7 +10,7 @@
   const lhead = (sup, title, nb = "") => `<div class="phead">${sup ? `<div class="spsup">${E(sup)}</div>` : ""}<div class="phrow"><h2 class="ptitle">${E(title)}</h2>${nb}</div></div>`;
   const btn = (l, act, cls = "") => `<button type="button" class="btn ${cls}" data-act="${act}">${l}</button>`;
   const chips = (arr, cur, pre) => `<div class="uchips">${arr.map(([k, l]) => `<button type="button" class="uchip${k === cur ? " on" : ""}" data-act="${pre}:${k}">${E(l)}</button>`).join("")}</div>`;
-  const pill = (t, dark) => `<span class="upill${dark ? " dark" : ""}">${E(t)}</span>`;
+  const pill = (t, dark) => `<span class="upill${dark ? " dark" : ""} ${window.toneOf ? toneOf(t) : ""}">${E(t)}</span>`;
   const kr = n => Math.round(n || 0).toLocaleString("de-DE") + " kr.";
   const H = n => num(Math.round((+n || 0) * 10) / 10);
   const DN = ["Mán", "Þri", "Mið", "Fim", "Fös", "Lau", "Sun"];

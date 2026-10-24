@@ -28,6 +28,27 @@
   const active = () => tr(() => verkefni().filter(p => !isDone(p)), []);
   const staffName = sk => tr(() => (STARFS().find(x => x.sk === sk) || {}).nafn, "") || sk;
   const DN = ["sun", "mán", "þri", "mið", "fim", "fös", "lau"];
+  /* ---------- Stillingar (2.54.0): sjálfgefið < fyrirtækið (S.stillingar.heim) < notandinn (notandi/{netfang}.snjall) ---------- */
+  const DEF = { hlutar: ["cmd", "loka", "vidv", "hver", "pulse"], fela: [], vidv: { yfir: 105, tvib: 14, ostad: 2, skil: 3, af: [] }, loka: { af: [] } };
+  const HL = { cmd: ["Skipanalína", "Skráðu í mæltu máli, t.d. „2 tímar á Hótel Lind í gær – teikningar“"], loka: ["Loka deginum", "Drög að tímaskráningu dagsins úr fundum, skönnunum og athugasemdum"],
+    vidv: ["Viðvaranir", "Yfir áætlun, tvíbókaður búnaður, óstaðfestar afhendingar og skil án tíma"], hver: ["Hver er hvar", "Staða teymisins í dag – aðeins í tölvu"], pulse: ["Rekstrarpúls", "Óinnheimt, reikningshæft, nýting – aðeins með fjármálaaðgang, í tölvu"] };
+  const VT = { yfir: "Verkefni yfir eða stefnir yfir áætlun", tvib: "Tvíbókaður búnaður", ostad: "Óstaðfest afhending", skil: "Skil nálgast og enginn tími skráður" };
+  const LT = { fund: "Fundir dagsins", qr: "QR-skannanir (afhending og móttaka)", ath: "Athugasemdir á verkefnum" };
+  const LSK = "snj-pref:" + tr(() => ORG.lsForskeyti, "");
+  let UP = tr(() => JSON.parse(localStorage.getItem(LSK) || "null"), null);
+  const mrg = (a, b) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => { o[k] = v && typeof v === "object" && !Array.isArray(v) ? mrg(a[k] || {}, v) : v; }); return o; };
+  const coPref = () => tr(() => CFG().heim, null) || {};
+  const PR = () => mrg(mrg(DEF, coPref()), UP || {});
+  const showPart = k => { const p = PR(); return !p.fela.includes(k); };
+  const order = () => { const p = PR(), o = p.hlutar.filter(k => HL[k]); Object.keys(HL).forEach(k => { if (!o.includes(k)) o.push(k); }); return o; };
+  const vOn = k => !PR().vidv.af.includes(k), lOn = k => !PR().loka.af.includes(k);
+  // Samstilling við aðganginn: sama skjal og „Sérsníða Heim“ (notandi/{netfang}) – engin ný regla
+  window.__snjPref = () => UP;
+  window.snjFromDoc = d => { const v = d && d.snjall; if (v && JSON.stringify(v) !== JSON.stringify(UP)) { UP = v; try { localStorage.setItem(LSK, JSON.stringify(v)); } catch (e) {} if (typeof render === "function") render(); } };
+  let sv = null;
+  function saveUP(v) { UP = v; try { localStorage.setItem(LSK, JSON.stringify(v)); } catch (e) {} clearTimeout(sv); sv = setTimeout(() => { try { window.heimSaveDoc?.(); } catch (e) {} }, 400); render(); }
+  function saveCo(v) { tr(() => saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.heim = v; }).then(() => toast?.("Sjálfgefið fyrir fyrirtækið vistað")), null); }
+
   const relD = s => { const x = new Date(String(s).slice(0, 10) + "T00:00:00"), n = Math.round((x - new Date(T() + "T00:00:00")) / 864e5); return n === 0 ? "í dag" : n === 1 ? "á morgun" : n === -1 ? "í gær" : DN[x.getDay()] + " " + x.getDate() + "."; };
 
   /* ---------- 2. Viðvaranir ---------- */
@@ -35,7 +56,8 @@
     const out = [], t = T(), now = new Date(), F = tr(() => faerslur(), []);
     // Verkefni sem stefna yfir áætlun (hraði síðustu 14 daga)
     const d14 = iso(new Date(now.getTime() - 14 * 864e5));
-    active().filter(p => +p.aklst > 0).forEach(p => {
+    const V = PR().vidv, lim = (+V.yfir || 105) / 100;
+    if (vOn("yfir")) active().filter(p => +p.aklst > 0).forEach(p => {
       const a = +p.aklst, r = +p.timar || 0;
       if (r > a) { out.push({ lvl: 2, title: `${p.nr} ${p.stutt || p.nafn || ""} er komið yfir áætlun`, sub: `${H(r)} af ${H(a)} klst. · ${Math.round(r / a * 100)} %`, open: "verk:" + p.id }); return; }
       const rate = F.filter(e => e.verkefniId === p.id && e.date >= d14 && e.date <= t).reduce((s, e) => s + (+e.timar || 0), 0) / 14;
@@ -43,7 +65,7 @@
       const sk = p.skiladagur ? String(p.skiladagur).slice(0, 10) : "";
       if (sk && sk >= t) {
         const days = Math.max(0, Math.round((new Date(sk + "T00:00:00") - new Date(t + "T00:00:00")) / 864e5)), proj = r + rate * days;
-        if (proj > a * 1.05) out.push({ lvl: 1, title: `${p.nr} ${p.stutt || p.nafn || ""} stefnir í ${Math.round(proj / a * 100)} % af áætlun`, sub: `Miðað við hraðann síðustu 2 vikur · ${H(r)} af ${H(a)} klst. · skil ${relD(sk)}`, open: "verk:" + p.id });
+        if (proj > a * lim) out.push({ lvl: 1, title: `${p.nr} ${p.stutt || p.nafn || ""} stefnir í ${Math.round(proj / a * 100)} % af áætlun`, sub: `Miðað við hraðann síðustu 2 vikur · ${H(r)} af ${H(a)} klst. · skil ${relD(sk)}`, open: "verk:" + p.id });
       } else {
         const left = (a - r) / rate;
         if (left < 10) out.push({ lvl: 1, title: `${p.nr} ${p.stutt || p.nafn || ""} fer yfir áætlun eftir ~${Math.max(1, Math.round(left))} daga`, sub: `${H(r)} af ${H(a)} klst. · ${H(rate * 7)} klst. á viku`, open: "verk:" + p.id });
@@ -51,9 +73,9 @@
     });
     // Tvíbókaður búnaður (næstu 14 dagar)
     const P = PN().filter(x => ["Ný", "Staðfest", "Afhent"].includes(x.stada) && x.fra);
-    VR().forEach(v => {
+    if (vOn("tvib")) VR().forEach(v => {
       const N = (v.eintok || []).length || +v.fjoldi || 0; if (!N) return;
-      for (let k = 0; k < 14; k++) {
+      for (let k = 0; k < (+V.tvib || 14); k++) {
         const day = iso(new Date(now.getTime() + k * 864e5));
         const used = P.reduce((s, x) => { const a = String(x.fra).slice(0, 10), b = String(x.til || x.fra).slice(0, 10); if (day < a || day > b) return s; return s + (x.linur || []).filter(l => String(l.v) === String(v.id)).reduce((q, l) => q + (+l.magn || 0), 0); }, 0);
         if (used > N) { const ps = P.filter(x => day >= String(x.fra).slice(0, 10) && day <= String(x.til || x.fra).slice(0, 10) && (x.linur || []).some(l => String(l.v) === String(v.id))).map(x => x.nr);
@@ -61,12 +83,12 @@
       }
     });
     // Afhending á næstu 2 dögum sem er ekki staðfest
-    P.filter(x => x.stada === "Ný").forEach(x => { const a = String(x.fra).slice(0, 10), n = (new Date(a + "T00:00:00") - new Date(t + "T00:00:00")) / 864e5;
-      if (n >= 0 && n <= 2) out.push({ lvl: 1, title: `${x.nr} ${x.heiti || ""} – afhending ${relD(a)} en pöntunin er ekki staðfest`, sub: x.tengilidur || x.vidskiptavinur || "", open: "tb:" + x.id }); });
+    if (vOn("ostad")) P.filter(x => x.stada === "Ný").forEach(x => { const a = String(x.fra).slice(0, 10), n = (new Date(a + "T00:00:00") - new Date(t + "T00:00:00")) / 864e5;
+      if (n >= 0 && n <= (+V.ostad || 2)) out.push({ lvl: 1, title: `${x.nr} ${x.heiti || ""} – afhending ${relD(a)} en pöntunin er ekki staðfest`, sub: x.tengilidur || x.vidskiptavinur || "", open: "tb:" + x.id }); });
     // Skil innan 3 daga og enginn tími skráður
-    active().forEach(p => { const sk = p.skiladagur ? String(p.skiladagur).slice(0, 10) : ""; if (!sk || sk < t) return;
+    if (vOn("skil")) active().forEach(p => { const sk = p.skiladagur ? String(p.skiladagur).slice(0, 10) : ""; if (!sk || sk < t) return;
       const n = (new Date(sk + "T00:00:00") - new Date(t + "T00:00:00")) / 864e5;
-      if (n <= 3 && !(+p.timar > 0) && !F.some(e => e.verkefniId === p.id)) out.push({ lvl: 1, title: `${p.nr} ${p.stutt || p.nafn || ""} – skil ${relD(sk)} en enginn tími skráður`, sub: p.vidskiptavinur || "", open: "verk:" + p.id }); });
+      if (n <= (+V.skil || 3) && !(+p.timar > 0) && !F.some(e => e.verkefniId === p.id)) out.push({ lvl: 1, title: `${p.nr} ${p.stutt || p.nafn || ""} – skil ${relD(sk)} en enginn tími skráður`, sub: p.vidskiptavinur || "", open: "verk:" + p.id }); });
     return out.sort((a, b) => b.lvl - a.lvl);
   }
 
@@ -121,17 +143,17 @@
     const free = (a, b) => !taken.some(([x, y]) => a < y && b > x);
     const out = [];
     // Fundir dagsins á verkefnum sem ég er á (eða án verkefnis)
-    tr(() => (S?.fundir || []), []).filter(f => String(f.date || "").slice(0, 10) === day && hm(f.date)).forEach(f => {
+    if (lOn("fund")) tr(() => (S?.fundir || []), []).filter(f => String(f.date || "").slice(0, 10) === day && hm(f.date)).forEach(f => {
       const p = f.projectId ? tr(() => findProj(f.projectId), null) : null; if (p && !tr(() => projStaff(p), []).includes(mine)) return;
       const a = toMin(hm(f.date)), b = f.end && hm(f.end) ? toMin(hm(f.end)) : a + 60;
       if (free(a, b)) out.push({ src: "Fundur", pid: p?.id || "", fra: fromMin(a), til: fromMin(b), desc: f.name || "Fundur" });
     });
     // Afhendingar og móttaka með QR
-    PN().forEach(P => { const sc = P.skann || {}; if (sc.af !== mine) return;
+    if (lOn("qr")) PN().forEach(P => { const sc = P.skann || {}; if (sc.af !== mine) return;
       [["ut", "Afhending"], ["inn", "Móttaka"]].forEach(([k, l]) => { const w = sc[k + "Dags"]; if (String(w || "").slice(0, 10) !== day) return;
         const b = toMin(hm(w)), a = b - 30; if (free(a, b)) out.push({ src: "QR-skönnun", pid: P.verkefniId || "", fra: fromMin(a), til: fromMin(b), desc: `${l} ${P.nr} ${P.heiti || ""}`.trim() }); }); });
     // Athugasemdir mínar á verkefnum í dag → vinna við verkefnið (frá fyrstu að síðustu, minnst 30 mín.)
-    active().forEach(p => { const cs = (p.athugasemdir || []).filter(c => c.sk === mine && String(c.d || "").slice(0, 10) === day && hm(c.d)); if (!cs.length) return;
+    if (lOn("ath")) active().forEach(p => { const cs = (p.athugasemdir || []).filter(c => c.sk === mine && String(c.d || "").slice(0, 10) === day && hm(c.d)); if (!cs.length) return;
       const ts = cs.map(c => toMin(hm(c.d))).sort((x, y) => x - y), a = ts[0] - 30, b = Math.max(ts[ts.length - 1], a + 30);
       if (free(a, b)) out.push({ src: cs.length > 1 ? cs.length + " athugasemdir" : "Athugasemd", pid: p.id, fra: fromMin(a), til: fromMin(b), desc: String(cs[cs.length - 1].t || "Vinna við verkefnið").slice(0, 80) }); });
     return out.sort((x, y) => x.fra.localeCompare(y.fra));
@@ -245,12 +267,12 @@
   }
   function warnHTML(max = 6) {
     const ws = warnings(); if (!ws.length) return `<section class="card ucard snjc"><div class="uhch"><h3>Viðvaranir</h3></div><div class="snjempty">Ekkert sem þarf að vara við – allt á áætlun.</div></section>`;
-    return `<section class="card ucard snjc"><div class="uhch"><h3>Viðvaranir <span class="m">${ws.length}</span></h3></div>${ws.slice(0, max).map(w => rowH(w.open, `<i class="snjdot l${w.lvl}"></i>`, w.title, w.sub)).join("")}${ws.length > max ? `<div class="snjmore">+ ${ws.length - max} í viðbót</div>` : ""}</section>`;
+    return `<section class="card ucard snjc"><div class="uhch"><h3>Viðvaranir <span class="m">${ws.length}</span></h3></div>${ws.slice(0, max).map(w => rowH(w.open, `<i class="snjdot l${w.lvl}"></i>`, w.title, w.sub, " l" + w.lvl)).join("")}${ws.length > max ? `<div class="snjmore">+ ${ws.length - max} í viðbót</div>` : ""}</section>`;
   }
   function teamHTML() {
     const tm = team(); if (tm.length < 1) return "";
     return `<section class="card ucard snjc"><div class="uhch"><h3>Hver er hvar</h3><span class="m">í dag</span></div>${tm.map(p => { const s = p.st[0];
-      return `<div class="snjr snjp" ${s?.open ? `data-open="${E(s.open)}" role="button" tabindex="0"` : ""}><span class="snjav${s && s.k !== "last" ? " on" : ""}">${E(String(p.sk || "").slice(0, 3))}</span><span class="snjrx"><b>${E(p.nafn)}${p.eg ? ' <span class="m">· þú</span>' : ""}</b><small>${E(s ? s.t : "Ekkert skráð í dag")}</small></span><span class="snjh">${p.h ? H(p.h) + " klst." : ""}</span></div>`; }).join("")}</section>`;
+      return `<div class="snjr snjp" ${s?.open ? `data-open="${E(s.open)}" role="button" tabindex="0"` : ""}><span class="snjav${s && s.k !== "last" ? " on" : ""}">${E(String(p.sk || "").slice(0, 3))}</span><span class="snjrx"><b>${E(p.nafn)}${p.eg ? ' <span class="m">· þú</span>' : ""}</b><small class="${s ? "k-" + s.k : ""}">${E(s ? s.t : "Ekkert skráð í dag")}</small></span><span class="snjh">${p.h ? H(p.h) + " klst." : ""}</span></div>`; }).join("")}</section>`;
   }
   function pulseHTML() {
     const p = pulse(); if (!p) return "";
@@ -258,14 +280,16 @@
     window.__snjPulse = pulseText(p);
     return `<section class="card ucard snjc"><div class="uhch"><h3>Rekstrarpúls</h3><button type="button" class="snjcopy" onclick="navigator.clipboard?.writeText(window.__snjPulse||'').then(()=>toast('Vikan í tölum afrituð – límdu í Teams eða póst'))">Afrita „Vikan í tölum“</button></div>
       <div class="snjks">${tile("Óinnheimt", mkr(p.oin), p.late ? mkr(p.late) + " fram yfir gjalddaga" : "ekkert fram yfir", p.late ? " warn" : "")}${tile("Reikningshæft núna", mkr(p.ub), H(p.ubH) + " klst. óreikningsfærðar")}
-      ${tile("Nýting teymis", Math.round(p.nyt * 100) + " %", `${H(p.hW)} klst. · ${d >= 0 ? "▲" : "▼"} ${Math.abs(Math.round(d * 100))} % frá sama tíma síðustu viku`, d < -0.1 ? " warn" : "")}${p.eint ? tile("Búnaður úti", Math.round(p.uti / p.eint * 100) + " %", `${p.uti} af ${p.eint} eintökum`) : tile("Pantanir", p.nyjar + " nýjar", p.afh + " úti")}</div></section>`;
+      ${tile("Nýting teymis", Math.round(p.nyt * 100) + " %", `${H(p.hW)} klst. · <em class="${d >= 0 ? "t-grn" : "t-red"}">${d >= 0 ? "▲" : "▼"} ${Math.abs(Math.round(d * 100))} %</em> frá sama tíma síðustu viku`, d < -0.1 ? " warn" : "")}${p.eint ? tile("Búnaður úti", Math.round(p.uti / p.eint * 100) + " %", `${p.uti} af ${p.eint} eintökum`) : tile("Pantanir", p.nyjar + " nýjar", p.afh + " úti")}</div></section>`;
   }
 
   /* Tölva: Heim › Yfirlit */
   const hook = () => {
     const U = window.UI1V; if (!U || !U.yfirlit || U.yfirlit.__snj) return !!(U && U.yfirlit && U.yfirlit.__snj);
     const o = U.yfirlit; U.yfirlit = function () { let h = o.apply(this, arguments); if (!on()) return h;
-      const top = cmdHTML() + bannerHTML(), grid = `<div class="snjgrid">${warnHTML()}${teamHTML()}${pulseHTML()}</div>`;
+      const O = order().filter(showPart), F = { cmd: cmdHTML, loka: bannerHTML, vidv: () => warnHTML(), hver: teamHTML, pulse: pulseHTML };
+      const top = O.filter(k => k === "cmd" || k === "loka").map(k => F[k]()).join(""), gi = O.filter(k => !["cmd", "loka"].includes(k)).map(k => F[k]()).join("");
+      const grid = gi ? `<div class="snjgrid">${gi}</div>` : "";
       h = h.replace('<div class="uhtop">', top + '<div class="uhtop">'); h = h.replace('<div class="uh3">', grid + '<div class="uh3">'); return h; };
     U.yfirlit.__snj = 1; return true;
   };
@@ -281,10 +305,45 @@
       return x; };
   }
   function phoneDecorate() {
-    if (!on() || !phone() || DETAIL || tab !== "yfirlit") return; const sd = document.querySelector("#view .sd"); if (!sd || sd.querySelector(".snjcmd")) return;
-    sd.querySelector(".sdh")?.insertAdjacentHTML("afterend", cmdHTML());
-    const k = sd.querySelector(".sdk"); if (k) k.insertAdjacentHTML("afterend", bannerHTML());
-    const ws = warnings();
-    if (ws.length) { const first = sd.querySelector(".sdsec"); first?.insertAdjacentHTML("beforebegin", `<div class="sdsec">Viðvaranir · ${ws.length}</div><section class="sdlist">${ws.slice(0, 4).map(w => `<div class="sdrow"><a class="sdmain" data-open="${E(w.open)}" role="button" tabindex="0"><span class="sdtm"><i class="snjdot l${w.lvl}"></i></span><span class="sdtx"><b>${E(w.title)}</b><small>${E(w.sub)}</small></span></a></div>`).join("")}</section>`); }
+    if (!on() || !phone() || DETAIL || tab !== "yfirlit") return; const sd = document.querySelector("#view .sd"); if (!sd || sd.querySelector(".snjcmd,.snjban,.snjw")) return;
+    if (showPart("cmd")) sd.querySelector(".sdh")?.insertAdjacentHTML("afterend", cmdHTML());
+    const k = sd.querySelector(".sdk"); if (k && showPart("loka")) k.insertAdjacentHTML("afterend", bannerHTML());
+    const ws = showPart("vidv") ? warnings() : [];
+    if (ws.length) { const first = sd.querySelector(".sdsec"); first?.insertAdjacentHTML("beforebegin", `<div class="sdsec snjw">Viðvaranir · ${ws.length}</div><section class="sdlist">${ws.slice(0, 4).map(w => `<div class="sdrow snjpw l${w.lvl}"><a class="sdmain" data-open="${E(w.open)}" role="button" tabindex="0"><span class="sdtm"><i class="snjdot l${w.lvl}"></i></span><span class="sdtx"><b>${E(w.title)}</b><small>${E(w.sub)}</small></span></a></div>`).join("")}</section>`); }
   }
+
+  /* ---------- Stillingasíður: Stillingar › Ég › Heim og Stillingar › Fyrirtækið › Heim ---------- */
+  const cur = sc => sc === "co" ? mrg(DEF, coPref()) : PR();
+  window.snjEdit = (sc, op, a, b) => {
+    const v = structuredClone(cur(sc)); v.fela = v.fela || []; v.vidv.af = v.vidv.af || []; v.loka.af = v.loka.af || [];
+    const tog = (arr, k) => { const i = arr.indexOf(k); i < 0 ? arr.push(k) : arr.splice(i, 1); };
+    if (op === "part") tog(v.fela, a);
+    if (op === "move") { const o = order(); v.hlutar = sc === "co" ? (v.hlutar.filter(k => HL[k]).concat(Object.keys(HL).filter(k => !v.hlutar.includes(k)))) : o; const i = v.hlutar.indexOf(a), j = i + b; if (i >= 0 && j >= 0 && j < v.hlutar.length) { [v.hlutar[i], v.hlutar[j]] = [v.hlutar[j], v.hlutar[i]]; } }
+    if (op === "vt") tog(v.vidv.af, a);
+    if (op === "vn") { const n = parseFloat(String(b).replace(",", ".")); if (n > 0) v.vidv[a] = n; }
+    if (op === "lt") tog(v.loka.af, a);
+    if (op === "reset") { if (sc === "co") saveCo({}); else { UP = null; try { localStorage.removeItem(LSK); } catch (e) {} try { window.heimSaveDoc?.(); } catch (e) {} render(); toast?.("Sjálfgefið fyrirtækisins í notkun"); } return; }
+    sc === "co" ? saveCo(v) : saveUP(v);
+  };
+  const sw = (on, js, lab) => `<label class="snjsw" title="${E(lab)}"><input type="checkbox"${on ? " checked" : ""} onchange="${js}" aria-label="${E(lab)}"><i></i></label>`;
+  function pageHTML(sc) {
+    const v = cur(sc), O = (sc === "co" ? v.hlutar.filter(k => HL[k]).concat(Object.keys(HL).filter(k => !v.hlutar.includes(k))) : order()), q = `'${sc}'`;
+    const parts = O.map((k, i) => `<div class="snjsr"><div class="snjsc">${sw(!v.fela.includes(k), `snjEdit(${q},'part','${k}')`, HL[k][0])}</div><div class="snjst"><b>${E(HL[k][0])}</b><small>${E(HL[k][1])}</small></div>
+      <div class="snjso"><button type="button" class="snjmv" ${i ? "" : "disabled"} onclick="snjEdit(${q},'move','${k}',-1)" aria-label="Færa ${E(HL[k][0])} upp">↑</button><button type="button" class="snjmv" ${i < O.length - 1 ? "" : "disabled"} onclick="snjEdit(${q},'move','${k}',1)" aria-label="Færa ${E(HL[k][0])} niður">↓</button></div></div>`).join("");
+    const num = (k, unit, min, max) => `<input class="snjnum" type="number" inputmode="decimal" min="${min}" max="${max}" value="${E(v.vidv[k])}" onchange="snjEdit(${q},'vn','${k}',this.value)" aria-label="${E(VT[k])} – ${unit}"><span class="snju">${unit}</span>`;
+    const lim = { yfir: num("yfir", "% af áætlun", 100, 300), tvib: num("tvib", "daga fram í tímann", 1, 60), ostad: num("ostad", "daga fyrir afhendingu", 0, 14), skil: num("skil", "daga fyrir skil", 0, 30) };
+    const vrows = Object.keys(VT).map(k => `<div class="snjsr"><div class="snjsc">${sw(!v.vidv.af.includes(k), `snjEdit(${q},'vt','${k}')`, VT[k])}</div><div class="snjst"><b>${E(VT[k])}</b></div><div class="snjso snjlim">${lim[k]}</div></div>`).join("");
+    const lrows = Object.keys(LT).map(k => `<div class="snjsr"><div class="snjsc">${sw(!v.loka.af.includes(k), `snjEdit(${q},'lt','${k}')`, LT[k])}</div><div class="snjst"><b>${E(LT[k])}</b></div><div class="snjso"></div></div>`).join("");
+    const own = sc !== "co" && UP;
+    return `${sc === "co" ? `<p class="hint">Þetta er sjálfgefið fyrir alla starfsmenn. Hver og einn getur breytt sínu í Stillingar › Ég › Heim.</p>` : `<p class="hint">${own ? "Þú hefur sérsniðið Heim. Stillingarnar fylgja aðganginum þínum í síma og tölvu." : "Þú notar sjálfgefið fyrirtækisins. Breyttu því sem þú vilt – það fylgir aðganginum þínum."}</p>`}
+      <div class="viewtitle">Hlutar á Heim</div><div class="snjset">${parts}</div>
+      <div class="viewtitle">Viðvaranir</div><div class="snjset">${vrows}</div>
+      <div class="viewtitle">Loka deginum – byggt á</div><div class="snjset">${lrows}</div>
+      ${sc === "co" ? `<div class="links" style="margin-top:16px"><button type="button" class="btn" onclick="snjEdit('co','reset')">Endurstilla í upphafsgildi</button></div>` : own ? `<div class="links" style="margin-top:16px"><button type="button" class="btn" onclick="snjEdit('me','reset')">Nota sjálfgefið fyrirtækisins</button></div>` : ""}`;
+  }
+  const addPages = () => { if (typeof STPAGES === "undefined") return false;
+    STPAGES.snjheim = { l: "Heim", d: "Hvaða hlutar birtast á Heim, í hvaða röð, viðvaranir og Loka deginum", s: ["Hlutar á Heim", "Viðvaranir", "Loka deginum", "Skipanalína", "Hver er hvar", "Rekstrarpúls"], fn: () => pageHTML("me") };
+    STPAGES.snjfyr = { l: "Heim – sjálfgefið", d: "Sjálfgefnir hlutar og mörk viðvarana fyrir alla starfsmenn", s: ["Heim", "Viðvaranir", "Loka deginum"], adm: 1, fn: () => pageHTML("co") };
+    return true; };
+  if (!addPages()) { const iv = setInterval(() => { if (addPages()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 })();
