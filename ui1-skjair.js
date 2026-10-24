@@ -1053,7 +1053,7 @@
       if (k === "u1ct") { st.ct = r[0]; render(); return; }
       if (k === "u1go") { const t = r[0], key = r.slice(1).join(":"); tab = t; DETAIL = key || null; window.STSUB = null; render(); return; }
       if (k === "u1pnconf") { const P = window.salaAPI.PN().find(x => x.id === v); if (!P) return; const t = window.salaAPI.totals(P) || {};
-        poCompose({ to: P.netfang, subject: "Staðfesting pöntunar " + (P.nr || "") + (P.heiti && P.heiti !== "Pöntun" ? " – " + P.heiti : ""), body: `Sæl/l,\n\nPöntun ${P.nr || ""} er staðfest.${P.fra ? "\nAfhending: " + u1D.dIS(P.fra) : ""}${P.til ? "\nSkil: " + u1D.dIS(P.til) : ""}\nSamtals með VSK: ${Math.round(t.tot || 0).toLocaleString("de-DE")} kr.\n\nKveðja,\n${window.USER?.nafn || ""}` }); return; }
+        const A = window.salaAPI; (A.pdf ? A.pdf(P).then(b => [{ name: A.fileBase(P) + ".pdf", type: "application/pdf", size: b.length, data: b }]).catch(() => []) : Promise.resolve([])).then(atts => poCompose({ to: P.netfang, subject: "Staðfesting pöntunar " + (P.nr || "") + (P.heiti && P.heiti !== "Pöntun" ? " – " + P.heiti : ""), body: `Sæl/l,\n\nPöntun ${P.nr || ""} er staðfest.${P.fra ? "\nAfhending: " + u1D.dIS(P.fra) : ""}${P.til ? "\nSkil: " + u1D.dIS(P.til) : ""}\nSamtals með VSK: ${Math.round(t.tot || 0).toLocaleString("de-DE")} kr.\n\nKveðja,\n${window.USER?.nafn || ""}`, atts })); return; }
       if (k === "u1uf") { st.uf = v || "opin"; st.usel = null; render(); return; }
       if (k === "u1us") { st.usel = st.usel === v ? null : v; render(); return; }
       if (k === "u1cf") { st.cf = v || ""; render(); return; }

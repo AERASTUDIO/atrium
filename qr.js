@@ -226,13 +226,25 @@
         if (q.startsWith("h:")) { const [, id, d] = q.split(":"); const s = orderState(P, dir), r = s.rows.find(x => x.id === id); if (!r) return; const n = Math.max(0, Math.min(r.magn, r.got + +d));
           await saveSnapshot(S0 => { const Q = (S0.pantanir || []).find(x => String(x.id) === String(P.id)); if (!Q) return; Q.skann = Q.skann || {}; Q.skann[dir + "H"] = { ...(Q.skann[dir + "H"] || {}), [id]: n }; Q.skann[dir + "Dags"] = nowIso(); }).catch(() => {}); refreshPanel(); return; }
         if (q === "finish") { const s = orderState(P, dir);
-          if (onDone) { if (s.done < s.tot) { const miss = s.rows.filter(r => r.got < r.magn).map(r => (r.magn - r.got) + " × " + r.heiti).join(", "); if (!confirm((out ? "Ekki allt skannað út:\n" : "Vantar enn:\n") + miss + "\n\nHalda áfram?")) return; } closeScanner(); onDone(s.done >= s.tot); return; }
+          if (onDone) { if (s.done < s.tot && !(await askMiss(out, s, "Halda áfram án þeirra"))) return; closeScanner(); onDone(s.done >= s.tot); return; }
           if (s.done >= s.tot) { const nx = out ? "Afhent" : "Skilað"; closeScanner(); if (P.stada !== nx && P.stada !== "Lokið") { try { doAct("tbst:" + P.id + ":" + nx); } catch (e) {} } toast?.((P.nr || "Pöntun") + ": " + (out ? "allt skannað út" : "allt komið inn")); return; }
-          const miss = s.rows.filter(r => r.got < r.magn).map(r => (r.magn - r.got) + " × " + r.heiti).join(", ");
-          if (confirm((out ? "Ekki allt skannað út:\n" : "Vantar enn:\n") + miss + "\n\nLjúka samt? Pöntunin helst í núverandi stöðu.")) closeScanner(); }
+          if (await askMiss(out, s, "Ljúka samt", "Pöntunin helst í núverandi stöðu.")) closeScanner(); }
       } });
   }
   window.qrScanOrder = scanOrder;
+  // 2.73.0: listi yfir það sem vantar þegar ekki allt er skannað – eigið spjald (læsilegt í síma) í stað confirm()
+  function askMiss(out, s, okL, note) {
+    return new Promise(res => {
+      const rows = s.rows.filter(r => r.got < r.magn), n = rows.reduce((a, r) => a + (r.magn - r.got), 0);
+      const w = document.createElement("div"); w.className = "qmiss"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true");
+      w.innerHTML = `<div class="qmb"><div class="qmh"><b>${out ? "Ekki allt skannað út" : "Vantar enn inn"}</b><span>${n} ${n === 1 ? "eining" : "einingar"} í ${rows.length} ${rows.length === 1 ? "línu" : "línum"} · ${s.done} af ${s.tot} komið</span></div>
+        <div class="qml">${rows.map(r => `<div class="qmr"><span class="qmn">${r.magn - r.got}</span><span class="qmt"><b>${E(r.heiti)}</b><small>${E(r.nr || "")}${r.got ? ` · ${r.got} af ${r.magn} skannað` : ""}</small></span></div>`).join("")}</div>
+        ${note ? `<p class="qmnote">${E(note)}</p>` : ""}<div class="qma"><button type="button" class="btn primary" data-v="0">Halda áfram að skanna</button><button type="button" class="btn" data-v="1">${E(okL)}</button></div></div>`;
+      const end = v => { w.remove(); res(v); };
+      w.addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) end(b.dataset.v === "1"); else if (e.target === w) end(false); });
+      document.body.append(w); w.querySelector("[data-v='0']").focus();
+    });
+  }
   // Notað af pantanir2.js (2.55.0): tínslulisti og kvittanir
   window.qrAPI = { need, openScanner, closeScanner, findE, refreshPanel: () => refreshPanel(), orderState };
 

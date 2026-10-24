@@ -103,3 +103,20 @@ body.qropen{overflow:hidden}
 .qrseg button{min-height:38px;font-size:13px;border-radius:10px}
 .qract .btn{min-height:40px}
 .qract .btn:not(.primary){flex:1 1 100%;justify-content:center;background:var(--raise);border:1px solid var(--line)}
+/* Það sem vantar við skönnun (2.73.0) – læsilegt í síma */
+.qmiss{position:fixed;inset:0;z-index:10050;background:rgba(10,13,16,.55);display:flex;align-items:flex-end;justify-content:center;padding:12px;font-family:var(--f-display,Poppins,system-ui,sans-serif)}
+@media (min-width:700px){.qmiss{align-items:center}}
+.qmiss .qmb{width:100%;max-width:520px;max-height:86vh;display:flex;flex-direction:column;background:var(--surface,#fff);color:var(--ink,#111);border-radius:18px;box-shadow:0 24px 60px -16px rgba(0,0,0,.5);overflow:hidden;animation:qmup .18s ease-out}
+@keyframes qmup{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+.qmiss .qmh{padding:18px 20px 12px;border-bottom:1px solid var(--line,#e3e7eb)}
+.qmiss .qmh b{display:block;font-size:18px;font-weight:500;color:var(--t-amb,#9C6410)}
+.qmiss .qmh span{font-size:13px;color:var(--muted,#6b7684)}
+.qmiss .qml{overflow:auto;padding:6px 12px}
+.qmiss .qmr{display:flex;align-items:center;gap:14px;padding:12px 8px;border-bottom:1px solid var(--line,#e3e7eb)}
+.qmiss .qmr:last-child{border-bottom:0}
+.qmiss .qmn{flex:none;min-width:40px;height:40px;padding:0 8px;border-radius:10px;display:grid;place-items:center;font-size:17px;font-weight:500;background:var(--amb-s,#FBF1E0);color:var(--t-amb,#9C6410);font-variant-numeric:tabular-nums}
+.qmiss .qmt{min-width:0}.qmiss .qmt b{display:block;font-weight:500;font-size:15px}.qmiss .qmt small{color:var(--muted,#6b7684);font-size:12.5px}
+.qmiss .qmnote{margin:0;padding:10px 20px 0;font-size:12.5px;color:var(--muted,#6b7684)}
+.qmiss .qma{display:flex;flex-direction:column;gap:8px;padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
+.qmiss .qma .btn{width:100%;min-height:48px;justify-content:center}
+@media (min-width:700px){.qmiss .qma{flex-direction:row-reverse}.qmiss .qma .btn{width:auto;flex:1}}

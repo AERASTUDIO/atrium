@@ -56,21 +56,21 @@
     if (!["Ný", "Staðfest"].includes(P.stada)) return "";
     const s = pickState(P); if (!s.rows.length) return "";
     const allDone = s.done >= s.tot;
-    return `<section class="pfsec pfpick${allDone ? " done" : ""}"><div class="pfsh"><b>Tínslulisti</b><span class="${allDone ? "t-grn" : ""}">${s.done} af ${s.tot}${allDone ? " · allt komið" : ""}</span>
-      ${ed() && !["Skilað", "Lokið"].includes(P.stada) ? `<button type="button" class="btn sm" data-pf="pick:${E(P.id)}">${ICO.scan}Tína með QR</button>` : ""}</div>
+    return `<section class="pfsec pfpick${allDone ? " done" : ""}"><div class="pfsh"><b>Pökkunarlisti</b><span class="${allDone ? "t-grn" : ""}">${s.done} af ${s.tot}${allDone ? " · allt komið" : ""}</span>
+      ${ed() && !["Skilað", "Lokið"].includes(P.stada) ? `<button type="button" class="btn sm" data-pf="pick:${E(P.id)}">${ICO.scan}Pakka með skanna</button>` : ""}</div>
       ${s.rows.map(r => `<div class="pfpr${r.got >= r.magn ? " ok" : r.got ? " part" : ""}"><span class="pfck">${r.got >= r.magn ? "✓" : ""}</span><span class="pfpn"><b>${E(r.heiti)}</b><small>${E(r.nr)}${r.hillur.length ? " · hilla " + E(r.hillur.slice(0, 3).join(", ")) : ""}${r.nrs.length ? " · " + E(r.nrs.join(", ")) : ""}</small></span><span class="pfpq">${r.got} / ${r.magn}</span></div>`).join("")}</section>`;
   }
   function pickScan(pid) {
     const P0 = findP(pid); if (!P0 || !Q()) return;
     const panel = () => { const P = findP(pid) || P0, s = pickState(P);
-      return `<div class="qrprog"><div><b>${s.done} af ${s.tot}</b> tínt</div><div class="qrbar"><i style="width:${s.tot ? Math.round(s.done / s.tot * 100) : 0}%"></i></div></div>
+      return `<div class="qrprog"><div><b>${s.done} af ${s.tot}</b> pakkað</div><div class="qrbar"><i style="width:${s.tot ? Math.round(s.done / s.tot * 100) : 0}%"></i></div></div>
         <div class="qrlist">${s.rows.map(r => `<div class="qrli${r.got >= r.magn ? " full" : ""}"><span class="qrck" aria-hidden="true">${r.got >= r.magn ? "✓" : ""}</span><span class="qrnm"><b>${E(r.heiti)}</b><small>${E(r.nr)}${r.eint ? "" : " · engin eintök – talið"}</small></span>${r.eint ? `<span class="qrn">${r.got} / ${r.magn}</span>` : `<span class="qrcnt"><button type="button" data-q="h:${E(r.id)}:-1" aria-label="Fækka">−</button><span class="qrn">${r.got} / ${r.magn}</span><button type="button" data-q="h:${E(r.id)}:1" aria-label="Fjölga">+</button></span>`}</div>`).join("")}</div>
-        <button type="button" class="btn primary qrdone" data-q="finish">${s.done >= s.tot ? "Allt tínt – loka" : "Loka"}</button>`; };
-    Q().openScanner({ title: "Tína · " + (P0.nr || ""), sup: "Tínslulisti", panel,
+        <button type="button" class="btn primary qrdone" data-q="finish">${s.done >= s.tot ? "Allt pakkað – loka" : "Loka"}</button>`; };
+    Q().openScanner({ title: "Pökkun · " + (P0.nr || ""), sup: "Pökkunarlisti", panel,
       onCode: nr => { const P = findP(pid); if (!P) return { ok: false, msg: "Pöntunin fannst ekki" };
         const f = Q().findE(nr); if (!f) return { ok: false, msg: "Óþekkt eintak " + nr };
         const s = pickState(P), r = s.rows.find(x => x.id === String(f.v.id)); if (!r) return { ok: false, msg: f.v.heiti + " er ekki á pöntuninni" };
-        if (r.nrs.includes(nr)) return { ok: false, msg: nr + " er þegar tínt" }; if (r.got >= r.magn) return { ok: false, msg: "Komin nóg af " + f.v.heiti };
+        if (r.nrs.includes(nr)) return { ok: false, msg: nr + " er þegar pakkað" }; if (r.got >= r.magn) return { ok: false, msg: "Komin nóg af " + f.v.heiti };
         if (f.e.uti && String(f.e.uti.p) !== String(P.id)) return { ok: false, msg: nr + " er úti á " + (f.e.uti.nr || "annarri pöntun") };
         if (f.e.stada && f.e.stada !== "ok") return { ok: false, msg: nr + " er merkt í viðgerð/skemmt – veldu annað" };
         if (ed()) savePN(pid, Q0 => { (Q0.tinsla = Q0.tinsla || []).push(nr); }).then(() => Q().refreshPanel()).catch(() => {});
@@ -84,7 +84,7 @@
   const AFH = P => P.afhending || "";
   function afhHTML(P) {
     const k = P.kvittun || {}, ut = k.ut, inn = k.inn, a = AFH(P), canEd = ed() && !["Lokið"].includes(P.stada);
-    const kv = (x, l) => x ? `<div class="pfkv"><img src="${x.undirskrift}" alt="Undirskrift ${E(x.nafn || "")}"><span><b class="t-grn">✓ ${l}</b><small>${E(x.nafn || "")} · ${E(dfmt(x.dags))} kl. ${E(String(x.dags).slice(11, 16))}${x.mynd ? " · með mynd" : ""}</small></span><button type="button" class="btn sm" data-pf="pdf:${E(P.id)}:${l === "Afhent" ? "ut" : "inn"}">Seðill (PDF)</button></div>` : "";
+    const kv = (x, l, w) => x ? `<div class="pfkv"><img src="${x.undirskrift}" alt="Undirskrift ${E(x.nafn || "")}"><span><b class="t-grn">✓ ${l}${w?.nafn ? ` <span class="pfhv">af ${E(w.nafn)}</span>` : ""}</b><small>${l === "Afhent" ? "Viðtakandi" : "Skilaði"}: ${E(x.nafn || "")} · ${E(dfmt(x.dags))} kl. ${E(String(x.dags).slice(11, 16))}${x.mynd ? " · með mynd" : ""}</small></span><button type="button" class="btn sm" data-pf="pdf:${E(P.id)}:${l === "Afhent" ? "ut" : "inn"}">Seðill (PDF)</button></div>` : "";
     // Engir sérhnappar lengur (2.58.0): „Afhenda“ / „Taka á móti“ neðst leiðir í gegnum skönnun og kvittun. Hér sést aðeins staðan.
     const warnUt = !ut && ["Afhent", "Skilað", "Lokið"].includes(P.stada) ? `<p class="pfhint"><span class="t-amb">Afhent án kvittunar</span>${canEd && P.stada === "Afhent" ? ` · <button type="button" class="pflink" data-pf="kv:${E(P.id)}:ut">Taka kvittun núna</button>` : ""}</p>` : "";
     const warnIn = ut && !inn && ["Skilað", "Lokið"].includes(P.stada) ? `<p class="pfhint"><span class="t-amb">Móttekið án kvittunar</span></p>` : "";
@@ -93,7 +93,7 @@
       <div class="pfseg" role="group" aria-label="Afhendingarmáti">${[["sent", "Sent"], ["sott", "Sótt"]].map(([v, l]) => `<button type="button"${a === v ? ' aria-pressed="true"' : ""} ${canEd ? `data-pf="afh:${E(P.id)}:${v}"` : "disabled"}>${l}</button>`).join("")}</div></div>
       ${a === "sent" ? `<div class="pfrow"><label>Heimilisfang<input data-pfs="afhStadur:${E(P.id)}" value="${E(P.afhStadur || P.stadsetning || "")}" placeholder="Hvert á að senda" ${canEd ? "" : "disabled"}></label><label>Klukkan<input data-pfs="afhKl:${E(P.id)}" value="${E(P.afhKl || "")}" placeholder="hh:mm" inputmode="decimal" maxlength="5" ${canEd ? "" : "disabled"}></label></div>`
         : a === "sott" ? `<p class="pfhint">Viðskiptavinur sækir ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} ${!window.pnSkil || pnSkil(P) ? "og skilar " + E(dfmt(P.til)) : ""}</p>` : `<p class="pfhint">Veldu hvort pöntunin er send eða sótt.</p>`}
-      ${kv(ut, "Afhent")}${warnUt}${kv(inn, "Móttekið")}${warnIn}</section>`;
+      ${kv(ut, "Afhent", P.afhent)}${warnUt}${kv(inn, "Móttekið", P.mottekid)}${warnIn}</section>`;
   }
   async function setStatus(pid, nx) { const P = findP(pid); if (!P || P.stada === nx || P.stada === "Lokið" || (nx === "Afhent" && P.stada === "Skilað")) return; try { __pfFlow = true; doAct("tbst:" + P.id + ":" + nx); } catch (e) {} finally { __pfFlow = false; } }
   let __pfFlow = false;
@@ -178,6 +178,42 @@
       const iv = +v.innkaupsverd || 0; items.push({ key: "skemmd:" + (s.id || s.eintak), heiti: `Skemmd: ${v.heiti} (${s.eintak}) – ${s.lysing || ""}`.trim(), verd: Math.round(iv * (+sg.skemmd || 30) / 100), noPrice: !iv }); }));
     return items.map(x => ({ ...x, added: done.has(x.key) }));
   }
+  /* ---------- Greiðsla (2.73.0) ----------
+     Viðskiptavinur er „í reikning“ eða „staðgreitt“ (vidskiptavinir[].greidsla; án viðskiptavinar = staðgreitt).
+     Staðgreiðslupöntun má ekki afhenda fyrr en greiðsla er skráð: P.greitt = { dags, af, nafn, leid, upphaed }. */
+  const LEIDIR = [["kort", "Kort / posi"], ["millifaersla", "Millifærsla"], ["reidufe", "Reiðufé"], ["annad", "Annað"]];
+  const LEID = k => (LEIDIR.find(x => x[0] === k) || [0, k || ""])[1];
+  const totOf = P => Math.round(tr(() => window.salaAPI.totals(P).tot, 0) || 0);
+  const krI = n => (Math.round(+n || 0)).toLocaleString("de-DE") + " kr.";
+  const hattur = P => { const c = P.vskId ? tr(() => findVsk(P.vskId), null) : null; return P.greidsluhattur || (c ? (c.greidsla || "reikningur") : "stadgreitt"); };
+  const payOk = P => !P || hattur(P) !== "stadgreitt" || !!P.greitt;
+  function payHTML(P) {
+    const h = hattur(P), g = P.greitt, canEd = ed() && P.stada !== "Lokið";
+    if (h !== "stadgreitt") return `<section class="pfsec pfpay"><div class="pfsh"><b>Greiðsla</b><span>Í reikning${P.vskId ? "" : ""}</span>${canEd ? `<button type="button" class="pflink" data-pf="payh:${E(P.id)}:stadgreitt">Breyta í staðgreiðslu</button>` : ""}</div></section>`;
+    return `<section class="pfsec pfpay ${g ? "ok" : "due"}"><div class="pfsh"><b>Greiðsla</b>${g ? `<span class="t-grn">✓ Greitt ${E(krI(g.upphaed))} · ${E(LEID(g.leid))} · ${E(dfmt(g.dags))} kl. ${E(String(g.dags).slice(11, 16))}${g.nafn ? " · " + E(g.nafn) : ""}</span>` : `<span class="t-amb">Staðgreitt – ógreitt · ${E(krI(totOf(P)))} með VSK</span>`}
+      ${canEd ? (g ? `<button type="button" class="pflink" data-pf="payx:${E(P.id)}">Afturkalla</button>` : `<button type="button" class="btn sm primary" data-pf="pay:${E(P.id)}">Skrá greiðslu</button>`) : ""}</div>
+      ${!g && ["Ný", "Staðfest"].includes(P.stada) ? `<p class="pfhint">Viðskiptavinurinn er ekki í reikning – skrá þarf greiðslu áður en pöntunin er afhent.${canEd && P.vskId ? ` <button type="button" class="pflink" data-pf="payh:${E(P.id)}:reikningur">Setja í reikning</button>` : ""}</p>` : ""}</section>`;
+  }
+  // Gluggi: skrá greiðslu. Skilar true ef greiðsla var skráð.
+  function payAsk(pid, why) {
+    const P = findP(pid); if (!P) return Promise.resolve(false);
+    return new Promise(res => {
+      const w = document.createElement("div"); w.className = "qmiss pfpaydlg"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true");
+      w.innerHTML = `<div class="qmb"><div class="qmh"><b style="color:var(--ink)">${why ? "Ógreidd pöntun" : "Skrá greiðslu"}</b><span>${E(P.nr || "")} · ${E(P.vidskiptavinur || P.tengilidur || "")}</span></div>
+        <div class="pfpb">${why ? `<p class="pfhint t-amb" style="margin:0 0 12px">${E(why)}</p>` : ""}
+          <label>Upphæð (kr.)<input id="pfpu" inputmode="numeric" value="${totOf(P)}"></label>
+          <div class="pfpl" role="radiogroup" aria-label="Greiðsluleið">${LEIDIR.map(([k, l], i) => `<button type="button" role="radio" data-l="${k}" aria-checked="${i === 0}">${l}</button>`).join("")}</div></div>
+        <div class="qma"><button type="button" class="btn primary" data-v="1">${why ? "Skrá greiðslu og halda áfram" : "Skrá greiðslu"}</button><button type="button" class="btn" data-v="0">Hætta við</button></div></div>`;
+      let leid = "kort"; const end = v => { w.remove(); res(v); };
+      w.addEventListener("click", async e => { const l = e.target.closest("[data-l]"); if (l) { leid = l.dataset.l; w.querySelectorAll("[data-l]").forEach(x => x.setAttribute("aria-checked", x === l)); return; }
+        const b = e.target.closest("[data-v]"); if (!b && e.target !== w) return; if (!b || b.dataset.v === "0") return end(false);
+        const u = +String(w.querySelector("#pfpu").value).replace(/[^\d]/g, "") || 0; b.disabled = true;
+        try { await savePN(pid, Q0 => { Q0.greitt = { dags: nowIso(), af: me(), nafn: window.USER?.nafn || me(), leid, upphaed: u }; }); toast("Greiðsla skráð"); render(); end(true); } catch (x) { b.disabled = false; toast("Tókst ekki: " + (x?.message || x)); } });
+      document.body.append(w); w.querySelector("#pfpu").focus(); w.querySelector("#pfpu").select();
+    });
+  }
+  window.pnGreidsla = { ok: P => payOk(P), ask: (pid, why) => payAsk(pid, why) };
+  const PAYWHY = "Viðskiptavinurinn er í staðgreiðslu og pöntunin er ógreidd. Skráðu greiðslu áður en búnaður fer út.";
   function settleHTML(P) {
     const it = settle(P); if (!it || !it.length) return "";
     const open = it.filter(x => !x.added);
@@ -366,7 +402,8 @@
     const col = iso => Math.max(0, Math.min(n - 1, Math.round((d(iso) - d(a)) / 864e5)));
     const rows = xs.map((r, ri) => { const R = ri + 2, p = r.p, end = r.open ? (t > b ? b : t < a ? a : t) : r.til, late = !isDone(p) && r.til && r.til < t;
       const bud = +p.aklst > 0 ? (+p.timar || 0) / p.aklst : 0, done = isDone(p);
-      const cls = done ? "done" : late || bud > 1 ? "bad" : bud >= 0.9 ? "late" : /bið/i.test(p.stada || "") ? "hold" : /fyrirspurn/i.test(p.stada || "") ? "ny" : "on";
+      // 2.73.0: litur eftir stöðu verkefnisins (litur stöðunnar í Stillingum); viðvörun sem rauð/gul umgjörð
+      const sc = tr(() => (STODUR().find(x => x.n === p.stada) || {}).c, "") || (done ? "green" : "blue"), cls = "sc-" + sc + (late || bud > 1 ? " x-bad" : bud >= 0.9 ? " x-late" : "");
       const c1 = col(r.fra < a ? a : r.fra) + 2, c2 = col(end > b ? b : end) + 3;
       const tip = [p.nr, p.stutt || p.nafn, (r.fra ? dfmt(r.fra) : "") + "–" + (r.til ? dfmt(r.til) : "opið"), p.stada, +p.aklst ? Math.round((+p.timar || 0)) + " af " + p.aklst + " klst." : ""].filter(Boolean).join(" · ");
       const marks = (p.undirverk || []).filter(u => u.skiladagur && u.stada !== "Done" && d10(u.skiladagur) >= a && d10(u.skiladagur) <= b)
@@ -374,7 +411,7 @@
       return `<div class="pdl" style="grid-row:${R}" data-act="u1go:verk:verk:${E(p.id)}" role="button" tabindex="0"><b>${E(p.nr)}</b><span>${E(p.stutt || p.nafn || "")}</span><small>${E(p.vidskiptavinur || "")}</small></div>
         <div class="pdtrack" style="grid-row:${R};grid-column:2/${n + 2}"></div>
         <div class="pdb ${cls}${r.fra < a ? " cut-l" : ""}${r.open || r.til > b ? " cut-r" : ""}${r.open ? " open" : ""}" style="grid-row:${R};grid-column:${c1}/${c2}" data-act="u1go:verk:verk:${E(p.id)}" role="button" tabindex="0" title="${E(tip)}"><span>${E(p.nr)}<em> · ${E(p.stada || "")}${late ? " · skil liðin" : bud > 1 ? " · fram úr áætlun" : ""}</em></span></div>${marks}`; }).join("");
-    return `<div class="pdgrid" style="--n:${n};--cw:${n > 14 ? 24 : 30}px">${dayHdr(days)}${rows}</div><p class="pdleg"><span class="pdlg on"></span> í gangi <span class="pdlg late"></span> nálgast áætlun <span class="pdlg bad"></span> fram úr áætlun eða skil liðin <span class="pdlg hold"></span> í bið <span class="pdm in"></span> skil undirverks</p>`;
+    return `<div class="pdgrid" style="--n:${n};--cw:${n > 14 ? 24 : 30}px">${dayHdr(days)}${rows}</div><p class="pdleg">${tr(() => STODUR().filter(x => !x.falin && xs.some(r => r.p.stada === x.n)).map(x => `<span class="pdlg sc-${E(x.c || "blue")}"></span> ${E(x.n)}`).join(" "), "")} <span class="pdlg x-late"></span> nálgast áætlun <span class="pdlg x-bad"></span> fram úr áætlun eða skil liðin <span class="pdm in"></span> skil undirverks</p>`;
   }
   function calPN(days) {
     const a = days[0], b = days[days.length - 1], t = T0(), n = days.length;
@@ -383,13 +420,13 @@
     if (!xs.length) return `<div class="uempty">Engar pantanir á þessu tímabili.</div>`;
     const col = iso => Math.max(0, Math.min(n - 1, Math.round((d(iso) - d(a)) / 864e5)));
     const rows = xs.map((P, ri) => { const R = ri + 2; const f = String(P.fra).slice(0, 10), tl = String(P.til || P.fra).slice(0, 10), late = P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)) && tl < t, ar = ["Ný", "Staðfest"].includes(P.stada) && tr(() => A().arekstrar(P).length, 0) > 0;
-      const c1 = col(f < a ? a : f) + 2, c2 = col(tl > b ? b : tl) + 3, cls = ar ? "bad" : late ? "late" : P.stada === "Ný" ? "ny" : ["Skilað", "Lokið"].includes(P.stada) ? "done" : "on";
+      const c1 = col(f < a ? a : f) + 2, c2 = col(tl > b ? b : tl) + 3, cls = ({ "Ný": "ps-ny", "Staðfest": "ps-stf", "Afhent": "ps-afh", "Skilað": "ps-lok", "Lokið": "ps-lok" }[P.stada] || "ps-stf") + (ar ? " x-bad" : late ? " x-late" : ""); // 2.73.0: litur eftir stöðu
       const lateBar = late && t >= a && tl <= b ? `<div class="pdb lateext" style="grid-row:${R};grid-column:${col(tl) + 3}/${col(t > b ? b : t) + 3}" title="Skil komin fram yfir"></div>` : "";
       const ico = AFH(P) === "sent" ? IC.sent : AFH(P) === "sott" ? IC.sott : "";
       return `<div class="pdl" style="grid-row:${R}" data-act="u1go:pantanir:tb:${E(P.id)}" role="button" tabindex="0"><b>${E(P.nr)}</b><span>${E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : (P.vidskiptavinur || P.tengilidur || ""))}</span><small>${E(P.vidskiptavinur || P.tengilidur || "")}</small></div>
         <div class="pdtrack" style="grid-row:${R};grid-column:2/${n + 2}"></div>${lateBar}
         <div class="pdb ${cls}${f < a ? " cut-l" : ""}${tl > b ? " cut-r" : ""}" style="grid-row:${R};grid-column:${c1}/${c2}" data-act="u1go:pantanir:tb:${E(P.id)}" role="button" tabindex="0" title="${E(P.nr + " · " + (P.heiti || "") + " · " + dfmt(f) + "–" + dfmt(tl) + " · " + (P.stada || "") + (ar ? " · árekstur" : late ? " · skil sein" : ""))}">${ico ? `<i>${ico}</i>` : ""}<span>${E(P.nr)}<em> · ${E(P.stada)}${ar ? " · árekstur" : late ? " · seint" : ""}</em></span>${ico && f !== tl ? `<i class="r">${ico}</i>` : ""}</div>`; }).join("");
-    return `<div class="pdgrid" style="--n:${n};--cw:${n > 14 ? 24 : 30}px">${dayHdr(days)}${rows}</div>`;
+    return `<div class="pdgrid" style="--n:${n};--cw:${n > 14 ? 24 : 30}px">${dayHdr(days)}${rows}</div><p class="pdleg"><span class="pdlg ps-ny"></span> Ný <span class="pdlg ps-stf"></span> Staðfest <span class="pdlg ps-afh"></span> Afhent <span class="pdlg ps-lok"></span> Skilað / lokið <span class="pdlg x-bad"></span> árekstur <span class="pdlg x-late"></span> skil sein</p>`;
   }
   function calBUN(days) {
     const a = days[0], b = days[days.length - 1], n = days.length;
@@ -487,6 +524,11 @@
   }
   // 2.61.0: tilboð nota sömu opinberu síðu (opinber/{t}, teg: "tilbod") – sala.js notar þessi föll
   window.atrPub = { url: t => pubUrl(t), tok: () => newTok(), inst: () => instKey(), write: (t, d) => pubWrite(t, d), demo: DEMO, ls: () => LS(), lsKey };
+  // 2.73.0: pöntun úr tilboði sem viðskiptavinur undirritaði telst staðfest – engin önnur undirskrift. Pöntunarsíðan verður til
+  // með staðfestingunni úr tilboðinu og staðfestingarpósturinn (með pöntuninni í PDF) fer sjálfkrafa eins og annars.
+  window.pnFraTilbodi = async (pid, st) => { const P = findP(pid); if (!P || !st || P.opinber) return; const t = newTok();
+    try { await pubWrite(t, { ...snapOf(P), stadfest: st }); await savePN(pid, Q0 => { Q0.opinber = t; Q0.vidskStadfest = st; if (Q0.stada === "Ný") Q0.stada = "Staðfest"; }); pubWatch(t, pid); }
+    catch (e) { console.warn("pöntunarsíða úr tilboði", e); } };
   function pubWatch(t, pid) {
     if (WATCHED.has(t)) return; WATCHED.add(t);
     const got = d => { if (!d) return; PUB[t] = d; const P = findP(pid); if (!P) return;
@@ -550,7 +592,9 @@
   function pubSend(pid) {
     const P = findP(pid); if (!P?.opinber) return; const url = pubUrl(P.opinber), co = tr(() => DOK.co().nafn, "") || tr(() => ORG.nafn, "");
     const subj = `Pöntun ${P.nr} – ${P.heiti || ""}`.trim(), body = `Sæl/l${P.tengilidur ? " " + P.tengilidur.split(" ")[0] : ""},\n\nHér getur þú séð pöntunina og staðfest hana:\n${url}\n\nKveðja,\n${co}`;
-    if (window.poCompose && tr(() => MS.on(), false)) { try { poCompose({ to: P.netfang || "", subject: subj, body }); return; } catch (e) {} }
+    if (window.poCompose && tr(() => MS.on(), false)) { // 2.73.0: pöntunin sem PDF í viðhengi (forskoðanleg)
+      const A = window.salaAPI; (A?.pdf ? A.pdf(P).then(b => [{ name: A.fileBase(P) + ".pdf", type: "application/pdf", size: b.length, data: b }]).catch(() => []) : Promise.resolve([]))
+        .then(atts => { try { poCompose({ to: P.netfang || "", subject: subj, body, atts }); } catch (e) {} }); return; }
     location.href = "mailto:" + encodeURIComponent(P.netfang || "") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
   }
   function pubHTML(P) {
@@ -558,7 +602,7 @@
     const v = P.vidskStadfest || PUB[P.opinber]?.stadfest;
     if (!P.opinber) return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b><span>Viðskiptavinurinn sér pöntunina og staðfestir með undirskrift</span><button type="button" class="btn sm" data-pf="pub:${E(P.id)}">Búa til tengil</button></div></section>`;
     const url = pubUrl(P.opinber);
-    return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b>${v ? `<span class="t-grn">✓ Staðfest af ${E(v.nafn)} · ${E(dfmt(v.dags))} kl. ${E(String(v.dags).slice(11, 16))}</span>` : `<span class="t-amb">Bíður staðfestingar viðskiptavinar</span>`}</div>
+    return `<section class="pfsec pfpub"><div class="pfsh"><b>Pöntunarsíða</b>${v ? `<span class="t-grn">✓ Staðfest af ${E(v.nafn)}${v.ur ? " með undirskrift á " + E(v.ur) : ""} · ${E(dfmt(v.dags))} kl. ${E(String(v.dags).slice(11, 16))}</span>` : `<span class="t-amb">Bíður staðfestingar viðskiptavinar</span>`}</div>
       <div class="pfurl"><input readonly value="${E(url)}" aria-label="Tengill á pöntunarsíðu" onclick="this.select()"><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita</button><a class="btn sm" href="${E(url)}" target="_blank" rel="noopener">Opna</a></div>
       ${v?.athugasemd ? `<p class="pfhint">Athugasemd viðskiptavinar: „${E(v.athugasemd)}“</p>` : ""}
       ${v ? (() => { const pm = P.stadfPostur || PUB[P.opinber]?.postur, to = P.netfang || tr(() => findVsk(P.vskId)?.netfang, "");
@@ -572,7 +616,9 @@
   document.addEventListener("click", e => {
     if (!on() || __pfFlow) return; const t = e.target.closest('button[data-act^="tbst:"], a[data-act^="tbst:"]'); if (!t) return;
     const [, id, nx] = t.dataset.act.split(":"), P = findP(id); if (!P?.pontun || !["Afhent", "Skilað"].includes(nx)) return;
-    e.preventDefault(); e.stopImmediatePropagation(); flow(id, nx === "Afhent" ? "ut" : "inn");
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (nx === "Afhent" && !payOk(P)) { payAsk(id, PAYWHY).then(ok => { if (ok) flow(id, "ut"); }); return; }
+    flow(id, nx === "Afhent" ? "ut" : "inn");
   }, true);
   document.addEventListener("click", e => {
     if (!on()) return; const b = e.target.closest("[data-pf]"); if (!b) return; e.preventDefault(); e.stopPropagation();
@@ -587,6 +633,9 @@
     if (op === "again") { const P = findP(id); if (P) againDlg(P, "Panta aftur · " + P.nr); return; }
     if (op === "tpl") return saveTemplate(id);
     if (op === "mail") return mailDlg();
+    if (op === "pay") return payAsk(id);
+    if (op === "payx") { if (!confirm("Afturkalla skráða greiðslu?")) return; return savePN(id, P => { delete P.greitt; }).then(() => { toast("Greiðsla afturkölluð"); render(); }); }
+    if (op === "payh") return savePN(id, P => { P.greidsluhattur = a; }).then(() => render());
     if (op === "pub") return pubCreate(id);
     if (op === "pubrev") return pubRevoke(id);
     if (op === "pubmail") { const P = findP(id); if (P?.opinber) return mailConfirm(P.opinber, id, true); return; }
@@ -604,7 +653,7 @@
     if (D && String(D).startsWith("tb:")) { const P = findP(String(D).slice(3)); if (!P || !P.pontun) return; const host = root.querySelector(".spdet") || root; if (host.querySelector(".pfwrap")) return;
       { const slot = host.querySelector("#tbed .tbafhslot"); if (host.querySelector("#tbed")) { if (slot && !slot.firstChild) slot.innerHTML = afhHTML(P); return; } } // 2.71.0: í breytingasýn aðeins afhendingarmáti, í sínum hluta
       try { pubSync(P); } catch (e) {}
-      const html = `<div class="pfwrap">${subsHTML(P)}${pubHTML(P)}${afhHTML(P)}${pickHTML(P)}${settleHTML(P)}${moreHTML(P)}</div>`;
+      const html = `<div class="pfwrap">${subsHTML(P)}${pubHTML(P)}${payHTML(P)}${afhHTML(P)}${pickHTML(P)}${settleHTML(P)}${moreHTML(P)}</div>`;
       const anchor = host.querySelector(".qrbox") || host.querySelector(".utb") || [...host.querySelectorAll(".viewtitle")].find(x => /^Línur/.test(x.textContent.trim()));
       anchor ? anchor.insertAdjacentHTML("beforebegin", html) : host.insertAdjacentHTML("beforeend", html);
       host.querySelectorAll(".qrbox .qrbb").forEach(x => x.remove());   // skönnun er hluti af „Afhenda“ / „Taka á móti“

@@ -44,7 +44,7 @@ function deleteItem(type,id){
 const TAB_KIND={undir:"undir",fundir:"fund",timar:"tima",verk:"verk",lverk:"verk",sverk:"verk",vsk:"vsk",lvsk:"vsk",svsk:"vsk",dagatal:"fund"};
 function openSheet(){sheetwrap.hidden=false;drawForm();}
 function openFab(){if(!DETAIL&&window.FAB_EXT?.[tab]){FAB_EXT[tab](); return;} if(!DETAIL&&tab==="skjol"&&window.skOpenNew){skOpenNew(null); return;} if(!DETAIL&&tab==="postur"&&window.poCompose){poCompose({}); return;}if(!DETAIL&&tab==="dagatal") PREFILL={date:calSel}; if(!DETAIL&&TAB_KIND[tab]) kind=TAB_KIND[tab]; else if(DETAIL?.startsWith("vsk:")) kind="verk"; _ctxRole=vskFilter||null; openSheet();}
-function closeSheet(){sheetwrap.hidden=true; sheet.closest(".sheet").classList.remove("wide","hedsheet"); PREFILL=null; render();}
+function closeSheet(){window.FAB_ONE=false; sheetwrap.hidden=true; sheet.closest(".sheet").classList.remove("wide","hedsheet"); PREFILL=null; render();}
 document.getElementById("fab").addEventListener("click",openFab);
 /* ---------- Lágmarka glugga: halda áfram að vinna í appinu og koma aftur að verkinu ---------- */
 let DOCK=[];
@@ -78,7 +78,7 @@ function nextProjNr(){const y=today.getFullYear();const n=verkefni().filter(p=>p
 function nextSubNr(p){const n=(p.undirverk||[]).map(u=>+String(u.nr).split("-")[2]||0);return p.nr+"-"+pad((n.length?Math.max(...n):0)+1);}
 const FORM_TITLE={kostn:"Útlagður kostnaður",tima:"Skrá tíma",fund:"Nýr fundur",undir:"Nýtt undirverk",verk:"Nýtt verkefni",vsk:"Nýr viðskiptavinur"};
 const FORM_REQ={kostn:["f-desc","f-amt"],tima:["f-desc"],fund:["f-name","f-date","f-time"],undir:["f-proj","f-name"],verk:["f-name"],vsk:["f-name"]};
-const FORM_KEEP={tima:null,fund:["f-name","f-date","f-proj"],undir:["f-proj","f-name","f-nr"],verk:["f-name","f-client"],vsk:["f-name","role"]};
+const FORM_KEEP={tima:null,fund:["f-name","f-date","f-proj"],undir:["f-proj","f-name","f-nr"],verk:["f-name","f-client"],vsk:["f-teg","f-tegseg","f-name","f-greidsla","f-simi","role"]};
 function enhanceForm(){
   const f=document.getElementById("addf"); if(!f) return;
   document.getElementById("sheet-h").textContent=FORM_TITLE[kind]||"Bæta við";
@@ -150,7 +150,7 @@ function drawForm(){
     ${window.ORG?.pakkaval?"":`<div class="two"><label>Áætlaðir tímar<input id="f-aklst" inputmode="decimal" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="f-tilbod" inputmode="numeric" placeholder="t.d. 450000"></label></div>`}
     <p class="hint">Fær verknúmerið <b class="nr">${nextProjNr()}</b>.</p>`;
   if(kind==="vsk") f=vskFormHTML("f",null);
-  sheet.innerHTML=`<h3 id="sheet-h">Bæta við</h3><div class="seg">${Object.entries(T).map(([k,v])=>`<button type="button" data-k="${k}" aria-pressed="${k===kind||(k==="tima"&&kind==="kostn")}">${v}</button>`).join("")}</div>
+  sheet.innerHTML=`<h3 id="sheet-h">Bæta við</h3><div class="seg"${window.FAB_ONE?" hidden":""}>${Object.entries(T).map(([k,v])=>`<button type="button" data-k="${k}" aria-pressed="${k===kind||(k==="tima"&&kind==="kostn")}">${v}</button>`).join("")}</div>
     <form id="addf" novalidate>${f}<div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="f-cancel">Hætta við</button><button class="btn primary" id="f-save">Vista</button></div></form>`;
   sheet.querySelectorAll(".seg button[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k; if(k==="xpontun"){FAB_EXT.pantanir(); return;} if(k==="xtilbod"){FAB_EXT.ltilbod(); return;} kind=k;drawForm();});
   sheet.querySelectorAll(".seg2 button").forEach(b=>b.onclick=()=>{kind=b.dataset.k2;drawForm();});
@@ -186,7 +186,7 @@ function vskSelect(pre,key,label,role,selId){
   const o=c=>`<option value="${esc(c.id)}"${sameId(c.id,selId)?" selected":""}>${esc(c.name)}</option>`;
   return `<label>${label}<select id="${pre}-${key}" data-newfor="${pre}-${key}-new"><option value="">Enginn</option>${mine.map(o).join("")}${other.length?`<optgroup label="Aðrir">${other.map(o).join("")}</optgroup>`:""}<option value="${NEWV}">+ Nýr ${label.toLowerCase()}…</option></select></label>
   <div id="${pre}-${key}-new" class="card" style="display:none;padding:12px;background:var(--b0);border-color:var(--b1)"><div class="kind" style="margin-bottom:8px">Nýr ${label.toLowerCase()} – fer líka í Viðskiptavini</div>
-    <div class="two"><label>Nafn fyrirtækis<input id="${pre}-${key}-nn" placeholder="T.d. Arion banki"></label><label>Kennitala<input id="${pre}-${key}-kt" inputmode="numeric" placeholder="000000-0000"></label></div>
+    <div class="two"><label>Nafn (fyrirtæki eða einstaklingur)<input id="${pre}-${key}-nn" placeholder="T.d. Arion banki eða Jón Jónsson"></label><label>Kennitala<input id="${pre}-${key}-kt" inputmode="numeric" placeholder="000000-0000"></label></div>
     <div class="two"><label>Sími<input id="${pre}-${key}-simi" type="tel" inputmode="tel" autocomplete="off" placeholder="Valfrjálst"></label><label>Netfang<input id="${pre}-${key}-net" type="email" autocomplete="off" placeholder="Valfrjálst"></label></div>
     <p class="hint" style="margin:8px 0 0">Fleiri upplýsingar má bæta við á síðu viðskiptavinarins.</p></div>`;}
 function dtPair(pre,key,label,iso){return `<div class="two"><label>${label}<input id="${pre}-${key}" type="date" value="${dOnly(iso)}"></label><label>Klukkan<input id="${pre}-${key}t" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label></div>`;}
@@ -244,24 +244,29 @@ function readProjDates(pre,p){
   return {skiladagur:isoOf(g("date"),g("datet")),vidburdur:isoOf(g("event"),g("eventt")),timabilFra:isoOf(g("ps"),g("pst")),timabilTil:g("pe")?isoOf(g("pe"),g("pet")||((g("pst")||g("pet"))?"23:59":"")):null};}
 function vskFormHTML(pre,c){c=c||{}; const r=c.hlutverk||(ctxRole()?[ctxRole()]:["Viðskiptavinur"]);
   const inp=(k,l,v,a="")=>`<label>${l}<input id="${pre}-${k}" value="${esc(v||"")}" ${a}></label>`;
-  return `${inp("name","Nafn fyrirtækis",c.name,'required placeholder="T.d. Arion banki"')}
-    <div class="two">${inp("kt","Kennitala",c.kennitala,'inputmode="numeric" placeholder="000000-0000"')}${inp("vsknr","VSK-númer",c.vsknr,'inputmode="numeric"')}</div>
+  // 2.73.0: viðskiptavinur er fyrirtæki eða einstaklingur (c.teg) – einstaklingur hefur ekki VSK-númer né sér tengilið
+  const ein=c.teg==="einstaklingur", tg=`document.getElementById('${pre}-teg')`;
+  const sw=`(function(b){const w=b.closest('form,.sheet,#sheet')||document,t=b.dataset.t;${tg}.value=t;w.querySelectorAll('[data-t]').forEach(x=>x.setAttribute('aria-pressed',x===b));w.querySelectorAll('.vskfyr').forEach(x=>x.hidden=t==='einstaklingur');const l=document.querySelector('label[for=${pre}-name]')||document.getElementById('${pre}-name').closest('label');l.firstChild.textContent=t==='einstaklingur'?'Nafn ':'Nafn fyrirtækis ';document.getElementById('${pre}-name').placeholder=t==='einstaklingur'?'T.d. Jón Jónsson':'T.d. Arion banki';const gs=document.getElementById('${pre}-greidsla');if(gs&&!gs.dataset.touched)gs.value=t==='einstaklingur'?'stadgreitt':'reikningur';})(this)`;
+  return `<input type="hidden" id="${pre}-teg" value="${ein?"einstaklingur":"fyrirtaeki"}"><div class="seg vskteg" id="${pre}-tegseg" role="group" aria-label="Tegund viðskiptavinar"><button type="button" data-t="fyrirtaeki" aria-pressed="${!ein}" onclick="${esc(sw)}">Fyrirtæki</button><button type="button" data-t="einstaklingur" aria-pressed="${ein}" onclick="${esc(sw)}">Einstaklingur</button></div>
+    ${inp("name",ein?"Nafn ":"Nafn fyrirtækis ",c.name,`required placeholder="${ein?"T.d. Jón Jónsson":"T.d. Arion banki"}"`)}
+    <label>Greiðsluháttur<select id="${pre}-greidsla" onchange="this.dataset.touched=1">${[["reikningur","Í reikning – má afhenda ógreitt"],["stadgreitt","Staðgreitt – greiða þarf fyrir afhendingu"]].map(([k,l])=>`<option value="${k}"${(c.greidsla||(ein?"stadgreitt":"reikningur"))===k?" selected":""}>${l}</option>`).join("")}</select></label>
+    <div class="two">${inp("kt","Kennitala",c.kennitala,'inputmode="numeric" placeholder="000000-0000"')}<div class="vskfyr"${ein?" hidden":""}>${inp("vsknr","VSK-númer",c.vsknr,'inputmode="numeric"')}</div></div>
     ${inp("addr","Heimilisfang",c.heimilisfang,'autocomplete="street-address"')}
     <div class="two">${inp("pnr","Póstnúmer",c.postnumer,'inputmode="numeric"')}${inp("stadur","Staður",c.stadur)}</div>
     <div class="two">${inp("simi","Sími",c.simi,'type="tel"')}${inp("mail","Netfang",c.netfang,'type="email"')}</div>
     ${inp("web","Vefsíða",c.vefsida,'type="url" placeholder="https://…"')}
-    <div class="kind" style="margin-top:6px">Tengiliður</div>
+    <div class="vskfyr"${ein?" hidden":""}><div class="kind" style="margin-top:6px">Tengiliður</div>
     ${inp("tn","Nafn tengiliðs",c.tengilidur)}
-    <div class="two">${inp("ts","Sími",c.simiT,'type="tel"')}${inp("tm","Netfang",c.netfangT,'type="email"')}</div>
+    <div class="two">${inp("ts","Sími",c.simiT,'type="tel"')}${inp("tm","Netfang",c.netfangT,'type="email"')}</div></div>
     <label>Athugasemdir<textarea id="${pre}-note">${esc(c.athugasemdir||"")}</textarea></label>`;}
 let _ctxRole=null; const ctxRole=()=>_ctxRole;
 function readVskForm(pre,editing){
-  const g=k=>val(`${pre}-${k}`), name=g("name"); if(!name) throw {code:"form",message:"Skrifaðu nafn fyrirtækisins."};
+  const g=k=>val(`${pre}-${k}`), name=g("name"), teg=g("teg")==="einstaklingur"?"einstaklingur":"fyrirtaeki"; if(!name) throw {code:"form",message:teg==="einstaklingur"?"Skrifaðu nafn.":"Skrifaðu nafn fyrirtækisins."};
   const kt=g("kt"); if(!ktOk(kt)) throw {code:"form",message:"Kennitala á að vera 10 tölustafir."};
   const mail=g("mail"), tm=g("tm"); const em=/^[^\s@]+@[^\s@]+\.[^\s@]+$/; if((mail&&!em.test(mail))||(tm&&!em.test(tm))) throw {code:"form",message:"Netfang er ekki á réttu formi."};
   let web=g("web"); if(web&&!/^https?:\/\//.test(web)) web="https://"+web;
   const roles=["Viðskiptavinur"]; // verkkaupi er ekki lengur notaður (frá 1.4.0)
-  const c={name,hlutverk:roles,kennitala:kt?ktFmt(kt):"",vsknr:g("vsknr"),heimilisfang:g("addr"),postnumer:g("pnr"),stadur:g("stadur"),simi:g("simi"),netfang:mail,vefsida:web,tengilidur:g("tn"),simiT:g("ts"),netfangT:tm,athugasemdir:g("note")};
+  const ein=teg==="einstaklingur", c={name,teg,greidsla:g("greidsla")==="stadgreitt"?"stadgreitt":"reikningur",hlutverk:roles,kennitala:kt?ktFmt(kt):"",vsknr:ein?"":g("vsknr"),heimilisfang:g("addr"),postnumer:g("pnr"),stadur:g("stadur"),simi:g("simi"),netfang:mail,vefsida:web,tengilidur:ein?"":g("tn"),simiT:ein?"":g("ts"),netfangT:ein?"":tm,athugasemdir:g("note")};
   return {c};}
 /* 24 tíma klukka: tímareitir eru textareitir sem taka t.d. 930, 9:30 eða 21 og skila „09:30“ / „21:00“ */
 function normTime(v){v=String(v||"").trim().replace(/[.,h ]/g,":"); if(!v) return "";

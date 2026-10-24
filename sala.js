@@ -107,7 +107,7 @@
   const vantarPontun = T => !isP(T) && T.stada === "Samþykkt" && PNON() && !vinnaEin(T) && !PN().some(P => P.tilbodId === T.id);
   const seld = () => [...TB().filter(T => T.stada === "Samþykkt" && !PN().some(P => P.tilbodId === T.id) && (!PNON() || vinnaEin(T))), ...PN().filter(P => PSELD.includes(P.stada))];
   const netLine = (l, T) => Math.round(lSum(l, T) * (1 - (+T.afsl || 0) / 100));
-  window.salaAPI = { stTxt: T => stTxt(T), TB, VR, PN, lSum, totals, seld, vinnaEin, vantarPontun, netLine, netOf: T => totals(T).net, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; }, arekstrar: T => arekstrar(T), findV: id => findV(id), CF: () => (S?.stillingar?.tilbod || {}) };
+  window.salaAPI = { pdf: T => tbPdf(T), fileBase: T => fileBase(T), stTxt: T => stTxt(T), TB, VR, PN, lSum, totals, seld, vinnaEin, vantarPontun, netLine, netOf: T => totals(T).net, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; }, arekstrar: T => arekstrar(T), findV: id => findV(id), CF: () => (S?.stillingar?.tilbod || {}) };
   window.pnOpnar = () => PNON() ? PN().filter(P => !["Skilað", "Lokið"].includes(P.stada)) : [];
   // Laust á tímabili skjals (fyrir valglugga): pakki = hve margir heilir pakkar
   const lausFyrir = (v, T) => { if (!T?.fra || vDeild(v) !== "leiga" || v.tegund === "vinna") return null; const til = tilOf(T), mine = tharfir(T);
@@ -449,7 +449,12 @@
       ${!P && T.vidskHafnad && T.stada !== "Hafnað" ? `<div class="card smbid smhaf"><b>✕ ${esc(T.vidskHafnad.nafn || "Viðskiptavinur")} hafnaði tilboðinu ${esc(dIS(String(T.vidskHafnad.dags || "").slice(0, 10)))}</b>${T.vidskHafnad.astaeda ? `<span>„${esc(T.vidskHafnad.astaeda)}“</span>` : ""}${MCP ? `<button type="button" class="btn" data-act="tbst:${esc(T.id)}:Hafnað">Merkja hafnað</button>` : ""}</div>` : ""}
       ${!P && (T.vidskSvor || []).length ? `<div class="card smsvor"><b>Spurningar frá viðskiptavini</b>${T.vidskSvor.map(m => `<div class="smsv"><small>${esc(m.nafn || "")} · ${esc(dIS(String(m.dags || "").slice(0, 10)))} kl. ${esc(String(m.dags || "").slice(11, 16))}</small><div>${esc(m.texti || "")}</div></div>`).join("")}${(T.netfang || findVsk(T.vskId)?.netfang) ? `<a class="btn" href="mailto:${esc(T.netfang || findVsk(T.vskId)?.netfang)}?subject=${encodeURIComponent("Tilboð " + T.nr + " – " + (T.heiti || ""))}">Svara í pósti</a>` : ""}</div>` : ""}
       ${!P && T.bidur && T.stada !== "Samþykkt" ? `<div class="card smbid"><b>✓ ${esc(T.bidur.nafn || "Viðskiptavinur")} samþykkti tilboðið ${esc(dIS(String(T.bidur.dags || "").slice(0, 10)))}</b><span>Bíður staðfestingar starfsmanns.</span>${MCP ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:Samþykkt">Staðfesta…</button>` : ""}</div>` : ""}
-      ${!P && T.stada === "Sent" && !T.bidur ? `<p class="hint smsent">✉ Sent${T.sent ? " " + esc(dIS(T.sent)) : ""}${T.netfang ? " á " + esc(T.netfang) : ""} – bíður samþykkis viðskiptavinar.${T.opinber ? " Viðskiptavinurinn getur samþykkt í gegnum tengilinn í póstinum." : ""}</p>` : ""}
+      ${!P && !T.bidur ? (() => { const til = T.sentTil || T.netfang; // 2.73.0: staðan sem litaður borði
+        const m = T.stada === "Sent" ? ["sent", `✉ Sent${T.sent ? " " + esc(dIS(T.sent)) : ""}${til ? " á " + esc(til) : ""} – bíður samþykkis viðskiptavinar.${T.opinber ? " Viðskiptavinurinn getur samþykkt í gegnum tengilinn í póstinum." : ""}`]
+          : T.stada === "Drög" ? ["drog", "Drög – ekki enn sent viðskiptavini."]
+          : T.stada === "Samþykkt" ? ["samth", `✓ Samþykkt${T.samthykkt?.dags ? " " + esc(dIS(String(T.samthykkt.dags).slice(0, 10))) : ""}${T.samthykkt?.nafn ? " af " + esc(T.samthykkt.nafn) : ""}.`]
+          : T.stada === "Hafnað" ? ["hafn", "✕ Hafnað."] : null;
+        return m ? `<p class="smst st-${m[0]}">${m[1]}</p>` : ""; })() : ""}
       ${!P && MCP && window.atrPub && ["Drög", "Sent"].includes(T.stada) && !T.bidur ? `<div class="links smpub">${T.opinber ? `<button type="button" class="btn" data-act="tbpub:${esc(T.id)}">Afrita samþykktartengil</button><button type="button" class="btn" data-act="tbpubx:${esc(T.id)}">Loka tengli</button>` : `<button type="button" class="btn" data-act="tbpub:${esc(T.id)}" title="Viðskiptavinurinn skoðar tilboðið og samþykkir með nafni og undirskrift">Búa til samþykktartengil</button>`}</div>` : ""}
       ${laest(T) ? `<p class="hint smlock">🔒 Samþykkt${T.samthykkt?.dags ? " " + esc(dIS(T.samthykkt.dags.slice(0, 10))) : ""}${T.samthykkt?.vidsk ? " af viðskiptavini (" + esc(T.samthykkt.vidsk.nafn || "") + ")" : ""} – tilboðið er læst. ${pontunAf(T) ? "Breytingar fara í pöntun " + esc(pontunAf(T).nr) + "." : "Gerðu nýja útgáfu til að breyta því."}</p>` : ""}
       ${arekHTML(T)}${!P && PNON() ? (PN().filter(x => x.tilbodId === T.id).map(x => `<p class="sub">Pöntun: <a class="plink" data-open="tb:${esc(x.id)}">${esc(x.nr)}</a> · ${esc(x.stada)}</p>`).join("")) : ""}${P && T.tilbodId && findT(T.tilbodId) ? `<p class="sub">Úr tilboði <a class="plink" data-open="tb:${esc(T.tilbodId)}">${esc(findT(T.tilbodId).nr)}</a></p>` : ""}${P ? hverHTML(T) : ""}
@@ -829,7 +834,9 @@
           if (wP) { (s.pantanir = s.pantanir || []).push(mkPontun(q, pid, "P-" + nP)); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: nP + 1 }; } });
         closeSheet();
         toast(["Tilboð " + T.nr + " samþykkt", wP ? "pöntun P-" + nP : "", wV ? "verkefni " + vnr : ""].filter(Boolean).join(" · "));
-        if (wP) openDetail("tb:" + pid); else if (wV) openDetail("verk:" + vid); else render();
+        // 2.73.0: undirritað tilboð → pöntunin er staðfest af viðskiptavini; valið færist yfir á pöntunina í Pöntunum
+        if (wP) { const V0 = findT(id)?.samthykkt?.vidsk || T.bidur; if (V0 && window.pnFraTilbodi) window.pnFraTilbodi(pid, { nafn: V0.nafn || "", dags: V0.dags || new Date().toISOString(), athugasemd: V0.athugasemd || null, ur: "Tilboð " + T.nr });
+          try { tab = "pantanir"; } catch (e) {} openDetail("tb:" + pid); } else if (wV) openDetail("verk:" + vid); else render();
       } catch (err) { ok.disabled = false; msg(esc(errText(err)), "err"); } };
   }
   window.samthForm = samthForm;
@@ -923,7 +930,8 @@
     if (k === "pntb") { const T = findT(a); if (!T || isP(T) || pontunAf(T)) return; const n = +CF().nastaNrP || 1001, nr = "P-" + n, id = gid();
       const P = mkPontun(T, id, nr);
       saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; })
-        .then(() => { toast("Pöntun " + nr + " stofnuð úr tilboði " + T.nr); openDetail("tb:" + id); }).catch(e => toast(errText(e))); return; }
+        .then(() => { toast("Pöntun " + nr + " stofnuð úr tilboði " + T.nr); const V0 = T.samthykkt?.vidsk || T.bidur; if (V0 && window.pnFraTilbodi) window.pnFraTilbodi(id, { nafn: V0.nafn || "", dags: V0.dags || new Date().toISOString(), athugasemd: V0.athugasemd || null, ur: "Tilboð " + T.nr });
+          try { tab = "pantanir"; } catch (e) {} openDetail("tb:" + id); }).catch(e => toast(errText(e))); return; }
     if (k === "tbs") { TS[r[0]] = r.slice(1).join(":"); render(); return; }
     if (k === "tbf") { TL.f = r[0] || ""; render(); return; }
     if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : r[0] === "blandad" ? "blandad" : "leiga"; if (D === "blandad") { tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; } if (!VRd(D).length && !confirm(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
@@ -939,6 +947,7 @@
       if (op === "custom") { (EDT.linur = EDT.linur || []).push({ id: gid(), v: null, heiti: "Ný lína", teg: isMix(EDT) ? "vinna" : D, hl: groups(EDT).slice(-1)[0]?.[0] || "Annað", magn: 1, ein: "stk.", verd: 0, dagar: null, afsl: 0 }); render(); return; }
       if (op === "del") { EDT.linur = (EDT.linur || []).filter(l => l.id !== id); render(); return; } }
     if (k === "tbst") { const [id, st] = r, T0 = findT(id); if (!T0) return;
+      if (isP(T0) && st === "Afhent" && T0.stada !== "Afhent" && window.pnGreidsla && !window.pnGreidsla.ok(T0)) { render(); window.pnGreidsla.ask(id, "Viðskiptavinurinn er í staðgreiðslu og pöntunin er ógreidd. Skráðu greiðslu áður en búnaður fer út.").then(ok => { if (ok) doAct("tbst:" + id + ":" + st); }); return; }
       // 2.61.0: samþykki fer í gegnum samþykktargluggann (pöntun og/eða verkefni); samþykkt tilboð með pöntun skiptir ekki um stöðu nema með nýrri útgáfu
       if (!isP(T0) && st === "Samþykkt" && T0.stada !== "Samþykkt") { samthForm(id, T0.bidur ? { vidsk: T0.bidur } : null); render(); return; }
       if (laest(T0) && st !== "Samþykkt" && pontunAf(T0)) { toast(`Tilboðið er orðið að pöntun ${pontunAf(T0).nr} – breyttu pöntuninni eða gerðu nýja útgáfu.`); render(); return; }
@@ -967,14 +976,17 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
       if (!confirm("Microsoft 365 er ekki tengt, svo appið getur ekki sent póstinn sjálft.\n\nOpna póstforritið þitt með tilbúnum pósti og tengli þar sem viðskiptavinurinn sér og samþykkir tilboðið?\n\n(Til að senda beint með PDF í viðhengi: Stillingar › Microsoft 365.)")) return;
       toast("Bý til tengil…");
       tbLink(T).then(url => { const to = T.netfang || findVsk(T.vskId)?.netfang || "", su = `Tilboð ${T.nr} – ${T.heiti || ""} frá ${DOK.co().nafn}`;
-        const body = `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nHér er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).net)} án VSK.\n\n${url ? "Tilboðið má skoða og samþykkja hér:\n" + url + "\n\n" : ""}Endilega hafðu samband ef spurningar vakna.`;
+        const body = `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nHér er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).tot)} með VSK.\n\n${url ? "Tilboðið má skoða og samþykkja hér:\n" + url + "\n\n" : ""}Endilega hafðu samband ef spurningar vakna.`;
         location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`;
-        setTimeout(() => { if (confirm(`Sendir þú tilboð ${T.nr}? Þá er það merkt „Sent“.`)) saveT(a, q => { if (q.stada === "Drög") q.stada = "Sent"; q.sent = isoDay(new Date()); }).then(() => render()); }, 1500); }); return; }
+        // 2.73.0: tilboð sem fer í póst er merkt „Sent“ strax (hægt að afturkalla)
+        const was = { stada: T.stada, sent: T.sent || null, sentTil: T.sentTil || null };
+        saveT(a, q => { if (q.stada === "Drög") q.stada = "Sent"; q.sent = isoDay(new Date()); q.sentTil = to || null; }).then(() => { render();
+          toast(`${T.nr} merkt „Sent“`, () => saveT(a, q => { q.stada = was.stada; q.sent = was.sent; q.sentTil = was.sentTil; }).then(() => render())); }); }); return; }
     if (k === "tbsend") { const T = findT(a); if (!T || !window.poCompose) return; toast("Bý til PDF…");
       tbLink(T).then(url => tbPdf(T).then(bytes => poCompose({ to: T.netfang || findVsk(T.vskId)?.netfang || "", subject: `Tilboð ${T.nr} – ${T.heiti || ""} frá ${DOK.co().nafn}`, pid: T.verkefniId || null,
-        body: `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nMeðfylgjandi er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).net)} án VSK.\n\nEf tilboðið hentar biðjum við þig að staðfesta það${T.gildir ? ` fyrir ${dIS(T.gildir)}, en þá rennur það út` : ""}${url ? ` – með því að samþykkja það hér:\n${url}\n\neða með því að svara þessum pósti.` : " með því að svara þessum pósti."}\n\nEndilega hafðu samband ef spurningar vakna.`,
+        body: `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nMeðfylgjandi er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).tot)} með VSK.\n\nEf tilboðið hentar biðjum við þig að staðfesta það${T.gildir ? ` fyrir ${dIS(T.gildir)}, en þá rennur það út` : ""}${url ? ` – með því að samþykkja það hér:\n${url}\n\neða með því að svara þessum pósti.` : " með því að svara þessum pósti."}\n\nEndilega hafðu samband ef spurningar vakna.`,
         atts: [{ name: fileBase(T) + ".pdf", type: "application/pdf", size: bytes.length, data: bytes }],
-        onSent: () => saveT(a, q => { if (q.stada === "Drög") q.stada = "Sent"; q.sent = isoDay(new Date()); }) }))).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
+        onSent: () => saveT(a, q => { if (q.stada === "Drög") q.stada = "Sent"; q.sent = isoDay(new Date()); }).then(() => render()) }))).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (k === "tbpub") { const T = findT(a); if (!T) return; tbLink(T).then(url => { if (!url) return toast("Ekki tókst að búa til tengil."); navigator.clipboard?.writeText(url).then(() => toast("Samþykktartengill afritaður")).catch(() => prompt("Samþykktartengill:", url)); }); return; }
     if (k === "tbpubx") { const T = findT(a); if (!T?.opinber || !confirm("Loka samþykktartenglinum? Hann hættir að virka.")) return; tbUnlink(T).then(() => { toast("Tengli lokað"); render(); }); return; }
     if (k === "tbverk") { const T = findT(a); if (!T || T.verkefniId) return; if (!confirm(`Stofna verkefni úr ${isP(T) ? "pöntun" : "tilboði"} ${T.nr}?\n\n„${T.heiti}“ fyrir ${T.vidskiptavinur || T.tengilidur || "–"}, ${krs(totals(T).net)} án VSK.`)) return;

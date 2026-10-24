@@ -750,3 +750,49 @@ html:root body.kerfi #view .splist .ultool .ultg .usort{gap:0!important}
 /* Ruslatunna yfir stöðuflipa: staðan víkur meðan bendill er á röðinni */
 :root body.kerfi #view .splist .urow[data-open]:has(.fvtr):hover > .r{opacity:0}
 html:root body.kerfi #view .splist .ultool .ultl{min-width:44px}
+body.kerfi .seg[hidden],body.kerfi .vskfyr[hidden]{display:none!important}
+body.kerfi .seg.vskteg{margin:0 0 14px}
+/* Staðsetning úr korti (2.73.0, stadur.js) */
+body.kerfi label.sthas{position:relative}
+body.kerfi label.sthas > input{padding-right:42px!important}
+body.kerfi .stmap{position:absolute;right:6px;bottom:calc((var(--h-in,38px) - 28px) / 2);width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--kacc);background:transparent}
+body.kerfi .stmap:hover{background:var(--acc-soft,var(--b0))}
+body.kerfi .stmap[hidden]{display:none}
+#tbed label.sthas .stmap{bottom:5px}
+.stbox{position:fixed;z-index:9999;max-height:320px;overflow:auto;padding:6px;border-radius:12px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 0 0 1px var(--line2,rgba(0,0,0,.08)),0 18px 40px -12px rgba(0,0,0,.35);font-family:var(--f-display,Poppins,system-ui,sans-serif)}
+.stbox .stit{display:flex;align-items:flex-start;gap:10px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.stbox .stit svg{color:var(--kacc);margin-top:2px;flex:none}
+.stbox .stit b{display:block;font-weight:500;font-size:13.5px}
+.stbox .stit small{display:block;color:var(--muted);font-size:12px}
+.stbox .stit:hover,.stbox .stit.on{background:var(--hover,rgba(0,0,0,.04))}
+.stbox .stsrc{font-size:10.5px;color:var(--muted);padding:4px 10px 2px;text-align:right}
+/* Stöðuborði tilboðs (2.73.0) */
+:root body.kerfi #view .smst{margin:12px 0!important;padding:10px 14px;border-radius:10px;font-size:var(--t-sm)!important;line-height:1.45;border-left:3px solid currentColor}
+:root body.kerfi #view .smst.st-sent{color:var(--t-amb);background:var(--amb-s,#FBF1E0)}
+:root body.kerfi #view .smst.st-drog{color:var(--muted);background:var(--gry-s,#EEF1F4)}
+:root body.kerfi #view .smst.st-samth{color:var(--t-grn);background:var(--grn-s,#E5F3EC)}
+:root body.kerfi #view .smst.st-hafn{color:var(--t-red);background:var(--red-s,#FBE9E7)}
+body.kerfi .poattpv{border:0;background:none;padding:0;font:inherit;color:var(--kacc);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+/* Verkdagatal (2.73.0): litir eftir stöðu – verkefni (litur stöðunnar) og pantanir; viðvaranir sem umgjörð */
+:root body.kerfi{--c-slate:#6B7684;--c-violet:#6E56CF;--c-blue:var(--kacc,#24578A);--c-amber:#B7791F;--c-teal:#2C7A87;--c-green:#2C7A57;--c-red:#B13E36}
+:root body.kerfi :is(.pdb,.pdlg)[class*="sc-"],:root body.kerfi :is(.pdb,.pdlg)[class*="ps-"]{border:1px solid transparent}
+:root body.kerfi :is(.pdb,.pdlg).sc-blue,:root body.kerfi :is(.pdb,.pdlg).ps-stf{background:var(--c-blue);color:#fff}
+:root body.kerfi :is(.pdb,.pdlg).sc-teal,:root body.kerfi :is(.pdb,.pdlg).ps-afh{background:var(--c-teal);color:#fff}
+:root body.kerfi :is(.pdb,.pdlg).sc-violet{background:color-mix(in srgb,var(--c-violet) 16%,var(--surface));color:var(--c-violet);border-color:color-mix(in srgb,var(--c-violet) 35%,transparent)}
+:root body.kerfi :is(.pdb,.pdlg).sc-amber{background:color-mix(in srgb,var(--c-amber) 16%,var(--surface));color:var(--c-amber);border-color:color-mix(in srgb,var(--c-amber) 35%,transparent)}
+:root body.kerfi :is(.pdb,.pdlg).sc-slate,:root body.kerfi :is(.pdb,.pdlg).ps-ny{background:transparent;color:var(--ink2,var(--ink));border:1px dashed color-mix(in srgb,var(--c-slate) 70%,transparent)}
+:root body.kerfi :is(.pdb,.pdlg).ps-ny{color:var(--c-amber);border-color:var(--c-amber);background:color-mix(in srgb,var(--c-amber) 8%,transparent)}
+:root body.kerfi :is(.pdb,.pdlg).sc-green,:root body.kerfi :is(.pdb,.pdlg).ps-lok{background:color-mix(in srgb,var(--c-green) 14%,var(--surface));color:var(--c-green);border-color:color-mix(in srgb,var(--c-green) 30%,transparent)}
+:root body.kerfi :is(.pdb,.pdlg).x-bad{box-shadow:0 0 0 2px var(--c-red),0 0 0 4px color-mix(in srgb,var(--c-red) 20%,transparent)}
+:root body.kerfi :is(.pdb,.pdlg).x-late{box-shadow:0 0 0 2px var(--c-amber)}
+:root body.kerfi .pdlg.x-bad,:root body.kerfi .pdlg.x-late{background:transparent}
+:root body.kerfi #view .pfhv{font-weight:400;color:var(--ink2,var(--ink))}
+/* Greiðsla pöntunar (2.73.0) */
+:root body.kerfi #view .pfpay.due{box-shadow:inset 3px 0 0 var(--t-amb)}
+:root body.kerfi #view .pfpay.ok{box-shadow:inset 3px 0 0 var(--t-grn)}
+.pfpaydlg .pfpb{padding:16px 20px}
+.pfpaydlg label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
+.pfpaydlg input{font:inherit;font-size:20px;padding:10px 12px;border:1px solid var(--line2,var(--line));border-radius:10px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums}
+.pfpaydlg .pfpl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.pfpaydlg .pfpl button{min-height:46px;border-radius:10px;border:1px solid var(--line2,var(--line));background:var(--surface);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.pfpaydlg .pfpl button[aria-checked="true"]{border-color:var(--kacc);background:var(--acc-soft,var(--b0));color:var(--kacc);font-weight:500}

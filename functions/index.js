@@ -295,7 +295,7 @@ exports.otint = onSchedule({ schedule: "*/30 7-20 * * *", timeZone: TZ }, async 
     const [h, m] = String(P.afhKl).split(":").map(Number), til = h * 60 + m - n.min;
     const tint = Object.values(P.tinslaH || {}).some(x => +x > 0) || (P.kvittun && P.kvittun.ut);
     if (til < 0 || til > 120 || tint || !(await once("tinsla-" + P.id + "-" + n.iso))) continue;
-    await send(await allEmails(), "tinsla", { title: `Afhending kl. ${P.afhKl} – ekki tínt`, body: [nmP(P), who(P), P.afhending === "sent" ? "send" + (P.afhStadur ? " á " + P.afhStadur : "") : P.afhending === "sott" ? "sótt" : ""].filter(Boolean).join(" · "), link: link("pantanir", "tb:" + P.id), tag: "tinsla-" + P.id });
+    await send(await allEmails(), "tinsla", { title: `Afhending kl. ${P.afhKl} – ekki pakkað`, body: [nmP(P), who(P), P.afhending === "sent" ? "send" + (P.afhStadur ? " á " + P.afhStadur : "") : P.afhending === "sott" ? "sótt" : ""].filter(Boolean).join(" · "), link: link("pantanir", "tb:" + P.id), tag: "tinsla-" + P.id });
   }
 });
 

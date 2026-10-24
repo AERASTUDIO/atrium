@@ -172,7 +172,7 @@
       const { w, close } = modal("Aukaverk sent til samþykkis", `<p class="vps">Tengillinn er afritaður. Viðskiptavinurinn opnar hann, skoðar aukaverkið og samþykkir með nafni og undirskrift – þú færð tilkynningu um leið.</p>
         <div class="pfurl"><input readonly value="${E(url)}" onclick="this.select()"></div>
         <div class="pfact"><button type="button" class="btn" data-x="1">Loka</button>${window.poCompose ? `<button type="button" class="btn primary" id="vaM">Senda í pósti</button>` : ""}</div>`);
-      w.querySelector("#vaM")?.addEventListener("click", () => { close(); poCompose({ to, pid, subject: `Aukaverk á ${p.nr} ${p.stutt || ""} – vinsamlegast samþykktu`, body: `Sæl/l,\n\nVið viljum fá samþykki fyrir eftirfarandi aukaverki á ${p.stutt || p.nafn || p.nr}:\n\n${x.lysing}${x.klst ? "\n" + H1(x.klst) + " klst." : ""}${+x.upphaed ? "\nUpphæð án VSK: " + KR(x.upphaed) : ""}\n\nÞú getur skoðað og samþykkt hér:\n${url}\n\nKveðja` }); });
+      w.querySelector("#vaM")?.addEventListener("click", () => { close(); poCompose({ to, pid, subject: `Aukaverk á ${p.nr} ${p.stutt || ""} – vinsamlegast samþykktu`, body: `Sæl/l,\n\nVið viljum fá samþykki fyrir eftirfarandi aukaverki á ${p.stutt || p.nafn || p.nr}:\n\n${x.lysing}${x.klst ? "\n" + H1(x.klst) + " klst." : ""}${+x.upphaed ? "\nUpphæð með VSK: " + KR(Math.round(x.upphaed * 1.24)) : ""}\n\nÞú getur skoðað og samþykkt hér:\n${url}\n\nKveðja` }); });
       render(); watchAll();
     } catch (e) { toast?.("Tókst ekki að búa til tengil: " + (e?.message || e)); }
   }

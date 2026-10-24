@@ -15,7 +15,7 @@
   const DEFOFF = new Set(["postur", "minnpostur"]);   // sjálfgefið slökkt – kveikt sérstaklega
   const KINDS = [["pantanir", "Nýjar pantanir", "Þegar pöntun er stofnuð, t.d. úr pósti eða vefverslun"], ["stadfest", "Staðfestingar viðskiptavina", "Þegar viðskiptavinur staðfestir pöntun eða samþykkir tilboð með tengli"],
     ["spjall", "Spjall", "Einkaskilaboð til þín og skilaboð á almennu rásinni"], ["vidsvar", "Svör viðskiptavina", "Viðskiptavinur hafnar tilboði eða sendir spurningu af tilboðssíðunni"],
-    ["skil", "Skil komin fram yfir", "Kl. 9 á morgnana: leigubúnaður sem átti að vera kominn til baka"], ["tinsla", "Afhending án tínslu", "Afhending á næstu 2 tímum en ekkert hefur verið tínt"],
+    ["skil", "Skil komin fram yfir", "Kl. 9 á morgnana: leigubúnaður sem átti að vera kominn til baka"], ["tinsla", "Afhending ekki pökkuð", "Afhending á næstu 2 tímum en ekkert hefur verið pakkað"],
     ["tvibokun", "Tvíbókun búnaðar", "Ný eða breytt pöntun notar búnað sem er ekki laus á tímabilinu"], ["uthlutun", "Úthlutanir og @nafn", "Þú ert settur á verkefni eða einhver minnist á þig í spjalli"],
     ["aaetlun", "Áætlun verkefna", "Tímar á verkefni sem þú ert á ná 90 % og 100 % af áætlun"], ["eftirfylgni", "Tilboð ósvarað í viku", "Áminning um að fylgja eftir tilboði sem þú sendir"],
     ["klukka", "Klukka enn í gangi", "Kl. 19 og 22 ef stimpilklukkan þín gengur enn"], ["postur", "Nýr póstur – sameiginlega pósthólfið", "Póstur sem berst í sameiginlega pósthólf fyrirtækisins, með verkefninu sem hann á við"], ["minnpostur", "Nýr póstur – mitt pósthólf", "Póstur sem berst í þitt eigið pósthólf"], ["morgun", "Morgunyfirlit", "Kl. 8 virka daga: afhendingar, skil og það sem bíður"]];

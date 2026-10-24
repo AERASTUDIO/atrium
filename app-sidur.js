@@ -220,7 +220,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k.startsWith("po")&&window.poAct){poAct(k,r,el); return;}
   if(k.startsWith("nu")&&window.nuAct){nuAct(k,r,el); return;}
   if(k==="later"){showLater=true; render(); return;}
-  if(k==="fabnew"){if(r[0]&&!DETAIL){const t0=tab; tab=r[0]; try{openFab();}finally{if(tab===r[0]) tab=t0;}} else openFab(); return;}
+  if(k==="fabnew"){window.FAB_ONE=!!r[0]; /* 2.73.0: „+ Viðskiptavinur“ o.s.frv. opnar aðeins þá tegund */ if(r[0]&&!DETAIL){const t0=tab; tab=r[0]; try{openFab();}finally{if(tab===r[0]) tab=t0;}} else openFab(); return;}
   if(k==="vskf"){vskFilter=r.join(":"); render(); return;}
   if(k==="cal"){calSel=r[0]; const x=d(calSel); if(x.getMonth()!==calMonth.getMonth()) calMonth=new Date(x.getFullYear(),x.getMonth(),1); render(); return;}
   if(k==="calmode"){calMode=r[0]; try{localStorage.setItem("aera-calmode",calMode);}catch(e){} render(); return;}

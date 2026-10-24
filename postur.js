@@ -347,8 +347,11 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
       ${src ? `<p class="hint">Upprunalegi pósturinn fylgir neðst${mode === "forward" && src.hasAttachments ? ", ásamt viðhengjum hans" : ""}.</p>` : ""}
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="po-c">Hætta við</button><button class="btn primary" id="po-s"${canSend ? "" : " disabled"}>Senda</button></div></form>`;
     sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden = false;
-    const drawAtts = () => { document.getElementById("po-atts").innerHTML = atts.length ? atts.map((a, i) => `<span class="chipbtn" style="display:inline-flex;gap:6px;align-items:center">📎 ${esc(a.name)} <small>${esc(kb(a.size))}</small><button type="button" class="x" data-rm="${i}" aria-label="Fjarlægja">✕</button></span>`).join(" ") : `<span class="hint">Engin.</span>`;
-      sheet.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { atts.splice(+b.dataset.rm, 1); drawAtts(); }); };
+    const drawAtts = () => { document.getElementById("po-atts").innerHTML = atts.length ? atts.map((a, i) => `<span class="chipbtn" style="display:inline-flex;gap:6px;align-items:center">📎 <button type="button" class="poattpv" data-pv="${i}" title="Forskoða ${esc(a.name)}">${esc(a.name)}</button> <small>${esc(kb(a.size))}</small><button type="button" class="x" data-rm="${i}" aria-label="Fjarlægja">✕</button></span>`).join(" ") : `<span class="hint">Engin.</span>`;
+      sheet.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { atts.splice(+b.dataset.rm, 1); drawAtts(); });
+      // 2.73.0: forskoða viðhengi (t.d. PDF tilboðs eða pöntunar) í nýjum flipa áður en sent er
+      sheet.querySelectorAll("[data-pv]").forEach(b => b.onclick = () => { const a = atts[+b.dataset.pv]; if (!a) return; const bl = a.data instanceof Blob ? a.data : new Blob([a.data], { type: a.type || "application/octet-stream" });
+        const u = URL.createObjectURL(bl), w = window.open(u, "_blank"); if (!w) { const x = document.createElement("a"); x.href = u; x.download = a.name; x.click(); } setTimeout(() => URL.revokeObjectURL(u), 60000); }); };
     drawAtts();
     { const sc = document.getElementById("po-sig"), sp = document.getElementById("po-sigprev"); if (sc) sc.onchange = () => { sp.hidden = !sc.checked; }; }
     const RF = ["po-to", "po-cc"].filter(x => document.getElementById(x + "-box")).map(x => rcptField(x, x === "po-to" ? o.to || "" : o.cc || ""));

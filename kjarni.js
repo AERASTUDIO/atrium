@@ -35,7 +35,7 @@
     // Frá 2.45.0 (fyrst í dev/): QR-merki á eintök leigubúnaðar, skanni í öllum tækjum (líka iPhone), skönnun út og inn á pöntunum (qr.js). Sjálfgefið óvirk.
     qr:             ["QR-merki og skanni", "QR-merki á hvert eintak, skanni í síma og tölvu, eintaksspjald og skönnun út og inn á pöntunum", "leiga", 1],
     // Frá 2.55.0 (fyrst í dev/): Pöntunarferli – sent/sótt, afhending og móttaka með kvittun, tínslulisti, skilauppgjör, staðgengill, pöntun úr pósti, sniðmát, ferð dagsins (pantanir2.js). Sjálfgefið óvirk.
-    pferli:         ["Pöntunarferli", "Sent eða sótt, afhending og móttaka með undirskrift og mynd, tínslulisti með QR, skilauppgjör, staðgengill við árekstur, pöntun úr pósti, sniðmát og ferð dagsins", "pantanir", 1],
+    pferli:         ["Pöntunarferli", "Sent eða sótt, afhending og móttaka með undirskrift og mynd, pökkunarlisti með skanna, skilauppgjör, staðgengill við árekstur, pöntun úr pósti, sniðmát og ferð dagsins", "pantanir", 1],
     // Frá 2.53.0 (fyrst í dev/): Snjall-Heim – Loka deginum, viðvaranir, hver er hvar, skipanalína og rekstrarpúls á Heim (snjall.js). Sjálfgefið óvirk.
     // Frá 2.67.0 (fyrst í dev/): Verkefnagreining og Aukaverk (verkplus.js). Sjálfgefið óvirkar.
     vgreind:        ["Verkefnagreining", "Afkoma verkefna í rauntíma (tekjur, kostnaður, framlegð og spá), lokauppgjör við lok verkefnis og tillaga að áætlun út frá fyrri verkefnum", null, 1],
