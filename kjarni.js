@@ -34,6 +34,8 @@
     ...(window.ORG?.pakkaval ? { pantanir: ["Pantanir", "Pantanir og erindi án verkefnis: viðskiptavinur, línur úr vörulista, afhending og skil, uppruni (sími, tölvupóstur, Shopify …)", null, 1] } : {}),
     // Frá 2.45.0 (fyrst í dev/): QR-merki á eintök leigubúnaðar, skanni í öllum tækjum (líka iPhone), skönnun út og inn á pöntunum (qr.js). Sjálfgefið óvirk.
     qr:             ["QR-merki og skanni", "QR-merki á hvert eintak, skanni í síma og tölvu, eintaksspjald og skönnun út og inn á pöntunum", "leiga", 1],
+    // Frá 2.53.0 (fyrst í dev/): Snjall-Heim – Loka deginum, viðvaranir, hver er hvar, skipanalína og rekstrarpúls á Heim (snjall.js). Sjálfgefið óvirk.
+    snjall:         ["Snjall-Heim", "Á Heim: drög að tímaskráningu dagsins (Loka deginum), viðvaranir um áætlun og bókanir, hver er hvar, skipanalína í mæltu máli og rekstrarpúls", null, 1],
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
   // Pakkar og tengingar (frá 2.14.0, einingatillagan 21.10.2026): einingarnar flokkaðar í kjarna, fimm pakka og tengingar.
