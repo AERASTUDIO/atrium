@@ -568,3 +568,127 @@ body.kerfi #view .tbbadv{padding:0 14px 8px!important}
   :root body.kerfi .pdbar{gap:8px}
   :root body.kerfi .pdchips{flex-wrap:nowrap;overflow-x:auto;max-width:100%}
 }
+
+/* ---------- Líf (2.60.0): tölur, stikur, lifandi staða, fjármál, hreyfing, tómir skjáir, tákn, bjarmi ---------- */
+/* 1 Stórar tölur með merkingarlit */
+:root body.kerfi #view .lifk{position:relative;overflow:hidden}
+:root body.kerfi #view .lifk::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--lt,var(--kacc))}
+:root body.kerfi #view .lifk b{font-size:26px!important;font-weight:600!important;letter-spacing:-.01em;color:var(--lt,var(--ink));line-height:1.15}
+:root body.kerfi #view .lifk[data-lt=red]{--lt:var(--t-red)}
+:root body.kerfi #view .lifk[data-lt=amb]{--lt:var(--t-amb)}
+:root body.kerfi #view .lifk[data-lt=grn]{--lt:var(--t-grn)}
+:root body.kerfi #view .lifk[data-lt=blu]{--lt:var(--kacc)}
+:root body.kerfi #view .lifk[data-lt=zero]{--lt:var(--muted)}
+:root body.kerfi #view .lifk[data-lt=zero]::before{opacity:.35}
+:root body.kerfi #view .lifk[data-lt=zero] b{font-weight:500!important}
+:root body.kerfi #view .uwk{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+:root body.kerfi #view .uwk>b{font-size:30px!important;font-weight:600!important;color:var(--kacc)}
+:root body.kerfi .liftr{font-size:var(--t-xs,12px);font-weight:600;flex-basis:100%}
+:root body.kerfi .liftr small{font-weight:400;color:var(--muted)}
+@media (max-width:1023px){:root body.kerfi #view .lifk b{font-size:21px!important}:root body.kerfi #view .uwk>b{font-size:24px!important}}
+
+/* 2 Framvindustikur */
+:root body.kerfi .lifbar{display:flex;flex-direction:column;gap:6px;margin:10px 0 2px}
+:root body.kerfi .lifbar>i{display:block;position:relative;height:18px;border-radius:9px;background:color-mix(in srgb,var(--ink) 8%,transparent);overflow:hidden}
+:root body.kerfi .lifbar>i::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);min-width:30px;border-radius:9px;background:linear-gradient(90deg,color-mix(in srgb,var(--lb,var(--kacc)) 70%,#fff 0%),var(--lb,var(--kacc)));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+:root body.kerfi .lifbar>i b{font-style:normal;position:absolute;left:0;top:0;bottom:0;width:var(--w);min-width:30px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:11px!important;font-weight:600!important;color:#fff;font-variant-numeric:tabular-nums}
+:root body.kerfi .lifbar>span{font-size:var(--t-xs,12px);color:var(--muted)}
+:root body.kerfi .lifbar.grn{--lb:var(--t-grn)}
+:root body.kerfi .lifbar.amb{--lb:var(--t-amb)}
+:root body.kerfi .lifbar.red{--lb:var(--t-red)}
+:root body.kerfi .lifprog{margin:4px 0 14px}
+:root body.kerfi .pfpick .lifbar{margin:2px 0 10px}
+
+/* 3 Lifandi staða og stór klukka */
+:root body.kerfi .lifstrip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+:root body.kerfi .lifs{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:var(--t-sm,13px);color:var(--ink);line-height:1.2}
+:root body.kerfi .lifs[role=button]{cursor:pointer}
+:root body.kerfi .lifs[role=button]:hover{border-color:color-mix(in srgb,var(--kacc) 45%,var(--line))}
+:root body.kerfi .lifs b{font-weight:600;font-variant-numeric:tabular-nums}
+:root body.kerfi .lifs.on b,:root body.kerfi .lifs.on{color:var(--t-grn)}
+:root body.kerfi .lifs.blu b{color:var(--kacc)}
+:root body.kerfi .lifs.amb b{color:var(--t-amb)}
+:root body.kerfi .lifs.red{color:var(--t-red);border-color:color-mix(in srgb,var(--t-red) 40%,var(--line))}
+:root body.kerfi .lifs.calm{color:var(--muted)}
+:root body.kerfi .lifdot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none;position:relative}
+:root body.kerfi .lifdot.on{background:var(--t-grn)}
+:root body.kerfi .lifdot.blu{background:var(--kacc)}
+:root body.kerfi .lifdot.amb{background:var(--t-amb)}
+:root body.kerfi .lifdot.red{background:var(--t-red)}
+:root body.kerfi .lifdot.on::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--t-grn);animation:lifpulse 1.8s ease-out infinite}
+@keyframes lifpulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+:root body.kerfi #view .uklk.on .uklr b.kt,:root body.kerfi #view .uklk.on .uklr>b{font-size:34px!important;font-weight:600!important;color:var(--t-grn);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+:root body.kerfi #view .uklk.on{border-color:color-mix(in srgb,var(--t-grn) 45%,var(--line))!important;box-shadow:inset 3px 0 0 var(--t-grn)!important}
+:root body.kerfi #view .uklk.on>small:first-child::before,:root body.kerfi #view .sdk.on .sdl:first-child::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--t-grn);margin-right:7px;vertical-align:1px;animation:lifblink 1.6s ease-in-out infinite}
+@keyframes lifblink{50%{opacity:.25}}
+@media (max-width:1023px){:root body.kerfi .lifstrip{flex-wrap:nowrap;overflow-x:auto;margin:0 0 12px;padding-bottom:2px}:root body.kerfi .lifs{white-space:nowrap}}
+
+/* 4 + 9 Fjármálayfirlit */
+:root body.kerfi .liffin .uhch{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+:root body.kerfi .liffin .uhch h3{margin:0}
+:root body.kerfi .lifseg button{padding:4px 10px;font-size:var(--t-xs,12px)}
+:root body.kerfi .liftots{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+:root body.kerfi .liftot small{display:flex;align-items:center;gap:6px;font-size:var(--t-xs,12px);color:var(--muted)}
+:root body.kerfi .liftot small i{width:8px;height:8px;border-radius:50%;background:var(--lc)}
+:root body.kerfi .liftot b{display:block;font-size:22px;font-weight:600;color:var(--lc);font-variant-numeric:tabular-nums;margin-top:2px}
+:root body.kerfi .liftot.grn,:root body.kerfi .lifcol.grn{--lc:var(--t-grn)}
+:root body.kerfi .liftot.red,:root body.kerfi .lifcol.red{--lc:var(--t-red)}
+:root body.kerfi .liftot.blu,:root body.kerfi .lifcol.blu{--lc:var(--kacc)}
+:root body.kerfi .lifcols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;height:120px;margin:14px 0 8px;align-items:end;border-bottom:1px solid var(--line)}
+:root body.kerfi .lifcol{height:100%;display:flex;align-items:flex-end;justify-content:flex-start}
+:root body.kerfi .lifcol i{display:block;width:min(100%,96px);height:var(--h);border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--lc),color-mix(in srgb,var(--lc) 75%,transparent));transform-origin:bottom;animation:lifgrow .7s cubic-bezier(.2,.8,.2,1) both}
+:root body.kerfi .lifcol.neg i{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--t-red) 55%,transparent) 0 6px,transparent 6px 11px);border:1px dashed var(--t-red)}
+:root body.kerfi .lifcol:nth-child(2) i{animation-delay:.08s}
+:root body.kerfi .lifcol:nth-child(3) i{animation-delay:.16s}
+@keyframes lifgrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+:root body.kerfi .lifcap{font-size:var(--t-xs,12px);color:var(--muted)}
+:root body.kerfi .lifcap span{font-weight:600}
+:root body.kerfi #view .uhtop+.liffin{margin-top:14px}
+:root body.kerfi .liffw{margin:0 0 14px}
+:root body.kerfi .liffw .liffin .lifcols{height:80px}
+
+/* 5 Smáhreyfing */
+:root body.kerfi #view .lifin{animation:lifup .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--li,0) * 40ms)}
+@keyframes lifup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+:root body.kerfi .pfpr.ok .pfck,:root body.kerfi .pfpr.ok{animation:lifpop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes lifpop{0%{transform:scale(.97)}60%{transform:scale(1.015)}100%{transform:none}}
+:root body.kerfi #view :is(.card.tap,.ucard[data-open],.urow,.uln,.pdb,.pdsd,.lifs[role=button]){transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease,border-color .15s ease}
+:root body.kerfi #view :is(.pdb,.pdsd):hover{transform:translateY(-1px)}
+:root body.kerfi #view :is(.btn,.uchip):active{transform:scale(.97)}
+
+/* 6 Tómir skjáir */
+:root body.kerfi .life{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:36px 16px!important;color:var(--muted)}
+:root body.kerfi .life .lifart{color:var(--muted);opacity:.9}
+:root body.kerfi .life .lifart .a{color:var(--kacc);stroke:var(--kacc);animation:liffloat 3.2s ease-in-out infinite}
+@keyframes liffloat{50%{transform:translateY(-4px)}}
+:root body.kerfi .lifea{margin-top:4px}
+:root body.kerfi .lifes{display:flex;align-items:center;gap:8px;color:var(--muted)}
+:root body.kerfi .lifes .lifi{color:var(--t-grn);flex:none}
+
+/* 7 Tákn í síum */
+:root body.kerfi #view :is(.uchip,.pdseg button,.pfseg button,.ulbar .seg button){display:inline-flex;align-items:center;gap:6px}
+:root body.kerfi #view :is(.uchip,.pdseg button,.pfseg button,.ulbar .seg button) .lifi{opacity:.7;flex:none}
+:root body.kerfi #view :is(.uchip.on,[aria-pressed=true],[aria-selected=true]) .lifi{opacity:1}
+
+/* 8 Mjúkur blár bjarmi – aðeins Heim og innskráning */
+:root body.kerfi.lifglow #view{background:radial-gradient(1100px 380px at 30% -120px,color-mix(in srgb,var(--kacc) 13%,transparent),transparent 70%) no-repeat}
+:root body.kerfi #login{background:radial-gradient(900px 520px at 50% -10%,color-mix(in srgb,var(--kacc) 18%,transparent),transparent 70%),var(--bg)}
+
+@media (prefers-reduced-motion:reduce){
+  :root body.kerfi .lifdot.on::after,:root body.kerfi #view .uklk.on>small:first-child::before,:root body.kerfi .life .lifart .a{animation:none}
+  :root body.kerfi .lifcol i,:root body.kerfi #view .lifin{animation:none}
+}
+
+/* Eldri stikur fá sama útlit (Vikan þín, áætlun verkefnis, nýting) */
+:root body.kerfi #view :is(.ubar,.pbar){height:10px!important;border-radius:5px!important;background:color-mix(in srgb,var(--ink) 8%,transparent)!important;overflow:hidden}
+:root body.kerfi #view :is(.ubar,.pbar) i{border-radius:5px;background:linear-gradient(90deg,color-mix(in srgb,var(--kacc) 65%,var(--surface)),var(--kacc))!important;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+:root body.kerfi #view .pbar:is(.warn,.amb,.nalg) i{background:var(--t-amb)!important}
+:root body.kerfi #view .pbar:is(.over,.red,.yfir) i{background:var(--t-red)!important}
+:root body.kerfi #view .uwkb i{background:color-mix(in srgb,var(--kacc) 30%,transparent)!important;border-radius:4px 4px 0 0}
+:root body.kerfi #view .uwkb i:is([style*="43, 49, 56"],[style*="2B3138"]){background:var(--kacc)!important}
+:root body.kerfi #view .lifk.liftx b{font-size:18px!important;font-weight:500!important}
+:root body.kerfi #view .uklk:not(.on) .uklr b{color:var(--ink)!important}
+:root body.kerfi #view .uklk:not(.on) .uklr .btn:not(.primary){color:var(--ink)!important;background:var(--surface)!important;border:1px solid var(--line)!important}
+:root body.kerfi #view .sdk.on .sdkt b.kt{color:var(--t-grn)!important;font-size:30px!important;font-weight:600!important;font-variant-numeric:tabular-nums}
+:root body.kerfi #view .sdk.on{border-color:color-mix(in srgb,var(--t-grn) 45%,var(--line))!important;box-shadow:inset 3px 0 0 var(--t-grn)!important}
+:root body.kerfi #view .sdk.on .sdl{color:var(--muted)!important}
