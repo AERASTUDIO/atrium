@@ -135,15 +135,16 @@
     return `<div class="sd"><div class="sdh"><h1>Leita</h1></div><label class="sdq">${ico("leit", 17)}<input type="search" id="simq" placeholder="Verkefni, pöntun, viðskiptavinur eða sími" value="${E(Q)}" autocomplete="off" enterkeyhint="search" aria-label="Leita"></label><div id="simres">${res}</div></div>`;
   }
   // Meira: allir hlutar flokkaðir eins og í tölvunni (Kjarni / Verkfæri / Tengingar), prófíll og stillingar neðst
-  const GRP = { heim: "", dagatal: "", timar: "", verkefni: "Kjarni", pantanir: "Kjarni", verkdag: "Kjarni", vidsk: "Kjarni", tilbod: "Verkfæri", bunadur: "Verkfæri", fjarmal: "Verkfæri", skjol: "Verkfæri", postur: "Samskipti", spjall: "Samskipti" };
+  const GRP = { heim: "", dagatal: "", timar: "", verkefni: "Starfsemi", pantanir: "Starfsemi", verkdag: "Starfsemi", bunadur: "Starfsemi", vidsk: "Viðskipti", tilbod: "Viðskipti", fjarmal: "Viðskipti", postur: "Samskipti", spjall: "Samskipti", skjol: "Samskipti" };
   function meiraHTML() {
     let c = {}; try { c = secCounts(); } catch (e) {}
     const S0 = secs().filter(x => x.k !== "meira" && x.k !== "heim" && !x.nobar && x.tabs.some(t => ok(t[0])));
+    if (window.secRank) { const rk = secRank(); S0.sort((a, b) => rk(a) - rk(b)); }
     const groups = [];
     S0.forEach(x => { const g = GRP[x.k] ?? "Annað"; let G = groups.find(y => y.g === g); if (!G) groups.push(G = { g, xs: [] }); G.xs.push(x); });
     const first = x => (x.tabs.find(t => !YF[t[0]] && ok(t[0])) || x.tabs[0])[0];
     const U = window.USER || {}, nm = U.nafn || (typeof starfName === "function" ? starfName(me()) : "") || me();
-    const rows = groups.map(G => `${G.g ? `<div class="sdsec">${E(G.g)}</div>` : ""}<section class="sdlist">${G.xs.map(x => `<div class="sdrow"><a class="sdmain sdnav" data-act="tab:${E(first(x))}" role="button" tabindex="0"><span class="sdico">${x.ic || ""}</span><span class="sdtx"><b>${E(x.l)}</b></span><span class="sdcnt">${E(c[x.k] || "")}</span>${ico("chev", 15)}</a></div>`).join("")}</section>`).join("");
+    const rows = groups.map(G => `${G.g && G.xs.length > 1 ? `<div class="sdsec">${E(G.g)}</div>` : ""}<section class="sdlist">${G.xs.map(x => `<div class="sdrow"><a class="sdmain sdnav" data-act="tab:${E(first(x))}" role="button" tabindex="0"><span class="sdico">${x.ic || ""}</span><span class="sdtx"><b>${E(x.l)}</b></span><span class="sdcnt">${E(c[x.k] || "")}</span>${ico("chev", 15)}</a></div>`).join("")}</section>`).join("");
     return `<div class="sd"><div class="sdh"><h1>Meira</h1></div>${rows}<div class="sdsec">Þú</div><section class="sdlist">
       <div class="sdrow"><div class="sdmain"><span class="sdav">${E(String(me() || "?").slice(0, 2))}</span><span class="sdtx"><b>${E(nm)}</b><small>${E(U.email || "")}</small></span></div></div>
       <div class="sdrow"><a class="sdmain sdnav" data-act="tab:stillingar" role="button" tabindex="0"><span class="sdtx"><b>Stillingar</b></span>${ico("chev", 15)}</a></div>
