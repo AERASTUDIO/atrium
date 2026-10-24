@@ -1,0 +1,118 @@
+/* Fágun (2.69.0) – útlit G: litir, áferð, texti, dýpt, tákn í spjöldum, stöðuflipar, númeramerki, gröf.
+   Hlaðið á eftir kerfi.css. Bil og stærðir koma úr kerfi.css og eru óbreytt.
+   Litapalletta Atrium gildir aðeins þar sem uppsetning hefur ekki eigið utlit.css (Sonik, Party.is halda sínum litum);
+   allir aðrir tónar eru leiddir af litum uppsetningarinnar. */
+body.kerfi{
+  --ink2:color-mix(in srgb,var(--ink) 70%,var(--muted)); --line2:color-mix(in srgb,var(--line),var(--ink) 9%);
+  --acc-soft:color-mix(in srgb,var(--kacc) 12%,var(--surface)); --field:color-mix(in srgb,var(--surface),var(--bg) 45%); --hover:color-mix(in srgb,var(--surface),var(--ink) 3%);
+  --amb-s:color-mix(in srgb,var(--t-amb) 13%,var(--surface)); --red-s:color-mix(in srgb,var(--t-red) 12%,var(--surface)); --grn-s:color-mix(in srgb,var(--t-grn) 13%,var(--surface)); --gry-s:color-mix(in srgb,var(--ink) 6%,var(--surface));
+  --e1:0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,.05); --e2:0 0 0 1px var(--line2), 0 8px 20px -8px rgba(0,0,0,.25); --hl:none;
+}
+html:not(:has(link[href$="/utlit.css"]))[data-theme="light"] body.kerfi{
+  --bg:#F2F4F6; --surface:#FFFFFF; --ink:#0F1720; --ink2:#3A4553; --muted:#6B7684; --line:#E3E7EB; --line2:#D2D8DE;
+  --kacc:#24578A; --on-kacc:#FFFFFF; --acc-soft:#EAF0F6; --field:#F8F9FA; --hover:#F6F8FA;
+  --t-red:#B13E36; --t-amb:#9C6410; --t-grn:#2C7A57; --t-blu:#24578A;
+  --e1:0 0 0 1px var(--line), 0 1px 2px rgba(15,23,32,.04);
+  --e2:0 0 0 1px var(--line2), 0 6px 16px -6px rgba(15,23,32,.12);
+  --hl:none; --sidebg:#141A21; --sideink:#C7CFD8; --sidemut:#7D8896;
+}
+html:not(:has(link[href$="/utlit.css"])):not([data-theme="light"]) body.kerfi{
+  --bg:#0D1014; --surface:#14191F; --ink:#E7ECF1; --ink2:#B6C0CB; --muted:#8792A0; --line:rgba(255,255,255,.065); --line2:rgba(255,255,255,.11);
+  --kacc:#7DAFE0; --on-kacc:#0D1014; --acc-soft:rgba(125,175,224,.10); --field:#0F1318; --hover:#181E25;
+  --t-red:#E58A80; --t-amb:#E0B060; --t-grn:#79C3A0; --t-blu:#7DAFE0;
+  --e1:0 0 0 1px var(--line), 0 1px 0 rgba(0,0,0,.4);
+  --e2:0 0 0 1px var(--line2), 0 10px 24px -8px rgba(0,0,0,.6);
+  --hl:inset 0 1px 0 rgba(255,255,255,.035); --sidebg:#0A0D10; --sideink:#C7CFD8; --sidemut:#6F7A87;
+}
+/* Grunnur: einlitur flötur með örfínni dýpt efst */
+html:root body.kerfi{background:var(--bg)!important}
+html:root body.kerfi #view{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,var(--bg)) 0,var(--bg) 260px) no-repeat}
+/* Dýpt 1: spjöld – hárlína + örskuggi, í dökku efri ljóskantur (áferð) */
+html:root body.kerfi #view :is(.card,.ucard,.ukp,.kp,.snjc,.dcard,.pdwrap){background:var(--surface)!important;border:0!important;box-shadow:var(--e1),var(--hl)!important;border-radius:12px!important;transition:box-shadow .18s var(--ease,ease)}
+/* Dýpt 2: þegar hægt er að smella lyftist spjaldið */
+html:root body.kerfi #view :is(.ukp.tap,.card[data-act],.ucard[data-act]):hover{box-shadow:var(--e2),var(--hl)!important}
+/* Innri raðir: hárlínur í stað kassa */
+html:root body.kerfi #view :is(.urow,.uln,.mrow){border-color:var(--line)!important}
+html:root body.kerfi #view :is(.urow,.uln,.mrow):hover{background:var(--hover)}
+/* Texti: þrjú stig – ink (aðal), ink2 (stuðningur), muted (merkimiðar) */
+html:root body.kerfi #view{color:var(--ink)}
+html:root body.kerfi #view :is(.urow .m,.ls,.ll small,.mt small,.uln small,.ucpr small,.uen){color:var(--ink2)!important}
+html:root body.kerfi #view :is(.uhch h3,.card h3,.ucard h3){font-size:15px!important;font-weight:500!important;letter-spacing:-.005em;color:var(--ink)!important}
+html:root body.kerfi #view :is(.ush,.ush2,.viewtitle,.sdsec,.ugrp,thead th,.dow){letter-spacing:.08em!important;color:var(--muted)!important}
+html:root body.kerfi #view .ptitle{letter-spacing:-.02em!important;color:var(--ink)!important}
+/* Tölur: grannar, jafnbreiðar, eining dauf */
+html:root body.kerfi #view :is(.ukp b,.kp b){font-weight:300!important;letter-spacing:-.025em;font-variant-numeric:tabular-nums;color:var(--ink)!important}
+html:root body.kerfi #view :is(.ukp small,.kp small,.ukp span,.kp span){color:var(--muted)!important;letter-spacing:.06em}
+html:root body.kerfi #view :is(td,.nr,.sdtm,.cday .n){font-variant-numeric:tabular-nums}
+/* Hreimlitur: einn blár, notaður sparlega */
+html:root body.kerfi #view :is(.uhch a,.ush a,.uhch .more){color:var(--kacc)!important;font-weight:500!important}
+html:root body.kerfi #view .urow a,html:root body.kerfi #view .urow .t{color:var(--ink)!important}
+html:root body.kerfi :is(#view,#sheetwrap) .btn.primary{background:var(--kacc)!important;border-color:transparent!important;color:var(--on-kacc,#fff)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 1px 2px rgba(15,23,32,.18)!important}
+html:root body.kerfi :is(#view,#sheetwrap) .btn:not(.primary):not(.pnew){background:var(--surface)!important;border-color:var(--line2)!important;box-shadow:0 1px 1px rgba(15,23,32,.04)}
+html:root body.kerfi :is(#view,#sheetwrap) :is(.chipbtn[aria-pressed="true"],.seg button[aria-pressed="true"]){background:var(--acc-soft)!important;color:var(--kacc)!important;border-color:color-mix(in srgb,var(--kacc) 35%,transparent)!important}
+/* Reitir: ívið dekkri flötur, skýr fókus */
+html:root body.kerfi #sheetwrap :is(input,select,textarea):not([type=checkbox]):not([type=radio]){background:var(--field)!important;border-color:var(--line2)!important}
+html:root body.kerfi :is(#view,#sheetwrap) :is(input,select,textarea):focus{outline:none!important;border-color:var(--kacc)!important;box-shadow:0 0 0 3px var(--acc-soft)!important}
+html:root body.kerfi #view select:not(.mini){color:var(--ink)!important}
+/* Staða: punktur + daufur texti í sama lit */
+html:root body.kerfi #view .t-red{color:var(--t-red)!important} html:root body.kerfi #view .t-amb{color:var(--t-amb)!important} html:root body.kerfi #view .t-grn{color:var(--t-grn)!important}
+/* Framvindustikur: þunnar, ávalar, hreimlitur */
+html:root body.kerfi #view :is(.ubar,.pbar,.prog){height:4px!important;border-radius:2px!important;background:var(--line)!important;overflow:hidden}
+html:root body.kerfi #view :is(.ubar,.pbar,.prog) > *{background:var(--kacc)!important;border-radius:2px}
+/* ---- Tákn í fyrirsögnum spjalda (karakter + fylling) ---- */
+.gic{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--acc-soft);color:var(--kacc);flex:none;margin-right:12px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--kacc) 14%,transparent)}
+.gic svg{width:16px;height:16px;stroke-width:1.8}
+.gic.r{background:var(--red-s);color:var(--t-red);box-shadow:none}.gic.a{background:var(--amb-s);color:var(--t-amb);box-shadow:none}.gic.g{background:var(--grn-s);color:var(--t-grn);box-shadow:none}
+html:root body.kerfi #view .uhch h3{display:flex!important;align-items:center}
+html:root body.kerfi #view .ukps > :is(.ukp,.kp):not(:has(.gic)) b{font-size:26px!important}
+html:root body.kerfi #view .ucard > .uhch{padding-bottom:14px!important;border-bottom:1px solid var(--line);margin:0 0 4px!important}
+/* ---- KPI: tákn, stór tala, lína í hreimlit ---- */
+html:root body.kerfi #view .ukps > .ukp{position:relative;display:grid!important;grid-template-columns:1fr auto;grid-template-rows:auto auto;align-items:start;overflow:hidden}
+html:root body.kerfi #view .ukps > .ukp small{grid-column:1;text-transform:none!important;letter-spacing:0!important;font-size:13px!important;color:var(--muted)!important}
+html:root body.kerfi #view .ukps > .ukp b{grid-column:1;font-size:34px!important;font-weight:300!important;margin-top:6px}
+html:root body.kerfi #view .ukps > .ukp .gic{grid-column:2;grid-row:1/3;margin:0;width:36px;height:36px;border-radius:10px}
+html:root body.kerfi #view .ukps > .ukp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--kacc),transparent 70%);opacity:.0;transition:opacity .2s}
+html:root body.kerfi #view .ukps > .ukp:hover::after{opacity:.9}
+/* ---- Raðir: númer í merki, staða sem litaður flipi ---- */
+.gnr{display:inline-block;font-size:11.5px;font-weight:500;letter-spacing:.02em;color:var(--muted);background:var(--gry-s);border-radius:6px;padding:2px 7px;margin-right:8px;vertical-align:1px;font-variant-numeric:tabular-nums}
+html:root body.kerfi #view .uhrow{transition:background .15s}
+html:root body.kerfi #view .uhrow:hover{background:var(--hover)}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill{display:inline-flex;align-items:center;gap:6px;border-radius:999px!important;padding:3px 10px!important;font-size:12px!important;font-weight:500!important;background:var(--gry-s)!important;color:var(--ink2)!important;border:0!important}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill::before{content:"";position:static!important;margin:0!important;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill.t-blu{background:var(--acc-soft)!important;color:var(--kacc)!important}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill.t-amb{background:var(--amb-s)!important;color:var(--t-amb)!important}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill.t-red{background:var(--red-s)!important;color:var(--t-red)!important}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill.t-grn{background:var(--grn-s)!important;color:var(--t-grn)!important}
+/* ---- Gröf: ávalar súlur með litaskala, framvinda í hreimlit ---- */
+html:root body.kerfi #view .uwkb i{background:linear-gradient(180deg,var(--kacc),color-mix(in srgb,var(--kacc) 70%,var(--surface)))!important;border-radius:6px 6px 3px 3px!important}
+html:root body.kerfi #view .uwkb span{color:var(--muted)}
+html:root body.kerfi #view .ubar{height:6px!important;border-radius:3px!important;background:var(--gry-s)!important}
+html:root body.kerfi #view .ubar i{background:linear-gradient(90deg,color-mix(in srgb,var(--kacc) 60%,#fff),var(--kacc))!important;border-radius:3px}
+html:root body.kerfi #view .uwk b{font-size:34px!important;font-weight:300!important}
+/* 7 dagar: dagur sem spjald, í dag með hreimlit */
+html:root body.kerfi #view .pdsd{border-radius:10px!important;border:1px solid var(--line)!important;background:var(--surface)!important;transition:border-color .15s,box-shadow .15s}
+html:root body.kerfi #view .pdsd:hover{border-color:var(--line2)!important;box-shadow:var(--e2)}
+html:root body.kerfi #view .pdsd.today{border-color:transparent!important;background:var(--acc-soft)!important;box-shadow:inset 0 0 0 1.5px var(--kacc)!important}
+html:root body.kerfi #view .pdsd.today span{color:var(--kacc)!important;font-weight:500}
+html:root body.kerfi #view .uhead .ptitle{font-weight:300!important;font-size:28px!important}
+/* ---- Hnappar og reitir ---- */
+html:root body.kerfi :is(#view,#sheetwrap) .btn{border-radius:9px!important;font-weight:500!important}
+html:root body.kerfi :is(#view,#sheetwrap) .btn.primary{background:linear-gradient(180deg,color-mix(in srgb,var(--kacc) 82%,#fff),var(--kacc))!important}
+html:root body.kerfi :is(#view,#sheetwrap) :is(input,select,textarea):not([type=checkbox]):not([type=radio]){border-radius:9px!important}
+html:root body.kerfi #view select:not(.mini){background-color:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--line2)!important}
+/* ---- Vinstri stika ---- */
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side{background:var(--sidebg)!important;border-right:0!important;box-shadow:inset -1px 0 0 rgba(255,255,255,.05)}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab{color:var(--sideink)!important;border-radius:9px!important}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab svg{opacity:.65}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab:hover{background:rgba(255,255,255,.04)!important}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab[aria-current="page"]{background:linear-gradient(90deg,rgba(125,175,224,.20),rgba(125,175,224,.06))!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(125,175,224,.18)!important}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab[aria-current="page"] svg{opacity:1;color:#9CC4EC}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side :has(> input){background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:9px!important}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side input{background:transparent!important;border:0!important;box-shadow:none!important}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .new{background:linear-gradient(180deg,#3A74AE,#24578A)!important;color:#fff!important;border:0!important;border-radius:10px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 6px 16px -8px rgba(36,87,138,.9)!important}
+html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .new svg{color:#fff!important}
+html:root body.kerfi #view .uhch h3 :is(.ucnt,.m){margin-left:8px;font-size:12px;font-weight:500;color:var(--muted);background:var(--gry-s);border-radius:999px;padding:1px 8px}
+html:root body.kerfi #view .usvc > *{position:relative}
+html:root body.kerfi #view .usvc > * .gic{position:absolute;right:20px;top:20px;margin:0;width:36px;height:36px;border-radius:10px}
+html:root body.kerfi #view .usvc > * b{font-size:34px!important;font-weight:300!important}
+@media (max-width:1023px){html:root body.kerfi #view{background:none}}
