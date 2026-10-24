@@ -21,7 +21,7 @@
   }
   if (V && !V.tabs.some(t => t[0] === "tverk")) { const i = V.tabs.findIndex(t => t[0] === "sverk"); V.tabs.splice(i >= 0 ? i + 1 : 1, 0, ["tverk", "Þjónusta"]); }
   if (P) P.tabs = [["pantanir", "Allar"], ["pnl", "Leiga"], ["pns", "Sala"], ["pnt", "Þjónusta"]];
-  if (T) { const i = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i >= 0) T.tabs.splice(i, 1, ["ltilbod", "Öll tilboð"], ["tbl", "Leiga"], ["tbs", "Sala"], ["tbt", "Þjónusta"]); }
+  if (T) { const i = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i >= 0) T.tabs.splice(i, 1, ["ltilbod", "Öll tilboð"], ["tbl", "Leiga", 2], ["tbs", "Sala", 2], ["tbt", "Þjónusta", 2]); }
   if (B) B.tabs.unshift(["vyfir", "Yfirlit"]);
   Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { tbl: ["tilbod", "leiga"], tbs: ["tilbod", "sala"], tbt: "tilbod", vyfir: "bunadur", tverk: "verkefni", pnl: ["pantanir", "leiga"], pns: ["pantanir", "sala"], pnt: "pantanir" });
   if (TI) TI.tabs = TI.tabs.map(t => t[0] === "timar" ? ["timar", "Vikan"] : t);
@@ -33,7 +33,8 @@
   // Yfirlit fremst; listar flokkaðir eftir sviðum (Leiga · Sala · Þjónusta) – „Öll/Allar“ falið en virkar áfram sem tenglar
   const hide = (S0, k) => { const t = S0?.tabs.find(x => x[0] === k); if (t) t[2] = 1; };
   if (V) { hide(V, "verk"); V.tabs.unshift(["verkyf", "Yfirlit"]); }
-  if (C) C.tabs = [["vskyf", "Yfirlit"], ["vsk", "Viðskiptavinir", 1], ["vskl", "Leiga"], ["vsks", "Sala"], ["vskt", "Þjónusta"]];
+  // 2.69.1: svið eru ekki sér flipar í stikunni (2 = falið í stiku) – listinn síast eftir sviði með flögum efst
+  if (C) C.tabs = [["vskyf", "Yfirlit"], ["vsk", "Viðskiptavinir"], ["vskl", "Leiga", 2], ["vsks", "Sala", 2], ["vskt", "Þjónusta", 2]];
   if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); }
   // Verkdagatal (2.68.0): eitt sameiginlegt dagatal í Kjarna – verkefni, pantanir og búnaður (pantanir2.js) – aðskilið persónulega Dagatalinu
   if (!by("verkdag")) { const VD = { k: "verkdag", l: "Verkdagatal", ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h6M10 16.5h7"/></svg>', tabs: [["pndag", "Verkdagatal"]] };
@@ -48,7 +49,7 @@
     return x => { const i = ORD.indexOf(x.k); return i < 0 ? (x.k === "meira" ? 999 : 500) : i; }; };
   { const r = secRank(), sorted = SECTIONS_ALL.slice().sort((x, y) => r(x) - r(y)); SECTIONS_ALL.length = 0; sorted.forEach(x => SECTIONS_ALL.push(x)); }
   window.secRank = secRank;
-  if (T) { hide(T, "ltilbod"); T.tabs.unshift(["tbyf", "Yfirlit"]); }
+  if (T) T.tabs.unshift(["tbyf", "Yfirlit"]); // 2.69.1: „Öll tilboð“ sýnilegt í stiku – svið síuð með flögum
   if (TI) TI.tabs.unshift(["timyf", "Yfirlit"]);
   Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: "verkefni", tbyf: "tilbod", timyf: "timar" });
   _einSig = null; applyEin();
@@ -78,7 +79,7 @@
       h += `<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${esc(x.l)}</span></button>`;
       const vis = x.tabs.filter(t => !t[2]);
       if (on && vis.length > 1) {
-        const act = vis.some(t => t[0] === tab) ? tab : vis[0][0];
+        const act = vis.some(t => t[0] === tab) ? tab : x.tabs.some(t => t[0] === tab && t[2] === 2) ? (vis.find(t => t[0] === "vsk" || t[0] === "ltilbod") || vis[0])[0] : vis[0][0];
         h += `<div class="tsubs">${vis.map(([k, l]) => `<button type="button" class="tab tsub" data-tab="${k}"${k === act ? ' aria-current="true"' : ""}>${esc(["Leiga", "Sala", "Þjónusta"].includes(l) && window.svidHeiti ? svidHeiti(l) : l)}</button>`).join("")}</div>`;
       }
     });
@@ -93,6 +94,7 @@
   const COL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
   const PH = { verkefni: "verkefni", vsk: "viðskiptavini", vidsk: "viðskiptavini", tilbod: "tilboð", pantanir: "pantanir", lvorur: "búnað", svorur: "vörur", vvinna: "þjónustu", fundir: "fundi", tfaer: "færslur", trk: "reikninga", fjarmal: "reikninga", undir: "undirverk", heim: "lista" };
   let full = false, flt = "", DETAIL_K = null, fltTab = "";
+  const ALLSV = { vsk: "Allir", ltilbod: "Öll" };
   const SPH = { verkefni: "heiti eða verknr.", vsk: "nafni eða tengilið", vidsk: "nafni eða tengilið", tilbod: "heiti, nr. eða viðskiptavini", pantanir: "heiti, nr. eða viðskiptavini", lvorur: "heiti eða vnr.", svorur: "heiti eða vnr.", vvinna: "heiti eða vnr.", bunadur: "heiti eða vnr.", fundir: "heiti fundar", tfaer: "lýsingu eða verknr.", timar: "lýsingu eða verknr.", trk: "nafni eða nr.", fjarmal: "nafni eða nr.", heim: "heiti", postur: "sendanda eða efni" };
   const _render = window.render || render;
   function renderI() {
@@ -145,6 +147,11 @@
     const sl = v.querySelector(".splist"), ph = sl.querySelector(".phead");
     // Síuflipar inn í gráa hausinn (eins og á útlitsborðinu) og flýtilyklar neðst
     if (ph) { const lb = sl.querySelector(":scope > .ulbar"); if (lb) ph.append(lb); }
+    // Svið sem flögur efst í listanum (2.69.1): Allir · Leiga · Sala · Þjónusta í stað sér flipa í stikunni
+    { const s = secOf(tab), sv = s.tabs.filter(t => t[2] === 2 && (!window.tabOn || tabOn(t[0])));
+      if (ph && sv.length && s.tabs.some(t => t[0] === tab && (t[2] === 2 || ALLSV[t[0]]))) { const all = s.tabs.find(t => ALLSV[t[0]]);
+        const bs = [[all[0], ALLSV[all[0]]], ...sv.map(t => [t[0], window.svidHeiti ? svidHeiti(t[1]) : t[1]])];
+        ph.insertAdjacentHTML("beforeend", `<div class="ulbar usvbar" role="tablist" aria-label="Svið">${bs.map(([k, l]) => `<button type="button" role="tab" class="uchip${k === tab ? " on" : ""}" aria-selected="${k === tab}" data-act="tab:${k}">${esc(l)}</button>`).join("")}</div>`); } }
     if (!sl.querySelector(".spfoot")) sl.insertAdjacentHTML("beforeend", `<div class="spfoot">/ sía · ↑↓ fletta · Enter opna · N nýtt</div>`);
     if (tab === "postur") { if (DETAIL) { sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel"); fixDet(v.querySelector(".spdet")); } return; }
     if (fltTab !== tab) { flt = ""; window.u1Q = ""; fltTab = tab; }

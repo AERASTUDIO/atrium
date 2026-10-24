@@ -29,7 +29,7 @@
   function secChips() {
     const v = document.getElementById("view"); if (!v || det()) return;
     const s = secs().find(x => x.tabs.some(t => t[0] === cur())); if (!s || s.k === "heim" || s.k === "meira" || cur() === "stillingar") return;
-    const list = s.tabs.filter(t => !YF[t[0]] && ok(t[0]) && (!t[2] || ALLL[t[0]] || t[0] === cur()));
+    const list = s.tabs.filter(t => !YF[t[0]] && ok(t[0]) && (!t[2] || t[2] === 2 || ALLL[t[0]] || t[0] === cur()));
     if (list.length < 2) return;
     const host = v.querySelector(".splist .phead") || v.querySelector(".phead"); if (!host || host.querySelector(".simsub")) return;
     const lab = t => ALLL[t[0]] || (["Leiga", "Sala", "Þjónusta"].includes(t[1]) && window.svidHeiti ? svidHeiti(t[1]) : t[1]);

@@ -792,7 +792,8 @@
   /* ---------- Yfirlit hluta (Verkefni, Viðskiptavinir, Pantanir, Tilboð, Tímar) og viðskiptavinir eftir sviðum ---------- */
   const SV = ["Leiga", "Sala", "Þjónusta"], SVT = { Leiga: "leiga", Sala: "sala", "Þjónusta": "vinna" }, svH = x => window.svidHeiti ? svidHeiti(x) : x;
   const go = (t, k) => `data-act="u1go:${t}:${E(k || "")}" role="button" tabindex="0"`;
-  const kp4 = arr => `<div class="ukps k4">${arr.map(([l, v]) => `<div class="ukp"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`;
+  // 2.69.1: þriðja stak = aðgerð (t.d. "ltilbod:opin") – reiturinn opnar listann síaðan, eins og í Pöntunum
+  const kp4 = arr => `<div class="ukps k4">${arr.map(([l, v, a]) => a ? `<div class="ukp tap" data-act="u1kpf:${a}" role="button" tabindex="0" title="Sýna lista"><small>${E(l)}</small><b>${v}</b></div>` : `<div class="ukp"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`;
   const dcard = (title, rows, more, empty) => `<section class="card ucard uhc"><div class="uhch"><h3>${E(title)}</h3>${more ? `<a href="#" data-act="tab:${more}">Sjá allt →</a>` : ""}</div>${rows.length ? rows.slice(0, 6).join("") : `<div class="usub" style="padding:10px 0">${E(empty || "Ekkert hér.")}</div>`}</section>`;
   const drow = (attr, a, b, pl, dark) => `<a class="uhrow" ${attr}><span><b>${a}</b><small>${b || ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
   const svCards = (items, tabs, lab) => `<div class="usvc">${SV.filter(x => svidOn(x)).map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`;
@@ -834,7 +835,7 @@
     const act = L.filter(c => verkefni().some(p => p.vskId === c.id && !isDone(p))), none = L.filter(c => !vskSvid(c).size);
     const top = L.map(c => ({ c, r: rev(c) })).filter(x => x.r).sort((a, b) => b.r - a.r), tot = top.reduce((a, x) => a + x.r, 0);
     const nyj = L.slice().sort((a, b) => String(b.stofnad || b.id).localeCompare(String(a.stofnad || a.id))).slice(0, 6);
-    return head("Viðskiptavinir", "Yfirlit", nbtn("Viðskiptavinur")) + kp4([["Viðskiptavinir", L.length], ["Með opin verkefni", act.length], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–"], ["Án viðskipta", none.length]])
+    return head("Viðskiptavinir", "Yfirlit", nbtn("Viðskiptavinur")) + kp4([["Viðskiptavinir", L.length, "vsk:"], ["Með opin verkefni", act.length, "vsk:opin"], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–"], ["Án viðskipta", none.length]])
       + svCards(x => { const n = L.filter(c => vskSvid(c).has(x)).length; return { n, t: "viðskiptavinir" }; }, { Leiga: "vskl", Sala: "vsks", "Þjónusta": "vskt" })
       + `<div class="udash">${dcard("Stærstu viðskiptavinir · 12 mán.", top.map(({ c, r }) => drow(go("vskt", "vsk:" + c.id), E(c.name), E(kr(r)), Math.round(r / Math.max(1, tot) * 100) + " %")), "", "Engin samþykkt tilboð síðustu 12 mánuði.")}`
       + dcard("Með opin verkefni", act.map(c => { const n = verkefni().filter(p => p.vskId === c.id && !isDone(p)).length; return drow(go("vskt", "vsk:" + c.id), E(c.name), E(c.tengilidur || ""), n + " verkefni"); }), "", "Enginn með opin verkefni.")
@@ -859,7 +860,7 @@
     const all = api.TB(), open = all.filter(T => ["Drög", "Sent"].includes(T.stada)), d90 = all.filter(T => daysTo(T.dags) >= -90);
     const won = d90.filter(T => T.stada === "Samþykkt"), lost = d90.filter(T => T.stada === "Hafnað"), rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) + " %" : "–";
     const wait = all.filter(T => T.stada === "Sent").sort((a, b) => String(a.sent || a.dags).localeCompare(String(b.sent || b.dags))), drog = all.filter(T => T.stada === "Drög");
-    return head("Tilboð", "Yfirlit", nbtn("Tilboð")) + kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0))], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0))], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", wait.filter(T => daysTo(T.sent || T.dags) <= -7).length]])
+    return head("Tilboð", "Yfirlit", nbtn("Tilboð")) + kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:samth"], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", wait.filter(T => daysTo(T.sent || T.dags) <= -7).length, "ltilbod:opin"]])
       + svCards(x => { const xs = open.filter(T => hasTeg(T, x)); return { n: xs.length, t: "opin tilboð · " + mkr(xs.reduce((a, T) => a + tbSum(T), 0)) }; }, { Leiga: "tbl", Sala: "tbs", "Þjónusta": "tbt" })
       + `<div class="udash">${dcard("Bíða svars", wait.map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E((T.vidskiptavinur || "") + " · sent " + fmtD(T.sent || T.dags)), kr(tbSum(T)), daysTo(T.sent || T.dags) <= -7)), "ltilbod", "Ekkert bíður svars.")}`
       + dcard("Drög", drog.map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)))), "ltilbod", "Engin drög.")
@@ -1027,6 +1028,7 @@
       if (k === "u1rk") { const [id, did] = r; rukka(id, did); return; }
       if (k === "u1rkp") { const [pc] = r, b = +document.getElementById("rk-base")?.value || 0, el = document.getElementById("rk-upp"); if (el) el.value = Math.round(b * (+pc) / 100 / 100) * 100; return; }
       if (k === "u1day") { st.day = v && v !== st.day ? v : null; render(); return; }
+      if (k === "u1kpf") { const [t2, f2] = String(v || "").split(":"); const vk = { vsk: "vsk", ltilbod: "ltilbod" }[t2] || t2; st.vf[vk] = f2 || ""; tab = t2; DETAIL = null; window.STSUB = null; render(); return; }
       if (k === "u1pnf") { st.vf.pn = v || "opnar"; tab = "pantanir"; DETAIL = null; window.STSUB = null; render(); return; }
       if (k === "u1vf") { const [key, val] = [r[0], r.slice(1).join(":")]; st.vf[key] = val; render(); return; }
       if (k === "u1mv") { const p = findProj(v), ids = new Set([...st.sel].filter(x => x.startsWith("time:")).map(x => x.slice(5))), kids = new Set([...st.sel].filter(x => x.startsWith("kostn:")).map(x => x.slice(6)));
