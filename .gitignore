@@ -5,3 +5,4 @@
 .firebaserc
 !.firebaserc
 functions/node_modules/
+__pycache__/
