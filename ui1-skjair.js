@@ -1008,11 +1008,17 @@
       chips: [["7", "7 dagar · " + w7.length], ["Fundur", "Fundir"], ["Skil", "Skil"], ["Afhending", "Afhendingar"], ["", "14 dagar · " + xs.length]],
       flt: (it, f) => f === "7" ? daysTo(it.date) <= 7 : it.pill === f || it.k === f,
       row: it => `<div class="urow uh" ${att(it)}><span class="m">${E(fmtD(it.date))}</span><span class="t">${E(it.title)}${it.sub ? `<span class="m"> · ${E(it.sub.replace(/^(Fundur|Skil[^·]*|Afhending) · ?/, ""))}</span>` : ""}</span><span class="m">${E(it.time || "")}</span><span class="r">${pill(it.pill)}</span></div>` }); };
+  // 2.88.8: tími tilkynningar – í dag: kl. 21:40 · í gær: Í gær kl. 18:15 · annars dagsetning
+  const tkWhen = v => { if (!v) return ""; const s0 = String(v), x = new Date(s0.length <= 10 ? s0 + "T12:00:00" : s0); if (isNaN(x)) return "";
+    const t0 = new Date(); t0.setHours(0, 0, 0, 0); const dd = Math.round((new Date(x.getFullYear(), x.getMonth(), x.getDate()) - t0) / 864e5), hasT = s0.length > 10;
+    const kl = hasT ? "kl. " + String(x.getHours()).padStart(2, "0") + ":" + String(x.getMinutes()).padStart(2, "0") : "";
+    if (dd === 0) return kl || "Í dag"; if (dd === -1) return "Í gær" + (kl ? " " + kl : ""); return fmtD(s0.slice(0, 10)); };
+  window.tkWhen = tkWhen;
   U.hnyl = () => { const xs = tilkItems(), un = xs.filter(x => !u1Seen(x));
     return hlist("Tilkynningar", xs, [], "hnyl", { def: "unread", btn: `<button type="button" class="btn primary" onclick="u1MarkSeen()">Merkja lesið</button>`, cols: ["Uppruni", "Frá · Efni", "Tími", ""],
       chips: [["unread", "Ólesið · " + un.length], ...[...new Set(xs.map(x => x.k))].map(c => [c, c]), ["", "Allt · " + xs.length]],
       flt: (it, f) => f === "unread" ? !u1Seen(it) : it.k === f,
-      row: it => `<div class="urow uh" ${att(it)}><span class="m">${E(it.k)}</span><span class="t">${E(it.title)}${it.sub ? `<span class="m"> · ${E(it.sub)}</span>` : ""}</span><span class="m">${E(it.date ? fmtD(it.date) : "")}</span><span class="r">${pill(u1Seen(it) ? "Lesið" : "Nýtt", !u1Seen(it))}</span></div>` }); };
+      row: it => `<div class="urow uh" ${att(it)}><span class="m">${E(it.k)}</span><span class="t">${E(it.title)}${it.sub ? `<span class="m"> · ${E(it.sub)}</span>` : ""}</span><span class="m">${E(tkWhen(it.date))}</span><span class="r">${pill(u1Seen(it) ? "Lesið" : "Nýtt", !u1Seen(it))}</span></div>` }); };
 
   /* ---------- aðgerðir ---------- */
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, {
