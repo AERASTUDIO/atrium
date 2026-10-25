@@ -206,7 +206,11 @@
   const payOk = P => !P || hattur(P) !== "stadgreitt" || !!P.greitt;
   function payHTML(P) {
     const h = hattur(P), g = P.greitt, canEd = ed() && P.stada !== "Lokið";
-    if (h !== "stadgreitt") return `<section class="pfsec pfpay"><div class="pfsh"><b>Greiðsla</b><span>Í reikning${P.vskId ? "" : ""}</span>${canEd ? `<button type="button" class="pflink" data-pf="payh:${E(P.id)}:stadgreitt">Breyta í staðgreiðslu</button>` : ""}</div></section>`;
+    if (h !== "stadgreitt") { // 2.89.0: reikningur úr pöntuninni
+      const R = P.reikningur && window.rkFind ? rkFind(P.reikningur) : null, fj = tr(() => can("fjarmal"), false), dn = ["Afhent", "Skilað", "Lokið"].includes(P.stada);
+      const st = P.reikningur === "utan" ? `<span class="m">Reikningsfært utan Atrium</span>` : R ? `<span class="${R.stada === "Greitt" ? "t-grn" : "t-amb"}">Reikningur ${E(String(R.nr))} · ${E(R.stada === "Greitt" ? "Greitt" : "Ógreitt")}</span>` : `<span class="${dn ? "t-amb" : "m"}">Í reikning · ${dn ? "reikningur ekki gerður" : "reikningur eftir afhendingu"}</span>`;
+      const bt = P.reikningur === "utan" ? (fj ? `<button type="button" class="pflink" data-pf="rkut0:${E(P.id)}">Afturkalla</button>` : "") : R ? `<button type="button" class="pflink" data-open="reikn:${E(R.id)}">Opna reikning</button>` : dn && fj && P.vskId ? `<button type="button" class="btn sm primary" data-act="rkpn:${E(P.id)}">Búa til reikning</button>` : canEd ? `<button type="button" class="pflink" data-pf="payh:${E(P.id)}:stadgreitt">Breyta í staðgreiðslu</button>` : "";
+      return `<section class="pfsec pfpay${R ? (R.stada === "Greitt" ? " ok" : "") : dn ? " due" : ""}"><div class="pfsh"><b>Greiðsla</b>${st}${bt}</div>${!R && dn && !P.vskId ? `<p class="pfhint">Veldu viðskiptavin á pöntunina til að geta gert reikning.</p>` : ""}</section>`; }
     return `<section class="pfsec pfpay ${g ? "ok" : "due"}"><div class="pfsh"><b>Greiðsla</b>${g ? `<span class="t-grn">✓ Greitt ${E(krI(g.upphaed))} · ${E(LEID(g.leid))} · ${E(dfmt(g.dags))} kl. ${E(String(g.dags).slice(11, 16))}${g.nafn ? " · " + E(g.nafn) : ""}</span>` : `<span class="t-amb">Staðgreitt – ógreitt · ${E(krI(totOf(P)))} með VSK</span>`}
       ${canEd ? (g ? `<button type="button" class="pflink" data-pf="payx:${E(P.id)}">Afturkalla</button>` : `<button type="button" class="btn sm primary" data-pf="pay:${E(P.id)}">Skrá greiðslu</button>`) : ""}</div>
       ${!g && ["Ný", "Staðfest"].includes(P.stada) ? `<p class="pfhint">Viðskiptavinurinn er ekki í reikning – skrá þarf greiðslu áður en pöntunin er afhent.${canEd && P.vskId ? ` <button type="button" class="pflink" data-pf="payh:${E(P.id)}:reikningur">Setja í reikning</button>` : ""}</p>` : ""}</section>`;
@@ -687,6 +691,7 @@
     if (op === "pay") return payAsk(id);
     if (op === "payx") { if (!confirm("Afturkalla skráða greiðslu?")) return; return savePN(id, P => { delete P.greitt; }).then(() => { toast("Greiðsla afturkölluð"); render(); }); }
     if (op === "payh") return savePN(id, P => { P.greidsluhattur = a; }).then(() => render());
+    if (op === "rkut0") return savePN(id, P => { delete P.reikningur; }).then(() => render());
     if (op === "pub") return pubCreate(id);
     if (op === "pubrev") return pubRevoke(id);
     if (op === "pubmail") { const P = findP(id); if (P?.opinber) return mailConfirm(P.opinber, id, true); return; }

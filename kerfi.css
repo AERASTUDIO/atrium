@@ -994,3 +994,13 @@ body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-
   :root body.kerfi #view .usum{padding:18px 22px;margin-bottom:14px}
   :root body.kerfi #view .usum .ubar{height:8px}
 }
+/* 2.89.0 Reikningur úr pöntunum */
+.rkpm .rkpl{display:flex;flex-direction:column;gap:6px}
+.rkpm label.rkpr{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-weight:400!important;color:var(--ink)!important;cursor:pointer}
+.rkpm label.rkpr input{width:18px!important;height:18px;flex:none;margin:0}
+.rkpm label.rkpr>span{flex:1;min-width:0;display:flex;flex-direction:column}.rkpm label.rkpr small{color:var(--muted);font-size:12px}
+.rkpm .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rkpm label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:8px}
+.rkpm label input:not([type=checkbox]){padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:400;color:var(--ink)}
+.rkpm .rkpsum{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--ui1soft,#f6f8fb)}.rkpm .rkpsum .sub-i{display:flex;justify-content:space-between;padding:3px 0}
+.inv-tab tr.inv-hd td{background:#f3f5f8;padding-top:8px}
+#view .utbr.uhd{background:var(--ui1soft,#f6f8fb)}

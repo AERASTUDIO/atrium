@@ -37,17 +37,81 @@
   window.rkOinnheimt = () => {
     const gs = openGroups().map(g => ({ ...g, h: sumT(g.es), kr: esKr(g.es, rate(g.p)) + sumK(g.ks) })).sort((a, b) => b.kr - a.kr);
     const og = reikningar().filter(r => r.stada !== "Greitt" && r.stada !== "Ógilt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
-    const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ub = gs.reduce((a, g) => a + g.kr, 0);
-    return { gs, ub, og, ogKr: sum(og), late, lateKr: sum(late), tot: ub + sum(og), h: gs.reduce((a, g) => a + g.h, 0) };
+    const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), pn = ordersToBill(), pnKr = pn.reduce((a, P) => a + pnNet(P), 0), ub = gs.reduce((a, g) => a + g.kr, 0) + pnKr;
+    return { gs, ub, og, ogKr: sum(og), late, lateKr: sum(late), tot: ub + sum(og), h: gs.reduce((a, g) => a + g.h, 0), pn, pnKr };
   };
   window.rkOinnheimtCard = (full) => {
     const o = rkOinnheimt(); if (!o.tot && !full) return "";
     return `<div class="chart"><div class="chh4"><b>Óinnheimt</b><span>${esc(kr(o.tot))} alls</span></div>
-      <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ub))}</b><span>óreikningsfært · ${esc(num(Math.round(o.h * 10) / 10))} klst.</span></a><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ogKr))}</b><span>ógreiddir reikningar · ${o.og.length}</span></a>${o.late.length ? `<a class="tap late" data-act="tab:trk"><b>${esc(kr(o.lateKr))}</b><span>fram yfir gjalddaga</span></a>` : ""}</div>
+      <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ub))}</b><span>óreikningsfært · ${esc(num(Math.round(o.h * 10) / 10))} klst.${o.pn.length ? " · " + o.pn.length + (o.pn.length === 1 ? " pöntun" : " pantanir") : ""}</span></a><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ogKr))}</b><span>ógreiddir reikningar · ${o.og.length}</span></a>${o.late.length ? `<a class="tap late" data-act="tab:trk"><b>${esc(kr(o.lateKr))}</b><span>fram yfir gjalddaga</span></a>` : ""}</div>
       ${o.gs.length ? `<div class="chh" style="margin-top:12px">${o.gs.slice(0, full ? 50 : 5).map(g => { const mx = o.gs[0].kr || 1; return `<a class="chr tap" ${g.p ? `data-open="verk:${esc(g.p.id)}"` : `data-act="tab:trk"`}><span class="chrl">${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt || "")}` : "Almennt"}</span><span class="chrb"><i style="width:${Math.max(2, Math.round(g.kr / mx * 100))}%"></i></span><span class="chrv">${esc(kr(g.kr))}</span></a>`; }).join("")}</div>` : ""}
       <p class="hint" style="margin:10px 0 0">Óreikningsfært er reiknað með tímagjaldi úr verðskrá, án VSK. Ógreiddir reikningar eru með VSK.</p></div>`;
   };
   window.rkFind = findR;
+
+  /* ---------- Reikningar úr pöntunum (2.89.0) ----------
+     Pöntun viðskiptavinar í reikningi (ekki staðgreiðslu) sem hefur verið afhent fær reikning beint úr línunum sínum
+     (leiga, sala, þjónusta, aukagjöld úr skilauppgjöri, afsláttur). R.pontunIds tengir; P.reikningur = id reiknings. */
+  const PNs = () => (window.salaAPI?.PN?.() || []);
+  const hattur = P => { const c = P.vskId ? findVsk(P.vskId) : null; return P.greidsluhattur || (c ? (c.greidsla || "reikningur") : "stadgreitt"); };
+  const pnBillable = P => P && P.pontun !== false && !P.reikningur && !P.greitt && hattur(P) === "reikningur" && ["Afhent", "Skilað", "Lokið"].includes(P.stada) && (P.linur || []).length;
+  const ordersToBill = () => PNs().filter(pnBillable).sort((a, b) => String(a.fra || a.dags || "").localeCompare(String(b.fra || b.dags || "")));
+  const pnNet = P => { try { return window.salaAPI.totals(P).net; } catch (e) { return 0; } };
+  window.rkOrders = ordersToBill; window.rkPnBillable = pnBillable;
+  function orderLines(Ps) {
+    const multi = Ps.length > 1, L = [], A = window.salaAPI;
+    Ps.forEach(P => {
+      const pre = multi ? P.nr + " · " : "", d0 = P.fra ? dIS(P.fra) + (P.til && P.til !== P.fra ? "–" + dIS(P.til) : "") : "";
+      if (multi || d0) L.push({ lysing: (multi ? P.nr + " " : "Pöntun " + P.nr + " ") + (P.heiti && P.heiti !== "Pöntun" ? "– " + P.heiti + " " : "") + (d0 ? "(" + d0 + ")" : ""), magn: 0, eining: "", verd: 0, haus: true });
+      let sum = 0;
+      (P.linur || []).forEach(l => { const amt = A.lSum(l, P), m = +l.magn || 0; sum += amt; if (!amt && !m) return;
+        const lys = pre + (l.heiti || "") + (l.teg === "leiga" ? " – leiga" : "");
+        if (m && Math.abs(Math.round(amt / m) * m - amt) < 1) L.push({ lysing: lys, magn: m, eining: l.ein || "stk.", verd: Math.round(amt / m) });
+        else L.push({ lysing: lys + (m ? ` (${fx(m)} ${l.ein || "stk."})` : ""), magn: 1, eining: "", verd: amt }); });
+      if (+P.afsl) L.push({ lysing: pre + "Afsláttur " + fx(+P.afsl) + " %", magn: 1, eining: "", verd: -Math.round(sum * (+P.afsl) / 100) });
+    });
+    return L;
+  }
+  function modal(title, html) {
+    const w = document.createElement("div"); w.className = "qrcard pfm rkpm"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true");
+    w.innerHTML = `<div class="qrscrim" data-x="1"></div><div class="qrsheet pfs"><div class="grab" aria-hidden="true"></div><div class="pfh"><h2>${esc(title)}</h2><button type="button" class="qrx" data-x="1" aria-label="Loka">✕</button></div>${html}</div>`;
+    document.body.append(w); document.body.classList.add("qropen");
+    const close = () => { w.remove(); document.body.classList.remove("qropen"); };
+    w.addEventListener("click", e => { if (e.target.closest("[data-x]")) close(); }); w.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+    return { w, close };
+  }
+  // Gluggi: velja pantanir sama viðskiptavinar → reikningur
+  function billOrders(pid0) {
+    const P0 = PNs().find(x => x.id === pid0); if (!P0) return;
+    if (!pnBillable(P0)) return toast(P0.reikningur ? "Pöntunin er þegar á reikningi." : hattur(P0) !== "reikningur" ? "Pöntunin er í staðgreiðslu – skráðu greiðslu á pöntunina." : "Pöntunin þarf að vera afhent áður en reikningur er gerður.");
+    if (!P0.vskId) return toast("Veldu viðskiptavin á pöntunina fyrst.");
+    const xs = ordersToBill().filter(x => x.vskId === P0.vskId), rk = RK(), c = findVsk(P0.vskId);
+    const { w, close } = modal("Reikningur · " + (c?.name || ""), `
+      ${xs.length > 1 ? `<p class="pfhint" style="margin:0 0 8px">Fleiri afhentar pantanir þessa viðskiptavinar eru án reiknings – hakaðu við þær sem eiga að fara á sama reikning.</p>` : ""}
+      <div class="rkpl">${xs.map(x => `<label class="rkpr"><input type="checkbox" value="${esc(x.id)}"${x.id === pid0 ? " checked" : ""}><span><b>${esc(x.nr)}</b> ${esc(x.heiti && x.heiti !== "Pöntun" ? x.heiti : "")}<small>${esc([x.fra ? dIS(x.fra) : "", x.stada].filter(Boolean).join(" · "))}</small></span><b>${esc(kr(pnNet(x)))}</b></label>`).join("")}</div>
+      <div class="two" style="margin-top:12px"><label>Reikningsdagur<input id="rkp-d" type="date" value="${isoDay(today)}"></label><label>Gjalddagi<input id="rkp-g" type="date" value="${addDays(isoDay(today), +rk.frestur || 14)}"></label></div>
+      <label>${DROG() ? "Númer draga" : "Reikningsnúmer"}<input id="rkp-n" inputmode="numeric" value="${esc(String(rk.nastaNr))}"></label>
+      <div class="rkpsum"></div>
+      <div class="pfact"><button type="button" class="btn rkp-ut" title="T.d. eldri pöntun sem var reikningsfærð beint í bókhaldskerfinu">Reikningsfært annars staðar</button><button type="button" class="btn" data-x="1">Hætta við</button><button type="button" class="btn primary" id="rkp-ok">Búa til ${DROG() ? "reikningsdrög" : "reikning"}</button></div>`);
+    const picked = () => [...w.querySelectorAll(".rkpl input:checked")].map(i => xs.find(x => x.id === i.value)).filter(Boolean);
+    const upd = () => { const L = orderLines(picked()), t = totals(L.filter(l => !l.haus), +rk.vsk || 0); w.querySelector(".rkpsum").innerHTML = `<div class="sub-i"><span>Án VSK</span><b>${esc(kr(t.net))}</b></div><div class="sub-i"><span>VSK ${esc(String(rk.vsk))} %</span><b>${esc(kr(t.vsk))}</b></div><div class="sub-i" style="font-size:16px"><span>Samtals</span><b>${esc(kr(t.tot))}</b></div>`; };
+    w.addEventListener("change", upd); upd();
+    w.querySelector(".rkp-ut").onclick = async () => { const Ps = picked(); if (!Ps.length) return toast("Veldu pöntun.");
+      if (!confirm(`Merkja ${Ps.map(x => x.nr).join(", ")} sem reikningsfært utan Atrium? Þá birtist ${Ps.length === 1 ? "hún" : "þær"} ekki lengur sem óreikningsfært.`)) return;
+      const ids = new Set(Ps.map(x => x.id)); await saveSnapshot(st => { (st.pantanir || []).forEach(q => { if (ids.has(q.id)) q.reikningur = "utan"; }); }); close(); toast("Merkt reikningsfært utan Atrium"); render(); };
+    w.querySelector("#rkp-ok").onclick = async () => {
+      const Ps = picked(), nr = parseInt(w.querySelector("#rkp-n").value) || 0; if (!Ps.length) return toast("Veldu pöntun."); if (!nr) return toast("Skráðu númer.");
+      if (reikningar().some(r => r.nr === nr) && !confirm(`Reikningur nr. ${nr} er þegar til. Nota samt sama númer?`)) return;
+      const L = orderLines(Ps), vskP = +rk.vsk || 0, sl = { ...rk }; delete sl.nastaNr; delete sl.timagjald;
+      const pids = [...new Set(Ps.map(x => x.verkefniId).filter(Boolean))], ids = new Set(Ps.map(x => x.id));
+      const R = { id: newId(), nr, dags: w.querySelector("#rkp-d").value, gjalddagi: w.querySelector("#rkp-g").value, verkefniIds: pids, verkefniId: pids[0] || null, pontunIds: [...ids], vskId: P0.vskId, kaupandi: buyerOf(c), seljandi: sl, linur: L, vskP, ...totals(L.filter(l => !l.haus), vskP), timaIds: [], kostnIds: [], stada: "Ógreitt", stofnad: new Date().toISOString() };
+      w.querySelector("#rkp-ok").disabled = true;
+      try { await saveSnapshot(st => { (st.reikningar = st.reikningar || []).push(R); (st.pantanir || []).forEach(q => { if (ids.has(q.id)) q.reikningur = R.id; });
+          st.stillingar = st.stillingar || {}; st.stillingar.reikn = { ...(st.stillingar.reikn || {}), nastaNr: Math.max(nr + 1, +(st.stillingar.reikn?.nastaNr || 0)) }; });
+        close(); toast(`${NRL(R)} ${DROG() ? "búin" : "búinn"} til`); try { tab = "trk"; } catch (e) {} openDetail("reikn:" + R.id); if (window.MS && MS.on()) saveToOneDrive(R.id, true);
+      } catch (e) { w.querySelector("#rkp-ok").disabled = false; toast("Tókst ekki: " + (e?.message || e)); } };
+  }
+  window.rkBillOrders = billOrders;
 
   function buildLines(groups, sund) {
     const multi = groups.length > 1, L = [];
@@ -172,8 +236,9 @@
         <div style="text-align:right"><div class="inv-t">${TT()}</div><div class="inv-m">${DROG() ? "Drög nr." : "Nr."} <b>${esc(String(R.nr))}</b>${R.bokhaldNr ? `<br>Reikningur í bókhaldi: <b>${esc(String(R.bokhaldNr))}</b>` : ""}<br>Dags. ${esc(dIS(R.dags))}<br>Gjalddagi ${esc(dIS(R.gjalddagi))}</div></div></div>
       <div class="inv-b"><div class="inv-k">Greiðandi</div><b>${esc(b.name || "")}</b><br>${b.kennitala ? "Kt. " + esc(b.kennitala) + "<br>" : ""}${esc(b.heimilisfang || "")}${b.postnumer || b.stadur ? "<br>" + esc([b.postnumer, b.stadur].filter(Boolean).join(" ")) : ""}</div>
       ${pn.length ? `<div class="inv-m" style="margin:10px 0 0">${pn.length > 1 ? "Verkefni" : "Verkefni"}: <b>${pn.map(esc).join(", ")}</b></div>` : ""}
+      ${(R.pontunIds || []).length ? `<div class="inv-m" style="margin:6px 0 0">${R.pontunIds.length > 1 ? "Pantanir" : "Pöntun"}: <b>${R.pontunIds.map(i => PNs().find(x => x.id === i)?.nr || "").filter(Boolean).map(esc).join(", ")}</b></div>` : ""}
       <table class="inv-tab"><thead><tr><th>Lýsing</th><th class="r">Magn</th><th>Ein.</th><th class="r">Einingaverð</th><th class="r">Upphæð</th></tr></thead><tbody>
-        ${R.linur.map(l => `<tr><td>${esc(l.lysing)}</td><td class="r">${esc(fx(l.magn))}</td><td>${esc(l.eining)}</td><td class="r">${esc(kr(l.verd))}</td><td class="r">${esc(kr(Math.round(l.magn * l.verd)))}</td></tr>`).join("")}
+        ${R.linur.map(l => l.haus ? `<tr class="inv-hd"><td colspan="5"><b>${esc(l.lysing)}</b></td></tr>` : `<tr><td>${esc(l.lysing)}</td><td class="r">${esc(fx(l.magn))}</td><td>${esc(l.eining)}</td><td class="r">${esc(kr(l.verd))}</td><td class="r">${esc(kr(Math.round(l.magn * l.verd)))}</td></tr>`).join("")}
       </tbody></table>
       <div class="inv-tot"><div><span>Samtals án VSK</span><b>${esc(kr(R.net))}</b></div><div><span>VSK ${esc(String(R.vskP))}%</span><b>${esc(kr(R.vsk))}</b></div><div class="g"><span>Samtals til greiðslu</span><b>${esc(kr(R.tot))}</b></div></div>
       ${DROG() ? `<div class="inv-pay" style="font-weight:500">${esc(DROG_TXT)}</div>` : ""}${OGILT(R) ? `<div class="inv-pay" style="font-weight:500">ÓGILT ${esc(dIS(R.ogilt || ""))}</div>` : ""}
@@ -202,7 +267,8 @@
     const X = { d: M + 8, m: 360, e: 368, v: 460, u: X1 - 8 };
     const head = () => { P.rect(M, y, X1 - M, 22, C.grafit); [["Lýsing", X.d], ["Magn", X.m, "right"], ["Ein.", X.e], ["Einingaverð", X.v, "right"], ["Upphæð", X.u, "right"]].forEach(([t, x, a]) => P.text(t, x, y + 14.5, { w: "medium", size: 8.5, color: C.hvitt, align: a })); y += 22; };
     head();
-    R.linur.forEach((l, i) => { const ls = P.wrap(l.lysing, X.m - 46 - X.d, 9), h = 10 + ls.length * 12; if (need(h)) head();
+    R.linur.forEach((l, i) => { if (l.haus) { if (need(24)) head(); P.text(l.lysing, X.d, y + 16, { size: 9, w: "medium" }); y += 22; P.line(M, y, X1, y); return; }
+      const ls = P.wrap(l.lysing, X.m - 46 - X.d, 9), h = 10 + ls.length * 12; if (need(h)) head();
       if (i % 2) P.rect(M, y, X1 - M, h, C.pappir);
       ls.forEach((t, j) => P.text(t, X.d, y + 14 + j * 12, { size: 9 }));
       P.text(fx(l.magn), X.m, y + 14, { size: 9, align: "right" }); P.text(l.eining, X.e, y + 14, { size: 9 });
@@ -273,7 +339,7 @@
     if (pn.length) rows.push([S_("Verkefni: " + pn.join(", "), 2)]);
     rows.push([]);
     rows.push([S_("Lýsing", 3), S_("Magn", 13), S_("Ein.", 3), S_("Einingaverð", 13), S_("Upphæð", 13)]);
-    R.linur.forEach(l => rows.push([S_(l.lysing, 12), S_(l.magn, 6), S_(l.eining, 4), S_(Math.round(l.verd), 15), S_(Math.round(l.magn * l.verd), 15)]));
+    R.linur.forEach(l => l.haus ? rows.push([S_(l.lysing, 12)]) : rows.push([S_(l.lysing, 12), S_(l.magn, 6), S_(l.eining, 4), S_(Math.round(l.verd), 15), S_(Math.round(l.magn * l.verd), 15)]));
     rows.push([S_("Samtals án VSK", 8), S_("", 8), S_("", 8), S_("", 8), S_(R.net, 16)]);
     rows.push([S_("VSK " + R.vskP + "%", 8), S_("", 8), S_("", 8), S_("", 8), S_(R.vsk, 16)]);
     rows.push([S_("Samtals til greiðslu", 10), S_("", 10), S_("", 10), S_("", 10), S_(R.tot, 17)]);
@@ -295,7 +361,7 @@
     const greitt = R.stada === "Greitt", late = !greitt && daysTo(R.gjalddagi) < 0, ps = pidsOf(R).map(findProj).filter(Boolean), on = window.MS && MS.on();
     return backBar() + `<div class="kicker"><span class="kind">${TT()}</span><span class="pill ${late && !OGILT(R) ? "late" : ""}">${OGILT(R) ? "Ógilt" : greitt ? "Greitt" : late ? "Kominn fram yfir gjalddaga" : "Ógreitt"}</span>${R.bokhaldNr ? `<span class="pill">Í bókhaldi: ${esc(String(R.bokhaldNr))}</span>` : DROG() && !OGILT(R) ? `<span class="pill">Ekki komið í bókhald</span>` : ""}${R.sent ? `<span class="pill">Sendur ${esc(dIS(R.sent))}</span>` : ""}</div>
       <h2 class="big" style="margin-top:6px">${DROG() ? "Drög " : "Nr. "}${esc(String(R.nr))} · ${esc(R.kaupandi?.name || "")}</h2>
-      <p class="sub">${ps.map(projLink).join(", ")}${ps.length ? " · " : ""}${esc(kr(R.tot))} með VSK</p>
+      <p class="sub">${ps.map(projLink).join(", ")}${ps.length ? " · " : ""}${(R.pontunIds || []).map(i => PNs().find(x => x.id === i)).filter(Boolean).map(x => `<a class="plink" data-open="tb:${esc(x.id)}">${esc(x.nr)}</a>`).join(", ")}${(R.pontunIds || []).length ? " · " : ""}${esc(kr(R.tot))} með VSK</p>
       <div class="links"><button type="button" class="btn primary" data-act="rkpdf:${esc(R.id)}">Sækja PDF</button><button type="button" class="btn" data-act="rkpv:${esc(R.id)}">Forskoða PDF</button>
         ${R.pdfUrl ? `<a class="btn" href="${esc(R.pdfUrl)}" target="_blank" rel="noopener">📁 Í ${ODN()}</a>` : on && FJ() ? `<button type="button" class="btn" data-act="rkod:${esc(R.id)}">Vista í OneDrive</button>` : ""}
         ${on && FJ() ? `<button type="button" class="btn" data-act="rksend:${esc(R.id)}">✉ Senda${R.sent ? " aftur" : ""}</button>` : ""}<button type="button" class="btn" data-act="rkprint:${esc(R.id)}">Prenta</button><button type="button" class="btn" data-act="rkxlsx:${esc(R.id)}">Excel</button>
@@ -339,8 +405,9 @@
 
   window.rkAct = function (k, r) {
     const id = r.join(":");
-    if (["rknew", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
+    if (["rknew", "rkpn", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
     if (k === "rknew") { openForm(id || null); return; }
+    if (k === "rkpn") { billOrders(id); return; }
     if (k === "rkpdf") { const R = findR(id); if (R) downloadPdf(R); return; }
     if (k === "rkpv") { const R = findR(id); if (!R) return; toast("Bý til PDF…"); invoicePdf(R).then(b => blobPreview(new Blob([b], { type: "application/pdf" }), fileBase(R) + ".pdf")).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (k === "rkod") { toast("Vista í " + ODN() + "…"); saveToOneDrive(id, false); return; }
@@ -358,8 +425,8 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
     if (k === "rkbok") { const R = findR(id); if (!R) return; const v = prompt(`Númer reikningsins í bókhaldskerfinu (fyrir drög ${R.nr}):`, R.bokhaldNr || ""); if (v === null) return;
       saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.bokhaldNr = v.trim() || null; q.bokhaldDags = v.trim() ? isoDay(new Date()) : null; } }).then(() => toast(v.trim() ? "Skráð í bókhald" : "Bókhaldsnúmer fjarlægt")); return; }
     if (k === "rkogilda") { const R = findR(id); if (!R || !confirm(`Ógilda ${NRL(R).toLowerCase()}?\n\nDrögin haldast skráð (merkt ógild) en tímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.bokhaldNr ? "\n\nATH: reikningurinn er skráður í bókhaldi (" + R.bokhaldNr + ") – þar þarf að gefa út kreditreikning." : ""}`)) return;
-      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = "Ógilt"; q.ogilt = isoDay(new Date()); } const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (e.reikningur === id) delete e.reikningur; }); (s.kostnadur || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); })
-        .then(() => toast("Ógilt – tímar og kostnaður aftur óreikningsfærð")); return; }
+      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = "Ógilt"; q.ogilt = isoDay(new Date()); } const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (e.reikningur === id) delete e.reikningur; }); (s.kostnadur || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); (s.pantanir || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); })
+        .then(() => toast("Ógilt – tímar, kostnaður og pantanir aftur óreikningsfærð")); return; }
     if (k === "rkdel" && window.can && !can("eyda")) return toast("Aðeins admin getur eytt reikningum.");
     if (k === "rkdel") { const R = findR(id); if (!R || !confirm(`Eyða reikningi nr. ${R.nr}?\n\nTímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.pdfUrl ? "\nPDF-skjalið í OneDrive eyðist ekki." : ""}`)) return;
       saveSnapshot(s => { s.reikningar = (s.reikningar || []).filter(x => x.id !== id); const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (e.reikningur === id) delete e.reikningur; }); (s.kostnadur || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); })

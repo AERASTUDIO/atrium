@@ -603,9 +603,9 @@
       const sub = [p ? E(p.nr) : "", R.dags ? "dags. " + E(String(R.dags).split("-").reverse().join(".")) : "", R.gjalddagi ? "gjalddagi " + E(String(R.gjalddagi).split("-").reverse().join(".")) : ""].filter(Boolean).join(" · ");
       const stSel = MCP && !og && window.can && can("fjarmal") ? `<label class="ustsel">Staða<select onchange="this.value!=='${R.stada === "Greitt" ? "Greitt" : "Ógreitt"}'&&doAct('rkpaid:${E(R.id)}')"><option${R.stada !== "Greitt" ? " selected" : ""}>Ógreitt</option><option${R.stada === "Greitt" ? " selected" : ""}>Greitt</option></select></label>` : "";
       const acts = `<button type="button" class="btn" data-act="rkpdf:${E(R.id)}">PDF</button>${stSel}` + more2([["Vista PDF…", "u1rksv:" + R.id], ["Forskoða PDF", "rkpv:" + R.id], ["Prenta", "rkprint:" + R.id], ["Excel", "rkxlsx:" + R.id]]);
-      const rows = (R.linur || []).map(l => `<div class="utbr r4"><span>${E(l.lysing || "")}</span><span>${E(String(l.magn ?? ""))}${l.eining && l.eining !== "stk." ? " " + E(l.eining) : ""}</span><span>${(+l.verd || 0).toLocaleString("de-DE")} kr.</span><span>${Math.round((+l.magn || 0) * (+l.verd || 0)).toLocaleString("de-DE")} kr.</span></div>`).join("");
+      const rows = (R.linur || []).map(l => l.haus ? `<div class="utbr r4 uhd"><span><b>${E(l.lysing || "")}</b></span><span></span><span></span><span></span></div>` : `<div class="utbr r4"><span>${E(l.lysing || "")}</span><span>${E(String(l.magn ?? ""))}${l.eining && l.eining !== "stk." ? " " + E(l.eining) : ""}</span><span>${(+l.verd || 0).toLocaleString("de-DE")} kr.</span><span>${Math.round((+l.magn || 0) * (+l.verd || 0)).toLocaleString("de-DE")} kr.</span></div>`).join("");
       return dHead(sup, R.kaupandi?.name || "", sub, acts) + `<div class="uvb">${kp3([["Samtals með VSK", kr(R.tot)], ["Gjalddagi", R.stada === "Greitt" ? "greitt " + E(u1D.dIS(R.greitt)) : R.gjalddagi ? E(dateIS(d(R.gjalddagi))) + (n < 0 ? " · seint" : "") : "–"], ["Staða", E(R.stada || "")]])}`
-        + `<div class="utb"><div class="utbr r4 h"><span>Lína</span><span>Magn</span><span>Verð</span><span>Upphæð</span></div>${rows}</div><div class="utbt"><span>Samtals án VSK</span><b>${kr(R.net)}</b></div><div class="utbt"><span>VSK ${R.vskP || 24}%</span><b>${kr(R.vsk)}</b></div>`
+        + `<div class="utb"><div class="utbr r4 h"><span>Lína</span><span>Magn</span><span>Verð</span><span>Upphæð</span></div>${rows}</div><div class="utbt"><span>Samtals án VSK</span><b>${kr(R.net)}</b></div><div class="utbt"><span>VSK ${R.vskP ?? 24}%</span><b>${kr(R.vsk)}</b></div>`
         + (MCP && !og ? `<div class="ubot">${drog && window.can && can("fjarmal") ? `<button type="button" class="btn primary" data-act="rkbok:${E(R.id)}">Skrá í bókhald</button>` : ""}${window.MS && MS.on() ? `<button type="button" class="btn" data-act="rksend:${E(R.id)}">✉ Senda</button>` : ""}${window.can && can("fjarmal") ? `<button type="button" class="btn" data-act="rkogilda:${E(R.id)}">Ógilda</button>` : ""}</div>` : "") + `</div>`;
     }
   };
@@ -749,25 +749,31 @@
     if (window.rkUnbilledKr) { const u0 = rkUnbilled(null), x0 = { p: null, h: sumT(u0.es), kr: rkUnbilledKr(null) }; if (x0.h >= 0.5 || x0.kr > 0) ub.push(x0); }
     const tapU = x => x.p ? tapAttr("verk", x.p.id) : 'data-act="rknew:_" role="button" tabindex="0" title="Gera reikning úr tímum án verkefnis"';
     const og = R.filter(r => r.stada !== "Greitt"), gr = R.filter(r => r.stada === "Greitt");
-    const tot = ub.reduce((a, x) => a + x.kr, 0) + og.reduce((a, r) => a + (+r.tot || 0), 0), mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
-    const showU = SQ() || f === "allt" || f === "oreikn", rs = SQ() ? R.concat(RO) : f === "ogr" ? og : f === "gr" ? gr : f === "ogilt" ? RO.slice() : f === "allt" ? og : [];
+    // 2.89.0: afhentar pantanir í reikningi sem eiga eftir að fá reikning
+    const PO = window.rkOrders ? rkOrders() : [], pnN = P => { try { return salaAPI.totals(P).net; } catch (e) { return 0; } };
+    const tapP = P => `data-act="rkpn:${E(P.id)}" role="button" tabindex="0" title="Búa til reikning úr ${E(P.nr)}"`;
+    const tot = ub.reduce((a, x) => a + x.kr, 0) + PO.reduce((a, P) => a + pnN(P), 0) + og.reduce((a, r) => a + (+r.tot || 0), 0), mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
+    const showU = SQ() || f === "allt" || f === "oreikn", showP = SQ() || f === "allt" || f === "pnr", rs = SQ() ? R.concat(RO) : f === "ogr" ? og : f === "gr" ? gr : f === "ogilt" ? RO.slice() : f === "allt" ? og : [];
     const rowU = x => `<div class="urow uf5" ${tapU(x)}><span class="m">Óreikn.</span><span class="t">${x.p ? `${E(x.p.nr)} ${E(x.p.stutt || "")}` : "Án verkefnis"}</span><span class="m">${H(x.h)} klst.</span><span class="m"></span><span class="r">${E(kr(x.kr))}</span></div>`;
     const rowR = r => { const p = findProj(r.verkefniId || (r.verkefniIds || [])[0]), late = !["Greitt", "Ógilt"].includes(r.stada) && daysTo(r.gjalddagi) < 0;
       return `<div class="urow uf5" ${tapAttr("reikn", r.id)}><span class="m">${E(String(r.nr).padStart(3, "0"))}</span><span class="t">${E(r.kaupandi?.name || "")}${late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""}</span><span class="m">${E(p?.nr || "")}</span><span class="m">${E(String(r.dags || "").slice(5).split("-").reverse().join("."))}</span><span class="r">${E(kr(r.tot))}</span></div>`; };
-    const top = lhead("", "Reikningar", nbtn("Reikningur").replace(/data-act="fabnew[^"]*"/, 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length], ...(RO.length ? [["ogilt", "Ógilt · " + RO.length]] : [])], f, "u1vf:trk")}</div>`;
+    const top = lhead("", "Reikningar", nbtn("Reikningur").replace(/data-act="fabnew[^"]*"/, 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ...(PO.length ? [["pnr", "Pantanir án reiknings · " + PO.length]] : []), ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length], ...(RO.length ? [["ogilt", "Ógilt · " + RO.length]] : [])], f, "u1vf:trk")}</div>`;
     if (WIDE()) { const dI = x => x ? dateIS(d(x)) : "";
       const wU = x => wrow(tapU(x), [wc("Óreikn."), wc(E(x.p?.vidskiptavinur || ""), "t"), wc(x.p ? E(x.p.nr + " " + (x.p.stutt || "")) : "Án verkefnis"), wc(E(H(x.h) + " klst.")), wc(""), wc(pill("Óreikningsfært")), wc(E(kr(x.kr)), "r")]);
+      const wP = P => wrow(tapP(P), [wc(E(P.nr)), wc(E(P.vidskiptavinur || ""), "t"), wc(E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun")), wc(E(dI(P.til || P.fra))), wc(""), wc(pill("Án reiknings", true)), wc(E(kr(pnN(P))), "r")]);
       const wR = r => { const p = findProj(r.verkefniId || (r.verkefniIds || [])[0]), late = !["Greitt", "Ógilt"].includes(r.stada) && daysTo(r.gjalddagi) < 0;
         return wrow(tapAttr("reikn", r.id), [wc(E(String(r.nr).padStart(3, "0"))), wc(E(r.kaupandi?.name || "") + (late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""), "t"), wc(E(p ? p.nr + " " + (p.stutt || "") : "")), wc(E(dI(r.dags))), wc(`<span class="${late ? "red" : ""}">${E(dI(r.gjalddagi))}</span>`), wc(pill(late && r.stada !== "Ógilt" ? "Fram yfir" : r.stada || "", late && r.stada !== "Ógilt")), wc(E(kr(r.tot)), "r")]); };
       return top + wl("80px minmax(0,1.3fr) minmax(0,1.3fr) 110px 110px 120px 120px", wcols(["Nr.", "Kaupandi", "Verkefni", "Dags.", "Gjalddagi", "Staða", "Upphæð"])
         + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(wU).join("") : "")
+        + (showP && PO.length ? (f === "allt" ? grpH("Afhentar pantanir án reiknings") : "") + PO.map(wP).join("") : "")
         + (rs.length ? (f === "allt" ? grpH("Ógreiddir reikningar") : "") + rs.sort((a, b) => b.nr - a.nr).map(wR).join("") : "")
-        + (!(showU && ub.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "")); }
+        + (!(showU && ub.length) && !(showP && PO.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "")); }
     return top
       + `<div class="ucols uf5"><span>Nr.</span><span>Heiti</span><span>Verk / klst.</span><span>Dags.</span><span class="r">Upphæð</span></div>`
       + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(rowU).join("") : "")
+      + (showP && PO.length ? (f === "allt" ? grpH("Pantanir án reiknings") : "") + PO.map(P => `<div class="urow uf5" ${tapP(P)}><span class="m">${E(P.nr)}</span><span class="t">${E(P.vidskiptavinur || "")}</span><span class="m">${E(P.til || P.fra ? dateIS(d(P.til || P.fra)) : "")}</span><span class="m"></span><span class="r">${E(kr(pnN(P)))}</span></div>`).join("") : "")
       + (rs.length ? (f === "allt" ? grpH("Ógreiddir reikningar") : "") + rs.sort((a, b) => b.nr - a.nr).map(rowR).join("") : "")
-      + (!(showU && ub.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "");
+      + (!(showU && ub.length) && !(showP && PO.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "");
   };
   /* ---------- Spjall › Samstarfsfólk (listi og spjald hlið við hlið) ---------- */
   const ini = n => String(n || "").split(/\s+/).map(w => w[0] || "").join("").slice(0, 2).toUpperCase();
