@@ -6,11 +6,13 @@ let PREFILL=null, calSel=isoDay(today), calMonth=new Date(today.getFullYear(),to
 const MONL=["janúar","febrúar","mars","apríl","maí","júní","júlí","ágúst","september","október","nóvember","desember"];
 const DAYL=["sunnudagur","mánudagur","þriðjudagur","miðvikudagur","fimmtudagur","föstudagur","laugardagur"];
 const CALC={fund:"var(--ink)",skil:"#B4532A",vidb:"#7C8896",undir:"#93A0AD",time:"#C9D1D9",teymi:"var(--b3)",msev:"var(--b2)",fbod:"var(--b2)"}; // merkjahandbók: tónar af stáli; skil fá dempaðan áherslulit
-let _cal={k:null,v:null,m:null};
-function calItems(){
-  const dk=window.DEILD?DEILD():""; if(_cal.k===S&&_cal.d===dk&&_cal.v===window.FBV) return _cal.m;
+let _cal={k:null,v:null,m:null}, _calC={};
+// who (2.81.0): ""=mitt dagatal, netfang=dagatal annars starfsmanns, "*"=allir
+function calItems(who){
+  const w=who||"", dk=window.DEILD?DEILD():"", c=_calC[w]; if(_cal.k&&c&&c.k===S&&c.d===dk&&c.v===window.FBV) return c.m;
+  const em=w==="*"?"*":(w||(window.fbMe?fbMe():"")), sjaF=f=>!window.fundFor||fundFor(f,em);
   const m=new Map(), add=(iso,it)=>{const k=String(iso).slice(0,10); if(!/^\d{4}-\d\d-\d\d$/.test(k)) return; (m.get(k)||m.set(k,[]).get(k)).push(it);};
-  (S?.fundir||[]).filter(f=>!f.projectId||inD(findProj(f.projectId))).forEach(f=>f.date&&add(f.date,{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||f.verknr,open:"fund:"+f.id,o:f}));
+  (S?.fundir||[]).filter(f=>(!f.projectId||inD(findProj(f.projectId)))&&sjaF(f)).forEach(f=>f.date&&add(f.date,{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||f.verknr,open:"fund:"+f.id,o:f}));
   verkD().forEach(p=>{
     if(p.skiladagur) add(p.skiladagur,{t:"skil",when:p.skiladagur,kind:"Skil verkefnis",title:p.stutt,nr:p.nr,open:"verk:"+p.id,o:p,done:isDone(p)});
     if(p.vidburdur) add(p.vidburdur,{t:"vidb",when:p.vidburdur,kind:"Viðburður",title:p.stutt,nr:p.nr,open:"verk:"+p.id,o:p});
@@ -20,9 +22,10 @@ function calItems(){
         x.setDate(x.getDate()+1);}}}
     (p.undirverk||[]).filter(u=>u.skiladagur&&u.stada!=="Done").forEach(u=>add(u.skiladagur,{t:"undir",when:u.skiladagur,kind:"Skil undirverks",title:subName(u)+" · "+p.stutt,nr:u.nr,open:"sub:"+u.id,o:u}));
   });
-  if(window.fbCalItems) try{fbCalItems(add);}catch(e){} // fundarboð og persónulegt Outlook-dagatal (fundabod.js, 2.79.0)
+  if(window.fbCalItems) try{fbCalItems(add,w);}catch(e){} // fundarboð og persónulegt Outlook-dagatal (fundabod.js, 2.79.0)
   m.forEach(l=>l.sort((a,b)=>(a.span-b.span)||String(hhmm(a.when)||"99").localeCompare(String(hhmm(b.when)||"99"))));
-  _cal={k:S,d:dk,v:window.FBV,m}; return m;}
+  _cal={k:S,d:dk,v:window.FBV,m:null}; _calC[w]={k:S,d:dk,v:window.FBV,m}; return m;}
+const calW=()=>window.CALWHO||"";
 let calMode="m"; try{const m=localStorage.getItem("aera-calmode"); if(["m","v","d"].includes(m)) calMode=m;}catch(e){}
 const calModes=()=>`<div class="seg calseg" role="tablist" aria-label="Sýn">${[["m","Mánuður"],["v","Vika"],["d","Dagur"]].map(([k,l])=>`<button type="button" role="tab" data-act="calmode:${k}" aria-pressed="${calMode===k}">${l}</button>`).join("")}</div>${window.fbTeymiBtn?fbTeymiBtn():""}`;
 function calCard(i){return `<div class="card tap${i.done?" compact":""}" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))}><div class="row"><div class="grow"><div class="kind">${esc(i.kind)}${hhmm(i.when)?" · kl. "+hhmm(i.when):""}</div><div class="t">${esc(i.title)}</div>
@@ -31,7 +34,7 @@ const CHL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const calAdd=()=>MCP?`<div class="links"><button type="button" class="btn" data-act="caladd:fund">+ Fundur</button><button type="button" class="btn" data-act="caladd:tima">+ Tími</button><button type="button" class="btn" data-act="caladd:undir">+ Undirverk</button><button type="button" class="btn" data-act="caladd:verk">+ Verkefni</button></div>`:"";
 const dayTitle=x=>DAYL[x.getDay()][0].toUpperCase()+DAYL[x.getDay()].slice(1)+" "+x.getDate()+". "+MONL[x.getMonth()];
 function vCalWeek(){
-  const items=calItems(), a=mondayOf(d(calSel)), days=[...Array(7)].map((_,k)=>{const x=new Date(a); x.setDate(a.getDate()+k); return x;}), e=days[6];
+  const items=calItems(calW()), a=mondayOf(d(calSel)), days=[...Array(7)].map((_,k)=>{const x=new Date(a); x.setDate(a.getDate()+k); return x;}), e=days[6];
   const head=`${a.getDate()}.${a.getMonth()!==e.getMonth()?" "+MON[a.getMonth()]:""} – ${e.getDate()}. ${MON[e.getMonth()]}`;
   return `${calModes()}<div class="cal-head"><h2>${head}</h2><button type="button" class="chipbtn" data-act="calnav:0">Í dag</button>
     <button type="button" class="iconbtn" data-act="calnav:-1" aria-label="Fyrri vika">${CHL}</button><button type="button" class="iconbtn" data-act="calnav:1" aria-label="Næsta vika">${CHR}</button></div>
@@ -41,7 +44,7 @@ function vCalWeek(){
   ${calAdd()}`;
 }
 function vCalDay(){
-  const items=calItems(), x=d(calSel), list=items.get(calSel)||[];
+  const items=calItems(calW()), x=d(calSel), list=items.get(calSel)||[];
   const tl=faerslur().filter(e=>String(e.date||"").slice(0,10)===calSel).sort((a,b)=>String(a.fra||"99").localeCompare(String(b.fra||"99")));
   const timed=list.filter(i=>!i.span&&hhmm(i.when)), allday=list.filter(i=>!i.span&&!hhmm(i.when)), spans=list.filter(i=>i.span);
   const mins=t=>{const [h,m]=String(t).split(":").map(Number); return h*60+m;};
@@ -63,7 +66,7 @@ function vCalDay(){
 }
 function vCal(){
   if(calMode==="v") return vCalWeek(); if(calMode==="d") return vCalDay();
-  const items=calItems(), y=calMonth.getFullYear(), mo=calMonth.getMonth(), first=new Date(y,mo,1), off=(first.getDay()+6)%7;
+  const items=calItems(calW()), y=calMonth.getFullYear(), mo=calMonth.getMonth(), first=new Date(y,mo,1), off=(first.getDay()+6)%7;
   const start=new Date(y,mo,1-off), cells=[]; for(let i=0;i<42;i++){const x=new Date(start); x.setDate(start.getDate()+i); cells.push(x);}
   const rows=cells[35].getMonth()!==mo?35:42;
   const chevL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>', chevR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';

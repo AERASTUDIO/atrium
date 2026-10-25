@@ -1267,6 +1267,7 @@ label.chk.smopt input{margin-top:2px}.smopt span{display:flex;flex-direction:col
 .fbtime input{min-width:0}
 input.bad{border-color:var(--b3)!important;box-shadow:0 0 0 2px var(--accent-soft)}
 .fbarow small{display:block;color:var(--muted);font-size:12px}
-.fbteymi{margin:18px 0 0 8px;vertical-align:top}
-.fbteymi[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
-.fbteymi small{color:var(--muted);font-size:11px}
+.calwho{display:inline-block;margin:18px 0 0 8px;vertical-align:top}
+.calwho select{font:inherit;font-size:13px;padding:8px 30px 8px 12px;min-height:40px;border-radius:10px;border:1px solid var(--line);background-color:var(--surface);color:var(--ink)}
+body.pv.ui1 .calwho{margin:0 0 0 8px}body.pv.ui1 .calwho select{padding:6px 28px 6px 10px;min-height:0}
+.calwhoh{display:block;font-size:12px;color:var(--muted);margin:6px 0 0}

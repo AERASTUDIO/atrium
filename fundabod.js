@@ -174,9 +174,10 @@
   setTimeout(() => { refresh(true); teamRefresh(true); }, 2500);
 
   // Viðbót við calItems (app-listar.js): fundarboð sem bíða svars og samþykktir fundir úr Outlook
-  window.fbCalItems = function (add) {
+  window.fbCalItems = function (add, who) {
     const known = ICAL(), w = e => String(e.start?.dateTime || "").slice(0, 16);
-    teamItems(add, known, w);
+    teamItems(add, known, w, who || "");
+    if (who && who !== "*") return; // dagatal annars: aðeins hans Outlook-fundir
     if (!calOk()) return;
     FB.pending.forEach(e => add(w(e), { t: "fbod", when: w(e), kind: "Fundarboð · bíður svars", title: e.subject || "Fundur", nr: e.organizer?.emailAddress?.name || "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } }));
     FB.mine.filter(e => !known.has(e.iCalUId)).forEach(e => add(e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e), { t: "msev", when: e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e), kind: e.responseStatus?.response === "tentativelyAccepted" ? "Outlook · kannski" : "Outlook", title: e.subject || "Fundur", nr: "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } }));
@@ -230,8 +231,7 @@
      (sjálfgefin heimild „Default“ á dagatalinu = Reviewer). Einkafundir (Private) sjást aldrei. Ekkert vistað. */
   const TSH = "Calendars.Read.Shared";
   FB.team = []; FB.teamErr = {}; FB.tt = 0;
-  const teymiOn = () => { try { return localStorage.getItem("atr-teymi") === "1"; } catch (e) { return false; } };
-  const teamOk = () => teymiOn() && msOn() && MS.can(TSH);
+  const teamOk = () => msOn() && MS.can(TSH) && !!window.CALWHO;
   const fyrsta = n => String(n || "").split(" ")[0];
   let tload = null;
   async function teamRefresh(force) {
@@ -242,7 +242,7 @@
     tload = (async () => {
       const by = new Map(), err = {};
       await Promise.all(users.map(async u => {
-        const who = u.nafn || u.email;
+        const who = u.nafn || u.email, em = String(u.email).toLowerCase();
         try {
           let url = `/users/${encodeURIComponent(u.email)}/calendarView?startDateTime=${a.toISOString()}&endDateTime=${b.toISOString()}&$top=250&$select=id,subject,start,end,location,organizer,isAllDay,showAs,sensitivity,isCancelled,iCalUId,webLink,onlineMeeting`;
           for (let i = 0; url && i < 4; i++) {
@@ -250,21 +250,21 @@
             (j.value || []).forEach(e => {
               if (e.isCancelled || e.sensitivity === "private" || e.sensitivity === "confidential") return;
               const k = e.iCalUId || e.id, x = by.get(k);
-              if (x) { if (!x.hverjir.includes(who)) x.hverjir.push(who); } else by.set(k, { ...e, hverjir: [who] });
+              if (x) { if (!x.hverjir.includes(who)) { x.hverjir.push(who); x.hverE.push(em); } } else by.set(k, { ...e, hverjir: [who], hverE: [em] });
             });
             url = j["@odata.nextLink"] || null;
           }
-        } catch (e) { err[who] = e?.message || String(e); }
+        } catch (e) { err[em] = e?.message || String(e); }
       }));
       FB.team = [...by.values()]; FB.teamErr = err; FB.tt = Date.now();
     })().finally(() => { tload = null; window.FBV++; try { if (typeof _cal === "object") _cal.k = null; } catch (e) {} try { render(); } catch (e) {} });
     return tload;
   }
   window.fbTeamRefresh = teamRefresh;
-  function teamItems(add, known, w) {
-    if (!teamOk()) return;
+  function teamItems(add, known, w, who) {
+    if (!who || !teamOk()) return;
     const mine = new Set([...FB.pending, ...FB.mine].map(e => e.iCalUId).filter(Boolean));
-    FB.team.filter(e => !known.has(e.iCalUId) && !mine.has(e.iCalUId)).forEach(e => {
+    FB.team.filter(e => !known.has(e.iCalUId) && (who === "*" ? !mine.has(e.iCalUId) : e.hverE.includes(who))).forEach(e => {
       const when = e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e);
       add(when, { t: "teymi", when, kind: e.hverjir.map(fyrsta).join(", "), title: e.subject || "Upptekin(n)", nr: "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } });
     });
@@ -276,23 +276,62 @@
       ${e.onlineMeeting?.joinUrl ? `<div class="links" style="margin-top:12px"><a class="btn" href="${E(e.onlineMeeting.joinUrl)}" target="_blank" rel="noopener">Tengjast fundi</a></div>` : ""}
       <p class="hint" style="margin-top:14px">Úr Outlook-dagatali samstarfsfólks. Ekki vistað í Atrium; fundir merktir einkamál sjást ekki.</p></div>`;
   }
-  // Hnappur við Mánuður/Vika/Dagur í dagatalinu
-  window.fbTeymiBtn = function () {
-    if (!msOn()) return "";
-    const on = teymiOn(), n = Object.keys(FB.teamErr || {}).length;
-    return `<button type="button" class="chipbtn fbteymi" aria-pressed="${on}" data-act="fbteymi:" title="${on && n ? E("Dagatal sést ekki hjá: " + Object.keys(FB.teamErr).join(", ")) : "Sýna Outlook-dagatöl samstarfsfólks"}">${on ? "✓ " : ""}Dagatöl teymis${on && n ? ` <small>(${n} lokuð)</small>` : ""}</button>`;
+  /* ---------- Hvers dagatal (2.81.0): mitt sjálfgefið, fletta yfir á annarra ---------- */
+  const lc = x => String(x || "").trim().toLowerCase();
+  const USERS = () => (window.nuUsers ? nuUsers() : []).filter(u => u.email && u.virkur !== false);
+  const userBy = em => USERS().find(u => lc(u.email) === lc(em));
+  window.fbMe = () => lc(window.VIEWAS?.email || myEmail());
+  window.CALWHO = "";
+  // Sést fundurinn í dagatali em? (stofnandi, skipuleggjandi eða boðaður). Eldri fundir án skráningar sjást öllum.
+  window.fundFor = function (f, em) {
+    if (em === "*" || !em) return true;
+    em = lc(em); const att = window.fbAtt(f);
+    if (!f.stofnandi && !att.length) return true;
+    if (lc(f.stofnandi) === em || lc(f.skipuleggjandi) === em) return true;
+    const nm = lc(userBy(em)?.nafn);
+    return att.some(a => lc(a.netfang) === em || (nm && lc(a.nafn) === nm));
   };
-  async function teymiToggle() {
-    const on = !teymiOn();
-    try { localStorage.setItem("atr-teymi", on ? "1" : "0"); } catch (e) {}
-    if (on) {
-      try {
-        if (!msOn()) throw new Error("Tengdu Microsoft 365 fyrst");
-        if (!MS.can(TSH)) { toast("Samþykktu aðgang að dagatölum samstarfsfólks…"); await MS.login(); if (!MS.can(TSH)) throw new Error("Aðgangur að dagatölum samstarfsfólks fékkst ekki"); }
-        toast("Sæki dagatöl samstarfsfólks…"); await teamRefresh(true);
-      } catch (e) { toast(e?.message || String(e)); }
-    }
-    window.FBV++; try { if (typeof _cal === "object") _cal.k = null; } catch (e) {} render();
-  }
-  window.ACT_EXT.fbteymi = () => teymiToggle();
+  window.fbTeymiBtn = function () {
+    const us = USERS(), me = window.fbMe(), w = window.CALWHO || "";
+    if (us.length < 2) return "";
+    const lok = w && w !== "*" && FB.teamErr && FB.teamErr[w], ekkiMS = w && !msOn();
+    return `<label class="calwho"><select aria-label="Hvers dagatal" onchange="fbSetWho(this.value)"><option value="">Mitt dagatal</option>${us.filter(u => lc(u.email) !== me).map(u => `<option value="${E(lc(u.email))}"${w === lc(u.email) ? " selected" : ""}>${E(u.nafn || u.email)}</option>`).join("")}<option value="*"${w === "*" ? " selected" : ""}>Allir</option></select></label>`
+      + (lok ? `<span class="calwhoh">Outlook-dagatal ${E(userBy(w)?.nafn || w)} er ekki deilt – aðeins fundir úr Atrium sjást.</span>` : ekkiMS ? `<span class="calwhoh">Aðeins fundir úr Atrium – tengdu Microsoft 365 til að sjá Outlook-dagatalið líka.</span>` : "");
+  };
+  window.fbSetWho = async function (v) {
+    window.CALWHO = v || ""; window.FBV++; render();
+    if (!v || !msOn()) return;
+    try {
+      if (!MS.can(TSH)) { toast("Samþykktu aðgang að dagatölum samstarfsfólks…"); await MS.login(); if (!MS.can(TSH)) throw new Error("Aðgangur að dagatölum samstarfsfólks fékkst ekki"); }
+      await teamRefresh(true);
+    } catch (e) { toast(e?.message || String(e)); }
+  };
+  /* ---------- Árekstrar: er einhver boðaður þegar bókaður? ---------- */
+  window.fbConflicts = async function ({ slots, att, self }) {
+    const me = window.fbMe(), people = [...new Set([me, ...(att || []).map(a => lc(a.netfang))].filter(em => em && userBy(em)))];
+    if (!people.length || !slots?.length) return [];
+    const nm = em => userBy(em)?.nafn || em, hm = x => String(x).slice(11, 16), dd = x => +String(x).slice(8, 10) + "." + +String(x).slice(5, 7) + ".";
+    const ov = (a1, b1, a2, b2) => a1 < b2 && a2 < b1, k16 = x => String(x || "").slice(0, 16);
+    const endOf = f => f.dateEnd ? k16(f.dateEnd) : k16(plusH(f.date));
+    const out = [];
+    (S?.fundir || []).filter(f => f.date && String(f.date).length > 10 && (!self || f.id !== self.id) && (f.stofnandi || window.fbAtt(f).length)).forEach(f => {
+      const fs = k16(f.date), fe = endOf(f);
+      if (!slots.some(sl => ov(k16(sl.s), k16(sl.e), fs, fe))) return;
+      people.forEach(em => { if (window.fundFor(f, em)) out.push(`${nm(em)} – á öðrum fundi ${dd(fs)} kl. ${hm(fs)}–${hm(fe)} (${f.name || "fundur"})`); });
+    });
+    if (calOk()) try {
+      const ss = slots.map(x => k16(x.s)).sort(), ee = slots.map(x => k16(x.e)).sort();
+      const j = await MS.g("/me/calendar/getSchedule", { method: "POST", headers: { Prefer: `outlook.timezone="${TZ}"` },
+        body: { schedules: people, startTime: { dateTime: ss[0] + ":00", timeZone: TZ }, endTime: { dateTime: ee[ee.length - 1] + ":00", timeZone: TZ }, availabilityViewInterval: 15 } });
+      const sjalf = self ? [k16(self.date), endOf(self)] : null;
+      (j.value || []).forEach(sc => (sc.scheduleItems || []).forEach(it => {
+        if (!["busy", "oof", "tentative"].includes(it.status)) return;
+        const is = k16(it.start?.dateTime), ie = k16(it.end?.dateTime);
+        if (sjalf && is === sjalf[0] && ie === sjalf[1]) return; // fundurinn sjálfur (í breytingu)
+        if (slots.some(sl => ov(k16(sl.s), k16(sl.e), is, ie))) out.push(`${nm(lc(sc.scheduleId))} – á öðrum fundi ${dd(is)} kl. ${hm(is)}–${hm(ie)} (${it.subject || (it.status === "oof" ? "fjarverandi" : "Outlook")})`);
+      }));
+    } catch (e) {}
+    return [...new Set(out)];
+  };
+  window.fbConflictMsg = c => "Árekstur: " + c.slice(0, 4).join(" · ") + (c.length > 4 ? ` (+${c.length - 4} fleiri)` : "") + ". Smelltu aftur á Vista til að bóka samt.";
 })();

@@ -110,6 +110,8 @@ async function saveEdit(type,id){
       if(!name||!dt) return msg("Heiti og dagur verða að vera útfyllt.","err"); if(!urlOk(link)||!urlOk(fg)) return msg("Slóðir þurfa að byrja á https://","err");
       const start=tm?dt+"T"+tm+":00":dt; let te=val("e-end"); if(tm&&!te){const [h,m]=tm.split(":").map(Number); te=pad((h+1)%24)+":"+pad(m);} if(tm&&te&&te<=tm) return msg("Fundurinn þarf að enda eftir að hann byrjar.","err");
       const att=window.fbRead?fbRead("e"):null, wantSend=window.fbWantSend&&fbWantSend("e")&&(att||[]).length;
+      if(tm&&window.fbConflicts){const o=findFund(id), c=await fbConflicts({slots:[{s:start,e:dt+"T"+te+":00"}],att:att||[],self:o});
+        if(c&&c.length){const sig=c.join("|"); if(window.__fbOvr!==sig){window.__fbOvr=sig; return msg(fbConflictMsg(c),"err");}}}
       busy(); const p=findProj(pid);
       await saveSnapshot(s=>{const q=(s.fundir||[]).find(x=>x.id===id); if(q) Object.assign(q,{name,date:start,dateEnd:tm&&te?dt+"T"+te+":00":null,...(att?{attendees:att}:{}),stadsetning:place||null,fundarhlekkur:link||null,fundargerd:fg||null,projectId:pid||null,verknr:p?.nafn||null,mappa:p?.mappa||null,lysing:val("e-lys")||null});});
       if(wantSend&&window.fbSend) fbSend(id);

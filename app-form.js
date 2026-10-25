@@ -372,11 +372,16 @@ async function save(ev){
       if(!name||!dt||!tm) return msg("Fylltu út heiti, dag og hvenær fundurinn byrjar.","err");
       let te=val("f-end"); if(!te){const [h,m]=tm.split(":").map(Number); te=pad((h+1)%24)+":"+pad(m);} if(te<=tm) return msg("Fundurinn þarf að enda eftir að hann byrjar.","err");
       const att=window.fbRead?fbRead("f"):[], wantSend=att.length&&window.fbWantSend&&fbWantSend("f"), wantTeams=window.fbWantTeams&&fbWantTeams("f");
-      if(!urlOk(link)||!urlOk(fg)) return msg("Slóðir þurfa að byrja á https://","err"); busy();
-      const id=newId(), p=findProj(pid);
+      if(!urlOk(link)||!urlOk(fg)) return msg("Slóðir þurfa að byrja á https://","err");
+      if(window.fbConflicts){ // árekstrar (2.81.0): er einhver boðaður þegar bókaður?
+        const rp0=val("f-rep"), rn0=rp0?Math.max(1,Math.min(52,parseInt(val("f-repn"))||1)):1;
+        const slots=[...Array(rn0)].map((_,k)=>{const x=d(dt); if(rp0==="m") x.setMonth(x.getMonth()+k); else if(rp0) x.setDate(x.getDate()+k*(+rp0)); const ds=isoDay(x); return {s:ds+"T"+tm+":00",e:ds+"T"+te+":00"};});
+        const c=await fbConflicts({slots,att}); if(c&&c.length){const sig=c.join("|"); if(window.__fbOvr!==sig){window.__fbOvr=sig; return msg(fbConflictMsg(c),"err");}}}
+      busy();
+      const id=newId(), p=findProj(pid), stofnandi=window.fbMe?fbMe()||null:null;
       const rp=val("f-rep"), rn=rp?Math.max(1,Math.min(52,parseInt(val("f-repn"))||1)):1, seria=rp?newId():null;
       const dates=[...Array(rn)].map((_,k)=>{const x=d(dt); if(rp==="m") x.setMonth(x.getMonth()+k); else if(rp) x.setDate(x.getDate()+k*(+rp)); return isoDay(x);});
-      await saveSnapshot(s=>{dates.forEach((ds,k)=>(s.fundir=s.fundir||[]).push({id:k?newId():id,name,date:ds+"T"+tm+":00",dateEnd:ds+"T"+te+":00",stadsetning:place||null,fundarhlekkur:link||null,fundargerd:k?null:(fg||null),projectId:pid||null,verknr:p?.nafn||null,mappa:p?.mappa||null,attendees:att,seria}));});
+      await saveSnapshot(s=>{dates.forEach((ds,k)=>(s.fundir=s.fundir||[]).push({id:k?newId():id,name,date:ds+"T"+tm+":00",dateEnd:ds+"T"+te+":00",stadsetning:place||null,fundarhlekkur:link||null,fundargerd:k?null:(fg||null),projectId:pid||null,verknr:p?.nafn||null,mappa:p?.mappa||null,attendees:att,seria,stofnandi}));});
       toast(rn>1?`${rn} fundir vistaðir`:"Fundur vistaður");
       if(wantSend&&window.fbSend) fbSend(id,{teams:wantTeams,ser:rn>1?{n:rn,rp}:null});
       if(!fg&&window.MS&&MS.on()&&window.msFundargerd) msFundargerd(id);
