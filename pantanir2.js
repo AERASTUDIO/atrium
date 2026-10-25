@@ -659,7 +659,7 @@
       v?.athugasemd ? row("note", `„${E(v.athugasemd)}“`) : "",
       !v && P.tengillSendur ? row("", `✉ Tengill sendur${P.tengillSendur.af === "sjálfvirkt" ? " sjálfkrafa" : ""}<small>${hm(P.tengillSendur.dags)}${P.tengillSendur.til ? " · " + E(P.tengillSendur.til) : ""}</small>`) : "",
       !v && !P.tengillSendur && P.opinber && TENG().on && P.stada === "Ný" ? row("m", `Tengillinn fer sjálfkrafa ${E(String(TENG().klst).replace(".", ","))} klst. eftir stofnun, í síðasta lagi ${E(String(TENG().fyrir))} klst. fyrir afhendingu`) : "",
-      P.stada !== "Ný" ? (pm ? row("ok", `✓ Staðfestingarpóstur sendur<small>${hm(pm.dags)} · ${E(pm.til || to)}</small>`) : !to ? row("wait", "Ekkert netfang – staðfestingarpóstur fer ekki") : row("wait", `Staðfestingarpóstur ekki farinn${ed() && (msOn() || DEMO()) && P.opinber ? ` · <button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Senda núna</button>` : " · fer sjálfkrafa frá netþjóni"}`)) : ""
+      P.stada !== "Ný" ? (pm ? row("ok", `✓ Staðfestingarpóstur sendur<small>${hm(pm.dags)} · ${E(pm.til || to)}</small>`) : !to ? row("wait", "Ekkert netfang – staðfestingarpóstur fer ekki") : row("wait", `Staðfestingarpóstur ekki farinn${ed() && (msOn() || DEMO()) && P.opinber ? ` · <button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Forskoða og senda</button>` : " · fer sjálfkrafa frá netþjóni"}`)) : ""
     ].filter(Boolean).join("");
     const acts = !ed() ? "" : !P.opinber ? `<button type="button" class="btn sm" data-pf="pub:${E(P.id)}">Búa til pöntunarsíðu</button>`
       : `<button type="button" class="btn sm" data-pf="pubsend:${E(P.id)}">✉ Senda tengil</button><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita tengil</button><a class="btn sm" href="${E(pubUrl(P.opinber))}" target="_blank" rel="noopener">Opna síðu</a><button type="button" class="pflink pfx" data-pf="pubrev:${E(P.id)}">Loka síðu</button>`;
@@ -694,7 +694,20 @@
     if (op === "rkut0") return savePN(id, P => { delete P.reikningur; }).then(() => render());
     if (op === "pub") return pubCreate(id);
     if (op === "pubrev") return pubRevoke(id);
-    if (op === "pubmail") { const P = findP(id); if (P?.opinber) return mailConfirm(P.opinber, id, true); return; }
+    // 2.90.3: „Senda núna“ opnar póstglugga með PDF pöntunarinnar í viðhengi – hægt að forskoða og breyta áður en sent er
+    if (op === "pubmail") { const P = findP(id); if (!P?.opinber) return;
+      if (DEMO() || !window.poCompose || !window.tbPdfBytes) return mailConfirm(P.opinber, id, true);
+      const t = P.opinber, to = P.netfang || tr(() => findVsk(P.vskId)?.netfang, ""), st = P.vidskStadfest || PUB[t]?.stadfest || {}, co = tr(() => DOK.co(), {}) || {};
+      const subject = `Staðfesting á pöntun ${P.nr} – ${P.heiti || ""}`.trim().replace(/ –$/, "");
+      const body = `Sæl/l${st.nafn ? " " + String(st.nafn).split(" ")[0] : ""},\n\nTakk fyrir – pöntun ${P.nr}${P.heiti ? " (" + P.heiti + ")" : ""} er staðfest.\n\nAfhending: ${dfmt(P.fra)}${P.afhKl ? " kl. " + P.afhKl : ""} · Skil: ${dfmt(P.til || P.fra)}${P.afhending === "sent" ? " · Sent" + (P.afhStadur ? " á " + P.afhStadur : "") : P.afhending === "sott" ? " · Sótt" : ""}\n\nPöntunin er í viðhengi. Þú getur alltaf skoðað hana hér: ${pubUrl(t)}\n\nKveðja,\n${co.nafn || ""}${co.simi ? "\n" + co.simi : ""}`;
+      toast("Bý til PDF…");
+      window.tbPdfBytes(P).then(bytes => poCompose({ to, subject, body, pid: P.verkefniId || null,
+        atts: [{ name: `Pöntun ${P.nr}.pdf`, type: "application/pdf", size: bytes.length, data: bytes }],
+        onSent: async inf => { const mark = { af: me(), dags: nowIso(), til: to };
+          try { await window.__DB.tx("opinber/" + t, cur => ({ ...cur, postur: mark })); } catch (e) {}
+          PUB[t] = { ...(PUB[t] || {}), postur: mark };
+          await savePN(id, Q0 => { Q0.stadfPostur = mark; if (inf?.conv && !Q0.postConv) { Q0.postConv = inf.conv; Q0.postBox = inf.box || null; } }); render(); } }))
+        .catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (op === "pubsend") return pubSend(id);
     if (op === "pubcopy") { const P = findP(id); if (P?.opinber) navigator.clipboard?.writeText(pubUrl(P.opinber)).then(() => toast("Tengill afritaður")); return; }
   }, true);
