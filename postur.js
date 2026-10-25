@@ -365,6 +365,19 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
   const sgRead = () => { const o = {}; ["kvedja", "nafn", "titillIS", "titillEN", "fyrirtaeki", "netfang", "simi", "vefur"].forEach(k => { const el = document.getElementById("sg-" + k); if (el) o[k] = el.value.trim(); }); return o; };
   document.addEventListener("input", e => { if (e.target.id?.startsWith("sg-")) { const p = document.getElementById("sg-prev"); if (p) p.innerHTML = poSigHTML("icons/sig-logo.png", sgRead()); } });
 
+  // 2.84.0: svara í þræði (conversationId) – nýjasti pósturinn í þræðinum sóttur og svarað á hann, til ákveðins viðtakanda
+  window.poReplyConv = async function ({ conv, box, to, body, pid, onSent, fallback }) {
+    try {
+      const qs = `/messages?$filter=${encodeURIComponent(`conversationId eq '${String(conv).replace(/'/g, "''")}'`)}&$top=50&$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,conversationId,hasAttachments`;
+      const boxes = [...new Set([box || "/me", ...(SHB ? [SHB] : []), "/me"])];
+      let xs = [];
+      for (const b of boxes) { try { const j = await MS.g(b + qs); (j.value || []).forEach(m => { BOX[m.id] = b; xs.push(m); }); } catch (e) {} }
+      xs = xs.filter((m, i, A) => A.findIndex(x => x.id === m.id) === i).sort((a, b) => String(b.receivedDateTime).localeCompare(String(a.receivedDateTime)));
+      if (!xs.length) throw new Error("nofound");
+      const m = xs[0]; MSG[m.id] = MSG[m.id] || m; noteConv([m]);
+      poCompose({ mode: "reply", mid: m.id, forceTo: to, body, pid, onSent });
+    } catch (e) { if (fallback) fallback(); else toast("Fann ekki upprunalega póstinn – sendu nýjan póst."); }
+  };
   window.poCompose = function (o = {}) {
     if (!msOn()) { toast("Tengdu Microsoft fyrst (Stillingar)."); return; }
     const mode = o.mode || "new", src = o.mid ? MSG[o.mid] : null, atts = (o.atts || []).slice();
@@ -375,7 +388,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     sheet.innerHTML = `<h3 id="sheet-h">${title}</h3>
       ${canSend ? "" : `<div class="msg err" style="margin-bottom:10px">Appið hefur ekki enn leyfi til að senda póst. Tengstu Microsoft aftur og samþykktu nýju heimildina.<br><button type="button" class="btn" style="margin-top:8px" id="po-relog">Tengjast aftur</button></div>`}
       <form id="pocf" novalidate>
-      ${mode === "reply" || mode === "replyAll" ? `<p class="hint" style="margin:0">Til: ${esc(mode === "reply" ? fromName(src) : [fromName(src), people(src.toRecipients), people(src.ccRecipients)].filter(Boolean).join(", "))}</p>` :
+      ${mode === "reply" || mode === "replyAll" ? `<p class="hint" style="margin:0">Til: ${esc(o.forceTo ? o.forceTo : mode === "reply" ? fromName(src) : [fromName(src), people(src.toRecipients), people(src.ccRecipients)].filter(Boolean).join(", "))}</p>` :
         `<div class="rfield"><span class="lbl">Til <span class="req">*</span></span><div class="rbox" id="po-to-box"><input autocomplete="off" inputmode="email" aria-label="Viðtakendur" placeholder="Nafn eða netfang"></div><div class="rsugs" id="po-to-sug" hidden></div><input type="hidden" id="po-to"></div>
          <div class="rfield"><span class="lbl">Afrit (cc)</span><div class="rbox" id="po-cc-box"><input autocomplete="off" inputmode="email" aria-label="Afrit"></div><div class="rsugs" id="po-cc-sug" hidden></div><input type="hidden" id="po-cc"></div>`}
       ${SHB && mode === "new" ? `<label>Frá<select id="po-from"><option value="sh"${o.pid || (o.mid && BOX[o.mid]) ? " selected" : ""}>${esc(SH)} (verkefnapóstur)</option><option value="me"${o.pid ? "" : " selected"}>${esc(MS.user()?.email || "Mitt netfang")}</option></select></label>` : ""}
@@ -415,21 +428,35 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
         if (withSig) fa.push(await logoAtt());
         if (mode === "new") {
           var sbox = SHB && val("po-from") === "sh" ? SHB : "/me";
-          await MS.g(sbox + "/sendMail", { method: "POST", body: { message: { subject, body: { contentType: "HTML", content: toHtml(text) + sigH }, toRecipients: addrs(to), ccRecipients: addrs(cc), attachments: fa }, saveToSentItems: true } });
+          // 2.84.0: búin til drög og þau send – þá er þráður póstsins (conversationId) þekktur, t.d. til að svara síðar í sama þræði
+          const msgB = { subject, body: { contentType: "HTML", content: toHtml(text) + sigH }, toRecipients: addrs(to), ccRecipients: addrs(cc), attachments: fa };
+          var sentInfo = { conv: null, box: sbox };
+          if (sbox === "/me" && MS.can("Mail.ReadWrite")) {
+            const dr = await MS.g("/me/messages", { method: "POST", body: msgB });
+            await MS.g(`/me/messages/${encodeURIComponent(dr.id)}/send`, { method: "POST", body: {} });
+            sentInfo.conv = dr.conversationId || null;
+          } else {
+            await MS.g(sbox + "/sendMail", { method: "POST", body: { message: msgB, saveToSentItems: true } });
+            sentInfo.lookup = true; // þráðurinn fundinn í Sent eftir á (sameiginlegt pósthólf eða án Mail.ReadWrite)
+          }
         } else {
           const fn = { reply: "createReply", replyAll: "createReplyAll", forward: "createForward" }[mode];
           const box = mb(o.mid);
           const dr = await MS.g(`${box}/messages/${encodeURIComponent(o.mid)}/${fn}`, { method: "POST", body: {} });
           const patch = { body: { contentType: "HTML", content: toHtml(text) + sigH + "<br>" + (dr.body?.content || "") } };
+          if (o.forceTo) { patch.toRecipients = addrs(o.forceTo); patch.ccRecipients = []; } // svar í þræði til ákveðins viðtakanda (t.d. viðskiptavinar)
           if (mode === "forward") { patch.toRecipients = addrs(to); if (cc) patch.ccRecipients = addrs(cc); }
           await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}`, { method: "PATCH", body: patch });
           for (const a of fa) await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}/attachments`, { method: "POST", body: a });
           await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}/send`, { method: "POST", body: {} });
+          var sentInfo = { conv: src?.conversationId || dr.conversationId || null, box };
         }
         toast("Póstur sendur"); closeSheet();
         const rc = mode === "reply" ? [{ a: src.from?.emailAddress?.address, n: src.from?.emailAddress?.name }] : mode === "replyAll" ? [src.from, ...(src.toRecipients || []), ...(src.ccRecipients || [])].map(x => ({ a: x?.emailAddress?.address, n: x?.emailAddress?.name })) : [...addrs(to), ...addrs(cc)].map(x => ({ a: x.emailAddress.address, n: (contacts().find(c => c.a.toLowerCase() === x.emailAddress.address.toLowerCase()) || {}).n || "" }));
         remember(rc, true).catch(() => {});
-        if (o.onSent) try { await o.onSent(); } catch (e) {}
+        if (typeof sentInfo !== "undefined" && sentInfo.lookup && o.onSent) for (let i = 0; i < 3 && !sentInfo.conv; i++) { await new Promise(z => setTimeout(z, 1500));
+          try { const xs = (await MS.g(`${sentInfo.box}/mailFolders/sentitems/messages?$top=10&$orderby=sentDateTime%20desc&$select=subject,conversationId`)).value || []; sentInfo.conv = xs.find(x => x.subject === subject)?.conversationId || null; } catch (e) {} }
+        if (o.onSent) try { await o.onSent({ text, subject, ...(typeof sentInfo !== "undefined" ? sentInfo : {}) }); } catch (e) {}
         if (pid) setTimeout(() => linkSent(subject, pid, typeof sbox !== "undefined" ? sbox : "/me"), 3000);
       } catch (e) { btn.disabled = false; btn.textContent = "Senda"; msg(esc(/403|denied|scope|SendAs|ErrorSendAsDenied/i.test(e.message) || e.status === 403 ? (SHB ? `Appið hefur ekki leyfi til að senda${val("po-from") === "sh" || BOX[o.mid] ? " frá " + SH + " (vantar Send as í Exchange eða Mail.Send.Shared)" : ""}. Tengstu Microsoft aftur og samþykktu heimildina.` : "Appið hefur ekki leyfi til að senda. Tengstu Microsoft aftur og samþykktu heimildina.") : e.message), "err"); }
     };

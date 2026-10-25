@@ -1304,3 +1304,6 @@ body.sidesheet #sheetwrap .scrim{display:none}
   body.sidesheet .split{grid-template-columns:1fr!important}
 }
 
+.smsvar{margin:6px 0 0 12px;padding:6px 10px;border-left:2px solid var(--b3);background:var(--accent-soft);border-radius:0 8px 8px 0}
+.smsvar div{white-space:pre-wrap}
+.smsvbid{display:inline-block;margin-top:4px;color:var(--accent);font-weight:500}
