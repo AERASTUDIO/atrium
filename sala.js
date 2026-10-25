@@ -466,6 +466,7 @@
       <h2 class="big" style="margin-top:6px">${esc(T.heiti || "")}</h2>
       <p class="sub">${[T.vskId && findVsk(T.vskId) ? `<a class="plink" data-open="vsk:${esc(T.vskId)}">${esc(T.vidskiptavinur || findVsk(T.vskId).name)}</a>` : esc(T.vidskiptavinur || ""), P && T.tengilidur ? esc(T.tengilidur) : "", P && T.simi ? `<a class="plink" href="tel:${esc(T.simi)}">${esc(T.simi)}</a>` : "", esc(dRange(T)), L && T.fra ? esc(tbDagar(T) + (tbDagar(T) === 1 ? " dagur" : " dagar")) : "", esc(T.stadsetning || "")].filter(Boolean).join(" · ")}</p>
       ${pr ? `<p class="sub">Verkefni: <a class="plink" data-open="verk:${esc(pr.id)}">${esc(pr.nafn)}</a></p>` : ""}
+      ${tbMennHTML(T)}
       <div class="links">${MCP && !laest(T) && !(T.bidur && !P) ? `<button type="button" class="btn primary" data-act="tbed:start:${esc(T.id)}">✎ Breyta</button>` : ""}${P ? "" : `<button type="button" class="btn" data-act="tbpdf:pv:${esc(T.id)}">Forskoða PDF</button><button type="button" class="btn" data-act="tbpdf:dl:${esc(T.id)}">Sækja PDF</button>
         ${MCP && !P ? `<button type="button" class="btn" data-act="tbsend:${esc(T.id)}">✉ Senda í pósti</button>` : ""}`}</div>
       ${MCP ? `<div class="kind" style="margin-top:14px">Staða</div>${PV() ? `<div class="fsels">${fsel(STOD(T).map(s => [`tbst:${T.id}:${s}`, s, T.stada === s]), P ? "Staða pöntunar" : "Staða tilboðs")}</div>` : `<div class="chips">${STADA.map(s => `<button type="button" class="chipbtn" data-act="tbst:${esc(T.id)}:${s}" aria-pressed="${T.stada === s}">${s}</button>`).join("")}</div>`}
@@ -798,7 +799,32 @@
   const klstOf = T => { const h = (T.linur || []).filter(l => l.teg === "vinna" && /klst/i.test(l.ein || "")).reduce((a, l) => a + (+l.magn || 0), 0); return h || null; };
   const vflOf = T => { const vf = typeof THJ === "function" ? THJ().map(x => typeof x === "string" ? x : x?.n || x?.nafn || "") : []; return [...new Set((T.linur || []).filter(l => l.teg === "vinna" && l.v).map(l => findV(l.v)?.flokkur).filter(f => f && (!vf.length || vf.includes(f))))]; };
   // Tilboð → pöntun / verkefni (2.61.0): ein smíði fyrir samþykktargluggann og hnappana „Stofna pöntun/verkefni úr tilboði“
-  const mkPontun = (T, id, nr) => ({ id, pontun: true, nr, deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
+  /* ---------- Starfsfólk á tilboði/pöntun (2.85.0) – ræður hverjir fá tilkynningar um svör viðskiptavinar ----------
+     Skráðir: T.starfsmenn (sk), sá sem stofnaði (stofnad_af) og starfsfólk tengds verkefnis. Enginn skráður → stjórnendur. */
+  const lcE = x => String(x || "").trim().toLowerCase();
+  const NU = () => { try { return window.nuUsers ? nuUsers().filter(u => u.virkur !== false) : []; } catch (e) { return []; } };
+  const skE = sk => lcE(NU().find(u => String(u.sk || "") === String(sk))?.email);
+  window.tbMenn = function (T) {
+    const out = new Set(), add = e => { e = lcE(e); if (e && NU().some(u => lcE(u.email) === e)) out.add(e); };
+    (T?.starfsmenn || []).forEach(sk => add(skE(sk)));
+    add(T?.stofnad_af);
+    const p = T?.verkefniId && typeof findProj === "function" ? findProj(T.verkefniId) : null; (p?.starfsmenn || []).forEach(sk => add(skE(sk)));
+    return out;
+  };
+  window.tbMine = function (T) {
+    const me = lcE(window.VIEWAS?.email || window.USER?.email || ""); if (!me) return true;
+    const m = window.tbMenn(T); if (m.size) return m.has(me);
+    return window.USER?.hlutverk === "admin" || !window.USER; // enginn skráður: stjórnendur
+  };
+  function tbMennHTML(T) {
+    if (!NU().length) return "";
+    const nm = e => NU().find(u => lcE(u.email) === e)?.nafn || e, own = new Set((T.starfsmenn || []).map(skE).filter(Boolean)), all = window.tbMenn(T);
+    const p = T.verkefniId ? findProj(T.verkefniId) : null, pv = new Set((p?.starfsmenn || []).map(skE));
+    const chips = [...all].map(e => `<span class="tbm${own.has(e) ? "" : " fx"}" title="${esc(own.has(e) ? "Skráð á " + (isP(T) ? "pöntunina" : "tilboðið") : lcE(T.stofnad_af) === e ? "Stofnaði " + (isP(T) ? "pöntunina" : "tilboðið") : "Á verkefninu")}">${esc(nm(e))}${!own.has(e) ? `<small>${lcE(T.stofnad_af) === e ? "stofnaði" : pv.has(e) ? "verkefni" : ""}</small>` : ""}${MCP && own.has(e) ? `<button type="button" data-act="tbmenn:rm:${esc(T.id)}:${esc(NU().find(u => lcE(u.email) === e)?.sk || "")}" aria-label="Fjarlægja ${esc(nm(e))}">×</button>` : ""}</span>`).join("");
+    const opts = MCP ? NU().filter(u => u.sk && !all.has(lcE(u.email))) : [];
+    return `<div class="tbmenn"><span class="kind">Starfsfólk</span>${chips || `<span class="hint">Enginn skráður – stjórnendur fá tilkynningar</span>`}${opts.length ? `<select aria-label="Bæta við starfsmanni" onchange="if(this.value){doAct('tbmenn:add:${esc(T.id)}:'+this.value)}"><option value="">+ Bæta við</option>${opts.map(u => `<option value="${esc(u.sk)}">${esc(u.nafn || u.email)}</option>`).join("")}</select>` : ""}</div>`;
+  }
+  const mkPontun = (T, id, nr) => ({ starfsmenn: (T.starfsmenn || []).slice(), id, pontun: true, nr, deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
     uppruni: "tilbod", ytriNr: null, stadsetning: T.stadsetning || null, fra: T.fra || null, til: T.til || T.fra || null, dags: isoDay(new Date()), stada: "Staðfest", afsl: +T.afsl || 0, athugasemd: null,
     linur: (T.linur || []).map(l => ({ ...l, id: gid() })), verkefniId: T.verkefniId || null, tilbodId: T.id });
   const mkVerk = (T, id, nr) => { const st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
@@ -988,6 +1014,7 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
       saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(N); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; })
         .then(() => { toast("Afritað sem " + nr); EDT = structuredClone(N); openDetail("tb:" + id); }); return; }
     // 2.83.1: svar við spurningu af tilboðssíðunni – skrifað í appinu (Microsoft 365), annars póstforrit tölvunnar
+    if (k === "tbmenn") { const [op, id, sk] = r; if (!id || !sk) return; saveT(id, q => { const L = (q.starfsmenn || []).filter(x => x !== sk); if (op === "add") L.push(sk); q.starfsmenn = L; }).then(() => render()).catch(e => toast(errText(e))); return; }
     if (k === "tbsvara") { const T = findT(a); if (!T) return; const to = T.netfang || findVsk(T.vskId)?.netfang || "", su = "RE: Tilboð " + T.nr + " – " + (T.heiti || "");
       const sp = (T.vidskSvor || []).filter(m => !(T.vidskSvorSvar || {})[String(m.dags || "")]).slice(-1)[0] || (T.vidskSvor || []).slice(-1)[0], body = `\n\n\n---\n${sp ? `${sp.nafn || "Viðskiptavinur"} spurði ${dIS(String(sp.dags || "").slice(0, 10))} kl. ${String(sp.dags || "").slice(11, 16)}:\n> ${String(sp.texti || "").replace(/\n/g, "\n> ")}` : ""}`;
       // 2.84.0: svarið fer í þráð tilboðspóstsins (ef tilboðið var sent úr Atrium) og skráist undir spurningunni

@@ -15,6 +15,7 @@
    - spjall/{id} búið til               → einkaskilaboð til viðtakanda, almennt til allra  (val: spjall)
    - Kl. 08:00 alla virka daga          → „Í dag: 2 afhendingar · 1 skil · 1 seint“        (val: morgun)
    - 2.72.0: skil, tinsla, tvibokun, vidsvar, klukka, uthlutun, aaetlun, eftirfylgni – sjá neðst í skránni
+   - 2.85.0: tilkynningar um tilboð og pantanir (ný pöntun, staðfesting, svar, eftirfylgni) fara aðeins til þeirra sem eru skráðir á þau (mennOf)
 */
 const { onDocumentCreated, onDocumentUpdated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
@@ -70,7 +71,7 @@ const link = (t, o) => "#t=" + encodeURIComponent(t) + (o ? "&o=" + encodeURICom
 exports.nyPontun = onDocumentCreated("pantanir/{id}", async ev => {
   const P = ev.data && ev.data.data(); if (!P || P.prufa) return;
   const af = lc(P.stofnadAf || P.af || P.eigandi || "");
-  const us = (await activeUsers()).filter(u => u.email !== af).map(u => u.email);
+  const us = (await mennOf(P)).filter(e => e !== af);
   const upp = { postur: "úr pósti", shopify: "úr vefverslun", vefur: "af vefnum", tilbod: "úr tilboði" }[P.uppruni] || "";
   await send(us, "pantanir", { title: "Ný pöntun" + (upp ? " " + upp : ""), body: [nmP(P), who(P)].filter(Boolean).join(" · "), link: link("pantanir", "tb:" + (P.id || ev.params.id)), tag: "pn-" + ev.params.id });
 });
@@ -82,8 +83,8 @@ exports.vidskStadfestir = onDocumentUpdated("opinber/{t}", async ev => {
   const nSv = (b.svor || []).length, nSa = (a.svor || []).length, nyHafn = !a.hafnad && b.hafnad;
   if (nyHafn || nSv > nSa) {
     const nm = [b.nr, b.heiti].filter(Boolean).join(" "), sv = nyHafn ? b.hafnad : b.svor[nSv - 1], hver = sv.nafn || b.tengilidur || b.vidskiptavinur || "Viðskiptavinur";
-    let id = ""; try { const q = await db.collection(b.teg === "tilbod" ? "tilbod" : "pantanir").where("opinber", "==", ev.params.t).limit(1).get(); if (!q.empty) id = q.docs[0].data().id || q.docs[0].id; } catch (e) {}
-    await send((await activeUsers()).map(u => u.email), "vidsvar", { title: nyHafn ? `${hver} hafnaði tilboði` : `Spurning frá ${hver}`, body: nm + (sv.texti || sv.astaeda ? ` – „${String(sv.texti || sv.astaeda).slice(0, 120)}“` : ""), link: id ? link("tilbod", "tb:" + id) : "", tag: "sv-" + ev.params.t + "-" + nSv });
+    let id = "", d0 = null; try { const q = await db.collection(b.teg === "tilbod" ? "tilbod" : "pantanir").where("opinber", "==", ev.params.t).limit(1).get(); if (!q.empty) { d0 = q.docs[0].data(); id = d0.id || q.docs[0].id; } } catch (e) {}
+    await send(await mennOf(d0), "vidsvar", { title: nyHafn ? `${hver} hafnaði tilboði` : `Spurning frá ${hver}`, body: nm + (sv.texti || sv.astaeda ? ` – „${String(sv.texti || sv.astaeda).slice(0, 120)}“` : ""), link: id ? link("tilbod", "tb:" + id) : "", tag: "sv-" + ev.params.t + "-" + nSv });
     return;
   }
   if (a.stadfest || !b.stadfest) return;
@@ -94,7 +95,7 @@ exports.vidskStadfestir = onDocumentUpdated("opinber/{t}", async ev => {
   let id = "", doc = null;
   try { const q = await db.collection(col).where("opinber", "==", t).limit(1).get(); if (!q.empty) { doc = q.docs[0].data(); id = doc.id || q.docs[0].id; } } catch (e) { logger.warn("leit", e); }
   const nafn = (b.stadfest && b.stadfest.nafn) || b.tengilidur || b.vidskiptavinur || "Viðskiptavinur";
-  const us = (await activeUsers()).map(u => u.email);
+  const us = await mennOf(doc);
   await send(us, "stadfest", {
     title: tilbod ? "Tilboð samþykkt" : "Pöntun staðfest",
     body: `${nafn} ${tilbod ? "samþykkti tilboð" : "staðfesti"} ${[b.nr, b.heiti && b.heiti !== "Pöntun" ? b.heiti : ""].filter(Boolean).join(" ")}` + (b.stadfest.athugasemd ? ` – „${String(b.stadfest.athugasemd).slice(0, 80)}“` : ""),
@@ -280,6 +281,18 @@ async function once(key) {
 }
 const allEmails = async () => (await activeUsers()).map(u => u.email);
 const skEmails = async sks => { const U = await activeUsers(), S = new Set((sks || []).map(lc)); return U.filter(u => u.sk && S.has(lc(u.sk))).map(u => u.email); };
+// 2.85.0: þeir sem eru skráðir á tilboð/pöntun – starfsmenn (sk), sá sem stofnaði og starfsfólk tengds verkefnis. Enginn skráður → stjórnendur.
+async function mennOf(doc) {
+  const U = await activeUsers(), byE = new Set(U.map(u => u.email)), out = new Set(), add = e => { e = lc(e); if (e && byE.has(e)) out.add(e); };
+  if (doc) {
+    const sk = new Set((doc.starfsmenn || []).map(lc));
+    if (doc.verkefniId) { try { const p = await db.doc("verkefni/" + doc.verkefniId).get(); if (p.exists) (p.data().starfsmenn || []).forEach(x => sk.add(lc(x))); } catch (e) {} }
+    U.filter(u => u.sk && sk.has(lc(u.sk))).forEach(u => add(u.email));
+    add(doc.stofnad_af);
+  }
+  if (!out.size) U.filter(u => u.hlutverk === "admin").forEach(u => add(u.email));
+  return [...out];
+}
 const loadCol = async c => (await db.collection(c).get()).docs.map(d => ({ id: d.id, ...d.data() })).filter(x => !x.prufa);
 
 /* ---------- 1. Skil komin fram yfir ---------- */
@@ -366,7 +379,7 @@ exports.eftirfylgni = onSchedule({ schedule: "0 9 * * 1-5", timeZone: TZ }, asyn
   const t = nowTZ().iso, L = (await loadCol("tilbod")).filter(T => T.stada === "Sent" && d10(T.sent || T.dags) && d10(T.sent || T.dags) <= addDays(t, -7) && !T.bidur);
   const all = await allEmails();
   for (const T of L) { if (!(await once("eftirf-" + T.id))) continue;
-    const to = T.stofnad_af && all.includes(lc(T.stofnad_af)) ? [T.stofnad_af] : all;
+    const to = await mennOf(T);
     await send(to, "eftirfylgni", { title: "Tilboð ósvarað í viku", body: [[T.nr, T.heiti].filter(Boolean).join(" "), T.vidskiptavinur || T.tengilidur].filter(Boolean).join(" · ") + ` – sent ${dIS(d10(T.sent || T.dags))}`, link: link("tilbod", "tb:" + T.id), tag: "ef-" + T.id }); }
 });
 
