@@ -70,7 +70,7 @@ const link = (t, o) => "#t=" + encodeURIComponent(t) + (o ? "&o=" + encodeURICom
 /* ---------- Ný pöntun ---------- */
 exports.nyPontun = onDocumentCreated("pantanir/{id}", async ev => {
   const P = ev.data && ev.data.data(); if (!P || P.prufa) return;
-  const af = lc(P.stofnadAf || P.af || P.eigandi || "");
+  const af = lc(P.stofnad_af || P.stofnadAf || P.af || P.eigandi || ""); // 2.90.1: sá sem stofnar pöntunina fær ekki tilkynningu um hana (reiturinn heitir stofnad_af)
   const us = (await mennOf(P)).filter(e => e !== af);
   const upp = { postur: "úr pósti", shopify: "úr vefverslun", vefur: "af vefnum", tilbod: "úr tilboði" }[P.uppruni] || "";
   await send(us, "pantanir", { title: "Ný pöntun" + (upp ? " " + upp : ""), body: [nmP(P), who(P)].filter(Boolean).join(" · "), link: link("pantanir", "tb:" + (P.id || ev.params.id)), tag: "pn-" + ev.params.id });

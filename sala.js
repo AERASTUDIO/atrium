@@ -554,8 +554,10 @@
   /* ---------- PDF ---------- */
   async function tbPdf(T) {
     const D = tDeild(T), L = D === "leiga" && (!isMix(T) || (T.linur || []).some(l => l.teg === "leiga" || l.teg === "pakki"));
-    const P = await DOK.pdf(), { C, M, X1 } = P, co = DOK.co(), t = totals(T), label = "Tilboð " + T.nr + (+T.utgafa > 1 ? " (útgáfa " + T.utgafa + ")" : "");
-    let y = P.head("Tilboð", [["Tilboð nr.", T.nr + (+T.utgafa > 1 ? " · útg. " + T.utgafa : "")], ["Dagsetning", dIS(T.dags)], ["Gildir til", T.gildir ? dIS(T.gildir) : ""]]);
+    const PN0 = isP(T); // pöntun (2.90.1): skjalið heitir Pöntun, ekki Tilboð, og sýnir afhendingu í stað gildistíma
+    const P = await DOK.pdf(), { C, M, X1 } = P, co = DOK.co(), t = totals(T), label = PN0 ? "Pöntun " + T.nr : "Tilboð " + T.nr + (+T.utgafa > 1 ? " (útgáfa " + T.utgafa + ")" : "");
+    let y = PN0 ? P.head("Pöntun", [["Pöntun nr.", T.nr], ["Dagsetning", dIS(T.dags)], ["Afhending", T.fra ? dIS(T.fra) + (T.afhKl ? " kl. " + T.afhKl : "") : ""]])
+      : P.head("Tilboð", [["Tilboð nr.", T.nr + (+T.utgafa > 1 ? " · útg. " + T.utgafa : "")], ["Dagsetning", dIS(T.dags)], ["Gildir til", T.gildir ? dIS(T.gildir) : ""]]);
     const need = h => { if (y + h > P.H - 60) { P.doc.addPage(); y = P.contHead(label); return true; } return false; };
     const b = T.vskId ? findVsk(T.vskId) : null, col2 = M + (X1 - M) / 2 + 10;
     const sl = [co.nafn, co.kt && "kt. " + co.kt, co.heimilisfang, [co.netfang, co.simi].filter(Boolean).join(" · ")].filter(Boolean);
@@ -590,10 +592,10 @@
     row("Samtals án VSK", krs(t.net)); row("VSK " + fx(vskP()) + "%", krs(t.vsk)); y -= 5;
     P.rect(tx - 8, y, X1 - tx + 8, 30, C.nott); P.text("Samtals með VSK", tx, y + 19.5, { w: "medium", size: 10.5, color: C.hvitt }); P.text(krs(t.tot), X1 - 8, y + 19.5, { w: "medium", size: 11.5, color: C.hvitt, align: "right" }); y += 48;
     const txt = (title, s) => { if (!s) return; need(40); P.text(title, M, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 14; P.wrap(s, X1 - M, 9).forEach(z => { need(13); P.text(z, M, y, { size: 9 }); y += 12.5; }); y += 10; };
-    txt("ATHUGASEMD", T.athugasemd); txt("SKILMÁLAR", (L ? CF().skilmalarL : CF().skilmalarS) + (T.gildir ? " Tilboðið gildir til " + dIS(T.gildir) + "." : ""));
+    txt("ATHUGASEMD", T.athugasemd); txt("SKILMÁLAR", (L ? CF().skilmalarL : CF().skilmalarS) + (!PN0 && T.gildir ? " Tilboðið gildir til " + dIS(T.gildir) + "." : ""));
     return P.finish(label);
   }
-  const fileBase = T => `Tilboð ${T.nr}${+T.utgafa > 1 ? " v" + T.utgafa : ""} ${T.vidskiptavinur || ""} ${T.heiti || ""}`.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+  const fileBase = T => `${isP(T) ? "Pöntun" : "Tilboð"} ${T.nr}${!isP(T) && +T.utgafa > 1 ? " v" + T.utgafa : ""} ${T.vidskiptavinur || ""} ${T.heiti || ""}`.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
   window.tbPdfBytes = tbPdf;
 
   /* ---------- Prufugögn (leiga og sala) ---------- */

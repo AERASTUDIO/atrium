@@ -153,7 +153,6 @@ function draw(d, confirm, read) {
     <section class="card" id="conf">${st ? done(st) : `<div class="ch">Staðfesta pöntun</div><form id="f" novalidate>
       <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
       <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
-      <label>Athugasemd (valfrjálst)<textarea id="at" rows="2" maxlength="1000" placeholder="T.d. breyting á tíma eða aðkomu"></textarea></label>
       <label class="chk"><input type="checkbox" id="ok">${d.skilmalar ? "Ég hef lesið skilmálana og staðfesti pöntunina" : "Ég staðfesti pöntunina"}</label>
       <div class="err" id="er" role="alert"></div>
       <div><button class="btn" id="go">Staðfesta pöntun</button></div></form>`}</section>
