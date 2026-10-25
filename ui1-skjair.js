@@ -955,6 +955,10 @@
       api.TB().filter(mine).filter(T => T.stada === "Samþykkt" && daysTo(T.breytt_t || T.dags) >= -7 && daysTo(T.dags) >= -30).forEach(T => R.push({ k: "Tilboð", title: "Tilboð " + (T.nr || "") + " samþykkt", sub: [T.vidskiptavinur, T.heiti].filter(Boolean).join(" · "), date: T.breytt_t || T.dags, pill: "Samþykkt", open: "tb:" + T.id }));
       api.VR().forEach(v => (v.skemmdir || []).filter(x => x.stada === "opin" && daysTo(x.dags) >= -7).forEach(x => R.push({ k: "Lager", title: "Skemmd skráð · " + (x.eintak || v.nr || ""), sub: x.lysing || "", date: x.dags, pill: "Ástand", open: "vara:" + v.id })));
     }
+    // 2.91.0: pantanir sem þurfa reikning – aðeins þeir sem sjá um reikninga (fjarmal)
+    if (window.rkOrders && window.can && can("fjarmal")) rkOrders().forEach(P => { const sg = window.rkPnStadg && rkPnStadg(P), dt = sg ? P.greitt?.dags : (P.mottekid?.dags || P.afhent?.dags || P.til || P.fra);
+      if (daysTo(dt) < -30) return;
+      R.push({ k: "Reikningar", title: sg ? `${P.nr || ""} staðgreidd – gera þarf reikning (kvittun)` : `${P.nr || ""} afhent – reikningur ekki gerður`, sub: [P.vidskiptavinur || P.tengilidur, P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""].filter(Boolean).join(" · "), date: dt, pill: "Reikningur", dark: 1, open: "tb:" + P.id }); });
     (S?.thraedir || []).filter(t => daysTo(t.tengt) >= -3).forEach(t => R.push({ k: "Póstur", title: "Póstur tengdur verkefni", sub: t.efni || "", date: t.tengt, pill: "Póstur", open: t.verkefniId ? "verk:" + t.verkefniId : null, act: "tab:postur" }));
     return R.sort((a, b) => String(b.date || "9").localeCompare(String(a.date || "9")));
   }

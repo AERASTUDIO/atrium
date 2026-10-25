@@ -60,10 +60,12 @@
      (leiga, sala, þjónusta, aukagjöld úr skilauppgjöri, afsláttur). R.pontunIds tengir; P.reikningur = id reiknings. */
   const PNs = () => (window.salaAPI?.PN?.() || []);
   const hattur = P => { const c = P.vskId ? findVsk(P.vskId) : null; return P.greidsluhattur || (c ? (c.greidsla || "reikningur") : "stadgreitt"); };
-  const pnBillable = P => P && P.pontun !== false && !P.reikningur && !P.greitt && hattur(P) === "reikningur" && ["Afhent", "Skilað", "Lokið"].includes(P.stada) && (P.linur || []).length;
+  // Í reikningi: afhent og ógreitt. Staðgreitt (2.91.0): greitt á pöntun – reikningur (kvittun) þarf samt að fara í bókhald.
+  const pnStadg = P => !!P?.greitt && hattur(P) === "stadgreitt";
+  const pnBillable = P => P && P.pontun !== false && !P.reikningur && (P.linur || []).length && P.stada !== "Hafnað" && (pnStadg(P) || (!P.greitt && hattur(P) === "reikningur" && ["Afhent", "Skilað", "Lokið"].includes(P.stada)));
   const ordersToBill = () => PNs().filter(pnBillable).sort((a, b) => String(a.fra || a.dags || "").localeCompare(String(b.fra || b.dags || "")));
   const pnNet = P => { try { return window.salaAPI.totals(P).net; } catch (e) { return 0; } };
-  window.rkOrders = ordersToBill; window.rkPnBillable = pnBillable;
+  window.rkOrders = ordersToBill; window.rkPnBillable = pnBillable; window.rkPnStadg = pnStadg;
   function orderLines(Ps) {
     const multi = Ps.length > 1, L = [], A = window.salaAPI;
     Ps.forEach(P => {
@@ -91,10 +93,12 @@
   function billOrders(pid0) {
     const P0 = PNs().find(x => x.id === pid0); if (!P0) return;
     if (!pnBillable(P0)) return toast(P0.reikningur ? "Pöntunin er þegar á reikningi." : hattur(P0) !== "reikningur" ? "Pöntunin er í staðgreiðslu – skráðu greiðslu á pöntunina." : "Pöntunin þarf að vera afhent áður en reikningur er gerður.");
-    if (!P0.vskId) return toast("Veldu viðskiptavin á pöntunina fyrst.");
-    if (!ktOK(findVsk(P0.vskId)?.kennitala)) { toast(`Kennitölu vantar á ${findVsk(P0.vskId)?.name || "viðskiptavininn"} – skráðu hana fyrst.`); try { openDetail("vsk:" + P0.vskId); } catch (e) {} return; }
-    const xs = ordersToBill().filter(x => x.vskId === P0.vskId), rk = RK(), c = findVsk(P0.vskId);
-    const { w, close } = modal("Reikningur · " + (c?.name || ""), `
+    if (!P0.vskId && !pnStadg(P0)) return toast("Veldu viðskiptavin á pöntunina fyrst.");
+    if (P0.vskId && !pnStadg(P0) && !ktOK(findVsk(P0.vskId)?.kennitala)) { toast(`Kennitölu vantar á ${findVsk(P0.vskId)?.name || "viðskiptavininn"} – skráðu hana fyrst.`); try { openDetail("vsk:" + P0.vskId); } catch (e) {} return; }
+    const xs = P0.vskId ? ordersToBill().filter(x => x.vskId === P0.vskId && pnStadg(x) === pnStadg(P0)) : [P0], rk = RK(), c = P0.vskId ? findVsk(P0.vskId) : null;
+    const st0 = pnStadg(P0);
+    const { w, close } = modal("Reikningur · " + (c?.name || P0.tengilidur || "Staðgreiðsla"), `
+      ${st0 ? `<p class="pfhint" style="margin:0 0 8px">Staðgreitt – greiðslan er skráð á pöntunina. Reikningurinn (kvittun) er búinn til sem <b>greiddur</b> og fer í bókhaldið eins og aðrir.${c && !ktOK(c.kennitala) ? " Kennitölu vantar á viðskiptavininn – hún er valfrjáls fyrir staðgreiðslu." : ""}</p>` : ""}
       ${xs.length > 1 ? `<p class="pfhint" style="margin:0 0 8px">Fleiri afhentar pantanir þessa viðskiptavinar eru án reiknings – hakaðu við þær sem eiga að fara á sama reikning.</p>` : ""}
       <div class="rkpl">${xs.map(x => `<label class="rkpr"><input type="checkbox" value="${esc(x.id)}"${x.id === pid0 ? " checked" : ""}><span><b>${esc(x.nr)}</b> ${esc(x.heiti && x.heiti !== "Pöntun" ? x.heiti : "")}<small>${esc([x.fra ? dIS(x.fra) : "", x.stada].filter(Boolean).join(" · "))}</small></span><b>${esc(kr(pnNet(x)))}</b></label>`).join("")}</div>
       <div class="two" style="margin-top:12px"><label>Reikningsdagur<input id="rkp-d" type="date" value="${isoDay(today)}"></label><label>Gjalddagi<input id="rkp-g" type="date" value="${addDays(isoDay(today), +rk.frestur || 14)}"></label></div>
@@ -113,6 +117,8 @@
       const L = orderLines(Ps), vskP = +rk.vsk || 0, sl = { ...rk }; delete sl.nastaNr; delete sl.timagjald;
       const pids = [...new Set(Ps.map(x => x.verkefniId).filter(Boolean))], ids = new Set(Ps.map(x => x.id));
       const R = { id: newId(), nr, dags: w.querySelector("#rkp-d").value, gjalddagi: w.querySelector("#rkp-g").value, verkefniIds: pids, verkefniId: pids[0] || null, pontunIds: [...ids], vskId: P0.vskId, kaupandi: buyerOf(c), seljandi: sl, linur: L, vskP, ...totals(L, vskP), timaIds: [], kostnIds: [], stada: "Ógreitt", stofnad: new Date().toISOString() };
+      if (!R.kaupandi) R.kaupandi = { name: P0.tengilidur || "Staðgreiðsluviðskiptavinur", kennitala: "", heimilisfang: "", postnumer: "", stadur: "", netfang: P0.netfang || "" };
+      if (Ps.every(pnStadg)) { R.stada = "Greitt"; R.greitt = Ps.map(x => String(x.greitt.dags).slice(0, 10)).sort().pop(); R.stadgreitt = true; R.gjalddagi = R.dags; }
       w.querySelector("#rkp-ok").disabled = true;
       try { await saveSnapshot(st => { (st.reikningar = st.reikningar || []).push(R); (st.pantanir || []).forEach(q => { if (ids.has(q.id)) q.reikningur = R.id; });
           st.stillingar = st.stillingar || {}; st.stillingar.reikn = { ...(st.stillingar.reikn || {}), nastaNr: Math.max(nr + 1, +(st.stillingar.reikn?.nastaNr || 0)) }; });
@@ -382,7 +388,7 @@
   window.rkPakki = id => { const R = findR(id); return R ? pakki(R) : null; };
   // Hvað vantar áður en reikningurinn getur farið sjálfvirkt í bókhald
   const vidbunadur = R => { const P = pakki(R), v = [];
-    if (!ktOK(P.kaupandi.kt)) v.push("kennitölu greiðanda"); if (!ktOK(P.utgefandi.kt)) v.push("kennitölu seljanda (Stillingar › Reikningar)");
+    if (!R.stadgreitt && !ktOK(P.kaupandi.kt)) v.push("kennitölu greiðanda"); if (!ktOK(P.utgefandi.kt)) v.push("kennitölu seljanda (Stillingar › Reikningar)");
     const nl = [...new Set(P.linur.filter(l => !l.lykill).map(l => (FLOKKAR.find(f => f[0] === l.flokkur) || [, "óflokkaðar línur"])[1].toLowerCase()))]; if (nl.length) v.push("tekjulykil fyrir " + nl.join(", "));
     return v; };
   function csvOf(R) { const P = pakki(R), q = x => `"${String(x ?? "").replace(/"/g, '""')}"`, n = x => String(x ?? "").replace(".", ",");
