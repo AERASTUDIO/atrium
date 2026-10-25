@@ -1004,3 +1004,12 @@ body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-
 .rkpm .rkpsum{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--ui1soft,#f6f8fb)}.rkpm .rkpsum .sub-i{display:flex;justify-content:space-between;padding:3px 0}
 .inv-tab tr.inv-hd td{background:#f3f5f8;padding-top:8px}
 #view .utbr.uhd{background:var(--ui1soft,#f6f8fb)}
+/* 2.90.0 Bókhaldsundirbúningur */
+.rkvb{margin:14px 0 4px;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;border:1px solid var(--line)}
+.rkvb.ok{background:color-mix(in srgb,#2e8b57 8%,var(--surface,#fff));border-color:color-mix(in srgb,#2e8b57 30%,var(--line))}
+.rkvb.no{background:color-mix(in srgb,#c58a1b 9%,var(--surface,#fff));border-color:color-mix(in srgb,#c58a1b 30%,var(--line))}
+.rkvb .pflink{border:0;background:none;color:var(--accent,#2b5fd9);font:inherit;font-weight:500;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline;text-underline-offset:2px}
+.rkfl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.rkflr{display:grid;grid-template-columns:minmax(0,1fr) 170px 190px;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+.rkflr:last-child{border-bottom:0}.rkflr select,.rkflr input{min-height:36px;margin:0!important;font-size:13.5px}
+@media (max-width:640px){.rkflr{grid-template-columns:1fr 1fr}.rkflr>span{grid-column:1/-1;font-weight:500}}

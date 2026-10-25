@@ -266,6 +266,7 @@ let _ctxRole=null; const ctxRole=()=>_ctxRole;
 function readVskForm(pre,editing){
   const g=k=>val(`${pre}-${k}`), name=g("name"), teg=g("teg")==="einstaklingur"?"einstaklingur":"fyrirtaeki"; if(!name) throw {code:"form",message:teg==="einstaklingur"?"Skrifaðu nafn.":"Skrifaðu nafn fyrirtækisins."};
   const kt=g("kt"); if(!ktOk(kt)) throw {code:"form",message:"Kennitala á að vera 10 tölustafir."};
+  if(!kt&&g("greidsla")!=="stadgreitt") throw {code:"form",message:"Kennitala er nauðsynleg fyrir viðskiptavin í reikningi – bókhaldskerfið (Payday/DK) parar reikninga á henni. Skráðu hana eða veldu Staðgreiðsla."}; // 2.90.0
   const mail=g("mail"), tm=g("tm"); const em=/^[^\s@]+@[^\s@]+\.[^\s@]+$/; if((mail&&!em.test(mail))||(tm&&!em.test(tm))) throw {code:"form",message:"Netfang er ekki á réttu formi."};
   let web=g("web"); if(web&&!/^https?:\/\//.test(web)) web="https://"+web;
   const roles=["Viðskiptavinur"]; // verkkaupi er ekki lengur notaður (frá 1.4.0)
