@@ -182,7 +182,8 @@ function sideExtra(){const el=document.getElementById("sextra"); if(!el||!S) ret
   const act=active().slice(0,6); if(act.length) h+=`<div class="sx-h">Verkefni í gangi</div>${act.map(p=>`<a class="sx-i" ${tapAttr("verk",p.id)}><span><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt)}</span></a>`).join("")}`;
   {const wk0=weekSum(0,STARFS().length>1?ME():null,true), kk=klukka(); h+=`<div class="sx-h">Vikan</div><a class="sx-w tap" data-act="tab:timar" data-wk="${wk0}"${kk?` data-kstart="${esc(kk.start)}"`:""}><b class="wkv">${num(Math.round((wk0+(kk?liveWeekH(kk.start):0))*10)/10)}</b> klst. í vikunni · <b>${num(periodSum(curPeriod()))}</b> á tímabili</a>`;}
   el.innerHTML=h;}
-document.getElementById("sextra").addEventListener("click",e=>{const t=e.target.closest("[data-open]"); if(t){e.preventDefault(); const k=t.dataset.open; DETAIL=null; openDetail(k);}});
+document.getElementById("sextra").addEventListener("click",e=>{const t=e.target.closest("[data-open]"); if(t){e.preventDefault(); const k=t.dataset.open; DETAIL=null; openDetail(k); return;}
+  const a=e.target.closest("[data-act]"); if(a){e.preventDefault(); doAct(a.dataset.act,a);}});  // 2.88.4: ✎ (breyta klukku) og aðrir hnappar í vinstri stiku gerðu ekkert
 function openMenu(){drawMenu(); menuwrap.hidden=false; mbtn.setAttribute("aria-expanded","true"); document.querySelector('#mitems [aria-current]')?.focus();}
 function closeMenu(){menuwrap.hidden=true; mbtn.setAttribute("aria-expanded","false");}
 mbtn.addEventListener("click",()=>menuwrap.hidden?openMenu():closeMenu());
