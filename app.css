@@ -1267,3 +1267,6 @@ label.chk.smopt input{margin-top:2px}.smopt span{display:flex;flex-direction:col
 .fbtime input{min-width:0}
 input.bad{border-color:var(--b3)!important;box-shadow:0 0 0 2px var(--accent-soft)}
 .fbarow small{display:block;color:var(--muted);font-size:12px}
+.fbteymi{margin:18px 0 0 8px;vertical-align:top}
+.fbteymi[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.fbteymi small{color:var(--muted);font-size:11px}

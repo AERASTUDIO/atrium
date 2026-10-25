@@ -5,7 +5,7 @@
 let PREFILL=null, calSel=isoDay(today), calMonth=new Date(today.getFullYear(),today.getMonth(),1);
 const MONL=["janúar","febrúar","mars","apríl","maí","júní","júlí","ágúst","september","október","nóvember","desember"];
 const DAYL=["sunnudagur","mánudagur","þriðjudagur","miðvikudagur","fimmtudagur","föstudagur","laugardagur"];
-const CALC={fund:"var(--ink)",skil:"#B4532A",vidb:"#7C8896",undir:"#93A0AD",time:"#C9D1D9"}; // merkjahandbók: tónar af stáli; skil fá dempaðan áherslulit
+const CALC={fund:"var(--ink)",skil:"#B4532A",vidb:"#7C8896",undir:"#93A0AD",time:"#C9D1D9",teymi:"var(--b3)",msev:"var(--b2)",fbod:"var(--b2)"}; // merkjahandbók: tónar af stáli; skil fá dempaðan áherslulit
 let _cal={k:null,v:null,m:null};
 function calItems(){
   const dk=window.DEILD?DEILD():""; if(_cal.k===S&&_cal.d===dk&&_cal.v===window.FBV) return _cal.m;
@@ -24,7 +24,7 @@ function calItems(){
   m.forEach(l=>l.sort((a,b)=>(a.span-b.span)||String(hhmm(a.when)||"99").localeCompare(String(hhmm(b.when)||"99"))));
   _cal={k:S,d:dk,v:window.FBV,m}; return m;}
 let calMode="m"; try{const m=localStorage.getItem("aera-calmode"); if(["m","v","d"].includes(m)) calMode=m;}catch(e){}
-const calModes=()=>`<div class="seg calseg" role="tablist" aria-label="Sýn">${[["m","Mánuður"],["v","Vika"],["d","Dagur"]].map(([k,l])=>`<button type="button" role="tab" data-act="calmode:${k}" aria-pressed="${calMode===k}">${l}</button>`).join("")}</div>`;
+const calModes=()=>`<div class="seg calseg" role="tablist" aria-label="Sýn">${[["m","Mánuður"],["v","Vika"],["d","Dagur"]].map(([k,l])=>`<button type="button" role="tab" data-act="calmode:${k}" aria-pressed="${calMode===k}">${l}</button>`).join("")}</div>${window.fbTeymiBtn?fbTeymiBtn():""}`;
 function calCard(i){return `<div class="card tap${i.done?" compact":""}" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))}><div class="row"><div class="grow"><div class="kind">${esc(i.kind)}${hhmm(i.when)?" · kl. "+hhmm(i.when):""}</div><div class="t">${esc(i.title)}</div>
     <div class="meta">${i.nr?`<span class="nr">${esc(i.nr)}</span>`:""}${i.o?.stadsetning?`<span>${esc(i.o.stadsetning)}</span>`:""}${i.t==="skil"&&i.o?.stada?statusPill(i.o.stada):""}</div>${i.t==="fund"?meetBtn(i.o):""}</div>${CHEV}</div></div>`;}
 const CHL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>', CHR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';
@@ -37,7 +37,7 @@ function vCalWeek(){
     <button type="button" class="iconbtn" data-act="calnav:-1" aria-label="Fyrri vika">${CHL}</button><button type="button" class="iconbtn" data-act="calnav:1" aria-label="Næsta vika">${CHR}</button></div>
   <div class="wkcal">${days.map(x=>{const iso=isoDay(x), l=(items.get(iso)||[]).filter(i=>!i.span), sp=(items.get(iso)||[]).filter(i=>i.span);
     return `<section class="wkday${iso===isoDay(today)?" now":""}"><button type="button" class="wkh" data-act="calday:${iso}"><b>${x.getDate()}</b><span>${DAYL[x.getDay()]}</span></button>
-    <div class="wkitems">${l.length?l.map(i=>`<a class="wki" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))} style="--c:${CALC[i.t]||"var(--b2)"}"><span class="wkt">${hhmm(i.when)||esc(i.kind)}</span>${esc(i.title)}</a>`).join(""):`<span class="wke">${sp.length?esc(sp.map(i=>i.title).join(", "))+" í gangi":"–"}</span>`}</div></section>`;}).join("")}</div>
+    <div class="wkitems">${l.length?l.map(i=>`<a class="wki" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))} style="--c:${CALC[i.t]||"var(--b2)"}"><span class="wkt">${hhmm(i.when)||esc(i.kind)}${i.t==="teymi"&&hhmm(i.when)?" · "+esc(i.kind):""}</span>${esc(i.title)}</a>`).join(""):`<span class="wke">${sp.length?esc(sp.map(i=>i.title).join(", "))+" í gangi":"–"}</span>`}</div></section>`;}).join("")}</div>
   ${calAdd()}`;
 }
 function vCalDay(){

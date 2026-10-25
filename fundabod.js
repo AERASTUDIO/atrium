@@ -168,23 +168,25 @@
     return loading;
   }
   window.fbRefresh = refresh;
-  window.addEventListener("ms-change", () => setTimeout(() => refresh(true), 300));
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
-  setInterval(() => refresh(), 5 * 60 * 1000);
-  setTimeout(() => refresh(true), 2500);
+  window.addEventListener("ms-change", () => setTimeout(() => { refresh(true); teamRefresh(true); }, 300));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { refresh(); teamRefresh(); } });
+  setInterval(() => { refresh(); teamRefresh(); }, 5 * 60 * 1000);
+  setTimeout(() => { refresh(true); teamRefresh(true); }, 2500);
 
   // Viðbót við calItems (app-listar.js): fundarboð sem bíða svars og samþykktir fundir úr Outlook
   window.fbCalItems = function (add) {
-    if (!calOk()) return;
     const known = ICAL(), w = e => String(e.start?.dateTime || "").slice(0, 16);
+    teamItems(add, known, w);
+    if (!calOk()) return;
     FB.pending.forEach(e => add(w(e), { t: "fbod", when: w(e), kind: "Fundarboð · bíður svars", title: e.subject || "Fundur", nr: e.organizer?.emailAddress?.name || "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } }));
     FB.mine.filter(e => !known.has(e.iCalUId)).forEach(e => add(e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e), { t: "msev", when: e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e), kind: e.responseStatus?.response === "tentativelyAccepted" ? "Outlook · kannski" : "Outlook", title: e.subject || "Fundur", nr: "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } }));
   };
-  const findEv = id => FB.pending.find(e => e.id === id) || FB.mine.find(e => e.id === id);
+  const findEv = id => FB.pending.find(e => e.id === id) || FB.mine.find(e => e.id === id) || (FB.team || []).find(e => e.id === id);
   const fmtW = e => { const s = String(e.start?.dateTime || ""), en = String(e.end?.dateTime || ""), x = new Date(s.slice(0, 10) + "T12:00:00");
     return `${DAYL[x.getDay()]} ${x.getDate()}. ${MONL[x.getMonth()]}${e.isAllDay ? "" : ` kl. ${s.slice(11, 16)}–${en.slice(11, 16)}`}`; };
   window.fbEvHTML = function (id) {
     const e = findEv(id); if (!e) return `<div class="uvb"><p class="usub">Fundurinn fannst ekki í Outlook-dagatalinu – hann gæti hafa verið færður eða afboðaður.</p></div>`;
+    if ((FB.team || []).includes(e)) return teamEvHTML(e);
     const r = e.responseStatus?.response || "none", pend = FB.pending.includes(e);
     const btns = `<div class="fbresp"><button type="button" class="btn primary" data-act="fbr:${E(e.id)}:accept">Samþykkja</button><button type="button" class="btn" data-act="fbr:${E(e.id)}:tentativelyAccept">Kannski</button><button type="button" class="btn" data-act="fbr:${E(e.id)}:decline">Hafna</button></div>`;
     return `<div class="fbev"><div class="kind">${pend ? "Fundarboð · bíður svars" : "Úr Outlook-dagatalinu þínu"}</div><h2 class="big" style="margin:4px 0 2px">${E(e.subject || "Fundur")}</h2>
@@ -222,4 +224,75 @@
     if (msOn() && !MS.can(CAL)) { row("fbconnect:", "Tengja Outlook-dagatalið – til að fá fundarboð og senda þau úr Atrium", "Microsoft 365"); return; }
     const n = FB.pending.length; if (n) row("fbinbox:", n === 1 ? `Fundarboð bíður svars: ${E(FB.pending[0].subject || "Fundur")}` : `${n} fundarboð bíða svars`, "Dagatal");
   };
+
+  /* ---------- Teymisdagatal (2.80.0): Outlook-dagatöl samstarfsfólks ----------
+     Krefst Delegated-heimildarinnar Calendars.Read.Shared og að dagatölum sé deilt innan fyrirtækisins
+     (sjálfgefin heimild „Default“ á dagatalinu = Reviewer). Einkafundir (Private) sjást aldrei. Ekkert vistað. */
+  const TSH = "Calendars.Read.Shared";
+  FB.team = []; FB.teamErr = {}; FB.tt = 0;
+  const teymiOn = () => { try { return localStorage.getItem("atr-teymi") === "1"; } catch (e) { return false; } };
+  const teamOk = () => teymiOn() && msOn() && MS.can(TSH);
+  const fyrsta = n => String(n || "").split(" ")[0];
+  let tload = null;
+  async function teamRefresh(force) {
+    if (!teamOk()) return;
+    if (tload || (!force && Date.now() - FB.tt < 4 * 60 * 1000)) return tload;
+    const a = new Date(); a.setDate(a.getDate() - 14); const b = new Date(); b.setDate(b.getDate() + 90);
+    const me = myEmail(), users = (window.nuUsers ? nuUsers() : []).filter(u => u.email && u.virkur !== false && String(u.email).toLowerCase() !== me);
+    tload = (async () => {
+      const by = new Map(), err = {};
+      await Promise.all(users.map(async u => {
+        const who = u.nafn || u.email;
+        try {
+          let url = `/users/${encodeURIComponent(u.email)}/calendarView?startDateTime=${a.toISOString()}&endDateTime=${b.toISOString()}&$top=250&$select=id,subject,start,end,location,organizer,isAllDay,showAs,sensitivity,isCancelled,iCalUId,webLink,onlineMeeting`;
+          for (let i = 0; url && i < 4; i++) {
+            const j = await MS.g(url, { headers: { Prefer: `outlook.timezone="${TZ}"` } });
+            (j.value || []).forEach(e => {
+              if (e.isCancelled || e.sensitivity === "private" || e.sensitivity === "confidential") return;
+              const k = e.iCalUId || e.id, x = by.get(k);
+              if (x) { if (!x.hverjir.includes(who)) x.hverjir.push(who); } else by.set(k, { ...e, hverjir: [who] });
+            });
+            url = j["@odata.nextLink"] || null;
+          }
+        } catch (e) { err[who] = e?.message || String(e); }
+      }));
+      FB.team = [...by.values()]; FB.teamErr = err; FB.tt = Date.now();
+    })().finally(() => { tload = null; window.FBV++; try { if (typeof _cal === "object") _cal.k = null; } catch (e) {} try { render(); } catch (e) {} });
+    return tload;
+  }
+  window.fbTeamRefresh = teamRefresh;
+  function teamItems(add, known, w) {
+    if (!teamOk()) return;
+    const mine = new Set([...FB.pending, ...FB.mine].map(e => e.iCalUId).filter(Boolean));
+    FB.team.filter(e => !known.has(e.iCalUId) && !mine.has(e.iCalUId)).forEach(e => {
+      const when = e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e);
+      add(when, { t: "teymi", when, kind: e.hverjir.map(fyrsta).join(", "), title: e.subject || "Upptekin(n)", nr: "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } });
+    });
+  }
+  function teamEvHTML(e) {
+    return `<div class="fbev"><div class="kind">Dagatal · ${E(e.hverjir.join(", "))}</div><h2 class="big" style="margin:4px 0 2px">${E(e.subject || "Upptekin(n)")}</h2>
+      <p class="sub">${E(fmtW(e))}${e.location?.displayName ? " · " + E(e.location.displayName) : ""}</p>
+      ${e.organizer?.emailAddress ? `<p class="sub">Skipuleggjandi: ${E(e.organizer.emailAddress.name || e.organizer.emailAddress.address || "")}</p>` : ""}
+      ${e.onlineMeeting?.joinUrl ? `<div class="links" style="margin-top:12px"><a class="btn" href="${E(e.onlineMeeting.joinUrl)}" target="_blank" rel="noopener">Tengjast fundi</a></div>` : ""}
+      <p class="hint" style="margin-top:14px">Úr Outlook-dagatali samstarfsfólks. Ekki vistað í Atrium; fundir merktir einkamál sjást ekki.</p></div>`;
+  }
+  // Hnappur við Mánuður/Vika/Dagur í dagatalinu
+  window.fbTeymiBtn = function () {
+    if (!msOn()) return "";
+    const on = teymiOn(), n = Object.keys(FB.teamErr || {}).length;
+    return `<button type="button" class="chipbtn fbteymi" aria-pressed="${on}" data-act="fbteymi:" title="${on && n ? E("Dagatal sést ekki hjá: " + Object.keys(FB.teamErr).join(", ")) : "Sýna Outlook-dagatöl samstarfsfólks"}">${on ? "✓ " : ""}Dagatöl teymis${on && n ? ` <small>(${n} lokuð)</small>` : ""}</button>`;
+  };
+  async function teymiToggle() {
+    const on = !teymiOn();
+    try { localStorage.setItem("atr-teymi", on ? "1" : "0"); } catch (e) {}
+    if (on) {
+      try {
+        if (!msOn()) throw new Error("Tengdu Microsoft 365 fyrst");
+        if (!MS.can(TSH)) { toast("Samþykktu aðgang að dagatölum samstarfsfólks…"); await MS.login(); if (!MS.can(TSH)) throw new Error("Aðgangur að dagatölum samstarfsfólks fékkst ekki"); }
+        toast("Sæki dagatöl samstarfsfólks…"); await teamRefresh(true);
+      } catch (e) { toast(e?.message || String(e)); }
+    }
+    window.FBV++; try { if (typeof _cal === "object") _cal.k = null; } catch (e) {} render();
+  }
+  window.ACT_EXT.fbteymi = () => teymiToggle();
 })();
