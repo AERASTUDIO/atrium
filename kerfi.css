@@ -932,3 +932,34 @@ body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-
 /* 2.88.5 Hætta við klukku í vinstri stiku */
 .sx-k .sx-kb{display:flex;gap:6px;align-items:stretch}.sx-k .sx-kb .btn.primary{flex:1}
 .sx-k .sx-kx{flex:none;width:40px;padding:0!important;display:inline-flex;align-items:center;justify-content:center}
+/* 2.88.6 Stillingar › Fólk – einn listi */
+#view .fkhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 12px}
+#view .fkcount{font-size:13px;color:var(--muted)}
+#view .fklist{border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff);overflow:visible}
+#view .fkrow{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line)}
+#view .fkrow:last-child{border-bottom:0}
+#view .fkrow.off{opacity:.6}
+#view .fkav{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;letter-spacing:.02em;background:var(--ui1sel,#e6eef9);color:var(--accent,#1f4f99)}
+#view .fkav.no{background:transparent;border:1.5px dashed var(--line);color:var(--muted)}
+#view .fkm{flex:1;min-width:0}
+#view .fkn{display:flex;align-items:center;gap:6px;flex-wrap:wrap}#view .fkn b{font-weight:600;font-size:14.5px}
+#view .fks{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#view .fkr{display:flex;align-items:center;gap:8px;flex:none}
+#view .fkr select{height:36px;min-height:36px;border-radius:10px;padding:0 30px 0 12px;font-size:13.5px;width:auto}
+#view .fkmore{position:relative}#view .fkmore>summary{list-style:none;width:36px;min-width:36px;height:36px;padding:0!important;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+#view .fkmore>summary::-webkit-details-marker{display:none}
+#view .fkmore>div{position:absolute;right:0;top:42px;z-index:20;min-width:240px;background:var(--surface,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(18,20,22,.12);padding:6px;display:flex;flex-direction:column}
+#view .fkmore>div>button{border:0;background:none;font:inherit;font-size:14px;text-align:left;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--ink)}
+#view .fkmore>div>button:hover{background:var(--ui1soft,#f2f5f9)}#view .fkmore>div>button.danger{color:#B4232A}
+#view .fkhelp{margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.55}#view .fkhelp p{margin:0 0 6px}#view .fkhelp b{color:var(--ink);font-weight:600}
+.fkdlg .fkf{display:flex;flex-direction:column;gap:12px}.fkdlg .fkf label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.fkdlg .fkf input:not([type=checkbox]),.fkdlg .fkf select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:400;color:var(--ink)}
+.fkdlg .fkf small{font-weight:400}.fkdlg label.fkchk{flex-direction:row!important;align-items:center;gap:8px!important;font-size:14px!important;color:var(--ink)!important;font-weight:500!important}
+.fkdlg #fk-acc{display:flex;flex-direction:column;gap:12px}.fkdlg #fk-acc[hidden]{display:none}
+.fkdlg .pferr{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:#fdecec;color:#a32020;font-size:13.5px}
+@media (max-width:640px){#view .fkrow{flex-wrap:wrap}#view .fkr{width:100%;padding-left:54px}#view .fkr select{flex:1}}
+:root body #view details.fkmore>summary.btn{width:38px!important;min-width:38px!important;max-width:38px!important;height:36px;padding:0!important}
+:root body .fkdlg .fkf label.fkchk{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;text-align:left!important;gap:10px!important}
+:root body .fkdlg .fkf label.fkchk input{width:18px!important;height:18px!important;margin:0!important;flex:none}
+#view .fkhead .btn{white-space:nowrap;flex:none}
+@media (max-width:640px){#view .fkr{width:auto;flex:1 1 100%;padding-left:54px;box-sizing:border-box;min-width:0}#view .fkr select{flex:1;min-width:0}#view .fkcount{font-size:12.5px}}

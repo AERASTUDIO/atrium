@@ -69,6 +69,85 @@
     <p class="hint" style="margin-top:6px"><b>Admin</b> stýrir notendum og stillingum fyrirtækisins. <b>Starfsmaður</b> sér og vinnur í öllum verkefnum, tímum og gögnum. Óvirkur notandi kemst ekki inn en tímarnir hans haldast.</p>`;
   };
 
+  /* ---------- Fólk (2.88.6): einn listi í stað „Notendur“ + „Starfsmenn“ ----------
+     Gögnin eru áfram tvö: app/notendur (innskráning: netfang, hlutverk, virkur) og stillingar.starfsmenn (sk, nafn – það sem tímaskráning
+     og verkefni vísa í). Hér birtist hver manneskja einu sinni, tengt á skammstöfun. Manneskja án netfangs er „án innskráningar“
+     (t.d. verktaki sem admin skráir tíma fyrir). */
+  const faersluFj = sk => tr(() => faerslur().filter(e => (e.starfsmadur || ME()) === sk).length, 0);
+  function tr(f, d) { try { return f(); } catch (e) { return d; } }
+  const people = () => {
+    const us = nuUsers(), st = tr(() => STARFS(), []), out = [];
+    us.forEach(u => out.push({ u, sk: u.sk, nafn: u.nafn || u.email, si: st.findIndex(x => x.sk === u.sk) }));
+    st.forEach((x, i) => { if (!us.some(u => u.sk && u.sk === x.sk)) out.push({ u: null, sk: x.sk, nafn: x.nafn, si: i }); });
+    return out.sort((a, b) => ((b.u ? (b.u.virkur ? 2 : 0) : 1) - (a.u ? (a.u.virkur ? 2 : 0) : 1)) || (a.u?.hlutverk === "admin" ? -1 : b.u?.hlutverk === "admin" ? 1 : 0) || String(a.nafn).localeCompare(b.nafn, "is"));
+  };
+  const ini = n => String(n || "?").split(/\s+/).map(w => w[0] || "").join("").slice(0, 2).toUpperCase();
+  window.nuFolkHTML = () => {
+    if (!can("notendur")) return `<div class="empty">Aðeins admin sér og breytir fólki.</div>`;
+    const P = people(), me = x => (x.u && lc(x.u.email) === lc(USER?.email)) || (!x.u && x.sk === tr(() => ME(), ""));
+    const row = x => { const u = x.u, n = faersluFj(x.sk), off = u && !u.virkur, id = u ? "u:" + u.email : "s:" + x.si;
+      const sub = u ? `${esc(u.email)} · síðast inni ${esc(when(u.sidast))}` : `Án innskráningar – skráð í tímaskráningu og á verkefnum`;
+      return `<div class="fkrow${off ? " off" : ""}"><span class="fkav${u ? "" : " no"}" aria-hidden="true">${esc(x.sk || ini(x.nafn))}</span>
+        <div class="fkm"><div class="fkn"><b>${esc(x.nafn)}</b>${me(x) ? '<span class="tag">Ég</span>' : ""}${off ? '<span class="tag">Óvirkur</span>' : ""}</div><div class="fks">${sub}</div><div class="fks">${n} ${n === 1 ? "tímaskráning" : "tímaskráningar"}</div></div>
+        <div class="fkr">${u ? `<select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(x.nafn)}"${off ? " disabled" : ""}>${Object.keys(ROLES).map(r => `<option value="${r}"${r === u.hlutverk ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>`
+          : `<button type="button" class="btn sm" data-act="fkgive:${esc(id)}">Gefa aðgang</button>`}
+          <details class="fkmore"><summary class="btn sm" aria-label="Fleiri aðgerðir">⋯</summary><div>
+            <button type="button" data-act="fkedit:${esc(id)}">Breyta nafni og skammstöfun</button>
+            ${u && !me(x) ? `<button type="button" data-act="nuvirk:${esc(u.email)}">${u.virkur ? "Óvirkja – kemst ekki inn" : "Virkja aftur"}</button>` : ""}
+            ${u ? (u.virkur ? "" : `<button type="button" class="danger" data-act="nudel:${esc(u.email)}">Eyða aðgangi</button>`) : (me(x) ? "" : `<button type="button" class="danger" data-act="cfg:sfdel:${x.si}">Eyða</button>`)}
+          </div></details></div></div>`; };
+    const nA = P.filter(x => x.u?.virkur).length, nS = P.filter(x => !x.u).length;
+    return `<div class="fkhead"><div class="fkcount">${P.length} manns · ${nA} með aðgang${nS ? ` · ${nS} án innskráningar` : ""}</div><button type="button" class="btn primary" data-act="fkadd:">+ Bæta við</button></div>
+      <div class="fklist">${P.map(row).join("")}</div>
+      <div class="fkhelp"><p><b>Hlutverk:</b> <b>Admin</b> stýrir fólki og stillingum. <b>Bókari</b> sér fjármál (reikninga, tíma og kostnað allra). <b>Starfsmaður</b> vinnur í verkefnum, tímum og gögnum.</p>
+        <p><b>Án innskráningar:</b> manneskja sem ekki skráir sig inn sjálf (t.d. verktaki) en tímar eru skráðir á. „Gefa aðgang“ bætir við netfangi svo hún geti skráð sig inn.</p>
+        <p>Innskráning er með Microsoft-aðgangi @${esc(DOMAIN)}. Nýr notandi þarf líka að vera í Entra (Enterprise apps › ${esc(ORG.ms?.appNafn || "Atrium")} › Users and groups). Óvirkur notandi kemst ekki inn en tímarnir hans haldast.</p></div>`;
+  };
+  // Gluggi: bæta við / breyta / gefa aðgang
+  function dlg(title, x, mode) {
+    const w = document.createElement("div"); w.className = "qrcard pfm fkdlg"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true");
+    const u = x?.u, email0 = u?.email || "";
+    w.innerHTML = `<div class="qrscrim" data-x="1"></div><div class="qrsheet pfs"><div class="grab" aria-hidden="true"></div><div class="pfh"><h2>${esc(title)}</h2><button type="button" class="qrx" data-x="1" aria-label="Loka">✕</button></div>
+      <div class="fkf"><label>Nafn<input id="fk-n" value="${esc(x?.nafn || "")}" placeholder="Fullt nafn" autocomplete="off"></label>
+      <label>Skammstöfun<input id="fk-s" value="${esc(x?.sk || "")}" placeholder="T.d. JJ" maxlength="4" autocomplete="off"><small>Birtist í tímaskráningum og á verkefnum</small></label>
+      ${mode === "edit" ? "" : `<label class="fkchk"><input type="checkbox" id="fk-a"${mode === "give" || mode === "add" ? " checked" : ""}${mode === "give" ? " disabled" : ""}> Getur skráð sig inn í appið</label>
+      <div id="fk-acc"><label>Netfang<input id="fk-e" type="email" value="${esc(email0)}" placeholder="nafn@${esc(DOMAIN)}" autocomplete="off"></label>
+      <label>Hlutverk<select id="fk-r">${Object.keys(ROLES).map(r => `<option value="${r}"${r === "starfsmadur" ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select></label></div>`}</div>
+      <p class="pferr" hidden></p>
+      <div class="pfact"><button type="button" class="btn" data-x="1">Hætta við</button><button type="button" class="btn primary" id="fk-ok">${mode === "edit" ? "Vista" : mode === "give" ? "Gefa aðgang" : "Bæta við"}</button></div></div>`;
+    document.body.append(w); document.body.classList.add("qropen");
+    const close = () => { w.remove(); document.body.classList.remove("qropen"); };
+    w.addEventListener("click", e => { if (e.target.closest("[data-x]")) close(); });
+    w.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+    const ac = w.querySelector("#fk-a"), acc = w.querySelector("#fk-acc"), sync = () => { if (acc) acc.hidden = !ac.checked; }; ac?.addEventListener("change", sync); sync();
+    const n = w.querySelector("#fk-n"), sk = w.querySelector("#fk-s");
+    n.addEventListener("input", () => { if (!sk.dataset.t && mode === "add") sk.value = ini(n.value).slice(0, 3); }); sk.addEventListener("input", () => { sk.dataset.t = 1; });
+    setTimeout(() => (mode === "give" ? w.querySelector("#fk-e") : n).focus(), 30);
+    const err = m => { const p = w.querySelector(".pferr"); p.hidden = false; p.textContent = m; };
+    w.querySelector("#fk-ok").onclick = async () => {
+      const nafn = n.value.trim(), s2 = sk.value.trim().toUpperCase(), hasAcc = ac ? ac.checked : !!u, e = lc(w.querySelector("#fk-e")?.value), hl = w.querySelector("#fk-r")?.value || "starfsmadur";
+      if (!nafn) return err("Skráðu nafn."); if (!s2) return err("Skráðu skammstöfun.");
+      const taken = nuUsers().some(y => y.sk === s2 && (!u || lc(y.email) !== lc(u.email))) || (tr(() => STARFS(), [])).some(y => y.sk === s2 && y.sk !== x?.sk);
+      if (taken) return err(`Skammstöfunin ${s2} er þegar í notkun.`);
+      if (hasAcc && mode !== "edit") { if (!/^[^@\s]+@[^@\s]+$/.test(e)) return err("Skráðu gilt netfang."); if (!window.AERA_DEMO && !e.endsWith("@" + DOMAIN)) return err(`Netfangið þarf að enda á @${DOMAIN}.`); if (nuUsers().some(y => lc(y.email) === e)) return err("Þetta netfang er þegar skráð."); }
+      const now = new Date().toISOString(), oldSk = x?.sk;
+      try {
+        if (mode === "edit" && u) { await nuSave(N => { Object.assign(N[lc(u.email)], { nafn, sk: s2, breytt: now }); }); }
+        if (hasAcc && mode !== "edit") await nuSave(N => { N[e] = { nafn, sk: s2, hlutverk: hl, virkur: true, stofnad: now, breytt: now }; });
+        await cfgSave(c => { const i = c.starfsmenn.findIndex(y => y.sk === (oldSk || s2)); if (i >= 0) Object.assign(c.starfsmenn[i], { sk: s2, nafn }); else if (!c.starfsmenn.some(y => y.sk === s2)) c.starfsmenn.push({ sk: s2, nafn }); });
+        if (oldSk && oldSk !== s2) toast("Athugið: eldri tímaskráningar eru áfram merktar " + oldSk);
+        close(); toast(mode === "edit" ? "Vistað" : mode === "give" ? `${nafn} fékk aðgang` : `${nafn} bætt við`); render();
+      } catch (e2) { err("Tókst ekki: " + (e2?.message || e2)); }
+    };
+  }
+  const pick = id => { const P = people(); return id.startsWith("u:") ? P.find(x => x.u && lc(x.u.email) === lc(id.slice(2))) : P.find(x => !x.u && String(x.si) === id.slice(2)); };
+  window.fkAct = (k, r) => { if (!can("notendur")) return; const id = r.join(":"), x = id ? pick(id) : null;
+    if (k === "fkadd") return dlg("Bæta við", null, "add");
+    if (k === "fkedit" && x) return dlg("Breyta · " + x.nafn, x, "edit");
+    if (k === "fkgive" && x) return dlg("Gefa aðgang · " + x.nafn, x, "give"); };
+  document.addEventListener("click", e => { document.querySelectorAll("details.fkmore[open]").forEach(d => { if (!d.contains(e.target) || e.target.closest("button:not(summary)")) d.removeAttribute("open"); }); }, true);
+  { const reg = () => { if (typeof STPAGES === "undefined" || !STPAGES.folk) return false; STPAGES.folk.fn = () => window.nuFolkHTML(); STPAGES.folk.d = "Hverjir hafa aðgang, hlutverk og hverjir skrá tíma"; return true; }; if (!reg()) { const iv = setInterval(() => { if (reg()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); } }
+
   window.nuAct = (k, r) => {
     if (!can("notendur")) return toast("Aðeins admin getur breytt notendum.");
     const email = lc(r.join(":"));
@@ -118,3 +197,4 @@
     nuSave(n => { n[lc(email)].hlutverk = v; n[lc(email)].breytt = new Date().toISOString(); });
   });
 })();
+Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { fk: (k, r) => window.fkAct(k, r) });
