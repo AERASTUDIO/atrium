@@ -256,7 +256,7 @@
   const TS = { leiga: "", sala: "" };
   function tbRow(T) { const t = totals(T);
     return lrow("tb:" + T.id, { title: `<span class="nr">${esc(T.nr || "")}</span>&nbsp; ` + esc(T.vidskiptavinur || "Án viðskiptavinar") + " · " + esc(T.heiti || "") + (T.prufa ? ' <span class="tag">prufa</span>' : ""),
-      sub: esc([T.stada, dRange(T), +T.utgafa > 1 ? "útgáfa " + T.utgafa : ""].filter(Boolean).join(" · ")), right: `<span class="lc">${esc(krs(t.net))}</span>` }); }
+      sub: esc([T.stada, dRange(T), +T.utgafa > 1 ? "útgáfa " + T.utgafa : "", tbStofnandi(T) ? "stofnaði: " + tbStofnandi(T) : ""].filter(Boolean).join(" · ")), right: `<span class="lc">${esc(krs(t.net))}</span>` }); }
   window.tbRowHTML = tbRow;
   const TL = { f: "" }; // línusía í sameinuðum tilboðalista: "" | leiga | sala | vinna
   const hasTeg = (T, k) => (T.linur || []).some(l => (k === "leiga" ? ["leiga"] : k === "sala" ? ["sala"] : ["vinna"]).includes(l.teg));
@@ -360,7 +360,7 @@
   const PF = { s: "opnar", u: "" };
   function pnRow(P, flokkad) { const t = totals(P), ar = blokkar(P) && arekstrar(P).length;
     return lrow("tb:" + P.id, { title: `<span class="nr">${esc(P.nr)}</span>&nbsp; ` + esc(P.vidskiptavinur || P.tengilidur || "Án viðskiptavinar") + (P.heiti && P.heiti !== "Pöntun" ? " · " + esc(P.heiti) : "") + (P.prufa ? ' <span class="tag">prufa</span>' : ""),
-      sub: esc([dRange(P), UPL(P.uppruni), P.ytriNr ? "#" + P.ytriNr : ""].filter(Boolean).join(" · ")) + (ar ? ' · <span class="arek-t">⚠ búnaður ekki laus</span>' : ""), right: `${flokkad ? "" : `<span class="pill ${STCOL(P)}">${esc(P.stada)}</span>`}<span class="lc">${esc(krs(t.net))}</span>` }); }
+      sub: esc([dRange(P), UPL(P.uppruni), P.ytriNr ? "#" + P.ytriNr : "", tbStofnandi(P) ? "stofnaði: " + tbStofnandi(P) : ""].filter(Boolean).join(" · ")) + (ar ? ' · <span class="arek-t">⚠ búnaður ekki laus</span>' : ""), right: `${flokkad ? "" : `<span class="pill ${STCOL(P)}">${esc(P.stada)}</span>`}<span class="lc">${esc(krs(t.net))}</span>` }); }
   function vPantanir() {
     const all = PN(), idag = isoDay(new Date());
     const xs = all.filter(P => (PF.s === "opnar" ? !["Skilað", "Lokið"].includes(P.stada) : !PF.s || P.stada === PF.s) && (!PF.u || P.uppruni === PF.u))
@@ -821,6 +821,9 @@
       thrDone.add(T.postConv); poLinkConv(T.postConv, T.verkefniId, (T.pontun ? "Pöntun " : "Tilboð ") + T.nr + (T.heiti ? " – " + T.heiti : "")).catch(() => thrDone.delete(T.postConv)); });
   }
   setInterval(syncThr, 20000); setTimeout(syncThr, 6000);
+  // 2.88.0: nafn þess sem stofnaði tilboð/pöntun (stofnad_af) – birt í listum
+  window.tbStofnandi = function (T, full) { const e = lcE(T?.stofnad_af); if (!e) return ""; const u = NU().find(x => lcE(x.email) === e) || (window.nuUsers ? nuUsers().find(x => lcE(x.email) === e) : null);
+    const n = u?.nafn || e.split("@")[0]; return full ? n : n.split(" ")[0]; };
   window.tbMine = function (T) {
     const me = lcE(window.VIEWAS?.email || window.USER?.email || ""); if (!me) return true;
     const m = window.tbMenn(T); if (m.size) return m.has(me);

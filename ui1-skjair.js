@@ -200,11 +200,12 @@
     const w7 = all.filter(T => T.stada === "Sent" && daysTo(T.sent || T.dags) <= -7).length;
     const kp = (typeof DETAIL !== "undefined" && DETAIL) ? "" : kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), key + ":opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), key + ":samth"], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", w7, key + ":sent"]]);
     const top = lhead("", teg ? title : "Tilboð", nbtn("Tilboð")) + kp + `<div class="ulbar">${chips([["opin", "Opin · " + cn("opin")], ["drog", "Drög · " + cn("drog")], ["sent", "Bíða svars · " + cn("sent")], ["samth", "Samþykkt · " + cn("samth")], ["allt", "Allar stöður"]], f, "u1vf:ltilbod")}</div>`;
-    if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 56px 120px 150px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Línur", "Upphæð m. vsk", "Staða"])
-      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc(E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
+    const SF = T => window.tbStofnandi ? tbStofnandi(T) : ""; // 2.88.0: stofnandi
+    if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 100px 56px 120px 150px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Stofnandi", "Línur", "Upphæð m. vsk", "Staða"])
+      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc(E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(E(SF(T))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
     return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Dags.", "Staða")
-      + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E(T.vidskiptavinur || ""), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
+      + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E([T.vidskiptavinur, SF(T) ? "stofnaði: " + SF(T) : ""].filter(Boolean).join(" · ")), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
   }
   U.ltilbod = () => tlist("ltilbod", "Tilboð", "");
   U.tbl = () => tlist("tbl", "Leiga", "leiga");
@@ -219,11 +220,12 @@
     const fn = FL[f] || FL.opnar, nL = seint ? all.filter(seint).length : 0;
     const xs = all.filter(P => SQ() || fn(P)).sort((a, b) => String(a.fra || "").localeCompare(String(b.fra || "")));
     const top = lhead("Pantanir", title, nbtn("Pöntun")) + `<div class="ulbar">${chips([["opnar", "Opnar · " + all.filter(FL.opnar).length], ["ny", "Nýjar · " + all.filter(FL.ny).length], ["stf", "Staðfestar · " + all.filter(FL.stf).length], ["afh", "Afhentar · " + all.filter(FL.afh).length], ...(nL || f === "seint" ? [["seint", "Seint · " + nL]] : []), ["lokid", "Lokið"]], f, "u1vf:pn")}</div>`;
-    if (WIDE()) return top + wl("80px minmax(0,1.3fr) minmax(0,1fr) 84px 100px 100px 56px 120px 100px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Afhending", "Skil", "Línur", "Upphæð m. vsk", "Staða"])
-      + (xs.map(P => wrow(tapAttr("tb", P.id), [wc(E(P.nr || "")), wc(E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun"), "t"), wc(E(P.vidskiptavinur || P.tengilidur || "")), wc(E(pnr(P.verkefniId))), wc(E(P.fra ? dateIS(d(P.fra)) : "")), wc(E(P.til ? dateIS(d(P.til)) : "")), wc(fjL(P)), wc(E(totK(P))), wc(pill(P.stada, P.stada === "Ný"), "r")])).join("") || `<div class="uempty">Engar pantanir.</div>`));
+    const SF = T => window.tbStofnandi ? tbStofnandi(T) : ""; // 2.88.0: stofnandi
+    if (WIDE()) return top + wl("80px minmax(0,1.3fr) minmax(0,1fr) 84px 100px 100px 100px 56px 120px 100px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Afhending", "Skil", "Stofnandi", "Línur", "Upphæð m. vsk", "Staða"])
+      + (xs.map(P => wrow(tapAttr("tb", P.id), [wc(E(P.nr || "")), wc(E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun"), "t"), wc(E(P.vidskiptavinur || P.tengilidur || "")), wc(E(pnr(P.verkefniId))), wc(E(P.fra ? dateIS(d(P.fra)) : "")), wc(E(P.til ? dateIS(d(P.til)) : "")), wc(E(SF(P))), wc(fjL(P)), wc(E(totK(P))), wc(pill(P.stada, P.stada === "Ný"), "r")])).join("") || `<div class="uempty">Engar pantanir.</div>`));
     return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Afhending", "Staða")
-      + (xs.map(P => row(tapAttr("tb", P.id), E(P.nr || ""), E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""), E(P.vidskiptavinur || P.tengilidur || ""), E(relD(P.fra)), P.stada, P.stada === "Ný")).join("") || `<div class="uempty">Engar pantanir.</div>`);
+      + (xs.map(P => row(tapAttr("tb", P.id), E(P.nr || ""), E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""), E([P.vidskiptavinur || P.tengilidur, SF(P) ? "stofnaði: " + SF(P) : ""].filter(Boolean).join(" · ")), E(relD(P.fra)), P.stada, P.stada === "Ný")).join("") || `<div class="uempty">Engar pantanir.</div>`);
   };  U.pantanir = pnList("Allar", ""); U.pnl = pnList("Leiga", "leiga"); U.pns = pnList("Sala", "sala"); U.pnt = pnList("Þjónusta", "vinna");
 
   // Vörulisti: Leiga (eftir forskeyti vörunúmers) og Sala (eftir flokki)
