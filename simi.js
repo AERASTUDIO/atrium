@@ -44,7 +44,8 @@
     const btns = [...act.querySelectorAll(":scope > button.btn, :scope > a.btn")];
     // næsta skref á pöntun/tilboði (neðst á spjaldinu í tölvu) fer líka í stikuna
     const nx = v.querySelector('.spdet .links [data-act^="tbst:"].primary, .spdet .links [data-act^="tbsend:"].primary');
-    const all = [...(nx ? [nx] : []), ...btns].slice(0, 3); if (!all.length) return;
+    const nx2 = v.querySelector('.spdet .links [data-act^="tbst:"][data-act$=":Afhent"]:not(.primary)');   // 2.78.4: Afhenda líka á nýrri pöntun
+    const all = [...(nx ? [nx] : []), ...(nx2 ? [nx2] : []), ...btns].slice(0, 3); if (!all.length) return;
     const bar = document.createElement("div"); bar.id = "simact"; bar.className = "simact";
     all.forEach((b, i) => { const c = b.cloneNode(true); c.removeAttribute("id"); c.classList.toggle("primary", i === 0); bar.append(c); b.classList.add("simmoved"); });
     v.append(bar); document.body.classList.add("simhasact");  // inni í #view svo smellir fari í gegnum doAct eins og áður

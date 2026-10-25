@@ -298,7 +298,9 @@
         if (bot && MCP) {
           if (isP2) { const NX = { "Ný": ["Staðfesta", "Staðfest"], "Staðfest": ["Afhenda →", "Afhent"], "Afhent": !window.pnSkil || pnSkil(T) ? ["Skila →", "Skilað"] : ["Loka pöntun", "Lokið"], "Skilað": ["Loka pöntun", "Lokið"] }[T.stada];
             const conf = T.netfang && window.poCompose ? `<button type="button" class="btn" data-act="u1pnconf:${esc(T.id)}">Senda staðfestingu</button>` : "";
-            bot.insertAdjacentHTML("afterbegin", (NX ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:${esc(NX[1])}">${esc(NX[0])}</button>` : "") + conf); }
+            // 2.78.4: ný pöntun má afhenda strax án þess að staðfesta fyrst (Afhenda-hnappurinn sást ekki fyrr en pöntun var staðfest)
+            const afhNu = T.stada === "Ný" ? `<button type="button" class="btn" data-act="tbst:${esc(T.id)}:Afhent">Afhenda</button>` : "";
+            bot.insertAdjacentHTML("afterbegin", (NX ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:${esc(NX[1])}">${esc(NX[0])}</button>` : "") + afhNu + conf); }
           else { const sd = bot.querySelector('[data-act^="tbsend:"]');
             // 2.61.0: sent tilboð – næsta skref er samþykki (samþykktargluggi); samþykki viðskiptavinar bíður staðfestingar
             if (T.bidur && !["Samþykkt", "Hafnað"].includes(T.stada)) bot.insertAdjacentHTML("afterbegin", `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:Samþykkt">Staðfesta samþykki…</button>`);
