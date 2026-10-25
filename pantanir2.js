@@ -67,7 +67,7 @@
     const panel = () => { const P = findP(pid) || P0, s = pickState(P);
       return `<div class="qrprog"><div><b>${s.done} af ${s.tot}</b> pakkað</div><div class="qrbar"><i style="width:${s.tot ? Math.round(s.done / s.tot * 100) : 0}%"></i></div></div>
         <div class="qrlist">${s.rows.map(r => `<div class="qrli${r.got >= r.magn ? " full" : ""}"><span class="qrck" aria-hidden="true">${r.got >= r.magn ? "✓" : ""}</span><span class="qrnm"><b>${E(r.heiti)}</b><small>${E(r.nr)}${r.eint ? "" : " · engin eintök – talið"}</small></span>${r.eint ? `<span class="qrn">${r.got} / ${r.magn}</span>` : `<span class="qrcnt"><button type="button" data-q="h:${E(r.id)}:-1" aria-label="Fækka">−</button><span class="qrn">${r.got} / ${r.magn}</span><button type="button" data-q="h:${E(r.id)}:1" aria-label="Fjölga">+</button></span>`}</div>`).join("")}</div>
-        <button type="button" class="btn primary qrdone" data-q="finish">${s.done >= s.tot ? "Allt pakkað – loka" : "Loka"}</button>`; };
+        <div class="qrdual"><button type="button" class="btn qrdone" data-q="finish">${s.done >= s.tot ? "Allt pakkað – loka" : "Loka"}</button>${ed() && ["Ný", "Staðfest"].includes(P.stada) ? `<button type="button" class="btn primary qrdone" data-q="afh">Afhenda${s.done < s.tot ? ` (${s.tot - s.done} vantar)` : ""}</button>` : ""}</div>`; }; // 2.88.1: afhenda beint úr pökkun
     Q().openScanner({ title: "Pökkun · " + (P0.nr || ""), sup: "Pökkunarlisti", panel,
       onCode: nr => { const P = findP(pid); if (!P) return { ok: false, msg: "Pöntunin fannst ekki" };
         const f = Q().findE(nr); if (!f) return { ok: false, msg: "Óþekkt eintak " + nr };
@@ -79,7 +79,8 @@
         return { ok: true, msg: nr + " · " + f.v.heiti }; },
       onPanel: async q => { if (q.startsWith("h:")) { const [, id, dd] = q.split(":"); const P = findP(pid), r = pickState(P).rows.find(x => x.id === id); if (!r) return;
           const n = Math.max(0, Math.min(r.magn, r.got + +dd)); await savePN(pid, Q0 => { Q0.tinslaH = { ...(Q0.tinslaH || {}), [id]: n }; }).catch(() => {}); Q().refreshPanel(); return; }
-        if (q === "finish") { Q().closeScanner(); render(); } } });
+        if (q === "finish") { Q().closeScanner(); render(); }
+        if (q === "afh") { Q().closeScanner(); render(); setTimeout(() => { try { doAct("tbst:" + pid + ":Afhent"); } catch (e) {} }, 150); } } });
   }
 
   /* ---------- 1. Afhending: Sent / Sótt og kvittun ---------- */

@@ -1316,3 +1316,4 @@ body.sidesheet #sheetwrap .scrim{display:none}
 .tbmenn select{font:inherit;font-size:13px;padding:4px 26px 4px 10px;border-radius:999px;border:1px dashed var(--line);background-color:transparent;color:var(--accent);min-height:0;width:auto}
 .tbpost{margin:14px 0}
 .tbpost .viewtitle{margin-top:0}
+.qrdual{display:flex;gap:8px}.qrdual .btn{flex:1}
