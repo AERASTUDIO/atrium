@@ -49,12 +49,38 @@
     return { w, close, P };
   }
 
+  /* ---------- Samantekt búnaðar við bendil (2.78.1) ---------- */
+  const TL = { leiga: "Leiga", sala: "Sala", vinna: "Vinna og þjónusta" };
+  function sumHTML(x) {
+    const L = (x.linur || []).filter(l => !l.aukagjald); if (!L.length) return `<div class="snpvh"><b>${E([x.nr, x.heiti].filter(Boolean).join(" · "))}</b></div><p class="snpv0">Engar línur.</p>`;
+    const g = {}; L.forEach(l => { const t = l.teg in TL ? l.teg : "sala"; (g[t] = g[t] || []).push(l); });
+    const tot = tr(() => A().totals(x).tot, 0), magn = l => { const m = +l.magn || 0; return (Number.isInteger(m) ? m : m.toLocaleString("is-IS")) + (l.eining && l.eining !== "stk" ? " " + l.eining : ""); };
+    const dag = [x.fra && dg(x.fra), x.til && x.til !== x.fra && dg(x.til)].filter(Boolean).join("–");
+    return `<div class="snpvh"><b>${E([x.nr, x.heiti].filter(Boolean).join(" · "))}</b><small>${E([x.vidskiptavinur || x.tengilidur, dag, x.stadsetning].filter(Boolean).join(" · "))}</small></div>
+      ${Object.keys(TL).filter(t => g[t]).map(t => `<div class="snpvg">${TL[t]} · ${g[t].length}</div><ul>${g[t].slice(0, 14).map(l => `<li><span class="snpvm">${E(magn(l))}</span><span class="snpvn">${E(l.heiti || "")}</span>${t === "leiga" && +l.dagar > 1 ? `<span class="snpvd">${+l.dagar} d.</span>` : ""}</li>`).join("")}${g[t].length > 14 ? `<li class="snpvx">+ ${g[t].length - 14} í viðbót</li>` : ""}</ul>`).join("")}
+      ${tot ? `<div class="snpvt"><span>Samtals m. vsk</span><b>${kr(tot)}</b></div>` : ""}`;
+  }
+  function hoverPreview(w, get) {
+    if (!matchMedia("(pointer:fine)").matches) return;
+    const pv = document.createElement("div"); pv.className = "snpv"; pv.hidden = true; pv.setAttribute("aria-hidden", "true"); w.append(pv); let cur = null;
+    const show = b => { if (!b || b === cur) return; cur = b; const x = get(b.dataset.sp); if (!x) return hide(); pv.innerHTML = sumHTML(x); pv.hidden = false;
+      const sh = w.querySelector(".qrsheet").getBoundingClientRect(), r = b.getBoundingClientRect(), W = 320; pv.style.width = W + "px";
+      const right = sh.right + 12 + W < innerWidth - 8, left = sh.left - 12 - W > 8;
+      pv.style.left = (right ? sh.right + 12 : left ? sh.left - 12 - W : Math.max(8, innerWidth - W - 8)) + "px";
+      const h = pv.offsetHeight; pv.style.top = Math.max(8, Math.min(r.top - 8, innerHeight - h - 8)) + "px"; };
+    const hide = () => { cur = null; pv.hidden = true; };
+    w.addEventListener("mouseover", e => { const b = e.target.closest(".snit[data-sp]"); b ? show(b) : (!e.target.closest(".snpv") && hide()); });
+    w.addEventListener("focusin", e => { const b = e.target.closest(".snit[data-sp]"); b ? show(b) : hide(); });
+    w.querySelector(".snlist")?.addEventListener("scroll", hide);
+  }
+
   /* ---------- Val: sniðmát eða eldra skjal ---------- */
   function pickTpl(kind) {
     const L = LIST(kind);
     const { w, close, P } = modal("Velja sniðmát", L.length ? `<div class="snlist">${L.map(s => `<button type="button" class="snit" data-sp="${E(s.id)}"><b>${E(s.heiti)}</b><small>${nLin(s)} línur · ${E(TEG[s.teg] || "")}${s.vidskFylgir && s.vidskiptavinur ? " · " + E(s.vidskiptavinur) : ""}</small></button>`).join("")}</div>`
       : `<p class="pfhint">Engin sniðmát enn. Opnaðu tilboð eða pöntun, veldu ⋯ › „Vista sem sniðmát“.</p><div class="pfact"><button type="button" class="btn" data-x="1">Loka</button></div>`);
     w.querySelectorAll("[data-sp]").forEach(b => b.onclick = () => { const s = L.find(x => String(x.id) === b.dataset.sp); close(s ? fromTpl(s) : null); });
+    hoverPreview(w, id => { const s = L.find(x => String(x.id) === id); return s ? { ...s, nr: null, heiti: s.heiti, fra: null, til: null } : null; });
     return P;
   }
   function pickDoc(kind) {
@@ -69,6 +95,7 @@
     w.querySelector(".snq").oninput = e => { q = e.target.value; draw(); };
     w.querySelector(".snseg").onclick = e => { const b = e.target.closest("[data-f]"); if (!b) return; f = b.dataset.f; w.querySelectorAll(".snseg [data-f]").forEach(x => x.classList.toggle("on", x === b)); draw(); };
     w.querySelector(".snres").onclick = e => { const b = e.target.closest("[data-sp]"); if (!b) return; const x = findDoc(b.dataset.sp); close(x ? fromDoc(x) : null); };
+    hoverPreview(w, findDoc);
     draw(); return P;
   }
   window.snPick = (kind, mode) => mode === "snid" ? pickTpl(kind) : pickDoc(kind);
