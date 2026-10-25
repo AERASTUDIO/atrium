@@ -385,9 +385,10 @@
     const lateral = navLast && (!fromYf && !n.o && !navLast.o && n.st === navLast.st && secOf(n.tab) === secOf(navLast.tab)) || (n.o && n.o === navLast?.o && n.tab === navLast?.tab);
     if (navLast && navKey(n) !== navKey(navLast)) { if (n.tab === "upphaf") NAV.length = 0; else if (!lateral) { NAV.push(navLast); if (NAV.length > 60) NAV.shift(); } }
     navLast = n; };
-  const navBtn = () => { document.querySelectorAll("#view .uback").forEach(x => x.remove()); if (!NAV.length || tab === "upphaf" || !desk()) return;
+  const navBtn = () => { document.querySelectorAll("#view .uback:not(.simback)").forEach(x => x.remove()); if (!NAV.length || tab === "upphaf" || !desk()) return;
     const prev = NAV[NAV.length - 1], lab = (secOf(prev.tab)?.tabs || []).find(t => t[0] === prev.tab)?.[1] || "";
     const btn = `<button type="button" class="uback" data-ui1="back" title="Til baka${lab ? " – " + esc(lab) : ""} (Alt+←)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Til baka</button>`;
+    if (document.querySelector("#view .backrow .back, #view .pback, #view .simback")) return;   // 2.88.2: skjárinn hefur þegar sinn „Til baka“ – ekki tvo
     const det = DETAIL && document.querySelector("#view .spdet"), ph = document.querySelector("#view .phead, #view .uhead > div:first-child");
     if (det) det.insertAdjacentHTML("afterbegin", btn); else if (ph) ph.insertAdjacentHTML("afterbegin", btn); else document.getElementById("view")?.insertAdjacentHTML("afterbegin", btn); };
   // Skrunstaða (2.50.7): hver staður í sögunni man hvar var skrunað – „Til baka“ fer þangað aftur, ekki efst
