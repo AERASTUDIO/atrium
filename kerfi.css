@@ -837,3 +837,25 @@ body.kerfi a.maplnk:hover{text-decoration:underline}
 /* Eigin gluggi (2.77.0): engin vinstri stika */
 @media (min-width:1024px){html body.solowin{padding-left:0!important}html body.solowin .side,html body.solowin #wcodrag{display:none!important}}
 :root body.kerfi #view .pdwin{display:inline-flex;align-items:center;gap:6px}
+
+/* 2.78.0 Sniðmát og afritun (snidmat.js) */
+.snbyrja{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:-2px 0 14px;padding:10px 12px;border:1px solid var(--line,#e3e8ef);border-radius:12px;background:var(--soft,#f6f8fb)}
+.snbyrja .snbl{font-size:12px;font-weight:600;color:var(--muted,#6b7a90);margin-right:4px}
+.snbyrja .snbx{flex-basis:100%;font-size:12.5px;color:var(--ink,#1d2a3a);padding-top:2px}
+.snm .qrsheet{max-width:560px}
+.snm .snq{width:100%;margin:2px 0 10px;padding:10px 12px;border:1px solid var(--line,#d9e0ea);border-radius:10px;font:inherit}
+.snm .snseg{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}
+.snm .snlist{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,460px);overflow:auto;margin:0 -2px;padding:2px}
+.snm .snit{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;width:100%;padding:10px 12px;border:1px solid var(--line,#e3e8ef);border-radius:10px;background:var(--card,#fff);font:inherit;cursor:pointer;color:inherit}
+.snm .snit:hover,.snm .snit:focus-visible{border-color:var(--accent,#2f6fd6);background:var(--soft,#f6f8fb);outline:none}
+.snm .snit b{font-weight:600;font-size:14px}.snm .snit small{font-size:12px;color:var(--muted,#6b7a90)}
+.snm .snnr{font-variant-numeric:tabular-nums;color:var(--muted,#6b7a90);font-weight:500}
+.snm .snlab{display:block;font-size:12.5px;font-weight:600;color:var(--muted,#6b7a90);margin:4px 0 6px}
+.snm .snlab input{display:block;width:100%;margin-top:6px;padding:10px 12px;border:1px solid var(--line,#d9e0ea);border-radius:10px;font:inherit;color:var(--ink,#1d2a3a);font-weight:400}
+.snm .snchk{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-size:13.5px}.snm .snchk small{color:var(--muted,#6b7a90)}
+.umore .snhr{border:0;border-top:1px solid var(--line,#e3e8ef);margin:4px 0}
+.snops{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.snops select{padding:5px 8px;border-radius:8px;border:1px solid var(--line,#d9e0ea);font:inherit;font-size:12.5px}
+.snm label.snchk{display:flex!important;flex-direction:row!important;align-items:center;justify-content:flex-start;text-align:left;gap:8px;font-weight:500;color:var(--ink,#1d2a3a)}
+.snm label.snchk input{width:18px!important;height:18px;margin:0;flex:none}
+.snm .pfhint{padding:0}
+#view .snops select{width:auto!important;min-width:0!important;flex:none;height:34px!important}

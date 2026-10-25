@@ -118,6 +118,19 @@
   const vPrice = v => v.tegund === "sala" || v.tegund === "vinna" || vDeild(v) === "sala" ? v.soluverd : v.leiguverd;
   const lineFrom = (v, T) => { const D = T && !isMix(T) ? tDeild(T) : vDeild(v), teg = v.tegund === "vinna" ? "vinna" : D === "sala" ? "sala" : "leiga";
     return { id: gid(), v: v.id, heiti: v.heiti, teg, hl: v.tegund === "vinna" ? "Vinna og þjónusta" : (v.flokkur || "Annað"), magn: 1, ein: v.eining || (teg === "vinna" ? "klst." : "stk."), verd: +(teg === "leiga" ? v.leiguverd : v.soluverd) || 0, dagar: null, afsl: 0 }; };
+  // 2.78.0: línur úr sniðmáti eða eldra tilboði/pöntun – ný auðkenni, núgildandi verð úr vörulista, leigudagar fylgja nýja skjalinu
+  const baseLines = (B, T) => (B?.linur || []).filter(l => !l.aukagjald).map(l => { const v = l.v ? findV(l.v) : null, n = v ? lineFrom(v, T) : null;
+    return { ...l, id: gid(), ...(n ? { verd: n.verd, heiti: l.heiti || n.heiti } : {}), dagar: l.teg === "leiga" ? null : l.dagar ?? null }; });
+  const applyBase = (T, B) => { if (!B) return; T.linur = baseLines(B, T); T.afsl = +B.afsl || 0; T.athugasemd = B.athugasemd || null; if (!T.stadsetning && B.stadsetning) T.stadsetning = B.stadsetning;
+    T.ur = { src: B.src || "", id: B.id || null, nr: B.nr || null, heiti: B.snHeiti || null }; };
+  // Val efst í „Nýtt tilboð“ / „Ný pöntun“: autt, sniðmát eða afrit af eldra (snidmat.js sér um gluggann)
+  const byrjaHTML = () => window.snPick ? `<div class="snbyrja" id="snb"><span class="snbl">Byrja út frá</span><button type="button" class="uchip on" data-snb="">Autt</button><button type="button" class="uchip" data-snb="snid">Sniðmát…</button><button type="button" class="uchip" data-snb="afrit">Eldra tilboð eða pöntun…</button></div>` : "";
+  function wireByrja(kind, B0, fill) { const box = document.getElementById("snb"); if (!box) return () => B0 || null; let B = B0 || null;
+    const draw = () => { box.querySelectorAll("[data-snb]").forEach(x => x.classList.toggle("on", B ? x.dataset.snb === (B.src === "snid" ? "snid" : "afrit") : x.dataset.snb === "")); box.querySelector(".snbx")?.remove();
+      if (B) box.insertAdjacentHTML("beforeend", `<span class="snbx">${esc(B.snHeiti || [B.nr, B.heiti].filter(Boolean).join(" "))} · ${(B.linur || []).filter(l => !l.aukagjald).length} línur</span>`); };
+    box.addEventListener("click", async e => { const b = e.target.closest("[data-snb]"); if (!b) return; const m = b.dataset.snb; if (!m) { B = null; draw(); return; }
+      const r = await window.snPick(kind, m); if (r) { B = r; fill(r); draw(); } });
+    if (B) { fill(B); draw(); } return () => B; }
   const pakkiTxt = v => (v?.innihald || []).map(i => { const x = findV(i.v); return x ? (+i.m || 1) + " × " + x.heiti : null; }).filter(Boolean).join(", ");
   const dRange = T => !T.fra ? "" : tDeild(T) === "sala" ? "Afhending " + dIS(T.fra) : dIS(T.fra) + (T.til && T.til !== T.fra ? " – " + dIS(T.til) : "");
   const chip = (act, l, on) => `<button type="button" class="chipbtn" data-act="${act}" aria-pressed="${on}">${esc(l)}</button>`;
@@ -272,7 +285,7 @@
     const pD = p => { if (!p) return {}; const o = x => x ? String(x).slice(0, 10) : ""; const f = o(p.timabilFra) || o(p.vidburdur) || o(p.skiladagur), t = o(p.timabilTil) || o(p.skiladagur) || f; return { fra: f || "", til: t && f && t < f ? f : t || "" }; };
     const PD = pD(PP);
     const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), M = D === "blandad", L = D !== "sala" && (!M || ON("leiga")), SV = M && !L; // SV (2.22.0): þjónustutilboð – Leiga ekki virk
-    sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${M ? "tilboð" : L ? "leigutilboð" : "sölutilboð"}</h3><form id="tbf" novalidate>
+    sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${M ? "tilboð" : L ? "leigutilboð" : "sölutilboð"}</h3>${byrjaHTML()}<form id="tbf" novalidate>
       <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" value="${esc(PP?.stutt || "")}" placeholder="${L ? "T.d. Árshátíð" : SV ? "T.d. Ljósahönnun – anddyri" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
       ${verkefni().length ? `<label>Verkefni<select id="tb-verk"><option value="">Ekkert verkefni</option>${verkefni().filter(p => !isDone(p) || (PP && p.id === PP.id)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(p => `<option value="${esc(p.id)}"${PP && p.id === PP.id ? " selected" : ""}>${esc(p.nafn || p.nr)}</option>`).join("")}</select></label>` : ""}
       ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
@@ -292,6 +305,9 @@
       const h = document.getElementById("tb-tbh"); if (h) h.textContent = `Tímabil verksins${p ? " – sömu dagar og verkefnið" : ""}. Leigulínur reiknast á þessa daga.`;
       lastPD = d; lastH = p?.stutt || ""; });
     document.getElementById("tb-cancel").onclick = closeSheet;
+    const setIf = (id, v) => { const el = document.getElementById(id); if (el && v && !el.value) el.value = v; };
+    const getB = wireByrja("tilbod", pre?.base, B => { setIf("tb-heiti", B.heiti); setIf("tb-stad", B.stadsetning); setIf("tb-teng", B.tengilidur); setIf("tb-net", B.netfang);
+      const cs = document.getElementById("tb-client"); if (cs && B.vskId && !cs.value && [...cs.options].some(o => o.value === String(B.vskId))) { cs.value = B.vskId; cs.dispatchEvent(new Event("change")); } });
     document.getElementById("tbf").onsubmit = async e => { e.preventDefault();
       try {
         const heiti = val("tb-heiti"); if (!heiti) return msg("Skrifaðu heiti.", "err");
@@ -301,6 +317,7 @@
           tengilidur: val("tb-teng") || null, netfang: val("tb-net") || null, stadsetning: val("tb-stad") || null, fra, til, gildir: val("tb-gildir") || null, dags: d0,
           stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: (document.getElementById("tb-verk") ? val("tb-verk") : PP?.id) || null };
         if (pre?.vara) { const v = findV(pre.vara); if (v) T.linur = [{ ...lineFrom(v, T), magn: +pre.magn || 1 }]; } // „+ Á tilboð“ af vöruspjaldi (2.30.0)
+        applyBase(T, getB());
         await saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(T); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; });
         toast("Tilboð " + nr + " stofnað"); closeSheet(); EDT = structuredClone(T); openDetail("tb:" + id);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
@@ -309,7 +326,7 @@
   /* ---------- Pantanir (2.20.0) ---------- */
   function pnForm(pre) {
     const PP = pre?.verkefniId ? findProj(pre.verkefniId) : null, d0 = isoDay(new Date());
-    sheet.innerHTML = `<h3 id="sheet-h">Ný pöntun</h3><form id="pnf" novalidate>
+    sheet.innerHTML = `<h3 id="sheet-h">Ný pöntun</h3>${byrjaHTML()}<form id="pnf" novalidate>
       ${vskSelect("pn", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || null)}
       <div class="two"><label>Sá sem pantar<input id="pn-teng" placeholder="Nafn"></label><label>Sími<input id="pn-simi" type="tel" inputmode="tel"></label></div>
       <div class="two"><label>Netfang<input id="pn-net" type="email" placeholder="nafn@dæmi.is"></label><label>Uppruni<select id="pn-upp">${UPPRUNI.filter(x => x[0] !== "tilbod").map(([k, l]) => `<option value="${k}"${k === "simi" ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
@@ -321,6 +338,9 @@
     document.getElementById("pn-fra").onchange = e => { const t = document.getElementById("pn-til"); if (!t.value || t.value < e.target.value) t.value = e.target.value; };
     document.getElementById("pn-client").addEventListener("change", e => { const v = findVsk(e.target.value); if (!v) return; [["pn-teng", v.tengilidur], ["pn-simi", v.simi], ["pn-net", v.netfang]].forEach(([k, x]) => { const el = document.getElementById(k); if (el && !el.value && x) el.value = x; }); });
     document.getElementById("pn-cancel").onclick = closeSheet;
+    const setIf = (id, v) => { const el = document.getElementById(id); if (el && v && !el.value) el.value = v; };
+    const getB = wireByrja("pontun", pre?.base, B => { setIf("pn-heiti", B.heiti); setIf("pn-teng", B.tengilidur); setIf("pn-simi", B.simi); setIf("pn-net", B.netfang);
+      const cs = document.getElementById("pn-client"); if (cs && B.vskId && !cs.value && [...cs.options].some(o => o.value === String(B.vskId))) { cs.value = B.vskId; cs.dispatchEvent(new Event("change")); } });
     document.getElementById("pnf").onsubmit = async e => { e.preventDefault();
       try {
         const fra = val("pn-fra") || null, til = val("pn-til") || fra; if (fra && til && til < fra) return msg("Skil geta ekki verið á undan afhendingu.", "err");
@@ -329,6 +349,7 @@
         const P = { id, pontun: true, nr, deild: "blandad", heiti: val("pn-heiti") || "Pöntun", vskId: cl?.id || null, vidskiptavinur: cl?.name || null, tengilidur: teng, simi: val("pn-simi") || null, netfang: val("pn-net") || null,
           uppruni: val("pn-upp") || "simi", ytriNr: null, stadsetning: null, fra, til, dags: isoDay(new Date()), stada: "Ný", svid: (() => { try { return ({ pnl: ["Leiga"], pns: ["Sala"], pnt: ["Þjónusta"] })[tab] || null; } catch (e) { return null; } })(), afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null, tilbodId: null };
         if (pre?.vara) { const v = findV(pre.vara); if (v) P.linur = [{ ...lineFrom(v, P), magn: +pre.magn || 1 }]; } // „Taka frá“ af vöruspjaldi (2.30.0)
+        { const B = getB(); applyBase(P, B); if (B) { if (B.afhending) P.afhending = B.afhending; if (B.afhStadur) P.afhStadur = B.afhStadur; if (B.svid) P.svid = B.svid; } }
         await saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; });
         toast("Pöntun " + nr + " stofnuð"); closeSheet(); EDT = structuredClone(P); openDetail("tb:" + id);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };

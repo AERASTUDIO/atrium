@@ -283,6 +283,7 @@
     w.querySelector("#pfgo").onclick = async () => { const f = w.querySelector("#pff").value, t = w.querySelector("#pft").value || f; if (!f) return toast("Veldu afhendingardag"); close(); await newOrder(base, f, t, afh); };
   }
   async function saveTemplate(pid) {
+    if (window.snSave) return window.snSave(pid);   // 2.78.0: sameiginleg sniðmát (snidmat.js)
     const P = findP(pid); if (!P) return; const heiti = prompt("Heiti sniðmáts", (P.heiti || "Pöntun") + (P.vidskiptavinur ? " · " + P.vidskiptavinur : "")); if (!heiti) return;
     await saveCfg(c => { c.snid = c.snid || []; c.snid.push({ id: tr(() => gid(), String(Date.now())), heiti, vskId: P.vskId || null, vidskiptavinur: P.vidskiptavinur || null, tengilidur: P.tengilidur || null, simi: P.simi || null, netfang: P.netfang || null, heitiP: P.heiti || "", afhending: P.afhending || null, afhStadur: P.afhStadur || null, linur: (P.linur || []).filter(l => !l.aukagjald) }); });
     toast("Sniðmát „" + heiti + "“ vistað");
@@ -325,7 +326,7 @@
     return r;
   }
   function mailDlg() {
-    const snid = (CFP().snid || []);
+    const snid = window.snList ? window.snList("pontun") : (CFP().snid || []);
     const { w, close } = modal("Ný pöntun úr pósti eða sniðmáti", `
       ${snid.length ? `<div class="pfsh2">Sniðmát</div><div class="pftpl">${snid.map(s => `<button type="button" class="btn sm" data-tpl="${E(s.id)}">${E(s.heiti)} <small>${(s.linur || []).length} línur</small></button>`).join("")}</div><div class="pfsh2">Eða úr pósti</div>` : ""}
       <textarea id="pfmail" rows="7" placeholder="Límdu póstinn hér, t.d. „Sæl, getum við fengið 2 hátalara og mixer 24.–25. okt? Við sækjum. Kv. Sigga, s. 555 1234“"></textarea>
@@ -339,7 +340,7 @@
         <span>Afhending</span><b>${R.afhending === "sott" ? "Sótt" : R.afhending === "sent" ? "Sent" : "–"}</b></div>
         <div class="pfml">${R.linur.length ? R.linur.map((l, i) => `<label class="pfmlr"><input type="checkbox" checked data-i="${i}"><input type="number" min="1" value="${l.magn}" data-q="${i}" aria-label="Magn"><span>${E(l.v.heiti)} <small>${E(l.v.nr || "")}</small></span></label>`).join("") : '<span class="t-amb">Engar vörur úr vörulistanum fundust – þú bætir línum við á pöntuninni.</span>'}</div>`; };
     w.querySelector("#pfmail").addEventListener("input", draw);
-    w.querySelectorAll("[data-tpl]").forEach(b => b.onclick = () => { const s = snid.find(x => x.id === b.dataset.tpl); close(); againDlg({ ...s, heiti: s.heitiP || s.heiti, uppruni: "annad" }, "Pöntun úr sniðmáti · " + s.heiti); });
+    w.querySelectorAll("[data-tpl]").forEach(b => b.onclick = () => { const s0 = snid.find(x => String(x.id) === b.dataset.tpl), s = window.snBase ? window.snBase(s0) : s0; close(); againDlg({ ...s, heiti: s.heitiS || s.heiti || s0.heitiP || s0.heiti, uppruni: "annad" }, "Pöntun úr sniðmáti · " + s0.heiti); });
     w.querySelector("#pfmgo").onclick = async () => { if (!R) return;
       const keep = [...w.querySelectorAll(".pfmlr")].map(x => { const i = +x.querySelector("[data-i]").dataset.i; return x.querySelector("[data-i]").checked ? { v: R.linur[i].v, magn: +x.querySelector("[data-q]").value || 1 } : null; }).filter(Boolean);
       close(); const base = { ...R, uppruni: "postur", linur: [] };
@@ -481,7 +482,7 @@
       <div class="viewtitle">Afhending</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(SIGREQ(), "pfSet('sig','krafa',this.checked)", "Krefjast undirskriftar")}</div><div class="snjst"><b>Krefjast undirskriftar við afhendingu og skil</b><small>Ef slökkt má sá sem afhendir sleppa kvittunarskrefinu („Sleppa undirskrift“)</small></div><div class="snjso"></div></div></div>
       <div class="viewtitle">Staðfestingartengill</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(TENG().on, "pfSet('teng','on',this.checked)", "Senda sjálfkrafa")}</div><div class="snjst"><b>Senda staðfestingartengil sjálfkrafa</b><small>Ný pöntun með netfangi fær pöntunarsíðu strax. Ef enginn hefur sent tengilinn innan frestsins sendir netþjónninn hann úr sameiginlega pósthólfinu.</small></div><div class="snjso snjlim">${TENG().on ? `<input class="snjnum" type="number" min="0.25" step="0.25" value="${E(TENG().klst)}" onchange="pfSet('teng','klst',this.value)"><span class="snju">klst. eftir stofnun</span>` : ""}</div></div>${TENG().on ? `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>Í síðasta lagi fyrir afhendingu</b><small>Ef afhending er nær en þetta fer tengillinn fyrr – strax ef tíminn er þegar kominn</small></div><div class="snjso snjlim"><input class="snjnum" type="number" min="1" step="1" value="${E(TENG().fyrir)}" onchange="pfSet('teng','fyrir',this.value)"><span class="snju">klst. fyrir afhendingu</span></div></div>` : ""}</div>
       <div class="viewtitle">Ferð dagsins</div><div class="snjset"><div class="snjsr"><div class="snjsc">${sw(FERD(), "pfSet('ferd','on',this.checked)", "Ferð dagsins")}</div><div class="snjst"><b>Ferð dagsins á Pantanir › Yfirlit</b><small>Afhendingar og sóttar pantanir dagsins í röð, með leið í Google Maps</small></div><div class="snjso"></div></div></div>
-      <div class="viewtitle">Sniðmát</div><div class="snjset">${sn.length ? sn.map(s => `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>${E(s.heiti)}</b><small>${(s.linur || []).length} línur${s.vidskiptavinur ? " · " + E(s.vidskiptavinur) : ""}</small></div><div class="snjso"><button type="button" class="btn sm" onclick="pfSet('snidDel','${E(s.id)}')">Eyða</button></div></div>`).join("") : `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><small>Engin sniðmát. Opnaðu pöntun og veldu „Vista sem sniðmát“.</small></div><div class="snjso"></div></div>`}</div>
+      ${window.snList ? "" : `<div class="viewtitle">Sniðmát</div><div class="snjset">${sn.map(s => `<div class="snjsr"><div class="snjsc"></div><div class="snjst"><b>${E(s.heiti)}</b></div><div class="snjso"><button type="button" class="btn sm" onclick="pfSet('snidDel','${E(s.id)}')">Eyða</button></div></div>`).join("")}</div>`}
       <div class="viewtitle">Vefverslun</div><div class="snjset"><div class="snjsr"><div class="snjsc"><span class="pfshop">S</span></div><div class="snjst"><b>Shopify ${sh.virk ? '<span class="t-grn">· tengt</span>' : '<span class="m">· ekki tengt</span>'}</b><small>Pantanir úr vefversluninni detta sjálfkrafa inn í Pantanir (uppruni Shopify) og eru staðfestar ef búnaðurinn er laus.</small></div><div class="snjso"><button type="button" class="btn sm" onclick="pfShopify()">${sh.verslun ? "Stillingar" : "Tengja"}</button></div></div></div>`;
   }
   window.pfSet = (g, k, v) => { saveCfg(c => {
@@ -497,7 +498,7 @@
       <ol class="pfsteps"><li>Skráðu slóð verslunarinnar og vistaðu.</li><li>Þegar tengingin er virkjuð birtist hér slóð fyrir webhook sem þú límir í Shopify › Settings › Notifications › Webhooks (Order creation).</li><li>Prófunarpöntun í Shopify birtist þá í Pantanir.</li></ol>
       <div class="pfact"><button type="button" class="btn" data-x="1">Loka</button><button type="button" class="btn primary" id="pfsvs">Vista</button></div>`);
     w.querySelector("#pfsvs").onclick = () => { const v = w.querySelector("#pfsv").value.trim(); saveCfg(c => { c.shopify = { ...(c.shopify || {}), verslun: v, virk: false }; }).then(() => { close(); toast("Shopify-verslun skráð – tengingin verður virkjuð síðar"); render(); }); }; };
-  const addPage = () => { if (typeof STPAGES === "undefined") return false; STPAGES.pferli = { l: "Pantanir", d: "Skilauppgjör, ferð dagsins, sniðmát og tenging við vefverslun", s: ["Skilauppgjör", "Staðfestingartengill", "Ferð dagsins", "Sniðmát", "Shopify", "Vefverslun"], adm: 1, fn: () => settingsHTML() }; return true; };
+  const addPage = () => { if (typeof STPAGES === "undefined") return false; STPAGES.pferli = { l: "Pantanir", d: "Skilauppgjör, ferð dagsins og tenging við vefverslun", s: ["Skilauppgjör", "Staðfestingartengill", "Ferð dagsins", "Shopify", "Vefverslun"], adm: 1, fn: () => settingsHTML() }; return true; };
   if (!addPage()) { const iv = setInterval(() => { if (addPage()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 
 
