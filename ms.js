@@ -4,8 +4,8 @@
   const CFG = {
     clientId: window.ORG.ms.clientId, // Entra-forrit fyrirtækisins (fyrirtaeki.js)
     tenant: window.ORG.ms.tenant,
-    scopes: "openid profile offline_access User.Read Files.ReadWrite Mail.Read Mail.Send",
-    base: "openid profile offline_access User.Read Files.ReadWrite Mail.Read"
+    scopes: "openid profile offline_access User.Read Files.ReadWrite Mail.Read Mail.Send Calendars.ReadWrite", // dagatal (2.79.0): fundarboð
+    base: "openid profile offline_access User.Read Files.ReadWrite Mail.Read Calendars.ReadWrite"
   };
   // SharePoint-síða fyrirtækisins (ORG.sp): krefst Files.ReadWrite.All (admin consent í Entra)
   // Sameiginlegt pósthólf (ORG.postholf): krefst Mail.Read.Shared og Mail.Send.Shared (admin consent í Entra)

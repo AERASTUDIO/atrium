@@ -1243,3 +1243,27 @@ label.chk.smopt input{margin-top:2px}.smopt span{display:flex;flex-direction:col
 .smlock,.smsent{margin:8px 0}
 /* Hver afhenti / tók á móti (2.61.0) */
 .pnhver{display:flex;flex-wrap:wrap;gap:6px 28px;margin:8px 0 4px;font-size:13px}.pnhver span{display:flex;flex-direction:column}.pnhver small{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+
+/* Fundarboð (2.79.0) */
+.fbatt{margin:10px 0 4px}
+.fbchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.fbchip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:999px;background:var(--b0);color:var(--ink);font-size:13px;border:1px solid var(--line)}
+.fbchip.in{background:var(--accent-soft)}
+.fbchip small,.fbchip i{color:var(--muted);font-style:normal;font-size:11px}
+.fbchip button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 4px}
+.fbquick{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.fbq{border:1px dashed var(--line);background:none;color:var(--accent);border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;cursor:pointer}
+.fbsend{margin-top:8px}
+.fbhint{font-size:12px;color:var(--muted);margin-top:4px}
+.fbalist{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.fbarow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.fbsv{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--gray-soft);color:var(--muted);white-space:nowrap}
+.fbsv.accepted,.fbsv.organizer{background:var(--b2);color:#fff}
+.fbsv.tentativelyAccepted{background:var(--accent-soft);color:var(--accent)}
+.fbsv.declined{background:var(--crit-soft);color:var(--ink);text-decoration:line-through}
+.fbext{font-size:11px;color:var(--muted)}
+.fbresp{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.fbinv,.fbev{display:flex;flex-direction:column;gap:4px}
+.fbtime input{min-width:0}
+input.bad{border-color:var(--b3)!important;box-shadow:0 0 0 2px var(--accent-soft)}
+.fbarow small{display:block;color:var(--muted);font-size:12px}

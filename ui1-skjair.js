@@ -571,6 +571,7 @@
       const hvar = f.fundarhlekkur ? (/teams/i.test(f.fundarhlekkur) ? "Teams" : "Fjarfundur") : f.stadsetning || "–";
       const fg = f.fundargerd ? `<a class="uln" href="${E(f.fundargerd)}" target="_blank" rel="noopener"><span>${E(f.fundargerd.split("/").pop() || "Fundargerð")}</span><span class="m">Opna →</span></a>` : `<p class="usub" style="margin:4px 0 0">Engin fundargerð enn.</p>`;
       return dHead("Fundur · " + wh, f.name || "Fundur", sub, acts) + `<div class="uvb">${kp3([["Hvenær", (hhmm(f.date) || "–") + (t2 ? "–" + t2 : "")], ["Hvar", E(hvar)], ["Þátttakendur", (f.attendees || []).length || "–"]])}`
+        + (window.fbAttHTML ? fbAttHTML(f) : "")
         + (f.lysing ? `<div class="ush2"><span>Dagskrá</span></div><p style="margin:4px 0 0;white-space:pre-wrap;font-size:14px">${E(f.lysing)}</p>` : "")
         + `<div class="ush2"><span>Fundargerð</span></div>${fg}`
         + (f.fundarhlekkur ? `<div class="ush2"><span>Fundarhlekkur</span></div><a class="uln" href="${E(f.fundarhlekkur)}" target="_blank" rel="noopener"><span>Tengjast fundi</span><span class="m">→</span></a>` : "")

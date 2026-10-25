@@ -37,6 +37,7 @@
   function bidur() {
     const R = [], row = (act, txt, src) => R.push(`<a class="h2bi" data-act="${act}" role="button" tabindex="0"><span>${txt}</span><span class="h2br">${tag(src)}<span aria-hidden="true">›</span></span></a>`);
     if (window.MS && MS.hadLogin && MS.hadLogin() && !MS.on()) row("mslogin", "Tenging við Microsoft rann út – tengjast aftur", "Microsoft 365");
+    if (window.fbHomeRow) fbHomeRow(row); // fundarboð (2.79.0)
     const late = upcoming().filter(i => daysTo(i.when) < 0); if (late.length) row("tab:hfrag", `${late.length} ${late.length === 1 ? "atriði komið" : "atriði komin"} fram yfir`, G("verkstjorn"));
     const ofl = (window.MS_OFL || []).length; if (ON("postur") && ofl) row("tab:postur", `${ofl} ${ofl === 1 ? "póstur" : "póstar"} til að tengja verkefni`, G("m365postur"));
     if (tilbodOn()) { tbAll().filter(T => T.bidur && !["Samþykkt", "Hafnað"].includes(T.stada)).forEach(T => row(`tbst:${esc(T.id)}:Samþykkt`, `${esc(T.bidur.nafn || "Viðskiptavinur")} samþykkti tilboð ${esc(T.nr)} – staðfesta`, G("tilbod"))); }

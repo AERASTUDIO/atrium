@@ -8,7 +8,7 @@ const DAYL=["sunnudagur","mánudagur","þriðjudagur","miðvikudagur","fimmtudag
 const CALC={fund:"var(--ink)",skil:"#B4532A",vidb:"#7C8896",undir:"#93A0AD",time:"#C9D1D9"}; // merkjahandbók: tónar af stáli; skil fá dempaðan áherslulit
 let _cal={k:null,v:null,m:null};
 function calItems(){
-  const dk=window.DEILD?DEILD():""; if(_cal.k===S&&_cal.d===dk) return _cal.m;
+  const dk=window.DEILD?DEILD():""; if(_cal.k===S&&_cal.d===dk&&_cal.v===window.FBV) return _cal.m;
   const m=new Map(), add=(iso,it)=>{const k=String(iso).slice(0,10); if(!/^\d{4}-\d\d-\d\d$/.test(k)) return; (m.get(k)||m.set(k,[]).get(k)).push(it);};
   (S?.fundir||[]).filter(f=>!f.projectId||inD(findProj(f.projectId))).forEach(f=>f.date&&add(f.date,{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||f.verknr,open:"fund:"+f.id,o:f}));
   verkD().forEach(p=>{
@@ -20,8 +20,9 @@ function calItems(){
         x.setDate(x.getDate()+1);}}}
     (p.undirverk||[]).filter(u=>u.skiladagur&&u.stada!=="Done").forEach(u=>add(u.skiladagur,{t:"undir",when:u.skiladagur,kind:"Skil undirverks",title:subName(u)+" · "+p.stutt,nr:u.nr,open:"sub:"+u.id,o:u}));
   });
+  if(window.fbCalItems) try{fbCalItems(add);}catch(e){} // fundarboð og persónulegt Outlook-dagatal (fundabod.js, 2.79.0)
   m.forEach(l=>l.sort((a,b)=>(a.span-b.span)||String(hhmm(a.when)||"99").localeCompare(String(hhmm(b.when)||"99"))));
-  _cal={k:S,d:dk,m}; return m;}
+  _cal={k:S,d:dk,v:window.FBV,m}; return m;}
 let calMode="m"; try{const m=localStorage.getItem("aera-calmode"); if(["m","v","d"].includes(m)) calMode=m;}catch(e){}
 const calModes=()=>`<div class="seg calseg" role="tablist" aria-label="Sýn">${[["m","Mánuður"],["v","Vika"],["d","Dagur"]].map(([k,l])=>`<button type="button" role="tab" data-act="calmode:${k}" aria-pressed="${calMode===k}">${l}</button>`).join("")}</div>`;
 function calCard(i){return `<div class="card tap${i.done?" compact":""}" ${tapAttr(i.open.split(":")[0],i.open.slice(i.open.indexOf(":")+1))}><div class="row"><div class="grow"><div class="kind">${esc(i.kind)}${hhmm(i.when)?" · kl. "+hhmm(i.when):""}</div><div class="t">${esc(i.title)}</div>

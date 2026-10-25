@@ -22,7 +22,7 @@ function deleteItem(type,id){
       (s.fundir||[]).forEach(f=>{if(f.projectId===id){f.projectId=null;}}); (s.skjol||[]).forEach(x=>{if(x.projectId===id) x.projectId=null;});};}
   if(type==="sub"){const r=findSub(id); if(!r) return; label=r.u.heiti; q=`Eyða undirverkinu „${r.u.heiti}“?\n\nTímaskráningar á það haldast á verkefninu.`;
     mut=s=>{const [p]=sFindU(s,id); if(p) p.undirverk=p.undirverk.filter(u=>u.id!==id); entries(s).forEach(e=>{if(e.undirverkId===id) e.undirverkId=null;}); (s.kostnadur||[]).forEach(k=>{if(k.undirverkId===id) k.undirverkId=null;});};}
-  if(type==="fund"){const f=findFund(id); if(!f) return; label=f.name; q=`Eyða fundinum „${f.name}“?`+(f.fundargerd?`\n\nFundargerðin sjálf í OneDrive eyðist ekki.`:"");
+  if(type==="fund"){const f=findFund(id); if(!f) return; label=f.name; window.__delFund=f; q=`Eyða fundinum „${f.name}“?`+(f.fundargerd?`\n\nFundargerðin sjálf í OneDrive eyðist ekki.`:"")+(f.msEventId&&f.msOrg!==false?`\n\nAfboðun verður send þátttakendum í gegnum Outlook.`:"");
     mut=s=>{s.fundir=(s.fundir||[]).filter(x=>x.id!==id);};
     const later=f.seria?(S.fundir||[]).filter(x=>x.seria===f.seria&&x.id!==id&&String(x.date)>String(f.date)):[];
     if(later.length){q2=`Þetta er endurtekinn fundur. Eyða líka ${later.length} ${later.length===1?"fundi":"fundum"} síðar í röðinni?\n\nÝttu á „Hætta við“ til að eyða bara þessum.`; const ids=new Set([id,...later.map(x=>x.id)]); mut2=s=>{s.fundir=(s.fundir||[]).filter(x=>!ids.has(x.id));};}}
@@ -37,6 +37,7 @@ function deleteItem(type,id){
   if(!mut||!confirm(q)) return; if(q2&&confirm(q2)) mut=mut2;
   const before=structuredClone(S);
   saveSnapshot(mut).then(()=>{
+    if(type==="fund"&&window.fbCancel&&window.__delFund) fbCancel(window.__delFund);
     if(DETAIL){let st=null; try{st=history.state;}catch(e){} DETAIL=null; if(st&&st.aera){try{history.back();}catch(e){}} render(); window.scrollTo({top:listScroll});}
     toast(`${label} eytt`,()=>{S=before; saveSnapshot(s=>{Object.keys(s).forEach(k=>delete s[k]); Object.assign(s,structuredClone(before));}).then(()=>toast("Hætt við að eyða"));});
   }).catch(e=>toast(errText(e)));
@@ -128,7 +129,8 @@ function drawForm(){
     <div class="two"><label>Frá<input id="f-from" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${esc(PREFILL?.fra||"")}"></label><label>Til<input id="f-to" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${esc(PREFILL?.til||"")}"></label></div>`}
     ${klukka()||PREFILL?.timer===false?"":`<button type="button" class="btn${PREFILL?.timer?" primary":""}" id="f-timer" style="width:100%">▶ Byrja klukku í staðinn</button>`}`;
   if(kind==="fund") f=`<label>Heiti fundar<input id="f-name" required placeholder="T.d. Fundur með verkkaupa"></label>
-    <div class="two"><label>Dagur<input id="f-date" type="date" required value="${isoDay(today)}"></label><label>Klukkan<input id="f-time" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 required></label></div>
+    <div class="three fbtime"><label>Dagur<input id="f-date" type="date" required value="${isoDay(today)}"></label><label>Byrjar<input id="f-time" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 required></label><label>Lýkur<input id="f-end" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24></label></div>
+    ${window.fbField?fbField("f",null):""}
     <label>Staðsetning<input id="f-place" placeholder="Heimilisfang eða salur"></label>
     <label>Fundarhlekkur<input id="f-link" type="url" placeholder="https://… (ef fjarfundur)"></label>
     <label>Fundargerð (slóð)<input id="f-fg" type="url" placeholder="https://… (má bæta við síðar)"></label>
@@ -173,6 +175,7 @@ function drawForm(){
     try{localStorage.setItem("aera-last",JSON.stringify({pid,sid}));}catch(e){}
     await saveSnapshot(s=>{s.klukka={pid,sid:sid||null,desc:desc||"",sk:val("f-starf")||ME(),start:new Date().toISOString()};}); closeSheet(); toast("Klukkan er farin af stað");}catch(e){msg(esc(e?.message||"Villa"),"err");}};
   wireVskSelects(sheet);
+  if(kind==="fund"){if(window.fbWire) fbWire("f"); const st=document.getElementById("f-time"), en=document.getElementById("f-end"); if(st&&en) st.addEventListener("blur",()=>{const t=normTime(st.value); if(t&&!en.value){const [h,m]=t.split(":").map(Number); en.value=pad((h+1)%24)+":"+pad(m);}});}
   if(PREFILL?.date&&kind!=="tima"){const t={fund:"f-date",verk:"f-ps",undir:"f-date"}[kind]; const el=t&&document.getElementById(t); if(el) el.value=PREFILL.date;
     const hint=document.createElement("p"); hint.className="hint"; hint.textContent={fund:"Dagsetning fundar sett á ",verk:"„Verk hefst“ sett á ",undir:"Skiladagur settur á ",tima:"Dagsetning sett á "}[kind]?.concat(fmtDate(PREFILL.date)+" úr dagatalinu.")||""; if(hint.textContent) document.getElementById("addf").prepend(hint);}
   enhanceForm();
@@ -366,13 +369,16 @@ async function save(ev){
     }
     if(kind==="fund"){
       const name=val("f-name"),dt=val("f-date"),tm=val("f-time"),place=val("f-place"),link=val("f-link"),fg=val("f-fg"),pid=val("f-proj");
-      if(!name||!dt||!tm) return msg("Fylltu út heiti, dag og klukku.","err");
+      if(!name||!dt||!tm) return msg("Fylltu út heiti, dag og hvenær fundurinn byrjar.","err");
+      let te=val("f-end"); if(!te){const [h,m]=tm.split(":").map(Number); te=pad((h+1)%24)+":"+pad(m);} if(te<=tm) return msg("Fundurinn þarf að enda eftir að hann byrjar.","err");
+      const att=window.fbRead?fbRead("f"):[], wantSend=att.length&&window.fbWantSend&&fbWantSend("f"), wantTeams=window.fbWantTeams&&fbWantTeams("f");
       if(!urlOk(link)||!urlOk(fg)) return msg("Slóðir þurfa að byrja á https://","err"); busy();
       const id=newId(), p=findProj(pid);
       const rp=val("f-rep"), rn=rp?Math.max(1,Math.min(52,parseInt(val("f-repn"))||1)):1, seria=rp?newId():null;
       const dates=[...Array(rn)].map((_,k)=>{const x=d(dt); if(rp==="m") x.setMonth(x.getMonth()+k); else if(rp) x.setDate(x.getDate()+k*(+rp)); return isoDay(x);});
-      await saveSnapshot(s=>{dates.forEach((ds,k)=>(s.fundir=s.fundir||[]).push({id:k?newId():id,name,date:ds+"T"+tm+":00",stadsetning:place||null,fundarhlekkur:link||null,fundargerd:k?null:(fg||null),projectId:pid||null,verknr:p?.nafn||null,mappa:p?.mappa||null,attendees:[],seria}));});
+      await saveSnapshot(s=>{dates.forEach((ds,k)=>(s.fundir=s.fundir||[]).push({id:k?newId():id,name,date:ds+"T"+tm+":00",dateEnd:ds+"T"+te+":00",stadsetning:place||null,fundarhlekkur:link||null,fundargerd:k?null:(fg||null),projectId:pid||null,verknr:p?.nafn||null,mappa:p?.mappa||null,attendees:att,seria}));});
       toast(rn>1?`${rn} fundir vistaðir`:"Fundur vistaður");
+      if(wantSend&&window.fbSend) fbSend(id,{teams:wantTeams,ser:rn>1?{n:rn,rp}:null});
       if(!fg&&window.MS&&MS.on()&&window.msFundargerd) msFundargerd(id);
     }
     if(kind==="undir"){

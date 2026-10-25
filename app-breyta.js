@@ -36,7 +36,8 @@ function openEdit(type,id){
     <label>Lýsing<textarea id="e-lys">${esc(u.lysing||"")}</textarea></label>`;}
   if(type==="fund"){const fd=findFund(id); if(!fd) return; const p=fundProj(fd); title="Breyta fundi";
     f=`<label>Heiti fundar<input id="e-name" value="${esc(fd.name)}" required></label>
-    <div class="two"><label>Dagur<input id="e-date" type="date" value="${dOnly(fd.date)}" required></label><label>Klukkan<input id="e-time" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(fd.date)}"></label></div>
+    <div class="three fbtime"><label>Dagur<input id="e-date" type="date" value="${dOnly(fd.date)}" required></label><label>Byrjar<input id="e-time" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(fd.date)}"></label><label>Lýkur<input id="e-end" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(fd.dateEnd)||""}"></label></div>
+    ${window.fbField?fbField("e",fd):""}
     <label>Staðsetning<input id="e-place" value="${esc(fd.stadsetning||"")}"></label>
     <label>Fundarhlekkur<input id="e-link" type="url" value="${esc(fd.fundarhlekkur||"")}" placeholder="https://… (ef fjarfundur)"></label>
     <label>Fundargerð (slóð)<input id="e-fg" type="url" value="${esc(fd.fundargerd||"")}" placeholder="https://… skjal í OneDrive"></label>
@@ -68,6 +69,7 @@ function openEdit(type,id){
     ${window.MS&&MS.on()?`<label>${k.kvittun?"Ný kvittun (kemur í stað þeirrar gömlu)":"Kvittun (mynd eða PDF)"}<input id="e-file" type="file" accept="image/*,application/pdf"></label>`:""}`;}
   sheet.innerHTML=`<h3 id="sheet-h">${title}</h3><form id="editf" novalidate>${f}<div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="e-cancel">Hætta við</button><button class="btn primary" id="e-save">Vista</button></div></form>`;
   sheetwrap.hidden=false; wireVskSelects(sheet);
+  if(type==="fund"&&window.fbWire) fbWire("e");
   document.getElementById("e-cancel").onclick=closeSheet;
   if(type==="kostn"){const k=findKostn(id); let sel=k.undirverkId; const ps=document.getElementById("e-proj");
     const fill=()=>{const p=findProj(ps.value); document.getElementById("e-sub").innerHTML=`<option value="">Ekkert</option>`+(p?.undirverk||[]).map(u=>opt(u.id,u.heiti,sel)).join("");};
@@ -106,9 +108,11 @@ async function saveEdit(type,id){
     }
     if(type==="fund"){const name=val("e-name"),dt=val("e-date"),tm=val("e-time"),place=val("e-place"),link=val("e-link"),fg=val("e-fg"),pid=val("e-proj");
       if(!name||!dt) return msg("Heiti og dagur verða að vera útfyllt.","err"); if(!urlOk(link)||!urlOk(fg)) return msg("Slóðir þurfa að byrja á https://","err");
-      const start=tm?dt+"T"+tm+":00":dt;
+      const start=tm?dt+"T"+tm+":00":dt; let te=val("e-end"); if(tm&&!te){const [h,m]=tm.split(":").map(Number); te=pad((h+1)%24)+":"+pad(m);} if(tm&&te&&te<=tm) return msg("Fundurinn þarf að enda eftir að hann byrjar.","err");
+      const att=window.fbRead?fbRead("e"):null, wantSend=window.fbWantSend&&fbWantSend("e")&&(att||[]).length;
       busy(); const p=findProj(pid);
-      await saveSnapshot(s=>{const q=(s.fundir||[]).find(x=>x.id===id); if(q) Object.assign(q,{name,date:start,stadsetning:place||null,fundarhlekkur:link||null,fundargerd:fg||null,projectId:pid||null,verknr:p?.nafn||null,mappa:p?.mappa||null,lysing:val("e-lys")||null});});
+      await saveSnapshot(s=>{const q=(s.fundir||[]).find(x=>x.id===id); if(q) Object.assign(q,{name,date:start,dateEnd:tm&&te?dt+"T"+te+":00":null,...(att?{attendees:att}:{}),stadsetning:place||null,fundarhlekkur:link||null,fundargerd:fg||null,projectId:pid||null,verknr:p?.nafn||null,mappa:p?.mappa||null,lysing:val("e-lys")||null});});
+      if(wantSend&&window.fbSend) fbSend(id);
     }
     if(type==="skjal"){const name=val("e-name"),tp=val("e-type"),st=val("e-status"),pid=val("e-proj");
       if(!name) return msg("Heiti vantar.","err");

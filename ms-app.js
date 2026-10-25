@@ -211,7 +211,7 @@
     const x = d(f.date), when = x ? `${DAY[x.getDay()]} ${fmtDate(f.date)}` : "", kl = hhmm(f.date) ? hhmm(f.date) + (hhmm(f.dateEnd) ? "–" + hhmm(f.dateEnd) : "") : "";
     const blocks = [{ s: "Title", t: f.name }, { s: "Subtitle", t: p ? p.nafn : ORG.nafn }];
     ["Dagskrá", "Umræður", "Ákvarðanir", "Verkefni og ábyrgð", "Næsti fundur"].forEach(h => { blocks.push({ s: "Heading1", t: h }, { t: "" }); });
-    const table = [["Dagsetning", when], ["Tími", kl], ["Staður", f.stadsetning || ""], ["Fjarfundur", f.fundarhlekkur || ""], ["Verkefni", p ? p.nafn : ""], ["Fundarmenn", (f.attendees || []).join(", ")], ["Ritari", starfName(ME()) || ""]];
+    const table = [["Dagsetning", when], ["Tími", kl], ["Staður", f.stadsetning || ""], ["Fjarfundur", f.fundarhlekkur || ""], ["Verkefni", p ? p.nafn : ""], ["Fundarmenn", (window.fbNames ? fbNames(f) : (f.attendees || [])).join(", ")], ["Ritari", starfName(ME()) || ""]];
     return { blocks, opts: { label: "Fundargerð", titill: "Fundargerð – " + f.name, table } };
   }
   // Mappa verkefnis (stofnuð ef hún er ekki til) og undirmappa sem byrjar á `prefix`, t.d. "08".
