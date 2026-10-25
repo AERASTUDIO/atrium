@@ -58,8 +58,9 @@ function openEdit(type,id){
     ${STARFS().length>1&&can("fjarmal")?`<label>Starfsmaður<select id="e-starf">${STARFS().map(x=>opt(x.sk,x.nafn,e.starfsmadur||ME())).join("")}</select></label>`:""}
     ${e.fra?"":`<p class="hint" style="margin:0">Þessi færsla var skráð sem ${esc(hrs(e.timar))} án tímabils. Skráðu frá og til til að vista breytingu.</p>`}`;}
   if(type==="klukka"){const k=klukka(); if(!k) return; title="Breyta klukku"; const st=new Date(k.start);
-    f=`<p class="hint" style="margin:0">Leiðréttu hvenær þú byrjaðir, t.d. ef þú gleymdir að ræsa klukkuna.</p>
+    f=`<p class="hint" style="margin:0">Leiðréttu hvenær þú byrjaðir (t.d. ef þú gleymdir að ræsa klukkuna), verkefnið eða lýsinguna.</p>
     <div class="two"><label>Dagur<input id="e-date" type="date" value="${isoDay(st)}" max="${isoDay(new Date())}" required></label><label>Byrjaði kl.<input id="e-from" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${esc(hhmm(k.start))}"></label></div>
+    <label>Verkefni<select id="e-proj"><option value="">Ekkert verkefni (almennt)</option>${verkefni().slice().sort((a,b)=>(isDone(a)-isDone(b))||b.nr.localeCompare(a.nr)).filter(p=>!isDone(p)||p.id===k.pid).map(p=>`<option value="${esc(p.id)}"${p.id===k.pid?" selected":""}>${esc(p.nr+" "+(p.stutt||p.nafn||""))}</option>`).join("")}</select></label>
     <label>Lýsing<input id="e-desc" value="${esc(k.desc||"")}" placeholder="Hvað ertu að gera"></label>
     <button type="button" class="btn danger" style="margin-top:6px" onclick="if(confirm('Hætta við klukkuna án þess að skrá tímann?')){saveSnapshot(s=>{s.klukka=null;}).then(()=>{closeSheet();toast('Hætt við klukku – enginn tími skráður');});}">Hætta við klukku (ekki skrá)</button>`;}
   if(type==="kostn"){const k=findKostn(id); if(!k) return; title="Breyta kostnaði";
@@ -89,7 +90,7 @@ async function saveEdit(type,id){
       const [h,m]=fr.split(":").map(Number), st=new Date(dt+"T00:00:00"); st.setHours(h,m,0,0);
       if(isNaN(st)||st>new Date()) return msg("Upphafstíminn getur ekki verið í framtíðinni.","err");
       if(Date.now()-st>24*36e5&&!confirm("Klukkan hefur þá gengið í meira en sólarhring. Halda áfram?")) return;
-      busy(); await saveSnapshot(s=>{if(s.klukka){s.klukka.start=st.toISOString(); s.klukka.desc=val("e-desc");}}); toast("Upphafstíma breytt"); closeSheet(); return;}
+      busy(); const pid=val("e-proj")||null; await saveSnapshot(s=>{if(s.klukka){s.klukka.start=st.toISOString(); s.klukka.desc=val("e-desc"); if(s.klukka.pid!==pid){s.klukka.pid=pid; s.klukka.sid=null;}}}); toast("Klukku breytt"); closeSheet(); return;}
     if(type==="verk"){const p=findProj(id); const name=val("e-name"), mp=val("e-mappa"); if(!name) return msg("Heiti vantar.","err"); if(!urlOk(mp)) return msg("Mappa þarf að vera slóð sem byrjar á https://","err");
       const snap=readProjDates("e",p);
       const thj=[...document.querySelectorAll('#editf input[name="thj"]:checked')].map(i=>i.value), st=val("e-status");
