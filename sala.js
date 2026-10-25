@@ -123,6 +123,9 @@
     return { ...l, id: gid(), ...(n ? { verd: n.verd, heiti: l.heiti || n.heiti } : {}), dagar: l.teg === "leiga" ? null : l.dagar ?? null }; });
   const applyBase = (T, B) => { if (!B) return; T.linur = baseLines(B, T); T.afsl = +B.afsl || 0; T.athugasemd = B.athugasemd || null; if (!T.stadsetning && B.stadsetning) T.stadsetning = B.stadsetning;
     T.ur = { src: B.src || "", id: B.id || null, nr: B.nr || null, heiti: B.snHeiti || null }; };
+  // 2.78.2: ný pöntun opnast alltaf undir Pantanir (ekki á flipanum sem stofnað var frá); tóm pöntun í breytingaham, annars pöntunarsíðan
+  window.pnOpenNew = P => { try { if (!/^(pantanir|pnl|pns|pnt)$/.test(tab)) tab = "pantanir"; window.STSUB = null; } catch (e) {}
+    EDT = (P.linur || []).length ? null : structuredClone(P); openDetail("tb:" + P.id); };
   // Val efst í „Nýtt tilboð“ / „Ný pöntun“: autt, sniðmát eða afrit af eldra (snidmat.js sér um gluggann)
   const byrjaHTML = () => window.snPick ? `<div class="snbyrja" id="snb"><span class="snbl">Byrja út frá</span><button type="button" class="uchip on" data-snb="">Autt</button><button type="button" class="uchip" data-snb="snid">Sniðmát…</button><button type="button" class="uchip" data-snb="afrit">Eldra tilboð eða pöntun…</button></div>` : "";
   function wireByrja(kind, B0, fill) { const box = document.getElementById("snb"); if (!box) return () => B0 || null; let B = B0 || null;
@@ -351,7 +354,7 @@
         if (pre?.vara) { const v = findV(pre.vara); if (v) P.linur = [{ ...lineFrom(v, P), magn: +pre.magn || 1 }]; } // „Taka frá“ af vöruspjaldi (2.30.0)
         { const B = getB(); applyBase(P, B); if (B) { if (B.afhending) P.afhending = B.afhending; if (B.afhStadur) P.afhStadur = B.afhStadur; if (B.svid) P.svid = B.svid; } }
         await saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; });
-        toast("Pöntun " + nr + " stofnuð"); closeSheet(); EDT = structuredClone(P); openDetail("tb:" + id);
+        toast("Pöntun " + nr + " stofnuð"); closeSheet(); window.pnOpenNew(P);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
   }
   const PF = { s: "opnar", u: "" };

@@ -270,7 +270,7 @@
       uppruni: base.uppruni || "annad", ytriNr: null, stadsetning: base.stadsetning || null, fra, til: til || fra, dags: T0(), stada: "Ný", afsl: base.afsl || 0, athugasemd: base.athugasemd || null, linur: [], verkefniId: null, tilbodId: null, afhending: afh || base.afhending || null, afhStadur: base.afhStadur || null };
     P.linur = (base.linur || []).filter(l => !l.aukagjald).map(l => ({ ...l, id: tr(() => gid(), String(Math.random())) }));
     await saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; });
-    toast("Pöntun " + nr + " stofnuð"); try { openDetail("tb:" + id); } catch (e) {} return P;
+    toast("Pöntun " + nr + " stofnuð"); try { window.pnOpenNew ? window.pnOpenNew(P) : openDetail("tb:" + id); } catch (e) {} return P;
   }
   function againDlg(base, title) {
     const d0 = T0(), { w, close } = modal(title, `<div class="pfrow"><label>Afhending<input id="pff" type="date" value="${d0}"></label><label>Skil<input id="pft" type="date" value="${d0}"></label></div>
