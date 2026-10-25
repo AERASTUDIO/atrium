@@ -131,7 +131,7 @@ function drawForm(){
   if(kind==="fund") f=`<label>Heiti fundar<input id="f-name" required placeholder="T.d. Fundur með verkkaupa"></label>
     <div class="three fbtime"><label>Dagur<input id="f-date" type="date" required value="${isoDay(today)}"></label><label>Byrjar<input id="f-time" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 required></label><label>Lýkur<input id="f-end" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24></label></div>
     ${window.fbField?fbField("f",null):""}
-    <label>Staðsetning<input id="f-place" placeholder="Heimilisfang eða salur"></label>
+    <label>Staðsetning<input id="f-place" data-stadur placeholder="Heimilisfang eða salur"></label>
     <label>Fundarhlekkur<input id="f-link" type="url" placeholder="https://… (ef fjarfundur)"></label>
     <label>Fundargerð (slóð)<input id="f-fg" type="url" placeholder="https://… (má bæta við síðar)"></label>
     <label>Verkefni<select id="f-proj"><option value="">Ekkert</option>${projOpts(false)}</select></label>

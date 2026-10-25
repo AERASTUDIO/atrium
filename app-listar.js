@@ -12,7 +12,7 @@ function calItems(who){
   const w=who||"", dk=window.DEILD?DEILD():"", c=_calC[w]; if(_cal.k&&c&&c.k===S&&c.d===dk&&c.v===window.FBV) return c.m;
   const em=w==="*"?"*":(w||(window.fbMe?fbMe():"")), sjaF=f=>!window.fundFor||fundFor(f,em);
   const m=new Map(), add=(iso,it)=>{const k=String(iso).slice(0,10); if(!/^\d{4}-\d\d-\d\d$/.test(k)) return; (m.get(k)||m.set(k,[]).get(k)).push(it);};
-  (S?.fundir||[]).filter(f=>(!f.projectId||inD(findProj(f.projectId)))&&sjaF(f)).forEach(f=>f.date&&add(f.date,{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||f.verknr,open:"fund:"+f.id,o:f}));
+  (S?.fundir||[]).filter(f=>(!f.projectId||inD(findProj(f.projectId)))&&sjaF(f)).forEach(f=>f.date&&add(f.date,{t:"fund",when:f.date,kind:window.fbKind?fbKind(f,em):"Fundur",title:f.name,nr:fundProj(f)?.nr||f.verknr,open:"fund:"+f.id,o:f}));
   verkD().forEach(p=>{
     if(p.skiladagur) add(p.skiladagur,{t:"skil",when:p.skiladagur,kind:"Skil verkefnis",title:p.stutt,nr:p.nr,open:"verk:"+p.id,o:p,done:isDone(p)});
     if(p.vidburdur) add(p.vidburdur,{t:"vidb",when:p.vidburdur,kind:"Viðburður",title:p.stutt,nr:p.nr,open:"verk:"+p.id,o:p});

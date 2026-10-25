@@ -55,7 +55,8 @@
   function warnings() {
     const out = [], t = T(), now = new Date(), F = tr(() => faerslur(), []);
     // Fundarboð sem bíða svars (2.79.0)
-    tr(() => window.FB.pending, []).slice(0, 5).forEach(e => out.push({ lvl: 1, title: `Fundarboð: ${e.subject || "Fundur"} – svara`, sub: `Frá ${e.organizer?.emailAddress?.name || ""} · ${String(e.start?.dateTime || "").slice(8, 10)}.${String(e.start?.dateTime || "").slice(5, 7)}. kl. ${String(e.start?.dateTime || "").slice(11, 16)}`, open: "msev:" + e.id }));
+    tr(() => window.fbAtriumPending(), []).slice(0, 5).forEach(f => out.push({ lvl: 1, title: `Fundarboð: ${f.name || "Fundur"} – svara`, sub: `${String(f.date).slice(8, 10)}.${String(f.date).slice(5, 7)}. kl. ${String(f.date).slice(11, 16)}`, open: "fund:" + f.id }));
+    tr(() => { const kn = new Set((S?.fundir || []).map(f => f.msICal).filter(Boolean)); return window.FB.pending.filter(e => !kn.has(e.iCalUId)); }, []).slice(0, 5).forEach(e => out.push({ lvl: 1, title: `Fundarboð: ${e.subject || "Fundur"} – svara`, sub: `Frá ${e.organizer?.emailAddress?.name || ""} · ${String(e.start?.dateTime || "").slice(8, 10)}.${String(e.start?.dateTime || "").slice(5, 7)}. kl. ${String(e.start?.dateTime || "").slice(11, 16)}`, open: "msev:" + e.id }));
     // Tilboð sem viðskiptavinur hefur samþykkt með tengli og bíða staðfestingar starfsmanns (2.61.0)
     tr(() => window.salaAPI.TB(), []).filter(q => q.bidur && !["Samþykkt", "Hafnað"].includes(q.stada)).forEach(q => out.push({ lvl: 1, title: `${q.bidur.nafn || "Viðskiptavinur"} samþykkti tilboð ${q.nr} – staðfesta`, sub: `${q.heiti || ""}${q.vidskiptavinur ? " · " + q.vidskiptavinur : ""}`, open: "tb:" + q.id }));
     // Verkefni sem stefna yfir áætlun (hraði síðustu 14 daga)

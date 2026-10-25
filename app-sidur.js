@@ -118,14 +118,14 @@ function dFund(f){
   const p=fundProj(f), x=d(f.date), n=daysTo(f.date);
   const others=p?(S?.fundir||[]).filter(g=>g.id!==f.id&&fundProj(g)?.id===p.id&&daysTo(g.date)>=0).sort((a,b)=>d(a.date)-d(b.date)):[];
   return backBar()+`<div class="kicker"><span class="kind">Fundur</span>${n!==null?relPill(n):""}</div>
-  <h2 class="big" style="margin-top:6px">${esc(f.name)}</h2>
+  <h2 class="big" style="margin-top:6px">${esc(f.name)}</h2>${window.fbRespHTML?fbRespHTML(f):""}
   <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([
     ["Tími",(x?DAY[x.getDay()]+" "+fmtDate(f.date):"–")+(hhmm(f.date)?" · kl. "+hhmm(f.date)+(hhmm(f.dateEnd)?"–"+hhmm(f.dateEnd):""):"")],
-    ["Staður",esc(f.stadsetning||"")],["Verkefni",p?projLink(p):(f.verknr?`<span class="nr">${esc(f.verknr)}</span>`:"")],
-    ["Fundarmenn",f.attendees?.length?(window.fbNames?fbNames(f):f.attendees).map(esc).join(", "):""],
+    ["Staður",f.stadsetning&&window.mapLink?mapLink(f.stadsetning):esc(f.stadsetning||"")],["Verkefni",p?projLink(p):(f.verknr?`<span class="nr">${esc(f.verknr)}</span>`:"")],
+    ["Fundarmenn",window.fbAttHTML&&(f.attendees?.length||f.stofnandi)?fbAttHTML(f,1):f.attendees?.length?f.attendees.map(esc).join(", "):""],
     ["Fundargerð",f.fundargerd?`<a class="plink" href="${esc(f.fundargerd)}" target="_blank" rel="noopener">${esc(FGLABEL(f))}</a>${window.MS&&MS.on()&&(f.fgId||window.msCanPrevUrl?.(f.fundargerd))?` · <a class="plink" data-act="${esc(f.fgId?"msprev:"+f.fgId:msPrevUrl(f.fundargerd))}">Forskoða</a>`:""}`:""],
     ["Fundarhlekkur",f.fundarhlekkur?`<a class="plink" href="${esc(f.fundarhlekkur)}" target="_blank" rel="noopener">Tengjast fundi</a>`:""]])}</dl>
-    ${MCP?`<div class="links"><button type="button" class="btn primary" data-act="fundtime:${esc(f.id)}">Skrá tíma fyrir fundinn</button><button type="button" class="btn" data-act="ics:${esc(f.id)}">Setja í dagatalið mitt</button>${f.attendees?.length?`<button type="button" class="btn" data-act="fbsend:${esc(f.id)}">${f.msEventId?"Senda uppfært fundarboð":"Senda fundarboð"}</button>`:""}${!f.fundargerd&&window.MS&&MS.on()?`<button type="button" class="btn" data-act="msfg:${esc(f.id)}">Búa til fundargerð</button>`:""}</div>`:""}
+    ${MCP?`<div class="links"><button type="button" class="btn primary" data-act="fundtime:${esc(f.id)}">Skrá tíma fyrir fundinn</button><button type="button" class="btn" data-act="ics:${esc(f.id)}">Setja í dagatalið mitt</button>${f.attendees?.length?`<button type="button" class="btn" data-act="fbsend:${esc(f.id)}">${f.msEventId?"Senda uppfært boð í Outlook":"Senda boð í Outlook"}</button>`:""}${!f.fundargerd&&window.MS&&MS.on()?`<button type="button" class="btn" data-act="msfg:${esc(f.id)}">Búa til fundargerð</button>`:""}</div>`:""}
     ${linkBtns({...f,mappa:f.mappa||p?.mappa},{edit:"fund"})}</div>
   ${textCard("Á síðu fundarins",f.lysing)}
   ${p&&(p.undirverk||[]).some(u=>u.stada!=="Done")?`<div class="viewtitle">Opin undirverk í verkefninu</div><div class="card"><div class="list" style="gap:2px">${p.undirverk.filter(u=>u.stada!=="Done").map(subRow).join("")}</div></div>`:""}

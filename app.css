@@ -1258,7 +1258,8 @@ label.chk.smopt input{margin-top:2px}.smopt span{display:flex;flex-direction:col
 .fbalist{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .fbarow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .fbsv{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--gray-soft);color:var(--muted);white-space:nowrap}
-.fbsv.accepted,.fbsv.organizer{background:var(--b2);color:#fff}
+.fbsv.accepted{background:var(--b2);color:#fff}
+.fbsv.organizer{background:var(--accent-soft);color:var(--accent)}
 .fbsv.tentativelyAccepted{background:var(--accent-soft);color:var(--accent)}
 .fbsv.declined{background:var(--crit-soft);color:var(--ink);text-decoration:line-through}
 .fbext{font-size:11px;color:var(--muted)}
@@ -1271,3 +1272,8 @@ input.bad{border-color:var(--b3)!important;box-shadow:0 0 0 2px var(--accent-sof
 .calwho select{font:inherit;font-size:13px;padding:8px 30px 8px 12px;min-height:40px;border-radius:10px;border:1px solid var(--line);background-color:var(--surface);color:var(--ink)}
 body.pv.ui1 .calwho{margin:0 0 0 8px}body.pv.ui1 .calwho select{padding:6px 28px 6px 10px;min-height:0}
 .calwhoh{display:block;font-size:12px;color:var(--muted);margin:6px 0 0}
+.fbmine{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.fbmine.bid{border-color:var(--b3);background:var(--accent-soft)}
+.fbmine .fbresp{margin:8px 0 0}
+.fbresp .btn.on{outline:2px solid var(--b3);outline-offset:1px}
+.kv .fbalist{margin:0}

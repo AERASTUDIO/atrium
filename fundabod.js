@@ -135,13 +135,19 @@
       }).catch(() => { ST[f.msEventId] = { t: Date.now(), list: [] }; }); }
     return c?.list || null;
   };
-  window.fbAttHTML = function (f) {
-    const att = window.fbAtt(f); if (!att.length) return "";
+  const SVA = { ja: "accepted", kannski: "tentativelyAccepted", nei: "declined" };
+  window.fbAttHTML = function (f, compact) {
+    const att = window.fbAtt(f), org = f.stofnandi || f.skipuleggjandi; if (!att.length && !org) return "";
     const st = window.fbStatus(f) || [], byE = new Map(st.map(x => [x.netfang, x.svar]));
     const pill = s => s ? `<span class="fbsv ${E(s)}">${E(SV[s] || s)}</span>` : "";
-    return `<div class="ush2"><span>Þátttakendur · ${att.length}</span>${f.bodSent ? `<span class="m">boð sent ${E(String(f.bodSent).slice(8, 10) + "." + String(f.bodSent).slice(5, 7) + ".")}</span>` : ""}</div>
-      <div class="fbalist">${att.map(a => `<div class="fbarow"><span><b>${E(a.nafn || a.netfang)}</b>${a.netfang && a.nafn !== a.netfang ? `<small>${E(a.netfang)}</small>` : ""}</span><span>${a.innri ? "" : `<i class="fbext">utan fyrirtækis</i>`}${pill(byE.get(String(a.netfang || "").toLowerCase()))}</span></div>`).join("")}</div>
-      ${MCP && !f.msEventId ? `<div class="ubot"><button type="button" class="btn primary" data-act="fbsend:${E(f.id)}">Senda fundarboð</button></div>` : ""}`;
+    const nmOf = em => (window.nuUsers ? nuUsers() : []).find(u => String(u.email).toLowerCase() === String(em).toLowerCase())?.nafn || em;
+    const orgRow = org && !att.some(a => String(a.netfang || "").toLowerCase() === String(org).toLowerCase()) ? `<div class="fbarow"><span><b>${E(nmOf(org))}</b></span><span><span class="fbsv organizer">Skipuleggjandi</span></span></div>` : "";
+    const rows = att.map(a => { const em = String(a.netfang || "").toLowerCase(), s = (a.svar && SVA[a.svar]) || byE.get(em) || (a.innri || (window.nuUsers && nuUsers().some(u => String(u.email).toLowerCase() === em)) ? "notResponded" : "");
+      return `<div class="fbarow"><span><b>${E(a.nafn || a.netfang)}</b>${a.netfang && a.nafn !== a.netfang ? `<small>${E(a.netfang)}</small>` : ""}</span><span>${a.innri ? "" : `<i class="fbext">utan fyrirtækis</i>`}${pill(s)}</span></div>`; }).join("");
+    if (compact) return `<div class="fbalist">${orgRow}${rows}</div>`;
+    return `<div class="ush2"><span>Þátttakendur · ${att.length + (orgRow ? 1 : 0)}</span>${f.bodSent ? `<span class="m">boð sent ${E(String(f.bodSent).slice(8, 10) + "." + String(f.bodSent).slice(5, 7) + ".")}</span>` : ""}</div>
+      <div class="fbalist">${orgRow}${rows}</div>
+      ${MCP && !f.msEventId && att.length ? `<div class="ubot"><button type="button" class="btn primary" data-act="fbsend:${E(f.id)}">Senda fundarboð í Outlook</button></div>` : ""}`;
   };
 
   /* ---------- Fundarboð sem ég fæ + persónulega dagatalið ---------- */
@@ -162,6 +168,7 @@
         FB.pending = all.filter(e => !e.isOrganizer && !e.isCancelled && ["notResponded", "none"].includes(resp(e)) && e.organizer?.emailAddress?.address);
         FB.mine = all.filter(e => !e.isCancelled && (e.isOrganizer || ["accepted", "tentativelyAccepted"].includes(resp(e))));
         FB.t = Date.now(); FB.err = null;
+        try { await window.fbSyncSvor?.(all); } catch (e) {}
       } catch (e) { FB.err = e?.message || String(e); FB.t = Date.now(); }
       finally { loading = null; window.FBV++; try { if (typeof _cal === "object") _cal.k = null; } catch (e) {} try { render(); } catch (e) {} }
     })();
@@ -179,7 +186,7 @@
     teamItems(add, known, w, who || "");
     if (who && who !== "*") return; // dagatal annars: aðeins hans Outlook-fundir
     if (!calOk()) return;
-    FB.pending.forEach(e => add(w(e), { t: "fbod", when: w(e), kind: "Fundarboð · bíður svars", title: e.subject || "Fundur", nr: e.organizer?.emailAddress?.name || "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } }));
+    FB.pending.filter(e => !known.has(e.iCalUId)).forEach(e => add(w(e), { t: "fbod", when: w(e), kind: "Fundarboð · bíður svars", title: e.subject || "Fundur", nr: e.organizer?.emailAddress?.name || "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } }));
     FB.mine.filter(e => !known.has(e.iCalUId)).forEach(e => add(e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e), { t: "msev", when: e.isAllDay ? String(e.start?.dateTime || "").slice(0, 10) : w(e), kind: e.responseStatus?.response === "tentativelyAccepted" ? "Outlook · kannski" : "Outlook", title: e.subject || "Fundur", nr: "", open: "msev:" + e.id, o: { stadsetning: e.location?.displayName || "" } }));
   };
   const findEv = id => FB.pending.find(e => e.id === id) || FB.mine.find(e => e.id === id) || (FB.team || []).find(e => e.id === id);
@@ -200,8 +207,12 @@
   Object.assign(window.DETAIL_EXT = window.DETAIL_EXT || {}, { msev: id => (typeof backBar === "function" ? backBar() : "") + window.fbEvHTML(id) });
   // Listi yfir öll boð sem bíða (gluggi)
   window.fbInbox = function () {
-    const L = FB.pending;
-    sheet.innerHTML = `<h3 id="sheet-h">Fundarboð · ${L.length}</h3>${L.length ? L.map(e => `<div class="fbinv"><div><b>${E(e.subject || "Fundur")}</b><small>${E(fmtW(e))}${e.location?.displayName ? " · " + E(e.location.displayName) : ""}</small><small>Frá ${E(e.organizer?.emailAddress?.name || e.organizer?.emailAddress?.address || "")}</small></div>
+    const AL = window.fbAtriumPending(), kn = ICAL(), L = FB.pending.filter(e => !kn.has(e.iCalUId));
+    const fw = f => { const x = new Date(String(f.date).slice(0, 10) + "T12:00:00"); return `${DAYL[x.getDay()]} ${x.getDate()}. ${MONL[x.getMonth()]} kl. ${String(f.date).slice(11, 16)}${f.dateEnd ? "–" + String(f.dateEnd).slice(11, 16) : ""}`; };
+    const nmOf = em => (window.nuUsers ? nuUsers() : []).find(u => String(u.email).toLowerCase() === String(em || "").toLowerCase())?.nafn || em || "";
+    const AH = AL.map(f => `<div class="fbinv"><div><b>${E(f.name || "Fundur")}</b><small>${E(fw(f))}${f.stadsetning ? " · " + E(f.stadsetning) : ""}</small><small>Frá ${E(nmOf(f.stofnandi || f.skipuleggjandi))}</small></div>
+      <div class="fbresp"><button type="button" class="btn primary" data-act="fba:${E(f.id)}:ja">Samþykkja</button><button type="button" class="btn" data-act="fba:${E(f.id)}:kannski">Kannski</button><button type="button" class="btn" data-act="fba:${E(f.id)}:nei">Hafna</button></div></div>`).join("");
+    sheet.innerHTML = `<h3 id="sheet-h">Fundarboð · ${L.length + AL.length}</h3>${AH}${L.length || AL.length ? L.map(e => `<div class="fbinv"><div><b>${E(e.subject || "Fundur")}</b><small>${E(fmtW(e))}${e.location?.displayName ? " · " + E(e.location.displayName) : ""}</small><small>Frá ${E(e.organizer?.emailAddress?.name || e.organizer?.emailAddress?.address || "")}</small></div>
       <div class="fbresp"><button type="button" class="btn primary" data-act="fbr:${E(e.id)}:accept">Samþykkja</button><button type="button" class="btn" data-act="fbr:${E(e.id)}:tentativelyAccept">Kannski</button><button type="button" class="btn" data-act="fbr:${E(e.id)}:decline">Hafna</button></div></div>`).join("") : `<p class="hint">Engin fundarboð bíða svars.</p>`}
       <div class="actions"><button type="button" class="btn" onclick="closeSheet()">Loka</button></div>`;
     sheetwrap.hidden = false;
@@ -222,8 +233,9 @@
   });
   // Lína á Heim: „N fundarboð bíða svars“ / tengja dagatal
   window.fbHomeRow = function (row) {
-    if (msOn() && !MS.can(CAL)) { row("fbconnect:", "Tengja Outlook-dagatalið – til að fá fundarboð og senda þau úr Atrium", "Microsoft 365"); return; }
-    const n = FB.pending.length; if (n) row("fbinbox:", n === 1 ? `Fundarboð bíður svars: ${E(FB.pending[0].subject || "Fundur")}` : `${n} fundarboð bíða svars`, "Dagatal");
+    if (msOn() && !MS.can(CAL) && !(window.fbAtriumPending && window.fbAtriumPending().length)) { row("fbconnect:", "Tengja Outlook-dagatalið – til að fá fundarboð og senda þau úr Atrium", "Microsoft 365"); return; }
+    const kn = ICAL(), OL = FB.pending.filter(e => !kn.has(e.iCalUId)), AL = window.fbAtriumPending ? window.fbAtriumPending() : [], n = OL.length + AL.length;
+    if (n) row("fbinbox:", n === 1 ? `Fundarboð bíður svars: ${E((AL[0]?.name) || OL[0]?.subject || "Fundur")}` : `${n} fundarboð bíða svars`, "Dagatal");
   };
 
   /* ---------- Teymisdagatal (2.80.0): Outlook-dagatöl samstarfsfólks ----------
@@ -289,7 +301,8 @@
     if (!f.stofnandi && !att.length) return true;
     if (lc(f.stofnandi) === em || lc(f.skipuleggjandi) === em) return true;
     const nm = lc(userBy(em)?.nafn);
-    return att.some(a => lc(a.netfang) === em || (nm && lc(a.nafn) === nm));
+    const a = att.find(a => lc(a.netfang) === em || (nm && lc(a.nafn) === nm));
+    return !!a && a.svar !== "nei";
   };
   window.fbTeymiBtn = function () {
     const us = USERS(), me = window.fbMe(), w = window.CALWHO || "";
@@ -332,6 +345,53 @@
       }));
     } catch (e) {}
     return [...new Set(out)];
+  };
+  /* ---------- Fundarboð innan Atrium (2.82.0): boðaðir starfsmenn samþykkja eða hafna ---------- */
+  const myAtt = (f, em) => { em = lc(em || window.fbMe()); if (!em) return null; const nm = lc(userBy(em)?.nafn);
+    return window.fbAtt(f).find(a => lc(a.netfang) === em || (nm && !a.netfang && lc(a.nafn) === nm)) || null; };
+  const iOrg = (f, em) => { em = lc(em || window.fbMe()); return !!em && (lc(f.stofnandi) === em || lc(f.skipuleggjandi) === em); };
+  window.fbKind = function (f, em) {
+    if (!em || em === "*") return "Fundur";
+    const a = myAtt(f, em); if (!a || iOrg(f, em)) return "Fundur";
+    return !a.svar ? "Fundarboð · bíður svars" : a.svar === "kannski" ? "Fundur · kannski" : "Fundur";
+  };
+  window.fbAtriumPending = function () {
+    const me = window.fbMe(), t = new Date(); t.setDate(t.getDate() - 1); const t0 = isoDay(t);
+    if (!me) return [];
+    return (S?.fundir || []).filter(f => f.date && String(f.date).slice(0, 10) >= t0 && !iOrg(f, me) && (a => a && !a.svar)(myAtt(f, me)))
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  };
+  const SVL = { ja: "Þú samþykktir", kannski: "Þú svaraðir: kannski", nei: "Þú hafnaðir" };
+  window.fbRespHTML = function (f) {
+    const me = window.fbMe(), a = myAtt(f, me); if (!a || iOrg(f, me)) return "";
+    const b = (v, l, pr) => `<button type="button" class="btn${pr ? " primary" : ""}${a.svar === v ? " on" : ""}" data-act="fba:${E(f.id)}:${v}">${l}</button>`;
+    return `<div class="fbmine${a.svar ? "" : " bid"}"><div class="kind">${a.svar ? E(SVL[a.svar]) + (a.svar === "nei" ? " – fundurinn er ekki í dagatalinu þínu" : "") : "Þér er boðið á þennan fund – svaraðu"}</div>
+      <div class="fbresp">${b("ja", "Samþykkja", !a.svar)}${b("kannski", "Kannski")}${b("nei", "Hafna")}</div></div>`;
+  };
+  const OUTL = { ja: "accept", kannski: "tentativelyAccept", nei: "decline" };
+  async function svaraAtrium(fid, v) {
+    const me = window.fbMe(), f = (S?.fundir || []).find(x => String(x.id) === String(fid)); if (!f || !me) return;
+    await saveSnapshot(s => { const q = (s.fundir || []).find(x => String(x.id) === String(fid)); if (!q) return;
+      const nm = lc(userBy(me)?.nafn);
+      q.attendees = (q.attendees || []).map(x => { const a = typeof x === "string" ? { nafn: /@/.test(x) ? "" : x, netfang: /@/.test(x) ? x : null } : { ...x };
+        if (lc(a.netfang) === me || (nm && !a.netfang && lc(a.nafn) === nm)) { a.svar = v; a.svarDags = new Date().toISOString(); if (!a.netfang) a.netfang = me; } return a; }); });
+    toast(v === "ja" ? "Samþykkt – fundurinn er í dagatalinu þínu" : v === "kannski" ? "Svarað: kannski" : "Fundinum hafnað");
+    // Sama svar í Outlook ef boðið kom líka þangað
+    const ev = f.msICal && (FB.pending || []).find(e => e.iCalUId === f.msICal);
+    if (ev && calOk()) try { await MS.g("/me/events/" + encodeURIComponent(ev.id) + "/" + OUTL[v], { method: "POST", body: { sendResponse: true } }); refresh(true); } catch (e) {}
+    window.FBV++; render();
+    if (!sheetwrap.hidden && document.getElementById("sheet-h")?.textContent.startsWith("Fundarboð")) window.fbInbox();
+  }
+  window.ACT_EXT.fba = (k, r) => { const v = r[r.length - 1], id = r.slice(0, -1).join(":"); svaraAtrium(id, v); };
+  // Svar gefið í Outlook → skráð í Atrium
+  window.fbSyncSvor = async function (all) {
+    const me = window.fbMe(); if (!me || !S?.fundir) return;
+    const map = { accepted: "ja", tentativelyAccepted: "kannski", declined: "nei" }, upd = [];
+    all.forEach(e => { const v = map[e.responseStatus?.response]; if (!v || !e.iCalUId) return;
+      S.fundir.filter(f => f.msICal === e.iCalUId).forEach(f => { const a = myAtt(f, me); if (a && !iOrg(f, me) && a.svar !== v) upd.push([f.id, v]); }); });
+    if (!upd.length) return;
+    await saveSnapshot(s => upd.forEach(([id, v]) => { const q = (s.fundir || []).find(x => x.id === id); if (!q) return;
+      q.attendees = (q.attendees || []).map(x => { const a = typeof x === "string" ? { nafn: x, netfang: /@/.test(x) ? x : null } : { ...x }; if (lc(a.netfang) === me) { a.svar = v; a.svarDags = new Date().toISOString(); } return a; }); }));
   };
   window.fbConflictMsg = c => "Árekstur: " + c.slice(0, 4).join(" · ") + (c.length > 4 ? ` (+${c.length - 4} fleiri)` : "") + ". Smelltu aftur á Vista til að bóka samt.";
 })();

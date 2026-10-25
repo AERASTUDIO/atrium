@@ -38,7 +38,7 @@ function openEdit(type,id){
     f=`<label>Heiti fundar<input id="e-name" value="${esc(fd.name)}" required></label>
     <div class="three fbtime"><label>Dagur<input id="e-date" type="date" value="${dOnly(fd.date)}" required></label><label>Byrjar<input id="e-time" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(fd.date)}"></label><label>Lýkur<input id="e-end" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(fd.dateEnd)||""}"></label></div>
     ${window.fbField?fbField("e",fd):""}
-    <label>Staðsetning<input id="e-place" value="${esc(fd.stadsetning||"")}"></label>
+    <label>Staðsetning<input id="e-place" data-stadur value="${esc(fd.stadsetning||"")}"></label>
     <label>Fundarhlekkur<input id="e-link" type="url" value="${esc(fd.fundarhlekkur||"")}" placeholder="https://… (ef fjarfundur)"></label>
     <label>Fundargerð (slóð)<input id="e-fg" type="url" value="${esc(fd.fundargerd||"")}" placeholder="https://… skjal í OneDrive"></label>
     <label>Verkefni<select id="e-proj"><option value="">Ekkert</option>${allProjOpts(p?.id)}</select></label>
@@ -110,6 +110,7 @@ async function saveEdit(type,id){
       if(!name||!dt) return msg("Heiti og dagur verða að vera útfyllt.","err"); if(!urlOk(link)||!urlOk(fg)) return msg("Slóðir þurfa að byrja á https://","err");
       const start=tm?dt+"T"+tm+":00":dt; let te=val("e-end"); if(tm&&!te){const [h,m]=tm.split(":").map(Number); te=pad((h+1)%24)+":"+pad(m);} if(tm&&te&&te<=tm) return msg("Fundurinn þarf að enda eftir að hann byrjar.","err");
       const att=window.fbRead?fbRead("e"):null, wantSend=window.fbWantSend&&fbWantSend("e")&&(att||[]).length;
+      {const o=findFund(id); if(att&&o&&(String(o.date||"")!==start||String(o.dateEnd||"")!==(tm&&te?dt+"T"+te+":00":""))) att.forEach(a=>{delete a.svar; delete a.svarDags;});} // nýr tími = nýtt svar
       if(tm&&window.fbConflicts){const o=findFund(id), c=await fbConflicts({slots:[{s:start,e:dt+"T"+te+":00"}],att:att||[],self:o});
         if(c&&c.length){const sig=c.join("|"); if(window.__fbOvr!==sig){window.__fbOvr=sig; return msg(fbConflictMsg(c),"err");}}}
       busy(); const p=findProj(pid);
