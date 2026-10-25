@@ -757,7 +757,7 @@ label.chk input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;min-height:0
   body.pv.ui1 .spfilt input{padding:0;margin:0;min-height:0;height:34px;box-shadow:none}
 }
 @media (min-width:1024px){
-  body.pv.ui1 .splist input[type="search"]:not(.spfilt input),body.pv.ui1 .splist input[placeholder^="Leita"]{display:none}
+  body.pv.ui1 .splist input[type="search"]:not(.spfilt input):not(#poqi),body.pv.ui1 .splist input[placeholder^="Leita"]:not(#poqi){display:none}
   body.pv.ui1 .spdet .backrow .newwin{margin-right:44px}
   body.pv.ui1 .splist>.phead:first-child{padding-top:18px}
 }
@@ -1277,3 +1277,30 @@ body.pv.ui1 .calwho{margin:0 0 0 8px}body.pv.ui1 .calwho select{padding:6px 28px
 .fbmine .fbresp{margin:8px 0 0}
 .fbresp .btn.on{outline:2px solid var(--b3);outline-offset:1px}
 .kv .fbalist{margin:0}
+
+/* Póstur (2.83.0): leit, þræðir í tímaröð, stofna úr pósti í hliðarspjaldi */
+.pocount{display:inline-block;min-width:18px;padding:0 6px;margin-left:4px;border-radius:999px;background:var(--b0);color:var(--muted);font-size:11px;line-height:18px;text-align:center;vertical-align:1px}
+.posrch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:8px 0 0}
+body.pv.ui1 .splist #poq.poqf{position:static;padding:10px 16px 2px;background:none}
+body.pv.ui1 .splist #poq.poqf input{font-size:14px;padding:9px 12px;border-radius:10px}
+body.pv.ui1 .splist .posrch{padding:0 16px}
+.pocv{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+.pocv-it,.pocv-cur{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 14px}
+.pocv-it{cursor:pointer}.pocv-it:hover{border-color:var(--b2)}
+.pocv-it.unread b{color:var(--accent)}
+.pocv-it .ls{color:var(--muted);font-size:13px;margin-top:2px}
+.pocv-cur{border-color:var(--b3);box-shadow:0 0 0 1px var(--b3) inset}
+.pocv-cur .pobody{margin-top:8px}
+.pocv-h{display:flex;align-items:baseline;gap:8px;font-size:14px}
+.pocv-h .m{color:var(--muted);font-size:12px;margin-left:auto}
+.pocv-n{font-size:11px;color:var(--muted);min-width:14px}
+.pocv-tag{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.pofromh{margin:-4px 0 10px}
+body.sidesheet #sheetwrap .scrim{display:none}
+@media (min-width:1024px){
+  body.sidesheet #sheetwrap .sheet{box-sizing:border-box;top:0;bottom:0;right:0;left:auto;transform:none;width:460px;max-width:460px;max-height:none;height:100vh;margin:0;border-radius:0;box-shadow:-10px 0 34px rgba(0,0,0,.14)}
+  body.sidesheet #view{margin-right:460px}
+  body.sidesheet .split .splist{display:none}
+  body.sidesheet .split{grid-template-columns:1fr!important}
+}
+

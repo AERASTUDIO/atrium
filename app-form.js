@@ -45,7 +45,7 @@ function deleteItem(type,id){
 const TAB_KIND={undir:"undir",fundir:"fund",timar:"tima",verk:"verk",lverk:"verk",sverk:"verk",vsk:"vsk",lvsk:"vsk",svsk:"vsk",dagatal:"fund"};
 function openSheet(){sheetwrap.hidden=false;drawForm();}
 function openFab(){if(!DETAIL&&window.FAB_EXT?.[tab]){FAB_EXT[tab](); return;} if(!DETAIL&&tab==="skjol"&&window.skOpenNew){skOpenNew(null); return;} if(!DETAIL&&tab==="postur"&&window.poCompose){poCompose({}); return;}if(!DETAIL&&tab==="dagatal") PREFILL={date:calSel}; if(!DETAIL&&TAB_KIND[tab]) kind=TAB_KIND[tab]; else if(DETAIL?.startsWith("vsk:")) kind="verk"; _ctxRole=vskFilter||null; openSheet();}
-function closeSheet(){window.FAB_ONE=false; sheetwrap.hidden=true; sheet.closest(".sheet").classList.remove("wide","hedsheet"); PREFILL=null; render();}
+function closeSheet(){window.FAB_ONE=false; sheetwrap.hidden=true; document.body.classList.remove("sidesheet"); sheet.closest(".sheet").classList.remove("wide","hedsheet"); PREFILL=null; render();}
 document.getElementById("fab").addEventListener("click",openFab);
 /* ---------- Lágmarka glugga: halda áfram að vinna í appinu og koma aftur að verkinu ---------- */
 let DOCK=[];

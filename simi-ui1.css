@@ -232,7 +232,7 @@ body.simi1.pv.ui1 .spfilt svg{flex:none;display:block}
 body.simi1.pv.ui1 .spfilt input{padding:0;margin:0;min-height:0;height:34px;box-shadow:none}
 
 /* app.css: @media (min-width:1024px) */
-body.simi1.pv.ui1 .splist input[type="search"]:not(.spfilt input),body.simi1.pv.ui1 .splist input[placeholder^="Leita"]{display:none}
+body.simi1.pv.ui1 .splist input[type="search"]:not(.spfilt input):not(#poqi),body.simi1.pv.ui1 .splist input[placeholder^="Leita"]:not(#poqi){display:none}
 body.simi1.pv.ui1 .spdet .backrow .newwin{margin-right:44px}
 body.simi1.pv.ui1 .splist>.phead:first-child{padding-top:18px}
 
@@ -275,6 +275,12 @@ body.simi1.ui1.onstart .foot,body.simi1.ui1.onstart #pvver{display:none}
 /* app.css: @media (min-width:1024px) and (max-width:1360px) */
 @media (max-width:1360px){body.simi1.pv.ui1:not(.spfull) .split{grid-template-columns:400px minmax(0,1fr)}
 }
+/* app.css: @media (min-width:1024px) */
+body.simi1.sidesheet #sheetwrap .sheet{box-sizing:border-box;top:0;bottom:0;right:0;left:auto;transform:none;width:460px;max-width:460px;max-height:none;height:100vh;margin:0;border-radius:0;box-shadow:-10px 0 34px rgba(0,0,0,.14)}
+body.simi1.sidesheet #view{margin-right:460px}
+body.simi1.sidesheet .split .splist{display:none}
+body.simi1.sidesheet .split{grid-template-columns:1fr!important}
+
 /* brand.css: @media (min-width:1024px) */
 body.simi1 nav.mbar.tbar{display:none}
 

@@ -438,7 +438,7 @@
   // Flýtilyklar í listum: ↑↓ fletta, Enter opna, N nýtt
   // 2.71.1: sama aðgerð fyrir lykla og hnappana neðst í listanum (spfoot)
   const kbList = k => {
-    if (k === "/") { const i = document.querySelector(".splist .spfilt input"); if (i) { i.focus(); i.select?.(); return true; } return false; }
+    if (k === "/") { const i = document.querySelector(".splist .spfilt input, #poqi"); if (i) { i.focus(); i.select?.(); return true; } return false; }
     const rows = [...document.querySelectorAll(".splist [data-open]")].filter(r => r.offsetParent && r.style.display !== "none"); 
     const nb = document.querySelector('.splist .phead [data-act^="fabnew"], .splist .phead .pnew, .splist .phead .btn.primary');
     if (k === "n" || k === "N") { if (nb) { nb.click(); return true; } return false; }
@@ -455,7 +455,7 @@
   });
   document.addEventListener("click", e => { const b = e.target.closest(".spfoot [data-kb]"); if (!b) return; e.preventDefault(); kbList(b.dataset.kb); });
   document.addEventListener("keydown", e => {
-    if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.querySelector(".spfilt input")) { e.preventDefault(); const i = document.querySelector(".spfilt input"); i.focus(); i.select?.(); }
+    if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.querySelector(".spfilt input, #poqi")) { e.preventDefault(); const i = document.querySelector(".spfilt input, #poqi"); i.focus(); i.select?.(); }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { const q = document.getElementById("topq"); if (q) { e.preventDefault(); q.focus(); } }
   });
   window.addEventListener("resize", () => { clearTimeout(renderI._r); renderI._r = setTimeout(() => S && render(), 200); });

@@ -54,7 +54,10 @@
       let j;
       if (!(more && next)) curBox = fold === "aera" && SHB ? SHB : "/me";
       if (more && next) j = await MS.g(next);
-      else if (q) j = await MS.g(`${curBox}/messages?$search=${encodeURIComponent('"' + q.replace(/"/g, "") + '"')}&$top=30&${SEL}`);
+      else if (q) { // 2.83.0: leitað bæði í eigin pósthólfi og sameiginlega pósthólfinu; nýjast efst
+        const qs = `/messages?$search=${encodeURIComponent('"' + q.replace(/"/g, "") + '"')}&$top=40&${SEL}`;
+        const [a, b] = await Promise.all([MS.g("/me" + qs).then(x => x.value || []), SHB ? MS.g(SHB + qs).then(x => (noteBox(x.value, SHB), x.value || [])).catch(() => []) : []]);
+        const seen = new Set(a.map(m => m.id)); j = { value: a.concat(b.filter(m => !seen.has(m.id))).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime))) }; }
       else j = await MS.g(`${await folderPath()}?$top=30&$orderby=receivedDateTime%20desc&${SEL}`);
       noteConv(j.value); noteBox(j.value, curBox); list = more ? (list || []).concat(j.value || []) : (j.value || []); next = j["@odata.nextLink"] || null;
     } catch (e) { err = curBox !== "/me" && (e.status === 403 || e.status === 404 || /denied|scope/i.test(e.message)) ? `Þú hefur ekki aðgang að ${SH} enn. Admin veitir aðgang í Exchange (Full Access) og appið þarf heimildina Mail.Read.Shared – tengstu Microsoft aftur eftir það.` : e.message; if (!more) list = []; }
@@ -64,10 +67,10 @@
 
   /* ---------- Listi ---------- */
   const flagged = m => m.flag?.flagStatus === "flagged";
-  const row = m => { const L = linked(m.id), p = L && findProj(L.verkefniId), g = !L && window.msGuessProj ? findProj(msGuessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address)) : null;
+  const row = (m, n) => { const L = linked(m.id), p = L && findProj(L.verkefniId), g = !L && window.msGuessProj ? findProj(msGuessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address)) : null;
     const qa = MCP && WR() ? `<span class="poqa" onclick="event.stopPropagation()"><button type="button" title="${m.isRead === false ? "Merkja lesið" : "Merkja ólesið"}" data-act="poread:${esc(m.id)}:${m.isRead === false ? 1 : 0}">${m.isRead === false ? "◉" : "○"}</button><button type="button" title="${flagged(m) ? "Taka flagg" : "Flagga"}" data-act="poflag:${esc(m.id)}:${flagged(m) ? 0 : 1}">⚑</button><button type="button" title="Setja í safn" data-act="pomove:${esc(m.id)}:archive">⤓</button><button type="button" title="Eyða" data-act="pomove:${esc(m.id)}:deleteditems">🗑</button></span>` : "";
     return `<div class="lrow tap porow${m.isRead === false ? " unread" : ""}${flagged(m) ? " flagged" : ""}" ${tapAttr("post", m.id)}><div class="ll"><span class="podot"></span></div>
-      <div class="lm"><div class="lt"><span class="pofrom">${esc(m.isDraft ? "[Drög] " + people(m.toRecipients || []) : fromName(m))}</span>${m.importance === "high" ? ' <span class="poimp" title="Mikilvægt">!</span>' : ""}${m.hasAttachments ? " 📎" : ""}${flagged(m) ? ' <span class="poflg" title="Flaggað">⚑</span>' : ""}</div><div class="ls" style="color:var(--ink)">${esc(m.subject || "(ekkert efni)")}</div><div class="ls">${esc((m.bodyPreview || "").slice(0, 110))}</div>
+      <div class="lm"><div class="lt"><span class="pofrom">${esc(m.isDraft ? "[Drög] " + people(m.toRecipients || []) : fromName(m))}</span>${m.importance === "high" ? ' <span class="poimp" title="Mikilvægt">!</span>' : ""}${m.hasAttachments ? " 📎" : ""}${flagged(m) ? ' <span class="poflg" title="Flaggað">⚑</span>' : ""}</div><div class="ls" style="color:var(--ink)">${esc(m.subject || "(ekkert efni)")}${n > 1 ? ` <span class="pocount" title="${n} póstar í þræðinum">${n}</span>` : ""}</div><div class="ls">${esc((m.bodyPreview || "").slice(0, 110))}</div>
       ${p ? `<span class="pill" style="margin-top:4px">${esc(p.nr)} ${esc(p.stutt)}</span>` : ""}</div>
       <div class="lr" style="flex-direction:column;align-items:flex-end;gap:6px"><span class="lc">${esc(when(m.receivedDateTime))}</span>${qa}
       ${!L && MCP ? (target ? `<button type="button" class="btn" data-act="polink:${esc(m.id)}:${esc(target)}" style="padding:4px 10px;min-height:30px">Tengja</button>` : g ? `<button type="button" class="btn" data-act="polink:${esc(m.id)}:${esc(g.id)}" style="padding:4px 10px;min-height:30px" title="Tengja við ${esc(g.nafn)}">→ ${esc(g.nr)}</button>` : "") : ""}</div></div>`; };
@@ -115,6 +118,8 @@
       ${xs.length ? `<div class="llist" style="margin-top:8px">${xs.slice(0, 300).map(c => `<div class="lrow"><div class="ll"><span class="avat">${esc((c.n || c.a).trim()[0]?.toUpperCase() || "?")}</span></div><div class="lm"><div class="lt">${esc(c.n || c.a)}</div><div class="ls">${esc([c.n ? c.a : "", c.v].filter(Boolean).join(" · "))}</div></div>
         <div class="lr" style="gap:6px">${MCP ? `<button type="button" class="btn" data-act="poto:${esc(c.a)}" style="padding:4px 10px;min-height:30px">✉</button>` : ""}${MCP && inBook(c.a) ? `<button type="button" class="btn" data-act="pofor:${esc(c.a)}" style="padding:4px 10px;min-height:30px" aria-label="Gleyma ${esc(c.a)}">✕</button>` : ""}</div></div>`).join("")}</div>` : `<div class="empty" style="margin-top:16px">${q ? "Enginn fannst." : "Engir tengiliðir ennþá. Ýttu á ↻ til að sækja netföng úr póstinum."}</div>`}`;
   }
+  // 2.83.0: póstar í sama þræði í einni línu (nýjasti pósturinn sýndur, fjöldi í þræðinum við efnið)
+  const grouped = () => { const g = new Map(); shown().forEach(m => { const k = m.conversationId || m.id, x = g.get(k); if (x) { x[1]++; if (m.isRead === false) x[0] = { ...x[0], isRead: false }; } else g.set(k, [m, 1]); }); return [...g.values()]; };
   const shown = () => (list || []).filter(m => !filt || (filt === "unread" ? m.isRead === false : filt === "flag" ? flagged(m) : filt === "att" ? m.hasAttachments : filt === "otengt" ? !linked(m.id) : true));
   function foldBar() {
     if (window.ORG?.utlit !== "I") return `<div class="${FSEL() ? "fsels" : "stat-row"}" style="margin-top:10px">${FSEL() ? fsel(FOLD.map(([k, l]) => ["pofold:" + k, l, fold === k]), "Mappa") : FOLD.map(([k, l]) => `<button type="button" class="chipbtn" data-act="pofold:${k}" aria-pressed="${fold === k}">${l}</button>`).join("")}<button type="button" class="chipbtn" data-act="poref:" aria-label="Uppfæra">↻</button></div>`;
@@ -132,11 +137,12 @@
     if (!list && !loading) { load(false); harvest(false).catch(() => {}); }
     const tp = target && findProj(target);
     return `${tp ? `<div class="card" style="margin:8px 0;display:flex;align-items:center;gap:10px"><div class="grow">Finndu pósta fyrir <b>${esc(tp.nr)} ${esc(tp.stutt)}</b> og ýttu á „Tengja“.</div><button type="button" class="btn" data-act="potarget:">Lokið</button></div>` : ""}
-      <form id="poq" class="leitbox" style="margin-top:8px"><input id="poqi" type="search" placeholder="Leita í pósti…" value="${esc(q)}" enterkeyhint="search" autocomplete="off"></form>
+      <form id="poq" class="leitbox${window.ORG?.utlit === "I" ? " poqf" : ""}" style="margin-top:8px"><input id="poqi" type="search" placeholder="Leita í pósti – nafn, efni, texti…" value="${esc(q)}" enterkeyhint="search" autocomplete="off"></form>
+      ${q ? `<div class="posrch">Leitarniðurstöður fyrir „${esc(q)}“ <button type="button" class="chipbtn sm" data-act="poclr:">Hreinsa leit</button></div>` : ""}
       ${window.ORG?.utlit === "I" && !MS.can("Mail.ReadWrite") ? `<div class="uwarn info" style="margin-top:10px"><i></i><span><b>Ný heimild:</b> til að merkja lesið, flagga, færa og eyða þarf appið að fá að breyta pósti (Mail.ReadWrite). Tengstu Microsoft aftur og samþykktu.</span><button type="button" class="btn" onclick="MS.login().then(()=>{toast('Tengt – heimild samþykkt');render()}).catch(e=>toast(e.message))">Tengjast aftur</button></div>` : ""}
       ${q ? "" : foldBar()}
       ${err ? `<div class="msg err" style="margin-top:10px">${esc(err)}</div>` : ""}
-      ${list == null || (loading && !list?.length) ? `<div class="empty" style="margin-top:16px">Sæki pósta…</div>` : shown().length ? `<div class="llist" style="margin-top:8px">${shown().map(row).join("")}</div>${next ? `<button type="button" class="btn" data-act="pomore:" style="width:100%;margin-top:10px">${loading ? "Sæki…" : "Sækja fleiri"}</button>` : ""}` : `<div class="empty" style="margin-top:16px">${q ? "Ekkert fannst." : filt ? "Engir póstar passa við síuna." : "Engir póstar í möppunni."}</div>`}
+      ${list == null || (loading && !list?.length) ? `<div class="empty" style="margin-top:16px">Sæki pósta…</div>` : shown().length ? `<div class="llist" style="margin-top:8px">${grouped().map(([m, n]) => row(m, n)).join("")}</div>${next ? `<button type="button" class="btn" data-act="pomore:" style="width:100%;margin-top:10px">${loading ? "Sæki…" : "Sækja fleiri"}</button>` : ""}` : `<div class="empty" style="margin-top:16px">${q ? "Ekkert fannst." : filt ? "Engir póstar passa við síuna." : "Engir póstar í möppunni."}</div>`}
       <p class="hint" style="margin-top:10px">Pósturinn er lesinn og sendur beint í gegnum Outlook (sendir póstar vistast í Sent).</p>`;
   };
 
@@ -181,14 +187,51 @@
       <p class="hint" style="margin:0 0 10px">Til: ${esc(people(m.toRecipients))}${m.ccRecipients?.length ? " · Afrit: " + esc(people(m.ccRecipients)) : ""}</p>
       <div class="links">${MCP ? `<button type="button" class="btn primary" data-act="poreply:reply:${esc(id)}">Svara</button><button type="button" class="btn" data-act="poreply:replyAll:${esc(id)}">Svara öllum</button><button type="button" class="btn" data-act="poreply:forward:${esc(id)}">Áframsenda</button>` : ""}<a class="btn" href="${esc(m.webLink)}" target="_blank" rel="noopener">Opna í Outlook ↗</a>
         ${MCP ? `<label class="posel"><select data-polink="${esc(id)}" aria-label="Tengja þráðinn við verkefni"><option value="">${L ? "Aftengja þráðinn" : "Tengja þráðinn við verkefni…"}</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${L && L.verkefniId === x.id ? " selected" : ""}>${esc(x.nafn)}</option>`).join("")}</select></label>` : ""}
-        ${g && MCP ? `<button type="button" class="btn" data-act="polink:${esc(id)}:${esc(g.id)}">Tengja við ${esc(g.nr)}</button>` : ""}</div>
+        ${g && MCP ? `<button type="button" class="btn" data-act="polink:${esc(id)}:${esc(g.id)}">Tengja við ${esc(g.nr)}</button>` : ""}
+        ${MCP && stofnaOpts().length ? `<label class="posel postofna"><select data-postofna="${esc(id)}" aria-label="Stofna úr póstinum"><option value="">+ Stofna úr póstinum…</option>${stofnaOpts().map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>` : ""}</div>
       ${p ? `<p class="hint" style="margin:8px 0 0">Þráðurinn er tengdur við ${esc(p.nr)} ${esc(p.stutt || "")}. Nýir póstar í sama þræði birtast sjálfkrafa á síðu verkefnisins.</p>` : ""}
       ${atts.length ? `<div class="viewtitle">Viðhengi · ${atts.length}</div><div class="llist">${atts.map(a => `<div class="lrow"><div class="ll">📎</div><div class="lm"><div class="lt">${esc(a.name)}</div><div class="ls">${esc(kb(a.size))}</div></div>
         <div class="lr" style="gap:6px"><button type="button" class="btn" data-act="poprev:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Forskoða</button><button type="button" class="btn" data-act="poatt:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Sækja</button>${p && MCP ? `<button type="button" class="btn" data-act="posave:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px" title="Vista í ${esc(p.nr)} › 01 Móttekið">→ Mappa</button>` : ""}</div></div>`).join("")}</div>
         ${p ? `<p class="hint" style="margin-top:6px">„→ Mappa“ vistar viðhengið í ${esc(p.nr)} › 01 Móttekið í ${ODN()}.</p>` : `<p class="hint" style="margin-top:6px">Tengdu póstinn við verkefni til að geta vistað viðhengi í möppu þess.</p>`}` : ""}
-      ${window.ORG?.utlit === "I" && m.conversationId ? (() => { const c = thread(m.conversationId), xs = (c?.msgs || []).filter(x => x.id !== id); return xs.length ? `<div class="viewtitle">Samtalið · ${xs.length + 1} póstar</div><div class="llist pothrl">${xs.slice(0, 8).map(x => `<div class="lrow tap${x.isRead === false ? " unread" : ""}" ${tapAttr("post", x.id)}><div class="lm"><div class="lt">${esc(fromName(x))}</div><div class="ls">${esc(fmtDate(x.receivedDateTime))} · ${esc((x.bodyPreview || "").slice(0, 90))}</div></div></div>`).join("")}</div>` : ""; })() : ""}
-      <iframe class="pobody" sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(doc)}" title="Efni pósts"></iframe>`;
+      ${(() => { // 2.83.0: samtalið í tímaröð – elsti póstur efst, sá sem er opinn sýndur í heild á sínum stað
+        const frame = `<iframe class="pobody" sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(doc)}" title="Efni pósts"></iframe>`;
+        const c = m.conversationId ? thread(m.conversationId) : null, xs = (c?.msgs || []).slice();
+        if (!xs.some(x => x.id === id)) xs.push(m);
+        if (xs.length < 2) return frame;
+        xs.sort((a, b) => String(a.receivedDateTime).localeCompare(String(b.receivedDateTime)));
+        const me = String(MS.user()?.email || "").toLowerCase(), hm = iso => fmtDate(iso) + " kl. " + new Date(iso).toTimeString().slice(0, 5);
+        const fra = x => String(x.from?.emailAddress?.address || "").toLowerCase() === me ? "Þú" : fromName(x);
+        return `<div class="viewtitle">Samtalið · ${xs.length} póstar · elsti efst</div><div class="pocv">${xs.map((x, k) => x.id === id
+          ? `<div class="pocv-cur"><div class="pocv-h"><span class="pocv-n">${k + 1}</span><b>${esc(fra(x))}</b><span class="m">${esc(hm(x.receivedDateTime))}</span><span class="pocv-tag">Opinn</span></div>${frame}</div>`
+          : `<div class="pocv-it tap${x.isRead === false ? " unread" : ""}" ${tapAttr("post", x.id)}><div class="pocv-h"><span class="pocv-n">${k + 1}</span><b>${esc(fra(x))}</b><span class="m">${esc(hm(x.receivedDateTime))}</span></div><div class="ls">${esc((x.bodyPreview || "").slice(0, 160))}</div></div>`).join("")}</div>`;
+      })()}`;
   };
+
+  /* ---------- Stofna verkefni, pöntun eða tilboð úr pósti (2.83.0) ----------
+     Formið opnast í hliðarspjaldi (ekki yfir póstinum) svo hægt er að lesa póstinn á meðan. Fyllt út frá sendanda og efni. */
+  const stofnaOpts = () => [["verk", "Verkefni"], ...(window.ON && ON("pantanir") && window.FAB_EXT?.pantanir ? [["pontun", "Pöntun"]] : []), ...(window.tbOK && tbOK() && window.FAB_EXT?.ltilbod ? [["tilbod", "Tilboð"]] : [])];
+  const OPINN = ["gmail.com", "hotmail.com", "outlook.com", "live.com", "icloud.com", "yahoo.com", "simnet.is", "internet.is", "visir.is", "mi.is", "talnet.is"];
+  function stofna(typ, mid) {
+    const m = MSG[mid]; if (!m) return;
+    const me = String(MS.user()?.email || "").toLowerCase(), fromMe = String(m.from?.emailAddress?.address || "").toLowerCase() === me;
+    const who = fromMe ? (m.toRecipients || [])[0]?.emailAddress || {} : m.from?.emailAddress || {};
+    const em = String(who.address || "").toLowerCase(), nm = who.name && who.name !== who.address ? who.name : "", dom = em.split("@")[1] || "";
+    const vs = window.vskList ? vskList() : (S?.vidskiptavinir || []), has = (c, f) => [c.netfang, c.netfangT].some(x => x && f(String(x).toLowerCase()));
+    const v = vs.find(c => has(c, x => x === em)) || (dom && !OPINN.includes(dom) ? vs.find(c => has(c, x => x.endsWith("@" + dom))) : null);
+    const subj = cleanSubj(m.subject), conv = m.conversationId, before = new Set((S?.verkefni || []).map(p => p.id));
+    if (innerWidth >= 1024) document.body.classList.add("sidesheet"); // í síma: venjulegur gluggi
+    if (typ === "verk") { kind = "verk"; openSheet(); } // kind: tegund forms í app-form.js
+    else if (typ === "pontun") FAB_EXT.pantanir(); else FAB_EXT.ltilbod();
+    const set = (id, val, force) => { const el = document.getElementById(id); if (!el || val == null || val === "") return; if (el.tagName === "SELECT" && ![...el.options].some(o => o.value === String(val))) return; if (!force && el.value && el.tagName !== "SELECT") return; el.value = val; el.dispatchEvent(new Event("change", { bubbles: true })); };
+    const P = { verk: ["f-name", "f-client"], pontun: ["pn-heiti", "pn-client", "pn-teng", "pn-net"], tilbod: ["tb-heiti", "tb-client", "tb-teng", "tb-net"] }[typ];
+    set(P[2], nm); set(P[3], em); set(P[0], subj); if (v) set(P[1], v.id, true);
+    if (typ === "pontun") set("pn-upp", "postur", true);
+    document.getElementById("sheet-h")?.insertAdjacentHTML("afterend", `<p class="hint pofromh">Úr pósti frá <b>${esc(nm || em)}</b>${v ? ` · viðskiptavinur: ${esc(v.name)}` : em ? " · enginn viðskiptavinur með þetta netfang" : ""}</p>`);
+    const ob = new MutationObserver(() => { if (!sheetwrap.hidden) return; ob.disconnect(); document.body.classList.remove("sidesheet");
+      if (typ === "verk" && conv) { const n = (S?.verkefni || []).find(p => !before.has(p.id)); if (n) poLinkConv(conv, n.id, m.subject).then(() => toast("Póstþráðurinn tengdur við " + n.nr)); } });
+    ob.observe(sheetwrap, { attributes: true, attributeFilter: ["hidden"] });
+  }
+  document.addEventListener("change", e => { const id = e.target.dataset?.postofna; if (id && e.target.value) { const k = e.target.value; e.target.value = ""; stofna(k, id); } });
 
   async function link(gid, pid) {
     let conv = convOf(gid), m = MSG[gid] || (list || []).concat(window.MS_OFL || []).find(x => x.id === gid);
@@ -438,6 +481,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     if (k === "poharv") { toast("Sæki netföng úr pósti…"); harvest(true).then(() => toast("Tengiliðir uppfærðir")).catch(e => toast(e.message)); return; }
     if (k === "poto") { poCompose({ to: r.join(":") }); return; }
     if (k === "pofor") { const a = r.join(":").toLowerCase(); if (confirm("Gleyma " + a + "?")) saveSnapshot(st => { st.netfangaskra = (st.netfangaskra || []).filter(x => x.a.toLowerCase() !== a); }); return; }
+    if (k === "poclr") { q = ""; reset(); render(); return; }
     if (k === "poref") { reset(); FOLDERS = null; render(); return; }
     if (k === "pomore") { load(true); render(); return; }
     if (k === "potarget") { target = r[0] || null; render(); return; }
@@ -475,7 +519,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     const msg = m => `<div class="lrow tap fl" ${tapAttr("post", m.id)}><div class="ll">${EI.mail}</div><div class="lm"><div class="lt">${esc(fromName(m))}${m.hasAttachments ? " · viðhengi" : ""}</div><div class="ls">${esc(fmtDate(m.receivedDateTime))} · ${esc((m.bodyPreview || "").slice(0, 90))}</div></div>${CHEV}</div>`;
     const blk = t => { const c = msOn() ? thread(t.conv) : null, ms = c?.msgs;
       return `<div class="pothr"><div class="lrow"><div class="lm"><div class="lt">${esc(t.efni)}</div><div class="ls">${ms ? ms.length + (ms.length === 1 ? " póstur" : " póstar") + (ms[0] ? " · síðast " + esc(fmtDate(ms[0].receivedDateTime)) : "") + osv(ms) : msOn() ? "Sæki þráð…" : "Tengdu Microsoft til að sjá póstana"}${c?.err ? " · " + esc(c.err) : ""}</div></div><div class="lr">${x("pounl:" + t.id)}</div></div>
-        ${ms && ms.length ? ms.slice(0, 6).map(msg).join("") + (ms.length > 6 ? `<div class="hint" style="margin:4px 0 0 12px">+ ${ms.length - 6} eldri í þræðinum</div>` : "") : ""}</div>`; };
+        ${ms && ms.length ? (ms.length > 6 ? `<div class="hint" style="margin:4px 0 0 12px">${ms.length - 6} eldri póstar í þræðinum – opnaðu póst til að sjá allt samtalið</div>` : "") + ms.slice(0, 6).reverse().map(msg).join("") : ""}</div>`; }; // 2.83.0: í tímaröð, nýjasti neðst
     const legRow = m => `<div class="lrow"><div class="ll">${EI.mail}</div><a class="lm" href="${esc(m.url || "#")}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><div class="lt">${esc(m.efni)}</div><div class="ls">${esc([m.fra, fmtDate(m.dags)].filter(Boolean).join(" · "))}</div></a><div class="lr">${x("poleg:" + m.id)}</div></div>`;
     return `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Póstþræðir${ts.length ? " · " + ts.length : ""}${MCP && msOn() ? `<a class="plink" data-act="pofind:${esc(p.id)}" style="margin-left:auto">Finna pósta</a><a class="plink" data-act="ponew:${esc(p.id)}">+ Nýr póstur</a>` : ""}</div>
       ${ts.length ? `<div class="llist">${ts.map(blk).join("")}</div>` : msOn() ? `<div class="hint" style="margin:0">Engir þræðir tengdir ennþá. Opnaðu póst og veldu „Tengja þráðinn við verkefni“.</div>` : ""}
