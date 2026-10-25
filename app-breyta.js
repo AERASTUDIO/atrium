@@ -60,7 +60,8 @@ function openEdit(type,id){
   if(type==="klukka"){const k=klukka(); if(!k) return; title="Breyta klukku"; const st=new Date(k.start);
     f=`<p class="hint" style="margin:0">Leiðréttu hvenær þú byrjaðir, t.d. ef þú gleymdir að ræsa klukkuna.</p>
     <div class="two"><label>Dagur<input id="e-date" type="date" value="${isoDay(st)}" max="${isoDay(new Date())}" required></label><label>Byrjaði kl.<input id="e-from" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${esc(hhmm(k.start))}"></label></div>
-    <label>Lýsing<input id="e-desc" value="${esc(k.desc||"")}" placeholder="Hvað ertu að gera"></label>`;}
+    <label>Lýsing<input id="e-desc" value="${esc(k.desc||"")}" placeholder="Hvað ertu að gera"></label>
+    <button type="button" class="btn danger" style="margin-top:6px" onclick="if(confirm('Hætta við klukkuna án þess að skrá tímann?')){saveSnapshot(s=>{s.klukka=null;}).then(()=>{closeSheet();toast('Hætt við klukku – enginn tími skráður');});}">Hætta við klukku (ekki skrá)</button>`;}
   if(type==="kostn"){const k=findKostn(id); if(!k) return; title="Breyta kostnaði";
     f=`<label>Verkefni<select id="e-proj">${allProjOpts(k.verkefniId)}<option value=""${k.verkefniId?"":" selected"}>Ekkert verkefni (almennt)</option></select></label><label>Undirverk<select id="e-sub"></select></label>
     <label>Lýsing<input id="e-desc" value="${esc(k.lysing||"")}" required></label>

@@ -929,3 +929,6 @@ body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-
   body.simi1:is([data-tab="pantanir"],[data-tab^="pn"],[data-tab*="verk"],[data-tab*="tilbod"],[data-tab^="tb"]) .splist .urow:not(:has(>.ubox))>:nth-child(2){grid-column:2;grid-row:1}
   body.simi1:is([data-tab="pantanir"],[data-tab^="pn"],[data-tab*="verk"],[data-tab*="tilbod"],[data-tab^="tb"]) .splist .urow:not(:has(>.ubox))>:last-child{grid-column:3}
 }
+/* 2.88.5 Hætta við klukku í vinstri stiku */
+.sx-k .sx-kb{display:flex;gap:6px;align-items:stretch}.sx-k .sx-kb .btn.primary{flex:1}
+.sx-k .sx-kx{flex:none;width:40px;padding:0!important;display:inline-flex;align-items:center;justify-content:center}

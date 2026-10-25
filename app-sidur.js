@@ -254,7 +254,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="kstart"){kind="tima"; PREFILL={pid:r[0],timer:true}; openSheet(); return;}
   if(k==="kstop"){stopKlukka(); return;}
   if(k==="kedit"){if(klukka()) openEdit("klukka",""); return;}
-  if(k==="kcancel"){if(confirm("Hætta við klukkuna án þess að skrá tímann?")) saveSnapshot(s=>{s.klukka=null;}); return;}
+  if(k==="kcancel"){if(confirm("Hætta við klukkuna án þess að skrá tímann?")) saveSnapshot(s=>{s.klukka=null;}).then(()=>toast("Hætt við klukku – enginn tími skráður")); return;}
   if(k==="fundtime"){const f=findFund(r.join(":")); if(!f) return; const p=fundProj(f), st=hhmm(f.date)||"", en=hhmm(f.dateEnd)||(st?pad((+st.slice(0,2)+1)%24)+st.slice(2):"");
     kind="tima"; PREFILL={pid:p?.id,date:String(f.date).slice(0,10),fra:st,til:en,desc:f.name}; openSheet(); return;}
   if(k==="tab"){tab=TABS.includes(r[0])?r[0]:"yfirlit"; DETAIL=null; window.STSUB=null; try{localStorage.setItem("aera-tab",tab)}catch(e){} render(); window.scrollTo({top:0}); return;}
