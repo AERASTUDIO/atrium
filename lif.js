@@ -69,7 +69,7 @@
     <path d="M20 46l40-20 40 20-40 20z" opacity=".35"/><path d="M20 46v10l40 20 40-20V46" opacity=".55"/><path d="M60 66v10"/>
     <path d="M44 34l16-8 16 8-16 8z" class="a"/><path d="M44 34v8l16 8 16-8v-8" class="a"/><path d="M60 42v8" class="a"/>
     <path d="M86 14v8M82 18h8M30 20v6M27 23h6" opacity=".5"/></svg>`;
-  const ADD = { pantanir: ["pantanir", "+ Ný pöntun"], pnl: ["pantanir", "+ Ný pöntun"], pns: ["pantanir", "+ Ný pöntun"], pnt: ["pantanir", "+ Ný pöntun"], pndag: ["pantanir", "+ Ný pöntun"], pnyf: ["pantanir", "+ Ný pöntun"],
+  const ADD = { pantanir: ["pantanir", "+ Ný pöntun"], pnl: ["pantanir", "+ Ný pöntun"], pns: ["pantanir", "+ Ný pöntun"], pnt: ["pantanir", "+ Ný pöntun"], pnyf: ["pantanir", "+ Ný pöntun"],
     verk: ["verk", "+ Nýtt verkefni"], verkefni: ["verk", "+ Nýtt verkefni"], ltilbod: ["ltilbod", "+ Nýtt tilboð"], stilbod: ["stilbod", "+ Nýtt tilboð"], tilbod: ["tilbod", "+ Nýtt tilboð"] };
   function empties(root) {
     root.querySelectorAll(".uempty:not([data-le]), .spempty:not([data-le])").forEach(el => {
