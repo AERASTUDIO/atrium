@@ -23,6 +23,8 @@
   function deco() {
     const t = curTab(), k = kindOf(t); if (t !== selTab) { SEL.clear(); selTab = t; last = null; }
     const list = document.querySelector("#view .splist") || document.querySelector("#view .uwl"); if (!k || !list || !canEd()) return;
+    // Aðeins í tölvu: í síma ruglaði gátreiturinn röð dálka (heiti hvarf úr listum pantana og tilboða)
+    if (!matchMedia("(min-width:1024px)").matches) { document.querySelectorAll("#view .fvck, #view .fvtr, #view .fvbar").forEach(x => x.remove()); SEL.clear(); document.querySelector("#view")?.classList.remove("fvon"); return; }
     const delOk = k === "tb" || typeof can !== "function" || can("eyda");
     const rs = rows(); const ids = new Set(rs.map(idOf)); [...SEL].forEach(id => { if (!ids.has(id)) SEL.delete(id); });
     rs.forEach(r => { if (!r.querySelector(":scope > .fvck")) r.insertAdjacentHTML("afterbegin", `<span class="fvck" role="checkbox" tabindex="-1" aria-label="Velja">${CK}</span>`);
