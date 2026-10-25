@@ -187,8 +187,18 @@
   /* ---------- Greiðsla (2.73.0) ----------
      Viðskiptavinur er „í reikning“ eða „staðgreitt“ (vidskiptavinir[].greidsla; án viðskiptavinar = staðgreitt).
      Staðgreiðslupöntun má ekki afhenda fyrr en greiðsla er skráð: P.greitt = { dags, af, nafn, leid, upphaed }. */
-  const LEIDIR = [["kort", "Kort / posi"], ["millifaersla", "Millifærsla"], ["reidufe", "Reiðufé"], ["annad", "Annað"]];
-  const LEID = k => (LEIDIR.find(x => x[0] === k) || [0, k || ""])[1];
+  // 2.87.0: aðeins posi og millifærsla í boði (reiðufé og annað tekið út; eldri skráningar birtast áfram)
+  const LEIDIR = [["kort", "Posi"], ["millifaersla", "Millifærsla"]];
+  const LEID = k => (LEIDIR.find(x => x[0] === k) || [0, { reidufe: "Reiðufé", annad: "Annað" }[k] || k || ""])[1];
+  // Texti um greiðslu í staðfestingarpósti þegar viðskiptavinur er í staðgreiðslu og pöntun ógreidd
+  window.pnGreidsluHTML = P => { if (!P || hattur(P) !== "stadgreitt" || P.greitt) return "";
+    const R = tr(() => S.stillingar.reikn, {}) || {}, t = totOf(P);
+    return `<div style="margin:14px 0;padding:12px 14px;border:1px solid #E3E7EB;border-left:3px solid #24578A;border-radius:8px;background:#F5F8FB">
+      <p style="margin:0 0 6px"><b>Greiða þarf pöntunina fyrir afhendingu${t ? ` – samtals ${krI(t)} með VSK` : ""}.</b></p>
+      <p style="margin:0 0 4px">Hægt er að greiða:</p>
+      <ul style="margin:0 0 6px;padding-left:18px"><li>með korti í posa við afhendingu, eða</li>
+      <li>með millifærslu${R.banki ? ` á reikning <b>${E(R.banki)}</b>${R.kt ? `, kt. ${E(R.kt)}` : ""}` : ""} – svaraðu þá þessum pósti með kvittun fyrir greiðslunni.</li></ul>
+      <p style="margin:0;color:#6B7684">Ekki er tekið við reiðufé.</p></div>`; };
   const totOf = P => Math.round(tr(() => window.salaAPI.totals(P).tot, 0) || 0);
   const krI = n => (Math.round(+n || 0)).toLocaleString("de-DE") + " kr.";
   const hattur = P => { const c = P.vskId ? tr(() => findVsk(P.vskId), null) : null; return P.greidsluhattur || (c ? (c.greidsla || "reikningur") : "stadgreitt"); };
@@ -570,6 +580,7 @@
       const html = `<p>Sæl/l${st.nafn ? " " + E(String(st.nafn).split(" ")[0]) : ""},</p><p>Takk fyrir – pöntun <b>${E(P.nr)}</b> (${E(P.heiti || "")}) er staðfest.</p>
         <p>Afhending: ${E(dfmt(P.fra))}${P.afhKl ? " kl. " + E(P.afhKl) : ""} · Skil: ${E(dfmt(P.til || P.fra))} · ${P.afhending === "sent" ? "Sent" + (P.afhStadur ? " á " + E(P.afhStadur) : "") : P.afhending === "sott" ? "Sótt" : ""}</p>
         <p>Staðfest af ${E(st.nafn || "")} ${st.dags ? E(dfmt(st.dags)) + " kl. " + E(String(st.dags).slice(11, 16)) : ""}.${st.athugasemd ? "<br>Athugasemd: „" + E(st.athugasemd) + "“" : ""}</p>
+        ${window.pnGreidsluHTML ? pnGreidsluHTML(P) : ""}
         <p>Pöntunin er í viðhengi. Þú getur alltaf skoðað hana hér: <a href="${E(pubUrl(t))}">${E(pubUrl(t))}</a></p><p>Kveðja,<br>${E(co.nafn || "")}${co.simi ? "<br>" + E(co.simi) : ""}</p>`;
       if (DEMO()) { toast(`(Sýniútgáfa) Staðfestingarpóstur hefði farið til ${to}`); }
       else {
@@ -577,6 +588,8 @@
         await MS.g(box() + "/sendMail", { method: "POST", body: { message: { subject: subj, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: to } }],
           attachments: [{ "@odata.type": "#microsoft.graph.fileAttachment", name: `Pöntun ${P.nr}.pdf`, contentType: "application/pdf", contentBytes: b64(bytes) }] }, saveToSentItems: true } });
         toast("Staðfestingarpóstur sendur til " + to);
+        if (!P.postConv) setTimeout(async () => { try { const xs = (await MS.g(box() + `/mailFolders/sentitems/messages?$top=10&$orderby=sentDateTime%20desc&$select=subject,conversationId`)).value || [];
+          const c = xs.find(x => x.subject === subj)?.conversationId; if (c) await savePN(pid, Q0 => { if (!Q0.postConv) { Q0.postConv = c; Q0.postBox = box(); } }); } catch (e) {} }, 2500);
       }
       await savePN(pid, Q0 => { Q0.stadfPostur = mark; });
       render();

@@ -424,6 +424,18 @@ exports.tengillSjalfvirkt = onSchedule({ schedule: "*/15 * * * *", timeZone: TZ,
    hann úr sameiginlega pósthólfinu: dagsetningar, afhending, línur, samtals með VSK og tengill á pöntunarsíðuna.
    Appið sendir sama póst (með PDF) ef einhver með Microsoft-tengingu er við – sá sem fyrstur nær opinber.postur sendir. */
 const kr = n => Math.round(+n || 0).toLocaleString("de-DE") + " kr.";
+// 2.87.0: staðgreiðsla – greiða fyrir afhendingu (posi eða millifærsla með kvittun sem svar við póstinum; ekki reiðufé)
+async function greidsluHTML(P, sam) {
+  try {
+    let h = P.greidsluhattur; if (!h) { if (!P.vskId) h = "stadgreitt"; else { const c = (await db.doc("vidskiptavinir/" + P.vskId).get()).data() || {}; h = c.greidsla || "reikningur"; } }
+    if (h !== "stadgreitt" || P.greitt) return "";
+    const st = await db.doc("app/state").get(), R = (((st.exists && st.data().stillingar) || {}).reikn) || {}, t = sam && sam.tot;
+    return `<div style="margin:14px 0;padding:12px 14px;border:1px solid #E3E7EB;border-left:3px solid #24578A;border-radius:8px;background:#F5F8FB">
+      <p style="margin:0 0 6px"><b>Greiða þarf pöntunina fyrir afhendingu${t ? " – samtals " + kr(t) + " með VSK" : ""}.</b></p><p style="margin:0 0 4px">Hægt er að greiða:</p>
+      <ul style="margin:0 0 6px;padding-left:18px"><li>með korti í posa við afhendingu, eða</li><li>með millifærslu${R.banki ? " á reikning <b>" + escH(R.banki) + "</b>" + (R.kt ? ", kt. " + escH(R.kt) : "") : ""} – svaraðu þá þessum pósti með kvittun fyrir greiðslunni.</li></ul>
+      <p style="margin:0;color:#6B7684">Ekki er tekið við reiðufé.</p></div>`;
+  } catch (e) { return ""; }
+}
 exports.pontunStadfestPostur = onDocumentWritten({ document: "pantanir/{id}", secrets: [MS_SECRET] }, async ev => {
   const b = ev.data.after.exists ? ev.data.after.data() : null, a = ev.data.before.exists ? ev.data.before.data() : null;
   if (!b || b.prufa || b.stada !== "Staðfest" || (a && a.stada === "Staðfest") || b.stadfPostur || !POSTHOLF.value()) return;
@@ -445,10 +457,14 @@ exports.pontunStadfestPostur = onDocumentWritten({ document: "pantanir/{id}", se
     ${rows ? `<table style="width:100%;border-collapse:collapse;margin:8px 0 4px">${rows}</table>` : ""}${sam && sam.tot ? `<p style="text-align:right"><b>Samtals með VSK ${kr(sam.tot)}</b></p>` : ""}
     ${st && st.ur ? `<p style="color:#6B7684">Samþykkt af ${escH(st.nafn || "")} með ${escH(st.ur)}.</p>` : ""}
     ${url ? `<p><a href="${escH(url)}" style="display:inline-block;padding:12px 20px;background:#24578A;color:#fff;border-radius:9px;text-decoration:none">Skoða pöntunina</a></p>` : ""}
+    ${await greidsluHTML(P, sam)}
     <p>Kveðja,<br>${escH(co.nafn || "")}${co.simi ? "<br>" + escH(co.simi) : ""}</p></div>`;
   try {
     await graph(`/users/${encodeURIComponent(POSTHOLF.value())}/sendMail`, { method: "POST", body: { message: { subject: `Staðfesting á pöntun ${nm}`, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: to } }] }, saveToSentItems: true } });
     await ref.update({ stadfPostur: mark }); logger.info("staðfestingarpóstur", { p: P.nr, to });
+    // 2.87.0: þráður staðfestingarpóstsins á pöntunina – svar viðskiptavinar (t.d. kvittun fyrir millifærslu) sést á pöntuninni
+    if (!P.postConv) { try { await new Promise(r => setTimeout(r, 3000)); const j = await graph(`/users/${encodeURIComponent(POSTHOLF.value())}/mailFolders/sentitems/messages?$top=10&$orderby=sentDateTime%20desc&$select=subject,conversationId`);
+      const c = ((j && j.value) || []).find(x => x.subject === `Staðfesting á pöntun ${nm}`); if (c && c.conversationId) await ref.update({ postConv: c.conversationId, postBox: "/users/" + encodeURIComponent(POSTHOLF.value()) }); } catch (e) { logger.warn("þráður staðfestingarpósts", String(e.message || e)); } }
   } catch (e) {
     logger.warn("staðfestingarpóstur tókst ekki", { p: P.nr, e: String(e.message || e) });
     if (P.opinber) await db.doc("opinber/" + P.opinber).update({ postur: null }).catch(() => {});

@@ -97,7 +97,7 @@
   function agenda() {
     const t = isoT(), R = [];
     try { (calItems().get(t) || []).filter(i => !i.span && !i.done).forEach(i => R.push({ time: hm(i.when), title: i.title || "", sub: [i.kind, i.nr].filter(Boolean).join(" · "), open: i.open })); } catch (e) {}
-    PN().forEach(P => {
+    PN().filter(P => !window.tbMine || tbMine(P)).forEach(P => { // 2.86.1: aðeins pantanir sem notandinn er skráður á
       if (P.fra && String(P.fra).slice(0, 10) === t && ["Ný", "Staðfest"].includes(P.stada)) R.push({ time: hm(P.fra), title: (P.nr || "") + " " + (P.heiti || ""), sub: "Afhending · " + (P.tengilidur || P.vidskiptavinur || ""), open: "tb:" + P.id, scan: "ut:" + P.id });
       const til = String(P.til || P.fra || "").slice(0, 10);
       if (P.stada === "Afhent" && til && til <= t) R.push({ time: hm(P.til), title: (P.nr || "") + " " + (P.heiti || ""), sub: (til < t ? "Skil – seint · " : "Skil · ") + (P.tengilidur || P.vidskiptavinur || ""), open: "tb:" + P.id, scan: "inn:" + P.id, late: til < t });

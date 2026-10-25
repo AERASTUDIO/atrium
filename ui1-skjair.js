@@ -921,7 +921,7 @@
     return R;
   }
   function framItems(days = 14) {
-    const ti = isoD(today), ud = window.utlDocs && ON("leiga") ? utlDocs() : [], ux = [];
+    const ti = isoD(today), ud = (window.utlDocs && ON("leiga") ? utlDocs() : []).filter(u => !u.T || !window.tbMine || tbMine(u.T)), ux = [];
     ud.forEach(u => { if (u.fra >= ti) ux.push({ when: u.fra, title: u.nr + " " + u.heiti, kind: "Afhending", open: "tb:" + u.T.id, nr: u.vsk }); if (u.til >= ti && u.til !== u.fra) ux.push({ when: u.til, title: u.nr + " " + u.heiti, kind: "Skil", open: "tb:" + u.T.id, nr: u.vsk }); });
     return [...upcoming(), ...ux].filter(i => { const n = daysTo(i.when); return n !== null && n >= 0 && n <= days; }).sort((a, b) => String(a.when).localeCompare(String(b.when)))
       .map(i => ({ k: i.kind === "Fundur" ? "Fundur" : /Skil/.test(i.kind) ? "Skil" : i.kind, title: i.title, sub: [i.kind, i.nr].filter(Boolean).join(" · "), date: i.when, time: hhmm(i.when), pill: i.kind === "Fundur" ? "Fundur" : /Afhending/.test(i.kind) ? "Afhending" : /Skil/.test(i.kind) ? "Skil" : i.kind, open: i.open }));
@@ -978,7 +978,7 @@
     const t = isoD(today), hm = w => { const m = String(w || "").match(/T(\d\d:\d\d)/) || String(w || "").match(/^(\d\d:\d\d)/); return m ? m[1] : ""; }, ag = [];
     let cal = new Map(); try { cal = calItems(); } catch (e) {}
     (cal.get(t) || []).filter(i => !i.span && !i.done).forEach(i => ag.push({ time: hm(i.when), title: i.title || "", sub: i.nr || "", kind: i.kind || "", open: i.open }));
-    (window.salaAPI?.PN?.() || []).forEach(P => {
+    (window.salaAPI?.PN?.() || []).filter(P => !window.tbMine || tbMine(P)).forEach(P => { // 2.86.1: aðeins pantanir sem notandinn er skráður á
       const fra = String(P.fra || "").slice(0, 10), til = String(P.til || P.fra || "").slice(0, 10), who = P.tengilidur || P.vidskiptavinur || "";
       if (fra === t && ["Ný", "Staðfest"].includes(P.stada)) ag.push({ time: hm(P.fra), title: [P.nr, P.heiti].filter(Boolean).join(" "), sub: who, kind: "Afhending", open: "tb:" + P.id });
       if (P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)) && til && til <= t) ag.push({ time: hm(P.til), title: [P.nr, P.heiti].filter(Boolean).join(" "), sub: who, kind: til < t ? "Skil – seint" : "Skil pöntunar", open: "tb:" + P.id, late: til < t });

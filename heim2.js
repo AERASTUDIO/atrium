@@ -18,7 +18,7 @@
     const items = (calItems().get(ti) || []).filter(i => !i.span).map(i => ({ t: hhmm(i.when) || "", title: i.title, sub: [i.kind, i.nr].filter(Boolean).join(" · "), attr: tapAttr(i.open.split(":")[0], i.open.slice(i.open.indexOf(":") + 1)), c: "var(--line)" }));
     const me = STARFS().length > 1 ? ME() : null;
     const done = ON("timar") ? faerslur().filter(e => e.date === ti && !e.live && (!me || !e.sk || e.sk === me)).map(e => ({ t: e.fra || "", title: cleanLys(e.lysing) || (findProj(e.verkefniId)?.stutt || "Tímar"), sub: [(findProj(e.verkefniId) || projByNr(e.nr))?.nr, "unnið " + hrs(e.timar)].filter(Boolean).join(" · "), attr: `role="button" tabindex="0" data-open="time:${esc(e.id)}"`, c: "var(--muted)" })) : [];
-    const ud = window.utlDocs && ON("leiga") ? utlDocs() : [], utl = [];
+    const ud = (window.utlDocs && ON("leiga") ? utlDocs() : []).filter(u => !u.T || !window.tbMine || tbMine(u.T)), utl = [];
     ud.forEach(u => { if (u.fra === ti) utl.push({ t: "", title: "Afhending · " + u.nr + " " + u.heiti, sub: [u.vsk, u.P ? "Pöntun" : "Tilboð"].filter(Boolean).join(" · "), attr: tapAttr("tb", u.T.id), c: "var(--accent)" });
       if (u.til === ti) utl.push({ t: "", title: "Skil · " + u.nr + " " + u.heiti, sub: [u.vsk, u.P ? "Pöntun" : "Tilboð"].filter(Boolean).join(" · "), attr: tapAttr("tb", u.T.id), c: "var(--accent)" }); });
     const rows = [...done, ...items, ...utl].sort((a, b) => String(a.t || "99").localeCompare(String(b.t || "99")));
@@ -74,7 +74,7 @@
   }
 
   function framundan() {
-    const ti = isoDay(today), ud = window.utlDocs && ON("leiga") ? utlDocs() : [], ux = [];
+    const ti = isoDay(today), ud = (window.utlDocs && ON("leiga") ? utlDocs() : []).filter(u => !u.T || !window.tbMine || tbMine(u.T)), ux = [];
     ud.forEach(u => { if (u.fra > ti) ux.push({ when: u.fra, title: u.nr + " " + u.heiti, kind: "Afhending", open: "tb:" + u.T.id }); if (u.til > ti && u.til !== u.fra) ux.push({ when: u.til, title: u.nr + " " + u.heiti, kind: "Skil", open: "tb:" + u.T.id }); });
     const xs = [...upcoming(), ...ux].filter(i => daysTo(i.when) >= 0 && String(i.when).slice(0, 10) !== ti).sort((a, b) => String(a.when).localeCompare(String(b.when))).slice(0, 8);
     const d = w => { const n = daysTo(w); return n === 1 ? "Á morgun" : dIS(String(w).slice(0, 10)).replace(/\.\d{4}$/, ""); };
