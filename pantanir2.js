@@ -122,13 +122,17 @@
     g.lineWidth = 2.4; g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#121416";
     const pt = e => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
     c.addEventListener("pointerdown", e => { drawing = true; last = pt(e); c.setPointerCapture(e.pointerId); e.preventDefault(); });
-    c.addEventListener("pointermove", e => { if (!drawing) return; const p = pt(e); g.beginPath(); g.moveTo(...last); g.lineTo(...p); g.stroke(); last = p; any = true; });
+    c.addEventListener("pointermove", e => { if (!drawing) return; e.preventDefault(); const p = pt(e); g.beginPath(); g.moveTo(...last); g.lineTo(...p); g.stroke(); last = p; any = true; w.querySelector(".pferr")?.remove(); });
+    c.addEventListener("touchmove", e => e.preventDefault(), { passive: false });   // iOS: síðan má ekki skrunast meðan skrifað er
     ["pointerup", "pointercancel"].forEach(t => c.addEventListener(t, () => { drawing = false; }));
     w.querySelector("[data-clr]").onclick = () => { g.clearRect(0, 0, c.width, c.height); any = false; };
     let photo = null;
     w.querySelector("#pfmynd").onchange = async e => { const f = e.target.files?.[0]; if (!f) return; photo = await shrink(f, 1000, .7); w.querySelector("#pfmyndn").textContent = "Mynd komin ✓"; w.querySelector("#pfmyndn").className = "t-grn"; };
     w.querySelector("#pfsave").onclick = async () => {
-      const nafn = w.querySelector("#pfnafn").value.trim(); if (!nafn) return toast("Skráðu nafn"); if (!any) return toast("Undirskrift vantar");
+      // 2.78.3: villa birtist í glugganum sjálfum (toast lenti undir glugganum í síma og ekkert virtist gerast)
+      const nafn = w.querySelector("#pfnafn").value.trim(), err = m => { let el = w.querySelector(".pferr"); if (!el) { w.querySelector(".pfact").insertAdjacentHTML("beforebegin", '<p class="pferr" role="alert"></p>'); el = w.querySelector(".pferr"); } el.textContent = m; };
+      if (!nafn) { err("Skráðu nafn " + (out ? "viðtakanda" : "þess sem skilar") + "."); w.querySelector("#pfnafn").focus(); return; }
+      if (!any) { err("Undirskrift vantar – skrifaðu með fingri í reitinn."); return; }
       const b = w.querySelector("#pfsave"); b.disabled = true; b.textContent = "Vista…";
       const x = { nafn, undirskrift: c.toDataURL("image/png"), mynd: photo, dags: nowIso(), af: me() };
       try { await savePN(pid, Q0 => { Q0.kvittun = { ...(Q0.kvittun || {}), [dir]: x }; });

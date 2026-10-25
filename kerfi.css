@@ -867,3 +867,7 @@ body.kerfi a.maplnk:hover{text-decoration:underline}
 .snm .snpvm{min-width:42px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted,#6b7a90)}.snm .snpvn{flex:1}.snm .snpvd{font-size:11.5px;color:var(--muted,#6b7a90)}
 .snm .snpvx{color:var(--muted,#6b7a90);font-style:italic;padding-left:50px!important}
 .snm .snpvt{display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--line,#e3e8ef)}.snm .snpv0{color:var(--muted,#6b7a90);margin:0}
+/* 2.78.3 Afhending í síma: villuboð í glugga, toast ofan á gluggum */
+.pfm .pferr{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:#fdecec;color:#a32020;font-size:13.5px}
+body .toast,body.simi1 .toast{z-index:10100!important}
+body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-area-inset-top,0px))!important;height:auto}
