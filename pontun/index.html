@@ -170,7 +170,7 @@ function draw(d, confirm, read) {
     e.preventDefault(); const er = document.getElementById("er"), nm = document.getElementById("nm").value.trim();
     if (nm.length < 2) return er.textContent = "Skráðu nafn."; if (!any) return er.textContent = "Undirskrift vantar."; if (!document.getElementById("ok").checked) return er.textContent = "Hakaðu við til að staðfesta.";
     const b = document.getElementById("go"); b.disabled = true; b.textContent = "Staðfesti…";
-    const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = document.getElementById("at").value.trim(); if (at) s.athugasemd = at;
+    const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = (document.getElementById("at")?.value || "").trim(); if (at) s.athugasemd = at;
     try { await confirm(s); d.stadfest = s; thanks(d, () => draw(d, confirm, read)); window.scrollTo(0, 0); }
     catch (x) { b.disabled = false; b.textContent = "Staðfesta pöntun"; er.textContent = "Tókst ekki að staðfesta. " + (x?.code === "permission-denied" ? "Pöntunin hefur þegar verið staðfest." : "Reyndu aftur."); }
   };
@@ -225,29 +225,22 @@ function drawQ(d, confirm, read) {
     <section class="card" id="conf">${st ? doneQ(st, c) : hf ? `<div class="ok"><div><b style="color:var(--amb)">Tilboðinu var hafnað</b><div class="sub">${E(hf.nafn)} · ${E(dl(hf.dags))}${hf.astaeda ? " – „" + E(hf.astaeda) + "“" : ""}</div><div class="sub">Hafðu samband við ${E(c.nafn || "okkur")} ef þú vilt fá nýtt tilboð.</div></div></div>` : uti ? `<div class="ok"><div><b style="color:var(--amb)">Tilboðið rann út ${E(dl(d.gildir))}</b><div class="sub">Hafðu samband við ${E(c.nafn || "okkur")} ef þú vilt fá það endurnýjað.</div></div></div>` : `<div class="ch">Samþykkja tilboð</div><form id="f" novalidate>
       <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
       <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
-      <label>Athugasemd (valfrjálst)<textarea id="at" rows="2" maxlength="1000" placeholder="T.d. breyting á tíma eða magni"></textarea></label>
       <label class="chk"><input type="checkbox" id="ok">${d.skilmalar ? "Ég hef lesið skilmálana og samþykki tilboðið" : "Ég samþykki tilboðið"}</label>
       <div class="err" id="er" role="alert"></div>
       <div><button class="btn" id="go">Samþykkja tilboð</button></div></form>`}</section>
-    ${!st && !hf ? `<section class="card" id="svar"><div class="ch">Spurning eða breyting?</div>
-      ${(d.svor || []).map(m => `<div class="svm"><b>${E(m.nafn)}</b> <span class="sub">${E(dl(m.dags))}</span><div>${E(m.texti)}</div></div>`).join("")}
-      <form id="sf"><label>Nafn<input id="snm" autocomplete="name" value="${E(d.tengilidur || "")}"></label><label>Skilaboð<textarea id="stx" rows="3" maxlength="1000" placeholder="T.d. getið þið bætt við einum hátalara, eða er hægt að breyta tímanum?"></textarea></label>
-      <div class="err" id="ser" role="alert"></div><div class="svb"><button class="btn2" id="sgo">Senda spurningu</button><button type="button" class="svx" id="hfn">Hafna tilboðinu</button></div></form></section>` : ""}
+    ${!st && !hf ? `<section class="card" id="svar"><div class="ch">Spurningar eða breytingar?</div>
+      <p class="sub" style="margin:0;padding:14px 16px 6px">Svaraðu tölvupóstinum sem tilboðið kom í${c.netfang ? `, eða skrifaðu á <a href="mailto:${E(c.netfang)}?subject=${encodeURIComponent("Tilboð " + (d.nr || ""))}">${E(c.netfang)}</a>` : ""}${c.simi ? ` eða hringdu í <a href="tel:${E(String(c.simi).replace(/[^\d+]/g, ""))}">${E(c.simi)}</a>` : ""}. Þá fylgja samskiptin tilboðinu.</p>
+      <div class="svb" style="padding:4px 16px 14px"><button type="button" class="svx" id="hfn">Hafna tilboðinu</button></div><div class="err" id="ser" role="alert" style="padding:0 16px"></div></section>` : ""}
     <div class="foot">${E(c.nafn || "")}${c.vefur ? " · " + E(c.vefur) : ""} · Atrium</div>`;
   if (!st && !hf) svar(d, () => drawQ(d, confirm, read));
   if (st || uti || hf) return;
   sign(d, confirm, () => thanksQ(d, () => drawQ(d, confirm, read)), "Samþykkja tilboð", "Tilboðið hefur þegar verið samþykkt.");
 }
 // Spurning eða höfnun af tilboðssíðunni (2.72.0) – starfsfólk fær tilkynningu og sér svarið á tilboðinu
-function svar(d, redraw) {
-  const nm = () => document.getElementById("snm").value.trim(), er = document.getElementById("ser");
-  document.getElementById("sf").onsubmit = async e => { e.preventDefault(); const t = document.getElementById("stx").value.trim();
-    if (nm().length < 2) return er.textContent = "Skráðu nafn."; if (t.length < 2) return er.textContent = "Skrifaðu skilaboðin.";
-    const b = document.getElementById("sgo"); b.disabled = true; b.textContent = "Sendi…"; const m = { nafn: nm(), texti: t, dags: new Date().toISOString() };
-    try { await OPS.reply(m); d.svor = [...(d.svor || []), m]; redraw(); setTimeout(() => { const x = document.getElementById("svar"); if (x) { x.insertAdjacentHTML("afterbegin", '<div class="svok">✓ Skilaboðin voru send – við svörum eins fljótt og hægt er.</div>'); x.scrollIntoView({ block: "center" }); } }, 30); }
-    catch (x) { b.disabled = false; b.textContent = "Senda spurningu"; er.textContent = "Tókst ekki að senda. Reyndu aftur."; } };
-  document.getElementById("hfn").onclick = async () => { if (nm().length < 2) return er.textContent = "Skráðu nafn áður en þú hafnar.";
-    if (!confirm("Hafna tilboði " + d.nr + "?")) return; const h = { nafn: nm(), dags: new Date().toISOString() }, t = document.getElementById("stx").value.trim(); if (t) h.astaeda = t;
+function svar(d, redraw) { // 2.86.0: spurningar fara í pósti – hér er aðeins hægt að hafna
+  const er = document.getElementById("ser"), nmf = () => (document.getElementById("nm")?.value || d.tengilidur || "").trim();
+  document.getElementById("hfn").onclick = async () => { if (nmf().length < 2) { er.textContent = "Skráðu nafn þitt í reitinn hér fyrir ofan áður en þú hafnar."; document.getElementById("nm")?.focus(); return; }
+    if (!confirm("Hafna tilboði " + d.nr + "?")) return; const h = { nafn: nmf(), dags: new Date().toISOString() }, t = (prompt("Ástæða (valfrjálst):") || "").trim(); if (t) h.astaeda = t;
     try { await OPS.reject(h); d.hafnad = h; redraw(); window.scrollTo(0, 0); } catch (x) { er.textContent = "Tókst ekki. Reyndu aftur."; } };
 }
 function thanksQ(d, back) {
@@ -278,7 +271,7 @@ function sign(d, confirm, after, label, twice) {
     e.preventDefault(); const er = document.getElementById("er"), nm = document.getElementById("nm").value.trim();
     if (nm.length < 2) return er.textContent = "Skráðu nafn."; if (!any) return er.textContent = "Undirskrift vantar."; if (!document.getElementById("ok").checked) return er.textContent = "Hakaðu við til að staðfesta.";
     const b = document.getElementById("go"); b.disabled = true; b.textContent = "Augnablik…";
-    const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = document.getElementById("at").value.trim(); if (at) s.athugasemd = at;
+    const s = { nafn: nm, undirskrift: cv.toDataURL("image/png"), dags: new Date().toISOString() }, at = (document.getElementById("at")?.value || "").trim(); if (at) s.athugasemd = at;
     try { await confirm(s); d.stadfest = s; after(); window.scrollTo(0, 0); }
     catch (x) { b.disabled = false; b.textContent = label; er.textContent = "Tókst ekki. " + (x?.code === "permission-denied" ? twice : "Reyndu aftur."); }
   };

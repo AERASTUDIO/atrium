@@ -472,6 +472,7 @@
       ${MCP ? `<div class="kind" style="margin-top:14px">Staða</div>${PV() ? `<div class="fsels">${fsel(STOD(T).map(s => [`tbst:${T.id}:${s}`, s, T.stada === s]), P ? "Staða pöntunar" : "Staða tilboðs")}</div>` : `<div class="chips">${STADA.map(s => `<button type="button" class="chipbtn" data-act="tbst:${esc(T.id)}:${s}" aria-pressed="${T.stada === s}">${s}</button>`).join("")}</div>`}
         <div class="links" style="margin-top:10px">${P ? `${!T.verkefniId ? `<button type="button" class="btn" data-act="tbverk:${esc(T.id)}">Gera að verkefni</button>` : ""}` : `${T.stada === "Samþykkt" && !T.verkefniId ? `<button type="button" class="btn primary" data-act="tbverk:${esc(T.id)}">Stofna verkefni úr tilboði</button>` : ""}${T.stada === "Samþykkt" && PNON() && !PN().some(x => x.tilbodId === T.id) ? `<button type="button" class="btn" data-act="pntb:${esc(T.id)}">Stofna pöntun úr tilboði</button>` : ""}<button type="button" class="btn" data-act="tbutg:${esc(T.id)}">Ný útgáfa</button><button type="button" class="btn" data-act="tbcopy:${esc(T.id)}">Afrita sem nýtt tilboð</button>`}${DEL() ? `<button type="button" class="btn danger" data-act="tbdel:${esc(T.id)}">Eyða</button>` : ""}</div>` : ""}
       ${!P && T.vidskHafnad && T.stada !== "Hafnað" ? `<div class="card smbid smhaf"><b>✕ ${esc(T.vidskHafnad.nafn || "Viðskiptavinur")} hafnaði tilboðinu ${esc(dIS(String(T.vidskHafnad.dags || "").slice(0, 10)))}</b>${T.vidskHafnad.astaeda ? `<span>„${esc(T.vidskHafnad.astaeda)}“</span>` : ""}${MCP ? `<button type="button" class="btn" data-act="tbst:${esc(T.id)}:Hafnað">Merkja hafnað</button>` : ""}</div>` : ""}
+      ${T.postConv && window.poConvHTML ? `<div class="card smsvor tbpost"><b>Póstsamskipti við viðskiptavin</b>${poConvHTML(T.postConv, "", true)}${MCP && (T.netfang || findVsk(T.vskId)?.netfang) ? `<div class="links" style="margin-top:8px"><button type="button" class="btn" data-act="tbsvara:${esc(T.id)}">Svara í pósti</button></div>` : ""}</div>` : ""}
       ${!P && (T.vidskSvor || []).length ? `<div class="card smsvor"><b>Spurningar frá viðskiptavini</b>${T.vidskSvor.map(m => { const a = (T.vidskSvorSvar || {})[String(m.dags || "")]; return `<div class="smsv"><small>${esc(m.nafn || "")} · ${esc(dIS(String(m.dags || "").slice(0, 10)))} kl. ${esc(String(m.dags || "").slice(11, 16))}</small><div>${esc(m.texti || "")}</div>${a ? `<div class="smsvar"><small>Svarað í pósti${a.af ? " · " + esc(a.af) : ""} · ${esc(dIS(String(a.dags).slice(0, 10)))} kl. ${esc(String(a.dags).slice(11, 16))}</small>${a.texti ? `<div>${esc(a.texti)}</div>` : ""}</div>` : `<small class="smsvbid">Ósvarað</small>`}</div>`; }).join("")}${(T.netfang || findVsk(T.vskId)?.netfang) ? `<button type="button" class="btn" data-act="tbsvara:${esc(T.id)}">Svara í pósti</button>` : ""}</div>` : ""}
       ${!P && T.bidur && T.stada !== "Samþykkt" ? `<div class="card smbid"><b>✓ ${esc(T.bidur.nafn || "Viðskiptavinur")} samþykkti tilboðið ${esc(dIS(String(T.bidur.dags || "").slice(0, 10)))}</b><span>Bíður staðfestingar starfsmanns.</span>${MCP ? `<button type="button" class="btn primary" data-act="tbst:${esc(T.id)}:Samþykkt">Staðfesta…</button>` : ""}</div>` : ""}
       ${!P && !T.bidur ? (() => { const til = T.sentTil || T.netfang; // 2.73.0: staðan sem litaður borði
@@ -811,6 +812,15 @@
     const p = T?.verkefniId && typeof findProj === "function" ? findProj(T.verkefniId) : null; (p?.starfsmenn || []).forEach(sk => add(skE(sk)));
     return out;
   };
+  // 2.86.0: póstþráður tilboðs/pöntunar fylgir verkefninu – um leið og tilboð eða pöntun tengist verkefni er þráðurinn tengdur því líka
+  const thrDone = new Set();
+  function syncThr() {
+    if (!MCP || !window.poLinkConv || typeof S === "undefined" || !S) return;
+    const has = new Set((S.thraedir || []).map(t => t.conv));
+    [...TB(), ...PN()].filter(T => T.postConv && T.verkefniId && !has.has(T.postConv) && !thrDone.has(T.postConv) && findProj(T.verkefniId)).slice(0, 3).forEach(T => {
+      thrDone.add(T.postConv); poLinkConv(T.postConv, T.verkefniId, (T.pontun ? "Pöntun " : "Tilboð ") + T.nr + (T.heiti ? " – " + T.heiti : "")).catch(() => thrDone.delete(T.postConv)); });
+  }
+  setInterval(syncThr, 20000); setTimeout(syncThr, 6000);
   window.tbMine = function (T) {
     const me = lcE(window.VIEWAS?.email || window.USER?.email || ""); if (!me) return true;
     const m = window.tbMenn(T); if (m.size) return m.has(me);
@@ -824,7 +834,7 @@
     const opts = MCP ? NU().filter(u => u.sk && !all.has(lcE(u.email))) : [];
     return `<div class="tbmenn"><span class="kind">Starfsfólk</span>${chips || `<span class="hint">Enginn skráður – stjórnendur fá tilkynningar</span>`}${opts.length ? `<select aria-label="Bæta við starfsmanni" onchange="if(this.value){doAct('tbmenn:add:${esc(T.id)}:'+this.value)}"><option value="">+ Bæta við</option>${opts.map(u => `<option value="${esc(u.sk)}">${esc(u.nafn || u.email)}</option>`).join("")}</select>` : ""}</div>`;
   }
-  const mkPontun = (T, id, nr) => ({ starfsmenn: (T.starfsmenn || []).slice(), id, pontun: true, nr, deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
+  const mkPontun = (T, id, nr) => ({ starfsmenn: (T.starfsmenn || []).slice(), postConv: T.postConv || null, postBox: T.postBox || null, id, pontun: true, nr, deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
     uppruni: "tilbod", ytriNr: null, stadsetning: T.stadsetning || null, fra: T.fra || null, til: T.til || T.fra || null, dags: isoDay(new Date()), stada: "Staðfest", afsl: +T.afsl || 0, athugasemd: null,
     linur: (T.linur || []).map(l => ({ ...l, id: gid() })), verkefniId: T.verkefniId || null, tilbodId: T.id });
   const mkVerk = (T, id, nr) => { const st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
@@ -1016,7 +1026,7 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
     // 2.83.1: svar við spurningu af tilboðssíðunni – skrifað í appinu (Microsoft 365), annars póstforrit tölvunnar
     if (k === "tbmenn") { const [op, id, sk] = r; if (!id || !sk) return; saveT(id, q => { const L = (q.starfsmenn || []).filter(x => x !== sk); if (op === "add") L.push(sk); q.starfsmenn = L; }).then(() => render()).catch(e => toast(errText(e))); return; }
     if (k === "tbsvara") { const T = findT(a); if (!T) return; const to = T.netfang || findVsk(T.vskId)?.netfang || "", su = "RE: Tilboð " + T.nr + " – " + (T.heiti || "");
-      const sp = (T.vidskSvor || []).filter(m => !(T.vidskSvorSvar || {})[String(m.dags || "")]).slice(-1)[0] || (T.vidskSvor || []).slice(-1)[0], body = `\n\n\n---\n${sp ? `${sp.nafn || "Viðskiptavinur"} spurði ${dIS(String(sp.dags || "").slice(0, 10))} kl. ${String(sp.dags || "").slice(11, 16)}:\n> ${String(sp.texti || "").replace(/\n/g, "\n> ")}` : ""}`;
+      const sp = (T.vidskSvor || []).filter(m => !(T.vidskSvorSvar || {})[String(m.dags || "")]).slice(-1)[0] || (T.vidskSvor || []).slice(-1)[0], body = !sp ? "\n\n" : `\n\n\n---\n${sp ? `${sp.nafn || "Viðskiptavinur"} spurði ${dIS(String(sp.dags || "").slice(0, 10))} kl. ${String(sp.dags || "").slice(11, 16)}:\n> ${String(sp.texti || "").replace(/\n/g, "\n> ")}` : ""}`;
       // 2.84.0: svarið fer í þráð tilboðspóstsins (ef tilboðið var sent úr Atrium) og skráist undir spurningunni
       const skra = inf => saveT(T.id, q => { const k = String(sp?.dags || ""); if (!k) return; q.vidskSvorSvar = { ...(q.vidskSvorSvar || {}), [k]: { texti: String(inf?.text || "").split("\n---\n")[0].trim(), dags: new Date().toISOString(), af: window.USER?.nafn || (window.MS && MS.user && MS.user()?.name) || "" } }; }).then(() => render()).catch(() => {});
       if (window.MS && MS.on && MS.on() && window.poCompose) {

@@ -29,7 +29,7 @@
   // Skilaboð í þræði, sótt beint úr pósthólfinu (geymt í minni í 2 mín.)
   const TC = {};
   function thread(conv) {
-    const c = TC[conv]; if (c && (c.busy || Date.now() - c.at < 120000)) return c;
+    const c = TC[conv]; if (c && (c.busy || Date.now() - c.at < (window.__TCTTL ?? 120000))) return c;
     TC[conv] = { at: Date.now(), busy: true, msgs: c?.msgs || null, err: null };
     const qs = `/messages?$filter=${encodeURIComponent(`conversationId eq '${conv.replace(/'/g, "''")}'`)}&$top=50&${SEL}`;
     Promise.all([SHB ? MS.g(SHB + qs).then(j => (noteBox(j.value, SHB), j.value || [])).catch(() => []) : [], MS.g("/me" + qs).then(j => j.value || [])])
@@ -189,6 +189,7 @@
         ${MCP ? `<label class="posel"><select data-polink="${esc(id)}" aria-label="Tengja þráðinn við verkefni"><option value="">${L ? "Aftengja þráðinn" : "Tengja þráðinn við verkefni…"}</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${L && L.verkefniId === x.id ? " selected" : ""}>${esc(x.nafn)}</option>`).join("")}</select></label>` : ""}
         ${g && MCP ? `<button type="button" class="btn" data-act="polink:${esc(id)}:${esc(g.id)}">Tengja við ${esc(g.nr)}</button>` : ""}
         ${MCP && stofnaOpts().length ? `<label class="posel postofna"><select data-postofna="${esc(id)}" aria-label="Stofna úr póstinum"><option value="">+ Stofna úr póstinum…</option>${stofnaOpts().map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>` : ""}</div>
+      ${(() => { const T = m.conversationId && window.salaAPI ? [...salaAPI.TB(), ...salaAPI.PN()].find(x => x.postConv === m.conversationId) : null; return T ? `<p class="hint" style="margin:8px 0 0">Þráðurinn tilheyrir ${T.pontun ? "pöntun" : "tilboði"} <a class="plink" data-open="tb:${esc(T.id)}">${esc(T.nr)} ${esc(T.heiti || "")}</a>.</p>` : ""; })()}
       ${p ? `<p class="hint" style="margin:8px 0 0">Þráðurinn er tengdur við ${esc(p.nr)} ${esc(p.stutt || "")}. Nýir póstar í sama þræði birtast sjálfkrafa á síðu verkefnisins.</p>` : ""}
       ${atts.length ? `<div class="viewtitle">Viðhengi · ${atts.length}</div><div class="llist">${atts.map(a => `<div class="lrow"><div class="ll">📎</div><div class="lm"><div class="lt">${esc(a.name)}</div><div class="ls">${esc(kb(a.size))}</div></div>
         <div class="lr" style="gap:6px"><button type="button" class="btn" data-act="poprev:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Forskoða</button><button type="button" class="btn" data-act="poatt:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Sækja</button>${p && MCP ? `<button type="button" class="btn" data-act="posave:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px" title="Vista í ${esc(p.nr)} › 01 Móttekið">→ Mappa</button>` : ""}</div></div>`).join("")}</div>
@@ -552,5 +553,17 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
       ${ts.length ? `<div class="llist">${ts.map(blk).join("")}</div>` : msOn() ? `<div class="hint" style="margin:0">Engir þræðir tengdir ennþá. Opnaðu póst og veldu „Tengja þráðinn við verkefni“.</div>` : ""}
       ${leg.length ? `<div class="viewtitle">Eldri tengingar · ${leg.length}</div><p class="hint" style="margin:0 0 6px">Úr gamla pósthólfinu (dagur@sonik.is). Þessir póstar fundust ekki í núverandi pósthólfi og verða ekki uppfærðir.</p><div class="llist">${leg.map(legRow).join("")}</div>` : ""}`;
   };
+  /* ---------- Póstþráður tilboðs/pöntunar (2.86.0) ---------- */
+  // Póstarnir í þræðinum í tímaröð (elsti efst) – á síðu tilboðs, pöntunar og verkefnis
+  window.poConvHTML = function (conv, title, noTitle) {
+    if (!conv) return "";
+    if (!msOn()) return `<div class="viewtitle">${esc(title || "Póstsamskipti")}</div><p class="hint" style="margin:0">Tengdu Microsoft til að sjá póstana.</p>`;
+    const c = thread(conv), xs = (c?.msgs || []).slice().sort((a, b) => String(a.receivedDateTime).localeCompare(String(b.receivedDateTime)));
+    const me = String(MS.user()?.email || "").toLowerCase(), fra = x => { const a = String(x.from?.emailAddress?.address || "").toLowerCase(); return a === me || (SH && a === SH) ? "Við" : fromName(x); };
+    return `${noTitle ? "" : `<div class="viewtitle">${esc(title || "Póstsamskipti")}${xs.length ? " · " + xs.length : ""}</div>`}${!xs.length ? `<p class="hint" style="margin:0">${c?.busy ? "Sæki póstana…" : "Engir póstar fundust í þræðinum."}</p>` : `<div class="pocv">${xs.map(x => `<div class="pocv-it tap${x.isRead === false ? " unread" : ""}" ${tapAttr("post", x.id)}><div class="pocv-h"><b>${esc(fra(x))}</b><span class="m">${esc(fmtDate(x.receivedDateTime))} kl. ${esc(new Date(x.receivedDateTime).toTimeString().slice(0, 5))}</span></div><div class="ls">${esc((x.bodyPreview || "").slice(0, 220))}</div></div>`).join("")}</div>`}`;
+  };
+  // Nýjasti pósturinn í þræðinum (sækir þráðinn ef þarf) – fyrir tilkynningar um svar viðskiptavinar
+  window.poConvLast = function (conv) { if (!conv || !msOn()) return null; const c = thread(conv); const xs = (c?.msgs || []); return xs[0] || null; };
+  window.poIsOurs = m => { const a = String(m?.from?.emailAddress?.address || "").toLowerCase(), me = String(MS.user()?.email || "").toLowerCase(), dom = String(ORG.len || "").toLowerCase(); return a === me || (SH && a === SH) || (!!dom && a.endsWith("@" + dom)); };
   window.poUnread = () => (list || []).filter(m => m.isRead === false).length;
 })();
