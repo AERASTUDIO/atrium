@@ -971,3 +971,26 @@ body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-
 #view .uklk.on .uklb{flex-wrap:nowrap;margin-left:auto}
 #view .uklk.on .uklb .btn{white-space:nowrap}
 @container (max-width:420px){#view .uklk.on .uklb{margin-left:0}}
+/* 2.88.9 Tímaskráning › vika: dagar sem háir dálkar sem standa betur út */
+@media (min-width:1024px){
+  :root body.kerfi #view .uweek{gap:10px;align-items:stretch;min-height:calc(100vh - 300px)}
+  :root body.kerfi #view .uweek .uday{background:var(--surface,#fff);border:1px solid var(--line);border-radius:14px;padding:12px 10px 10px;gap:8px;box-shadow:0 1px 2px rgba(20,35,60,.04);opacity:1}
+  :root body.kerfi #view .uweek .uday.wk{background:color-mix(in srgb,var(--surface,#fff) 55%,var(--bg,#f3f5f8))}
+  :root body.kerfi #view .uweek .udh{flex-direction:column;align-items:flex-start;gap:2px;padding:0 4px 10px;border-bottom:1px solid var(--line);position:relative}
+  :root body.kerfi #view .uweek .udh>span:first-child{font-size:15px!important;font-weight:600!important;color:var(--ink)}
+  :root body.kerfi #view .uweek .udh>span:first-child small{display:block;font-size:12.5px;font-weight:400;color:var(--muted);margin-top:1px}
+  :root body.kerfi #view .uweek .udh>span:last-child{position:absolute;right:4px;top:0;font-size:15px!important;font-variant-numeric:tabular-nums}
+  :root body.kerfi #view .uweek .udh>span.b{color:var(--ink);font-weight:600!important}
+  :root body.kerfi #view .uweek .udh.on{border-bottom:2px solid var(--accent,#2b5fd9)}
+  :root body.kerfi #view .uweek .udh.on>span:first-child{color:var(--accent,#2b5fd9)}
+  :root body.kerfi #view .uweek .uday:has(.udh.on){border-color:color-mix(in srgb,var(--accent,#2b5fd9) 45%,var(--line));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#2b5fd9) 10%,transparent)}
+  :root body.kerfi #view .uweek .uent{padding:10px 11px;border-radius:10px;background:color-mix(in srgb,var(--accent,#2b5fd9) 6%,var(--surface,#fff));border:1px solid color-mix(in srgb,var(--accent,#2b5fd9) 18%,var(--line))}
+  :root body.kerfi #view .uweek .uent:hover{border-color:var(--accent,#2b5fd9)}
+  :root body.kerfi #view .uweek .uent .uer small{font-size:12px;color:var(--muted)}
+  :root body.kerfi #view .uweek .uent .uer b{font-size:16px!important;font-weight:600!important}
+  :root body.kerfi #view .uweek .uent .uen{font-size:13px;line-height:1.35;white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  :root body.kerfi #view .uweek .uadd{flex:1 1 auto;min-height:56px;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:10px;border:1.5px dashed transparent;transition:border-color .15s,background .15s}
+  :root body.kerfi #view .uweek .uday:hover .uadd,:root body.kerfi #view .uweek .uadd:focus-visible{border-color:var(--line);background:var(--ui1soft,#f6f8fb);color:var(--ink)}
+  :root body.kerfi #view .usum{padding:18px 22px;margin-bottom:14px}
+  :root body.kerfi #view .usum .ubar{height:8px}
+}
