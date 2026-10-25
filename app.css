@@ -1317,3 +1317,7 @@ body.sidesheet #sheetwrap .scrim{display:none}
 .tbpost{margin:14px 0}
 .tbpost .viewtitle{margin-top:0}
 .qrdual{display:flex;gap:8px}.qrdual .btn{flex:1}
+/* 2.90.2 – Leit í útliti I: haus, síuvalið ekki fast yfir niðurstöðunum */
+body.pv.ui1 .leitbox{position:static;padding:12px 0 8px;background:none}
+body.pv.ui1 .leitbox .leitf{margin:0;padding:0}
+body.pv.ui1 #leitres .viewtitle:first-child{margin-top:6px}
