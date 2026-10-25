@@ -616,7 +616,7 @@
     if (window.poCompose && tr(() => MS.on(), false)) { // 2.73.0: pöntunin sem PDF í viðhengi (forskoðanleg)
       const A = window.salaAPI; (A?.pdf ? A.pdf(P).then(b => [{ name: A.fileBase(P) + ".pdf", type: "application/pdf", size: b.length, data: b }]).catch(() => []) : Promise.resolve([]))
         .then(atts => { try { poCompose({ to: P.netfang || "", subject: subj, body, atts }); } catch (e) {} }); return; }
-    location.href = "mailto:" + encodeURIComponent(P.netfang || "") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+    { const x = document.createElement("a"); x.href = "mailto:" + encodeURIComponent(P.netfang || "") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body); x.target = "_blank"; x.rel = "noopener"; document.body.appendChild(x); x.click(); x.remove(); } // opnar póstforritið án þess að fara úr appinu
   }
   // 2.76.0: ferill pöntunar efst – Ný → Staðfest → Afhent → Skilað/Lokið, með hver og hvenær
   function ferillHTML(P) {
