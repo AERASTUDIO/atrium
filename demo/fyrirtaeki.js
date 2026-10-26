@@ -1,4 +1,4 @@
-/* Hlutlaus sýniútgáfa Atrium (frá 2.11.0). Slóð: https://aerastudio.github.io/atrium/demo/?demo
+/* Hlutlaus sýniútgáfa Atrium (frá 2.11.0). Slóð: https://atrium.aerastudio.is/demo/?demo
    Ekkert fyrirtæki, ekkert merki og enginn gagnagrunnur – aðeins sýnigögn (demo.js). Vefsíðan (/atrium/) vísar hingað.
    demo/index.html er búin til sjálfvirkt úr ../app.html með tools/uppsetningar.py – ekki breyta henni beint. */
 window.ORG = {
@@ -10,7 +10,7 @@ window.ORG = {
   ],
   len: "demo.example",
   vefur: "",
-  appUrl: "https://aerastudio.github.io/atrium/demo/",
+  appUrl: "https://atrium.aerastudio.is/demo/",
   lsForskeyti: "demo:",
   litir: { ljos: "#F6F7F8", dokk: "#121416" },
   ms: { appNafn: "Atrium", clientId: "", tenant: "" },

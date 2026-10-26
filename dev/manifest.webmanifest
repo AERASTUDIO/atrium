@@ -3,7 +3,7 @@
   "short_name": "Atrium Dev",
   "description": "Atrium by AERA Studio – þróunaruppsetning.",
   "lang": "is",
-  "id": "/atrium/dev/",
+  "id": "/dev/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

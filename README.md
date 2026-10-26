@@ -2,8 +2,8 @@
 
 **Atrium by AERA Studio** – verkefni, undirverk, fundir, tímaskráning, reikningar, skjöl, póstur og spjall á einum stað. Sama lausnin er sett upp fyrir hvert fyrirtæki (uppsetning), sem velur sjálft hvaða einingar það notar. Atrium er í eigu AERA Studio ehf., sem notar lausnina líka sjálft.
 
-- **Uppsetningar (frá 2.6.0 hver í sinni undirmöppu):** AERA Studio https://aerastudio.github.io/atrium/aera/ · Sonik https://aerastudio.github.io/atrium/sonik/ – rótin `/atrium/` vísar á aera/
-- **Sýniútgáfa:** bættu `?demo` við slóð uppsetningar, t.d. https://aerastudio.github.io/atrium/aera/?demo – tilbúin gögn úr `demo.js`, engin tenging við Firestore eða Microsoft
+- **Uppsetningar (frá 2.6.0 hver í sinni undirmöppu):** AERA Studio https://atrium.aerastudio.is/aera/ · Sonik https://atrium.aerastudio.is/sonik/ – rótin sýnir „Væntanlegt“
+- **Sýniútgáfa:** bættu `?demo` við slóð uppsetningar, t.d. https://atrium.aerastudio.is/aera/?demo – tilbúin gögn úr `demo.js`, engin tenging við Firestore eða Microsoft
 - **Hýsing:** GitHub Pages (útgáfa birtist sjálfkrafa við hverja breytingu á `main`)
 - **Gögn:** Firebase Firestore (uppsetning AERA: verkefnið `aera-app-cfdb3`), söfn eftir tegund (sjá `gogn.js`)
 - **Innskráning:** Microsoft-aðgangur fyrirtækisins (Firebase Auth + Entra). Notendur og hlutverk í `app/notendur`.

@@ -1,4 +1,4 @@
-/* Uppsetning party.is (Bardús ehf.) á Atrium (frá 2.10.0). Slóð: https://aerastudio.github.io/atrium/party/ (sýniútgáfa: ?demo)
+/* Uppsetning party.is (Bardús ehf.) á Atrium (frá 2.10.0). Slóð: https://atrium.aerastudio.is/party/ (sýniútgáfa: ?demo)
    party/index.html er búin til sjálfvirkt úr ../app.html með tools/uppsetningar.py – ekki breyta henni beint.
    Slóðir á skrár hér eru miðaðar við rót appsins (index.html hefur <base href="../">).
    Engin leyndarmál hér – þetta eru opinber auðkenni. Ófyllt gildi (TODO) bíða upplýsinga frá party.is. */
@@ -8,7 +8,7 @@ window.ORG = {
   // Þá: len → party.is, ms → Entra-forrit party.is, admin → fyrsti admin party.is, og party/firestore.rules uppfærðar.
   len: "aerastudio.is",
   vefur: "party.is",
-  appUrl: "https://aerastudio.github.io/atrium/party/",
+  appUrl: "https://atrium.aerastudio.is/party/",
   lsForskeyti: "party:",               // eigið svæði í localStorage (sama lén og AERA)
 
   logo: { ljos: "party/merki.png", dokk: "party/merki.png" },

@@ -1,4 +1,4 @@
-/* Þróunaruppsetning Atrium (frá 2.13.0). Slóð: https://aerastudio.github.io/atrium/dev/ (sýniútgáfa: ?demo)
+/* Þróunaruppsetning Atrium (frá 2.13.0). Slóð: https://atrium.aerastudio.is/dev/ (sýniútgáfa: ?demo)
    Hlutlaus „sjálfgefin“ uppsetning með eigin gögnum (Firebase atrium-499a2) þar sem einingar eru þróaðar og prófaðar
    áður en þær fara til fyrirtækjanna. Ekkert merki fyrirtækis – aðeins Atrium. Byggð á hlutlausu sýniútgáfunni (demo/).
    dev/index.html er búin til sjálfvirkt úr ../app.html með tools/uppsetningar.py – ekki breyta henni beint.
@@ -7,7 +7,7 @@ window.ORG = {
   nafn: "Atrium",
   len: "aerastudio.is",                 // innskráning með Microsoft-aðgangi AERA
   vefur: "",
-  appUrl: "https://aerastudio.github.io/atrium/dev/",
+  appUrl: "https://atrium.aerastudio.is/dev/",
   lsForskeyti: "dev:",                  // eigið svæði í localStorage (sama lén og hinar uppsetningarnar)
 
   litir: { ljos: "#F6F7F8", dokk: "#121416" },
