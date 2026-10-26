@@ -56,7 +56,7 @@ window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <script src="skjalagerd.js"></script>
 <script type="module">const ROT=f=>new URL(f,document.baseURI).href; /* full slóð: Safari tekur ekki mið af <base> í import() (2.8.2) */ if(window.AERA_DEMO) import(ROT("demo.js")); else if(window.ORG.firebase) import(ROT("firebase.js")); else { /* uppsetning án gagnagrunns (enn sem komið er) */ document.getElementById("login").hidden=false; document.getElementById("login-msg").textContent="Þessi uppsetning er ekki enn tengd gagnagrunni. Sýniútgáfan virkar: bættu ?demo aftan við slóðina."; document.getElementById("login-ms").disabled=true; }</script>
 <script>/* 2.77.0: gluggahamur (#…&w=1) – eigin gluggi án vinstri stiku, t.d. Verkdagatal */ if(/[#&]w=1\b/.test(location.hash)) document.addEventListener("DOMContentLoaded",()=>document.body.classList.add("solowin"));</script>
-<script>const APP_VERSION="2.100.2"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
+<script>const APP_VERSION="2.100.3"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
 <script src="app-grunnur.js"></script>
 <script src="app-listar.js"></script>
 <script src="app-skyrslur.js"></script>
