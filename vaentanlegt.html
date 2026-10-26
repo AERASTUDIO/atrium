@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- Vefsíða Atrium (frá 2.18.4): aðeins myndband í lykkju og „Væntanlegt“. Vefsíðan sjálf er index.html.
+     Rótin er EKKI app: ekkert manifest hér, svo app-umfang uppsetninganna (aera/, sonik/, party/) skarast ekki. -->
+<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>/* App sem var sett upp áður en AERA flutti í aera/ (2.6.0) opnar rótina – senda það beint inn í AERA-appið */
+(function(){try{if((window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: window-controls-overlay)").matches||matchMedia("(display-mode: minimal-ui)").matches))||navigator.standalone===true)location.replace("aera/"+location.search+location.hash);}catch(e){}})();</script>
+<title>Atrium – væntanlegt</title>
+<meta name="description" content="Atrium by AERA Studio – væntanlegt.">
+<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Væntanlegt."><meta property="og:image" content="https://atrium.aerastudio.is/vefur/atrium-vaentanlegt.jpg?v=7">
+<meta name="theme-color" content="#121416">
+<link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg"><link rel="icon" type="image/png" href="icons/atrium-icon-192.png">
+<style>
+@font-face{font-family:P;src:url(fonts/Poppins-Light.ttf);font-weight:300;font-display:swap}
+html,body{margin:0;height:100%;background:#121416;overflow:hidden}
+video{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;background:#121416 url(vefur/atrium-vaentanlegt.jpg?v=7) center/cover}
+h1{position:fixed;left:0;right:0;top:calc(50vh - max(3.65vw,6.48vh) + max(20vw,35.5vh)); /* fylgir merkinu í myndbandinu (object-fit:cover, 1920×1080, merkið í y=470) */margin:0;text-align:center;font:300 clamp(30px,5vw,64px)/1 P,system-ui,sans-serif;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#7C8896;background:linear-gradient(100deg,#6B7682 0%,#6B7682 42%,#F6F7F8 50%,#6B7682 58%,#6B7682 100%);background-size:320% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both,sheen 7s ease-in-out 2s infinite}
+@keyframes sheen{0%{background-position:100% 0}45%,100%{background-position:0% 0}} /* ljósið kastast af letrinu (grátt, glampi rennur yfir) */
+/* Sími og aðrir háir skjáir: myndbandið minna og fjarar út upp og niður, svo merkið passi og VÆNTANLEGT sitji neðar */
+@media (max-aspect-ratio:4/5){
+  html,body{background:#0f1012}
+  video{top:50%;left:50%;width:auto;height:min(64vh,130vw);transform:translate(-50%,-55%);background:none;
+    -webkit-mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent)}
+  h1{top:calc(50vh + 0.435 * min(64vh,130vw));font-size:clamp(24px,7vw,40px)}
+  @supports (height:100dvh){ /* iPhone/Safari: miða við sýnilega skjáhæð svo letrið fylgi merkinu þótt vafrastikur birtist/hverfi */
+    video{height:min(64dvh,130vw)}
+    h1{top:calc(50dvh + 0.435 * min(64dvh,130vw))}
+  }
+}
+/* Sími á hlið (lágur og breiður skjár): allt myndbandið sést, merkið ekki klippt, VÆNTANLEGT neðst */
+@media (min-aspect-ratio:2/1) and (max-height:600px){
+  html,body{background:#0f1012}
+  video{object-fit:contain;background:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+  h1{top:auto;bottom:max(18px,env(safe-area-inset-bottom));font-size:clamp(18px,4.2vh,30px)}
+}
+@keyframes inn{from{opacity:0;letter-spacing:.6em;text-indent:.6em}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){h1{animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both;background-position:50% 0}}
+video::-webkit-media-controls,video::-webkit-media-controls-start-playback-button,video::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none}
+</style></head><body>
+<video autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" poster="vefur/atrium-vaentanlegt.jpg?v=7" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4?v=7" type="video/mp4"></video>
+<h1>Væntanlegt</h1>
+<script>/* Myndbandið spilast alltaf sjálfkrafa (hljóðlaust). Ef vafrinn stöðvar sjálfvirka spilun (t.d. orkusparnaður í síma) er reynt aftur og við fyrstu snertingu. */
+(function(){const v=document.querySelector("video");v.muted=true;v.defaultMuted=true;v.playsInline=true;
+const go=()=>{const p=v.play();if(p&&p.catch)p.catch(()=>{});};
+go();v.addEventListener("loadeddata",go);v.addEventListener("pause",()=>{if(!document.hidden)setTimeout(go,300);});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)go();});
+["pointerdown","touchstart","keydown","scroll"].forEach(e=>addEventListener(e,go,{once:true,passive:true}));})();</script>
+</body></html>

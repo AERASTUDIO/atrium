@@ -1,47 +1,286 @@
 <!doctype html>
-<!-- Vefsíða Atrium (frá 2.18.4): aðeins myndband í lykkju og „Væntanlegt“. Kynningarsíðan er geymd á kynning.html.
-     Rótin er EKKI app: ekkert manifest hér, svo app-umfang uppsetninganna (aera/, sonik/, party/) skarast ekki. -->
-<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Vefsíða Atrium á atrium.aerastudio.is (frá 26.10.2026; var kynning.html). EKKI app: ekkert manifest hér, svo app-umfang uppsetninganna
+     (aera/, sonik/, party/, dev/) skarast ekki. Skjámyndir í vefur/*-i.webp úr hlutlausu sýnigögnunum (demo.js). „Væntanlegt“-síðan er geymd á vaentanlegt.html. -->
+<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script>/* App sem var sett upp áður en AERA flutti í aera/ (2.6.0) opnar rótina – senda það beint inn í AERA-appið */
 (function(){try{if((window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: window-controls-overlay)").matches||matchMedia("(display-mode: minimal-ui)").matches))||navigator.standalone===true)location.replace("aera/"+location.search+location.hash);}catch(e){}})();</script>
-<title>Atrium – væntanlegt</title>
-<meta name="description" content="Atrium by AERA Studio – væntanlegt.">
-<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Væntanlegt."><meta property="og:image" content="https://atrium.aerastudio.is/vefur/atrium-vaentanlegt.jpg?v=7">
+<title>Atrium – verkefni, tilboð, pantanir og tímar á einum stað</title>
+<meta name="description" content="Atrium by AERA Studio: verkefni, tilboð, pantanir, tímaskráning og reikningsdrög á einum stað – í tölvu og síma, tengt Microsoft 365. Hvert fyrirtæki fær sitt eigið app.">
+<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Frá fyrirspurn að reikningi – verkefni, tilboð, pantanir, tímar og samskipti á einum stað."><meta property="og:image" content="https://atrium.aerastudio.is/vefur/heim-i.webp">
 <meta name="theme-color" content="#121416">
 <link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg"><link rel="icon" type="image/png" href="icons/atrium-icon-192.png">
 <style>
 @font-face{font-family:P;src:url(fonts/Poppins-Light.ttf);font-weight:300;font-display:swap}
-html,body{margin:0;height:100%;background:#121416;overflow:hidden}
-video{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;background:#121416 url(vefur/atrium-vaentanlegt.jpg?v=7) center/cover}
-h1{position:fixed;left:0;right:0;top:calc(50vh - max(3.65vw,6.48vh) + max(20vw,35.5vh)); /* fylgir merkinu í myndbandinu (object-fit:cover, 1920×1080, merkið í y=470) */margin:0;text-align:center;font:300 clamp(30px,5vw,64px)/1 P,system-ui,sans-serif;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#7C8896;background:linear-gradient(100deg,#6B7682 0%,#6B7682 42%,#F6F7F8 50%,#6B7682 58%,#6B7682 100%);background-size:320% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both,sheen 7s ease-in-out 2s infinite}
-@keyframes sheen{0%{background-position:100% 0}45%,100%{background-position:0% 0}} /* ljósið kastast af letrinu (grátt, glampi rennur yfir) */
-/* Sími og aðrir háir skjáir: myndbandið minna og fjarar út upp og niður, svo merkið passi og VÆNTANLEGT sitji neðar */
-@media (max-aspect-ratio:4/5){
-  html,body{background:#0f1012}
-  video{top:50%;left:50%;width:auto;height:min(64vh,130vw);transform:translate(-50%,-55%);background:none;
-    -webkit-mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent)}
-  h1{top:calc(50vh + 0.435 * min(64vh,130vw));font-size:clamp(24px,7vw,40px)}
-  @supports (height:100dvh){ /* iPhone/Safari: miða við sýnilega skjáhæð svo letrið fylgi merkinu þótt vafrastikur birtist/hverfi */
-    video{height:min(64dvh,130vw)}
-    h1{top:calc(50dvh + 0.435 * min(64dvh,130vw))}
-  }
-}
-/* Sími á hlið (lágur og breiður skjár): allt myndbandið sést, merkið ekki klippt, VÆNTANLEGT neðst */
-@media (min-aspect-ratio:2/1) and (max-height:600px){
-  html,body{background:#0f1012}
-  video{object-fit:contain;background:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
-  h1{top:auto;bottom:max(18px,env(safe-area-inset-bottom));font-size:clamp(18px,4.2vh,30px)}
-}
-@keyframes inn{from{opacity:0;letter-spacing:.6em;text-indent:.6em}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){h1{animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both;background-position:50% 0}}
-video::-webkit-media-controls,video::-webkit-media-controls-start-playback-button,video::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none}
-</style></head><body>
-<video autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" poster="vefur/atrium-vaentanlegt.jpg?v=7" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4?v=7" type="video/mp4"></video>
-<h1>Væntanlegt</h1>
-<script>/* Myndbandið spilast alltaf sjálfkrafa (hljóðlaust). Ef vafrinn stöðvar sjálfvirka spilun (t.d. orkusparnaður í síma) er reynt aftur og við fyrstu snertingu. */
-(function(){const v=document.querySelector("video");v.muted=true;v.defaultMuted=true;v.playsInline=true;
-const go=()=>{const p=v.play();if(p&&p.catch)p.catch(()=>{});};
-go();v.addEventListener("loadeddata",go);v.addEventListener("pause",()=>{if(!document.hidden)setTimeout(go,300);});
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)go();});
-["pointerdown","touchstart","keydown","scroll"].forEach(e=>addEventListener(e,go,{once:true,passive:true}));})();</script>
+@font-face{font-family:P;src:url(fonts/Poppins-Regular.ttf);font-weight:400;font-display:swap}
+@font-face{font-family:P;src:url(fonts/Poppins-Medium.ttf);font-weight:500;font-display:swap}
+:root{--bg:#121416;--s1:#1A1D21;--s2:#1E2227;--line:#262B31;--ink:#F6F7F8;--t:#DFE5EA;--mut:#93A0AD;--dim:#7C8896;--st:#4B5664;--r:20px;--w:1180px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--t);font:400 16px/1.6 P,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}img{display:block;max-width:100%;height:auto}
+.w{max-width:var(--w);margin:0 auto;padding:0 24px}
+.k{font-size:12.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);font-weight:400}
+h1,h2,h3{color:var(--ink);font-weight:300;letter-spacing:-.015em;margin:0}
+h1{font-size:clamp(40px,6.4vw,76px);line-height:1.04}
+h2{font-size:clamp(30px,4vw,46px);line-height:1.1}
+h3{font-size:18px;font-weight:500;letter-spacing:0}
+p{margin:0}.lead{font-size:clamp(17px,1.6vw,20px);color:var(--mut);font-weight:300;max-width:640px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:50px;padding:0 24px;border-radius:14px;text-decoration:none;font-weight:500;font-size:15px;border:1px solid var(--line);transition:background .2s,border-color .2s}
+.btn.p{background:var(--t);color:var(--bg);border-color:var(--t)}.btn.p:hover{background:#fff}
+.btn:not(.p):hover{border-color:var(--st)}
+/* Haus */
+nav{position:sticky;top:0;z-index:20;background:rgba(18,20,22,.82);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid transparent;transition:border-color .3s}
+nav.sc{border-color:var(--line)}
+nav .w{display:flex;align-items:center;gap:28px;height:72px}
+nav .logo img{height:30px;width:auto}
+nav .ln{display:flex;gap:26px;margin-left:auto;font-size:14.5px;color:var(--mut)}
+nav .ln a{text-decoration:none}nav .ln a:hover{color:var(--ink)}
+nav .btn{min-height:42px;padding:0 18px;font-size:14px}
+@media(max-width:860px){nav .ln{display:none}nav .btn{margin-left:auto}}
+/* Hetja */
+.hero{padding:88px 0 40px;position:relative;overflow:hidden}
+.hero .k{margin-bottom:22px}.hero .lead{margin-top:24px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+.hero .ms{margin-top:22px;font-size:13.5px;color:var(--dim);display:flex;align-items:center;gap:10px}
+.hero .ms i{display:inline-grid;grid-template-columns:repeat(2,7px);gap:2px}.hero .ms i b{width:7px;height:7px;background:var(--st)}
+.stage{position:relative;margin-top:64px}
+.frame{border-radius:16px;overflow:hidden;border:1px solid #2F3742;box-shadow:0 50px 120px rgba(0,0,0,.6);background:#0d0f11}
+.frame img{width:100%}
+.phone{position:absolute;right:-12px;bottom:-36px;width:min(24%,240px);border-radius:38px;padding:8px;background:#050607;box-shadow:0 40px 90px rgba(0,0,0,.65),inset 0 0 0 1.5px #2F3742}
+.phone img{border-radius:31px}
+@media(max-width:700px){.phone{display:none}}
+.glow{position:absolute;inset:-20% -10% auto;height:700px;background:radial-gradient(closest-side,rgba(147,160,173,.13),transparent);pointer-events:none}
+/* Kaflar */
+section{padding:112px 0}
+.sh{display:grid;gap:18px;margin-bottom:52px;max-width:760px}
+.band{background:var(--s1);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+/* Ferlið */
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.flow div{background:var(--bg);padding:26px 22px}
+.flow b{display:block;font-weight:300;font-size:13px;color:var(--dim);letter-spacing:.2em}
+.flow h3{margin-top:14px}.flow p{color:var(--mut);font-size:14.5px;margin-top:8px}
+@media(max-width:960px){.flow{grid-template-columns:1fr 1fr}.flow div:last-child{grid-column:1/-1}}@media(max-width:560px){.flow{grid-template-columns:1fr}}
+/* Sýning */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.tabs button{font:inherit;font-size:14.5px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--mut);cursor:pointer;transition:all .2s}
+.tabs button:hover{border-color:var(--st);color:var(--t)}
+.tabs button[aria-selected=true]{background:var(--t);border-color:var(--t);color:var(--bg)}
+.show{display:grid;grid-template-columns:300px 1fr;gap:40px;align-items:start}
+@media(max-width:960px){.show{grid-template-columns:1fr;gap:24px}}
+.show .cap h3{font-size:24px;font-weight:300}
+.show .cap p{color:var(--mut);margin-top:12px;font-size:15.5px}
+.show .frame img{aspect-ratio:16/10;object-fit:cover;object-position:top left}
+ul.ch{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:11px}
+ul.ch li{display:flex;gap:12px;color:var(--t);font-size:15px}
+ul.ch li:before{content:"";flex:none;width:18px;height:1px;background:var(--st);margin-top:12px}
+/* Kort */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:28px}
+.card .ic{width:40px;height:40px;border-radius:12px;background:var(--s2);display:grid;place-items:center;margin-bottom:18px;color:var(--t)}
+.card .ic svg{width:21px;height:21px}
+.card p{color:var(--mut);font-size:15px;margin-top:8px}
+/* Sími */
+.split{display:grid;grid-template-columns:1fr 1.2fr;gap:64px;align-items:center}
+@media(max-width:900px){.split{grid-template-columns:1fr;gap:40px}}
+.phones{display:flex;justify-content:center;gap:18px;align-items:flex-start}
+.ph{width:min(32%,220px);border-radius:34px;padding:7px;background:#050607;box-shadow:0 40px 90px rgba(0,0,0,.6),inset 0 0 0 1.5px #2F3742}
+.ph img{border-radius:28px;width:100%}.ph2{margin-top:48px}
+@media(max-width:600px){.ph{border-radius:22px;padding:5px}.ph img{border-radius:18px}.ph2{margin-top:28px}.phones{gap:10px}}
+/* Einingar */
+.mcols{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){.mcols{grid-template-columns:1fr}}
+.mcols .card h3{font-size:20px;font-weight:400}.mcols .card>p{margin-top:6px}
+.ml{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:0}
+.ml li{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15px}
+.ml li span{color:var(--dim);font-size:13px;text-align:right}
+/* Staðreyndir */
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.facts div{background:var(--bg);padding:26px}.facts b{display:block;color:var(--ink);font-weight:400;font-size:16.5px}.facts span{color:var(--mut);font-size:14px}
+@media(max-width:900px){.facts{grid-template-columns:1fr 1fr}}@media(max-width:520px){.facts{grid-template-columns:1fr}}
+/* Verð */
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:900px){.plans{grid-template-columns:1fr}}
+.plan{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:34px;display:flex;flex-direction:column;gap:20px}
+.plan.hi{background:#20252B;border-color:var(--st)}
+.plan .for{color:var(--mut);font-size:15px;margin-top:4px}
+.plan .pr{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.plan .pr b{font-size:44px;font-weight:300;color:var(--ink);letter-spacing:-.02em;line-height:1}.plan .pr span{color:var(--mut);font-size:15px}
+.plan .base{color:var(--mut);font-size:14.5px;margin-top:8px}
+.plan ul.ch{margin:0;border-top:1px solid var(--line);padding-top:20px}
+.calc{display:flex;flex-wrap:wrap;align-items:center;gap:20px 40px;margin-top:18px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:26px 34px}
+.seg{display:inline-flex;gap:4px;padding:4px;background:var(--s1);border:1px solid var(--line);border-radius:999px}
+.seg button{font:inherit;font-size:14.5px;min-height:42px;padding:0 20px;border:0;border-radius:999px;background:transparent;color:var(--mut);cursor:pointer}
+.seg button.on{background:var(--t);color:var(--bg)}
+.cnt{display:flex;align-items:center;gap:12px}
+.cnt button{font:inherit;font-size:20px;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--s1);color:var(--ink);cursor:pointer}.cnt button:hover{border-color:var(--st)}
+.cnt output{min-width:40px;text-align:center;font-size:24px;color:var(--ink);font-weight:300}
+.cnt span{color:var(--mut);font-size:14.5px}
+.tot{margin-left:auto;text-align:right}.tot b{font-size:36px;font-weight:300;color:var(--ink);letter-spacing:-.02em}.tot span{color:var(--mut);font-size:15px}
+.tot small{display:block;color:var(--dim);font-size:13px}
+@media(max-width:700px){.tot{margin-left:0;text-align:left}}
+.extra{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:18px}
+@media(max-width:900px){.extra{grid-template-columns:1fr}}
+.extra>div{background:var(--bg);padding:24px 26px}.extra b{display:block;color:var(--ink);font-weight:400}.extra span{color:var(--mut);font-size:14px}
+details.mods{margin-top:18px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+details.mods summary{cursor:pointer;padding:20px 26px;color:var(--t);list-style:none;display:flex;justify-content:space-between;gap:12px}
+details.mods summary::-webkit-details-marker{display:none}
+details.mods summary:after{content:"+";color:var(--dim);font-size:20px;line-height:1}details.mods[open] summary:after{content:"–"}
+.mtab{width:100%;border-collapse:collapse;font-size:15px}.mtab td{padding:12px 26px;border-top:1px solid var(--line)}.mtab td:nth-child(2){color:var(--mut)}.mtab td:last-child{text-align:right;white-space:nowrap;color:var(--ink)}
+@media(max-width:600px){.mtab td:nth-child(2){display:none}}
+.vnote{color:var(--dim);font-size:13.5px;margin-top:22px}
+/* Lok */
+.end{text-align:center;padding:120px 0;border-top:1px solid var(--line)}
+.end img{height:80px;margin:0 auto 30px}
+.end .lead{margin:18px auto 0}.end .cta{justify-content:center;margin-top:32px}
+footer{border-top:1px solid var(--line);padding:32px 0;color:var(--dim);font-size:13.5px}
+footer .w{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:center}
+footer .lg{display:flex;gap:20px;margin-left:auto}footer a{text-decoration:none}footer a:hover{color:var(--ink)}
+.rv{opacity:0;transform:translateY(20px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+</style></head>
+<body>
+<nav id="nav"><div class="w">
+  <a class="logo" href="#" aria-label="Atrium"><img src="icons/atrium-haus-dokk.svg" alt="Atrium"></a>
+  <div class="ln"><a href="#syning">Appið</a><a href="#simi">Síminn</a><a href="#lausnin">Lausnin</a><a href="#verd">Verð</a></div>
+  <a class="btn" href="mailto:aera@aerastudio.is?subject=Kynning%20%C3%A1%20Atrium">Bóka kynningu</a>
+</div></nav>
+
+<header class="hero"><div class="glow"></div><div class="w">
+  <div class="k rv">Atrium by AERA Studio</div>
+  <h1 class="rv">Allt starfið<br>á einum stað.</h1>
+  <p class="lead rv">Verkefni, tilboð, pantanir, tímar og reikningsdrög – tengt Microsoft 365. Í tölvu og síma, með ykkar merki og ykkar gögnum.</p>
+  <div class="cta rv"><a class="btn p" href="mailto:aera@aerastudio.is?subject=Kynning%20%C3%A1%20Atrium">Bóka kynningu</a><a class="btn" href="#verd">Sjá verð</a></div>
+  <div class="stage rv">
+    <div class="frame"><img src="vefur/heim-i.webp" alt="Heim í Atrium" width="2560" height="1600"></div>
+    <div class="phone"><img src="vefur/m-heim-i.webp" alt="Atrium í síma" width="780" height="1688"></div>
+  </div>
+</div></header>
+
+<section id="ferlid"><div class="w">
+  <div class="sh rv"><div class="k">Ferlið</div><h2>Frá fyrirspurn að reikningi.</h2></div>
+  <div class="flow rv">
+    <div><b>01</b><h3>Fyrirspurn</h3><p>Tölvupóstur verður að tilboði eða pöntun með einum smelli.</p></div>
+    <div><b>02</b><h3>Tilboð</h3><p>Viðskiptavinurinn samþykkir með tengli og svarar í sama pósti.</p></div>
+    <div><b>03</b><h3>Pöntun eða verkefni</h3><p>Verður til þegar starfsmaður staðfestir.</p></div>
+    <div><b>04</b><h3>Afhending og tímar</h3><p>Skanni, undirskrift og tímar skráðir á verkið.</p></div>
+    <div><b>05</b><h3>Reikningsdrög</h3><p>Tilbúin fyrir bókhaldskerfið.</p></div>
+  </div>
+</div></section>
+
+<section id="syning" class="band"><div class="w">
+  <div class="sh rv"><div class="k">Appið</div><h2>Listi til vinstri, smáatriðin til hægri.</h2></div>
+  <div class="tabs rv" role="tablist" aria-label="Skjáir í Atrium">
+    <button type="button" role="tab" aria-selected="true" data-s="0">Verkefni</button>
+    <button type="button" role="tab" aria-selected="false" data-s="1">Tilboð</button>
+    <button type="button" role="tab" aria-selected="false" data-s="2">Pantanir</button>
+    <button type="button" role="tab" aria-selected="false" data-s="3">Verkdagatal</button>
+    <button type="button" role="tab" aria-selected="false" data-s="4">Tímar</button>
+    <button type="button" role="tab" aria-selected="false" data-s="5">Vörulisti</button>
+  </div>
+  <div class="show rv">
+    <div class="cap" aria-live="polite"><h3 id="scH"></h3><p id="scP"></p><ul class="ch" id="scL"></ul></div>
+    <div class="frame"><img id="scI" src="vefur/verkefni-i.webp" alt="" width="2560" height="1600"></div>
+  </div>
+</div></section>
+
+<section id="simi"><div class="w">
+  <div class="split">
+    <div class="rv"><div class="k">Síminn</div><h2 style="margin-top:16px">Það sem þarf á ferðinni.</h2>
+      <ul class="ch"><li>Byrja klukku eða skrá tíma</li><li>Dagskrá dagsins</li><li>Skanna búnað út og inn</li><li>Finna verk eða tengilið – og hringja</li><li>Mynd eða athugasemd á verk</li></ul></div>
+    <div class="phones rv">
+      <div class="ph"><img src="vefur/m-heim-i.webp" alt="Í dag í síma" width="780" height="1688" loading="lazy"></div>
+      <div class="ph ph2"><img src="vefur/m-timar-i.webp" alt="Tímar í síma" width="780" height="1688" loading="lazy"></div>
+      <div class="ph"><img src="vefur/m-leita-i.webp" alt="Leit í síma" width="780" height="1688" loading="lazy"></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="lausnin" class="band"><div class="w">
+  <div class="sh rv"><div class="k">Lausnin</div><h2>Ykkar app, á því sem þið notið nú þegar.</h2><p class="lead">Hvert fyrirtæki fær sína eigin uppsetningu – sitt merki, sinn gagnagrunn og sína SharePoint-síðu – og kveikir á þeim einingum sem það notar.</p></div>
+  <div class="facts rv">
+    <div><b>Microsoft 365</b><span>Innskráning, Outlook-póstur, fundarboð og SharePoint-skjöl</span></div>
+    <div><b>Einingar</b><span>Leiga, sala, pöntunarferli, QR, verkefnagreining og fleira</span></div>
+    <div><b>Ykkar merki</b><span>Á appinu og á tilboðum, reikningum og skýrslum</span></div>
+    <div><b>Tilkynningar um þitt</b><span>Hver fær aðeins það sem hann er skráður á</span></div>
+    <div><b>Gögn í Evrópu</b><span>Eigin gagnagrunnur hvers fyrirtækis, innan EES</span></div>
+    <div><b>Hlutverk og réttindi</b><span>Admin, bókari og starfsmaður – framfylgt á netþjóni</span></div>
+    <div><b>Persónuvernd</b><span>Byggt með GDPR í huga, vinnslusamningur í boði</span></div>
+    <div><b>Vikuleg afrit</b><span>Öll gögn afrituð sjálfkrafa</span></div>
+  </div>
+</div></section>
+
+<section id="verd"><div class="w">
+  <div class="sh rv"><div class="k">Verð</div><h2>Greiddu fyrir þá sem nota kerfið.</h2><p class="lead">Grunngjald fyrir fyrirtækið og gjald fyrir hvern virkan notanda í mánuðinum.</p></div>
+  <div class="plans">
+    <div class="plan rv">
+      <div><h3 style="font-size:22px;font-weight:400">Grunnur</h3><p class="for">Stofur, ráðgjöf og þjónusta</p></div>
+      <div><div class="pr"><b>1.900 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 4.900 kr. grunngjald · lágmark 9.900 kr. á mánuði</p></div>
+      <ul class="ch"><li>Verkefni, viðskiptavinir og pantanir</li><li>Tímaskráning og tímaskýrslur</li><li>Tilboð og reikningsdrög</li><li>Póstur, fundir, skjöl og spjall</li></ul>
+    </div>
+    <div class="plan hi rv">
+      <div><h3 style="font-size:22px;font-weight:400">Allt</h3><p class="for">Leigur, verslanir og viðburðafyrirtæki</p></div>
+      <div><div class="pr"><b>3.900 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 9.900 kr. grunngjald · nýjar einingar fylgja</p></div>
+      <ul class="ch"><li>Allt í Grunni</li><li>Leiga, sala og vörulisti með lager</li><li>Pöntunarferli og QR-skönnun</li><li>Verkefnagreining, aukaverk og fleira</li></ul>
+    </div>
+  </div>
+  <div class="calc rv" id="reikna">
+    <div class="seg" role="group" aria-label="Leið"><button type="button" data-p="g">Grunnur</button><button type="button" data-p="a" class="on">Allt</button></div>
+    <div class="cnt"><button type="button" data-d="-1" aria-label="Fækka notendum">−</button><output id="vno" aria-live="polite">8</output><button type="button" data-d="1" aria-label="Fjölga notendum">+</button><span>notendur</span></div>
+    <div class="tot"><b id="vtot">41.100</b> <span>kr. / mán.</span><small id="vsub">9.900 + 8 × 3.900 kr.</small></div>
+  </div>
+  <details class="mods rv"><summary>Stakar einingar með Grunni</summary>
+    <table class="mtab"><tbody>
+      <tr><td>Leiga</td><td>Leigubúnaður, framboð og útleiga</td><td>4.900 kr./mán.</td></tr>
+      <tr><td>Sala</td><td>Vörulisti, tilboð og sala</td><td>4.900 kr./mán.</td></tr>
+      <tr><td>Pöntunarferli</td><td>Staðfesting, greiðsla og afhending</td><td>3.900 kr./mán.</td></tr>
+      <tr><td>QR</td><td>Skönnun við tiltekt og skil</td><td>2.900 kr./mán.</td></tr>
+      <tr><td>Snjall-heim</td><td>Heimaskjár sem sýnir hvað er næst</td><td>2.900 kr./mán.</td></tr>
+      <tr><td>Verkefnagreining</td><td>Afkoma og tímar eftir verkefnum</td><td>2.900 kr./mán.</td></tr>
+      <tr><td>Aukaverk</td><td>Viðbætur og aukaverk á verkefni</td><td>2.900 kr./mán.</td></tr>
+      <tr><td>Rekstrarlínur</td><td>Eigin línur þvert á leigu, sölu og þjónustu</td><td>2.900 kr./mán.</td></tr>
+    </tbody></table></details>
+  <div class="extra rv">
+    <div><b>Uppsetning – Grunnur</b><span>150.000 kr. í eitt skipti</span></div>
+    <div><b>Uppsetning – Allt</b><span>290.000 kr. í eitt skipti</span></div>
+    <div><b>Sérþróun</b><span>12.000 kr./klst. – smíðað sem eining</span></div>
+  </div>
+  <p class="vnote rv">Öll verð án VSK. Aðeins virkir notendur í mánuðinum eru rukkaðir.</p>
+</div></section>
+
+<div class="end"><div class="w">
+  <img class="rv" src="icons/atrium-lodrett-dokk.svg" alt="Atrium">
+  <h2 class="rv">Atrium fyrir þitt fyrirtæki.</h2>
+  <p class="lead rv">Við förum yfir starfsemina með ykkur og sýnum hvernig Atrium liti út hjá ykkur.</p>
+  <div class="cta rv"><a class="btn p" href="mailto:aera@aerastudio.is?subject=Kynning%20%C3%A1%20Atrium">Bóka kynningu</a></div>
+</div></div>
+
+<footer><div class="w">
+  <span>Atrium by <a href="https://aerastudio.is">AERA Studio ehf.</a></span>
+  <span class="lg"><a href="mailto:aera@aerastudio.is?subject=Atrium">aera@aerastudio.is</a></span>
+</div></footer>
+
+<script>
+if (/[?&]demo\b/.test(location.search)) location.replace("demo/" + location.search + location.hash);
+const nav = document.getElementById("nav"); addEventListener("scroll", () => nav.classList.toggle("sc", scrollY > 10), { passive: true });
+const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" }) : null;
+document.querySelectorAll(".rv").forEach(el => io ? io.observe(el) : el.classList.add("in"));
+(() => { const D = [
+  ["verkefni", "Verkefni", "Staðan, tilboðið, vörur, tímar og afkoma á einni síðu.", ["Afkoma í rauntíma", "Aukaverk samþykkt með tengli", "Undirverk, samskipti og skrár"]],
+  ["tilbod", "Tilboð", "Leiga, sala og þjónusta í sama tilboði.", ["Lagerstaða um leið", "Samþykkt með tengli", "Svör í sama póstþræði"]],
+  ["pontun", "Pantanir", "Frá staðfestingu að skilum.", ["Ný · Staðfest · Afhent · Skilað", "Greiðsla skráð fyrir afhendingu", "Pökkunarlisti og undirskrift"]],
+  ["verkdag", "Verkdagatal", "Verkefni, pantanir og búnaður á einni tímalínu.", ["Tvær vikur eða mánuður", "Skil og undirverk á línunni", "Sía eftir sviði og stöðu"]],
+  ["timar", "Tímar", "Vikan þín og teymisins.", ["Skeiðklukka á verkefni", "Tímabanki á móti vinnuskyldu", "Skýrslur í PDF og Excel"]],
+  ["vorulisti", "Vörulisti", "Búnaður og vörur með lager og bókunum.", ["Tekjur eftir mánuðum", "Mest bókað og lítið á lager", "QR-merki á hvert eintak"]]
+], $ = id => document.getElementById(id), B = [...document.querySelectorAll("#syning [data-s]")];
+  const set = i => { const [f, h, p, l] = D[i]; $("scI").src = "vefur/" + f + "-i.webp"; $("scI").alt = h + " í Atrium"; $("scH").textContent = h; $("scP").textContent = p;
+    $("scL").innerHTML = l.map(x => "<li>" + x + "</li>").join(""); B.forEach((b, j) => b.setAttribute("aria-selected", i === j)); };
+  B.forEach((b, i) => b.onclick = () => set(i)); set(0);
+  D.forEach(([f]) => { const im = new Image(); im.src = "vefur/" + f + "-i.webp"; }); })();
+(() => { const P = { g: [4900, 1900], a: [9900, 3900] }, $ = id => document.getElementById(id), f = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  let p = "a", n = 8;
+  const up = () => { const [b, u] = P[p], raw = b + u * n, t = Math.max(9900, raw);
+    $("vno").textContent = n; $("vtot").textContent = f(t); $("vsub").textContent = t > raw ? "Lágmarksgjald" : f(b) + " + " + n + " × " + f(u) + " kr.";
+    document.querySelectorAll("#reikna [data-p]").forEach(x => x.classList.toggle("on", x.dataset.p === p)); };
+  document.querySelectorAll("#reikna [data-p]").forEach(x => x.onclick = () => { p = x.dataset.p; up(); });
+  document.querySelectorAll("#reikna [data-d]").forEach(x => x.onclick = () => { n = Math.min(50, Math.max(1, n + +x.dataset.d)); up(); });
+  up(); })();
+</script>
 </body></html>
