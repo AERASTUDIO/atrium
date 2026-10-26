@@ -41,4 +41,4 @@ body.kerfi .side .tab[aria-current="page"],body.kerfi .side .tab.on{box-shadow:i
 .ustart.ustdark{background:#0C2127}.ustart.ustdark .uver{color:#8DBBC8}
 
 /* 2.94.0: upphafsskjárinn birtist mjúklega (ljóst → dökkt) þegar farið er á hann */
-@media (prefers-reduced-motion: no-preference){ .ustart.ustdark{animation:ustIn .6s ease both} @keyframes ustIn{from{background:#E4EEF1}to{background:#0C2127}} .ustart.ustdark .ustpair{animation:aIn .6s ease .15s both} }
+@media (prefers-reduced-motion: no-preference){ .ustart.ustdark{animation:ustIn .6s ease both} @keyframes ustIn{from{background:var(--bg)}to{background:#0C2127}} .ustart.ustdark .ustpair{animation:aIn .6s ease .15s both} }
