@@ -23,7 +23,7 @@
       const o = window.rlMatch; window.rlMatch = x => o(x) && (!window.isVett() || window.vettMine(x)); window.rlMatch.__vett = true;
     }
     if (window.kindOn && !window.kindOn.__vett) {
-      const o = window.kindOn; window.kindOn = k => o(k) && (!window.isVett() || ["tima", "kostn", "fund"].includes(k)); window.kindOn.__vett = true;
+      const o = window.kindOn; window.kindOn = k => o(k) && (!window.isVett() || ["tima"].includes(k)); window.kindOn.__vett = true;
     }
   };
   wrap(); document.addEventListener("DOMContentLoaded", wrap); setTimeout(wrap, 0);

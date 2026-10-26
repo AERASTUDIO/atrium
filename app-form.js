@@ -71,7 +71,7 @@ function openNewWin(){if(!DETAIL) return; window.open(location.pathname+location
 function ctxProj(){if(!DETAIL) return null; const i=DETAIL.indexOf(":"),t=DETAIL.slice(0,i),id=DETAIL.slice(i+1);
   if(t==="verk") return {p:findProj(id)}; if(t==="sub"){const r=findSub(id); return r&&{p:r.p,u:r.u};} if(t==="fund"){const f=findFund(id); return {p:fundProj(f)};}
   if(t==="skjal") return {p:skjalProj(findSkjal(id))}; return null;}
-const projOpts=(all)=>{const c=ctxProj()?.p; const ps=verkefni().slice().sort((a,b)=>(isDone(a)-isDone(b))||b.nr.localeCompare(a.nr)).filter(p=>all||!isDone(p));
+const projOpts=(all)=>{const c=ctxProj()?.p; const vt=window.isVett&&isVett(); const ps=verkefni().slice().sort((a,b)=>(isDone(a)-isDone(b))||b.nr.localeCompare(a.nr)).filter(p=>(all&&!vt)||!isDone(p)).filter(p=>!vt||window.vettVerk(p)); /* 2.100.0: vettvangur sér aðeins sín verk */
   const o=p=>`<option value="${esc(p.id)}"${c&&c.id===p.id?" selected":""}>${esc(p.nafn)}</option>`;
   const a=ps.filter(p=>!isDone(p)), d=ps.filter(p=>isDone(p));
   return a.map(o).join("")+(d.length?`<optgroup label="Lokið">${d.map(o).join("")}</optgroup>`:"");};
@@ -103,7 +103,7 @@ function enhanceForm(){
 function drawForm(){
   const T=Object.fromEntries(Object.entries({tima:"Tími",fund:"Fundur",undir:"Undirverk",verk:"Verkefni",vsk:"Viðskiptavinur"}).filter(([k])=>kindOn(k)));
   // Pakkaval (2.21.3): Pöntun og Tilboð líka í „+ Nýtt“ – opna eigin form
-  if(window.ORG?.pakkaval){ if(ON("pantanir")&&window.FAB_EXT?.pantanir) T.xpontun="Pöntun"; if(window.tbOK&&tbOK()&&window.FAB_EXT?.ltilbod) T.xtilbod="Tilboð"; }
+  if(window.ORG?.pakkaval&&!(window.isVett&&isVett())){ if(ON("pantanir")&&window.FAB_EXT?.pantanir) T.xpontun="Pöntun"; if(window.tbOK&&tbOK()&&window.FAB_EXT?.ltilbod) T.xtilbod="Tilboð"; }
   if(!kindOn(kind)) kind=Object.keys(T)[0]||"verk";
   let f="";
   const subseg=!ON("kostnadur")?"":`<div class="seg seg2" role="group" aria-label="Tegund skráningar"><button type="button" data-k2="tima" aria-pressed="${kind==="tima"}">Vinnutími</button><button type="button" data-k2="kostn" aria-pressed="${kind==="kostn"}">Útlagður kostnaður</button></div>`;
@@ -120,10 +120,10 @@ function drawForm(){
     <label>Staða<select id="f-status">${DSTAT.map(s=>opt(s,STL[s],"Not started")).join("")}</select></label></div>
     <label>Verkefni<select id="f-proj"><option value="">Ekkert</option>${projOpts(true)}</select></label>
     <label>Efni<textarea id="f-note" placeholder="Valfrjálst"></textarea></label>`;
-  if(kind==="tima") f=`${subseg}<label>Verkefni<select id="f-proj">${projOpts(true)}<option value="">Ekkert verkefni (almennt)</option></select></label>
+  if(kind==="tima") f=`${window.isVett&&isVett()?"":subseg}<label>Verkefni<select id="f-proj">${projOpts(true)}${window.isVett&&isVett()?"":`<option value="">Ekkert verkefni (almennt)</option>`}</select></label>
     <label>Undirverk<select id="f-sub"></select></label>
     <label>Lýsing<input id="f-desc" required placeholder="Hvað var gert" value="${esc(PREFILL?.desc||"")}"></label>
-    ${!PREFILL?.timer&&window.taxtiSelect?taxtiSelect("f-taxti",""):""}
+    ${!PREFILL?.timer&&window.taxtiSelect&&!(window.isVett&&isVett())?taxtiSelect("f-taxti",""):""}
     ${STARFS().length>1&&can("fjarmal")?`<label>Starfsmaður<select id="f-starf">${STARFS().map(x=>`<option value="${esc(x.sk)}"${x.sk===ME()?" selected":""}>${esc(x.nafn)}</option>`).join("")}</select></label>`:""}
     ${PREFILL?.timer?"":`${dayPick}
     <div class="two"><label>Frá<input id="f-from" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${esc(PREFILL?.fra||"")}"></label><label>Til<input id="f-to" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${esc(PREFILL?.til||"")}"></label></div>`}

@@ -43,6 +43,7 @@
     if (tilbodOn()) { tbAll().filter(T => T.bidur && !["Samþykkt", "Hafnað"].includes(T.stada) && (!window.tbMine || tbMine(T))).forEach(T => row(`tbst:${esc(T.id)}:Samþykkt`, `${esc(T.bidur.nafn || "Viðskiptavinur")} samþykkti tilboð ${esc(T.nr)} – staðfesta`, G("tilbod"))); }
     if (tilbodOn()) { const old = tbAll().filter(T => T.stada === "Sent" && daysTo(T.sent || T.dags) <= -7);
       if (old.length) row(`tab:${!window.ORG?.pakkaval && (old[0].deild || "leiga") === "sala" ? "stilbod" : "ltilbod"}`, old.length === 1 ? `Tilboð ${esc(old[0].nr)} bíður svars í ${-daysTo(old[0].sent || old[0].dags)} daga` : `${old.length} tilboð bíða svars í meira en viku`, G("tilbod")); }
+    if (window.vtBidaN) { const n = vtBidaN(); if (n) row("vtsta", n === 1 ? "1 tími bíður staðfestingar" : `${n} tímar bíða staðfestingar`, G("timar")); }
     if (fjOn()) {
       const ob = window.rkUnbilled ? [...verkefni().map(p => p.id), null].map(k => rkUnbilled(k)) : [];
       const n = ob.filter(x => sumT(x.es) >= 1 || sumK(x.ks)).length; if (n) row("tab:trk", `Óreikningsfærðir tímar í ${n} ${n === 1 ? "verkefni" : "verkefnum"}`, G("fjarmal"));

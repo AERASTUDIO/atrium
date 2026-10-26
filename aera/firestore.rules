@@ -96,7 +96,18 @@ service cloud.firestore {
     function ownWrite() { return fjarmal() || (active()
       && (resource == null || resource.data.eigandi == em())
       && (request.resource == null || request.resource.data.eigandi == em())); }
-    match /timar/{id}     { allow read: if ownRead(); allow write: if ownWrite(); }
+    // 2.100.0: tímar vettvangsnotanda (vett: true) bíða staðfestingar. Vettvangur getur hvorki staðfest né breytt staðfestum tíma;
+    // allir á skrifstofu (skrif()) lesa vettvangstíma og mega aðeins bæta við stadfest eða hafnad (vett-ui.js).
+    function vNy() { return request.resource.data.get("vett", false) == true && request.resource.data.get("stadfest", null) == null
+      && (request.resource.data.get("hafnad", null) == null || (resource != null && request.resource.data.get("hafnad", null) == resource.data.get("hafnad", null))); }
+    match /timar/{id} {
+      allow read: if ownRead() || (skrif() && resource.data.vett == true);
+      allow create: if ownWrite() && (!vett() || vNy());
+      allow update: if (ownWrite() && (!vett() || (resource.data.get("stadfest", null) == null && vNy())))
+        || (skrif() && resource.data.get("vett", false) == true && resource.data.get("stadfest", null) == null
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["stadfest", "hafnad", "breytt_af", "breytt_t"]));
+      allow delete: if ownWrite() && (!vett() || resource.data.get("stadfest", null) == null);
+    }
     match /kostnadur/{id} { allow read: if ownRead(); allow write: if ownWrite(); }
 
     // Spjall (frá 1.4.0): rásin "almennt" sjá allir virkir; bein skilaboð (ras "dm:…") aðeins aðilarnir tveir.

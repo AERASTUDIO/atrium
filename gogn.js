@@ -55,6 +55,8 @@
         if (!x.id) x.id = genIdG();
         const o = old.get(x.id);
         // 2.98.0: pantanir bera lista yfir starfsfólk (menn) svo vettvangsnotendur fái aðeins sínar (firestore.rules)
+        // 2.100.0: tímar vettvangsnotanda bíða staðfestingar (vett-ui.js); breyting á hafnaðri færslu sendir hana aftur í staðfestingu
+        if (c.k === "timar" && window.isVett && window.isVett() && (!o || J(o) !== J(x))) { x.vett = true; if (o) delete x.hafnad; }
         if (c.k === "pantanir" && window.pnMenn) { const m = window.pnMenn(x); if (m && J(m) !== J(x.menn || null)) x.menn = m; }
         if (!o) {
           if (x.stofnad_af == null) x.stofnad_af = email; if (x.stofnad_t == null) x.stofnad_t = t;
