@@ -1340,3 +1340,7 @@ body.pv.ui1 #leitres .viewtitle:first-child{margin-top:6px}
 .ustwd{width:190px;height:auto;display:block}
 .ustpair .ustsep{width:1px;height:96px;align-self:center;background:var(--line,#D5D9DB);margin:0 32px}
 .ustco2{height:96px;width:auto;max-width:220px;object-fit:contain;display:block}
+/* 2.93.5: upphafsskjár með merki fyrirtækis í sömu litum og innskráningin */
+.ustart.ustdark{background:#121416}
+.ustart.ustdark .ustpair .ustsep{background:rgba(255,255,255,.18)}
+.ustart.ustdark .uver{color:#93A0AD}
