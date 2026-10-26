@@ -1,5 +1,5 @@
 // Notendur og réttindi (app/notendur).
-// Hver notandi skráir sig inn með Microsoft-aðgangi @aerastudio.is. Admin bætir notendum við, velur hlutverk og gerir óvirka.
+// Hver notandi skráir sig inn með Microsoft-aðgangi fyrirtækisins (@lén) – eða sem gestur með eigið netfang (2.99.1, t.d. verktakar). Admin bætir notendum við, velur hlutverk og gerir óvirka.
 // Hlutverk eru listi heimilda (ROLES) – nýrri hömlu er bætt við með einni línu hér og athugun `can("…")` þar sem við á.
 // Athugið: það sem appið felur á skjánum er ekki vörn. Raunveruleg vörn er í firestore.rules.
 (function () {
@@ -62,7 +62,7 @@
         ${u.virkur ? "" : `<button type="button" class="mini" data-act="nudel:${esc(u.email)}" aria-label="Eyða notanda">✕</button>`}
       </div></div>`;
     return `<div class="viewtitle">Notendur</div>
-    <p class="hint" style="margin:0 0 8px">Starfsmenn skrá sig inn með Microsoft-aðgangi @${DOMAIN}. Bættu notanda við hér <b>og</b> í Entra (Enterprise apps › ${esc(ORG.ms.appNafn || "Atrium")} › Users and groups).</p>
+    <p class="hint" style="margin:0 0 8px">Starfsmenn skrá sig inn með Microsoft-aðgangi @${DOMAIN}. Bættu notanda við hér <b>og</b> í Entra (Enterprise apps › ${esc(ORG.ms.appNafn || "Atrium")} › Users and groups). Verktakar og aðrir utan fyrirtækisins nota eigið netfang: bjóddu þeim fyrst sem gesti í Entra (Users › Invite external user).</p>
     ${list.length ? list.map(row).join("") : '<div class="empty">Engir notendur skráðir.</div>'}
     <div class="two" style="margin-top:12px"><label>Netfang<input id="nu-email" type="email" placeholder="nafn@${DOMAIN}" autocomplete="off"></label><label>Nafn<input id="nu-nafn" type="text" placeholder="Fullt nafn"></label></div>
     <div class="two"><label>Skammstöfun<input id="nu-sk" type="text" placeholder="T.d. JJ" maxlength="4"></label>
@@ -103,7 +103,7 @@
       <div class="fklist">${P.map(row).join("")}</div>
       <div class="fkhelp"><p><b>Hlutverk:</b> <b>Admin</b> stýrir fólki og stillingum. <b>Bókari</b> sér fjármál (reikninga, tíma og kostnað allra). <b>Starfsmaður</b> vinnur í verkefnum, tímum og gögnum.</p>
         <p><b>Án innskráningar:</b> manneskja sem ekki skráir sig inn sjálf (t.d. verktaki) en tímar eru skráðir á. „Gefa aðgang“ bætir við netfangi svo hún geti skráð sig inn.</p>
-        <p>Innskráning er með Microsoft-aðgangi @${esc(DOMAIN)}. Nýr notandi þarf líka að vera í Entra (Enterprise apps › ${esc(ORG.ms?.appNafn || "Atrium")} › Users and groups). Óvirkur notandi kemst ekki inn en tímarnir hans haldast.</p></div>`;
+        <p>Innskráning er með Microsoft-aðgangi @${esc(DOMAIN)} – eða eigin netfangi fyrir gesti sem boðnir hafa verið í Entra (Users › Invite external user). Nýr notandi þarf líka að vera í Entra (Enterprise apps › ${esc(ORG.ms?.appNafn || "Atrium")} › Users and groups). Óvirkur notandi kemst ekki inn en tímarnir hans haldast.</p></div>`;
   };
   // Gluggi: bæta við / breyta / gefa aðgang
   function dlg(title, x, mode) {
@@ -131,7 +131,7 @@
       if (!nafn) return err("Skráðu nafn."); if (!s2) return err("Skráðu skammstöfun.");
       const taken = nuUsers().some(y => y.sk === s2 && (!u || lc(y.email) !== lc(u.email))) || (tr(() => STARFS(), [])).some(y => y.sk === s2 && y.sk !== x?.sk);
       if (taken) return err(`Skammstöfunin ${s2} er þegar í notkun.`);
-      if (hasAcc && mode !== "edit") { if (!/^[^@\s]+@[^@\s]+$/.test(e)) return err("Skráðu gilt netfang."); if (!window.AERA_DEMO && !e.endsWith("@" + DOMAIN)) return err(`Netfangið þarf að enda á @${DOMAIN}.`); if (nuUsers().some(y => lc(y.email) === e)) return err("Þetta netfang er þegar skráð."); }
+      if (hasAcc && mode !== "edit") { if (!/^[^@\s]+@[^@\s]+$/.test(e)) return err("Skráðu gilt netfang."); if (nuUsers().some(y => lc(y.email) === e)) return err("Þetta netfang er þegar skráð."); }
       const now = new Date().toISOString(), oldSk = x?.sk;
       try {
         if (mode === "edit" && u) { await nuSave(N => { Object.assign(N[lc(u.email)], { nafn, sk: s2, breytt: now }); }); }
@@ -158,7 +158,6 @@
       const e = lc(document.getElementById("nu-email").value), nafn = document.getElementById("nu-nafn").value.trim();
       const sk = document.getElementById("nu-sk").value.trim().toUpperCase(), hl = document.getElementById("nu-role").value;
       if (!/^[^@\s]+@[^@\s]+$/.test(e)) return toast("Skráðu gilt netfang.");
-      if (!window.AERA_DEMO && !e.endsWith("@" + DOMAIN)) return toast(`Netfangið þarf að enda á @${DOMAIN}.`);
       if (!nafn) return toast("Skráðu nafn.");
       if (!sk) return toast("Skráðu skammstöfun.");
       if (nuUsers().some(x => lc(x.email) === e)) return toast("Þessi notandi er þegar skráður.");
