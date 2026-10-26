@@ -683,7 +683,8 @@
   /* ---------- Svið (Stillingar › Svið): heiti sviðanna; Leiga og Sala fylgja einingunum ---------- */
   window.svidHeiti = k => CFG().svid?.[k]?.heiti || k;
   // Svið sem fyrirtækið notar (2.35.0): Leiga/Sala aðeins ef einingin er virk; hvert svið má slökkva á í Stillingar › Svið
-  window.svidOn = k => CFG().svid?.[k]?.off !== true && (k === "Leiga" ? ON("leiga") : k === "Sala" ? ON("sala") : true);
+  window.svidOn = k => (CFG().svid?.[k]?.off ?? window.ORG?.svid?.[k]?.off) !== true &&   /* 2.96.2: sjálfgefið í uppsetningu (ORG.svid), admin getur breytt */
+    (k === "Leiga" ? ON("leiga") : k === "Sala" ? ON("sala") : true);
   { const SVTAB = { lverk: "Leiga", sverk: "Sala", tverk: "Þjónusta", tbl: "Leiga", tbs: "Sala", tbt: "Þjónusta", pnl: "Leiga", pns: "Sala", pnt: "Þjónusta", vskl: "Leiga", vsks: "Sala", vskt: "Þjónusta", lvorur: "Leiga", svorur: "Sala", vvinna: "Þjónusta" };
     const t0 = window.tabOn; const hasS = () => { try { return typeof S !== "undefined" && !!S; } catch (e) { return false; } };
     window.tabOn = t => (!t0 || t0(t)) && (!SVTAB[t] || !hasS() || svidOn(SVTAB[t]));
