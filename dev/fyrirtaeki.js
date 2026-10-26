@@ -47,7 +47,7 @@ window.ORG = {
     storageBucket: "atrium-499a2.firebasestorage.app",
     messagingSenderId: "994735129710",
     appId: "1:994735129710:web:659e01ea77443ad794127f",
-    // Ýtitilkynningar (2.64.0): opinber VAPID-lykill (sama par í öllum uppsetningum; einkalykillinn er aðeins í Firebase og Atrium/Lykill)
+    // Ýtitilkynningar (2.64.0): opinber VAPID-lykill. Hver uppsetning hefur sitt eigið par (2.97.1); einkalykillinn er aðeins hjá Google.
     vapidKey: "BIyM49LUBM7hm4PsnuI2MJivW6Vl9m2jSQmD_0d0wjneXHJLhTQHMnbXuTMXJ1qMnZlAoTudyofK0xdeMbuzwtI"
   }
 };

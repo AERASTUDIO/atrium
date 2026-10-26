@@ -45,6 +45,8 @@ window.ORG = {
     projectId: "atrium-party",
     storageBucket: "atrium-party.firebasestorage.app",
     messagingSenderId: "922712024534",
-    appId: "1:922712024534:web:9d78f780b4a67dfba1f077"
+    appId: "1:922712024534:web:9d78f780b4a67dfba1f077",
+    // Web Push (ýtitilkynningar, 26.10.2026): opinber VAPID-lykill úr Firebase › Cloud Messaging. Einkalykillinn er aðeins hjá Google.
+    vapidKey: "BHd-lVK3cEVXaJ2D71UbK4LrYYs4QZDTVKaye0ybXVaO6wxCQdK4VkImAyr6xzGrNYW8EGesAFoO9GhRK3OPKxs"
   }
 };

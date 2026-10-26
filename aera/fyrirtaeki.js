@@ -73,7 +73,9 @@ window.ORG = {
     projectId: "aera-app-cfdb3",
     storageBucket: "aera-app-cfdb3.firebasestorage.app",
     messagingSenderId: "476747764052",
-    appId: "1:476747764052:web:396030a039ee790aeb78c1"
+    appId: "1:476747764052:web:396030a039ee790aeb78c1",
+    // Web Push (ýtitilkynningar, 26.10.2026): opinber VAPID-lykill úr Firebase › Cloud Messaging. Einkalykillinn er aðeins hjá Google.
+    vapidKey: "BIbkWvoSfbAC1cavWbErR-NPm1EgQgLu5T1yAZpSknKTEvbzNJqmE8Q0-kIsuNlvkfSHwyCx_ljqkMAGqgI0xBY"
   },
   // Þjónusta og sniðmát undirverka AERA (fært úr kjarnanum 2.16.0 – áður sjálfgefið fyrir allar uppsetningar)
   thjonusta: ["Teiknivinna", "Lýsing", "Almennt", "Hönnun & ráðgjöf", "Sala"],
