@@ -826,6 +826,16 @@
   const hasTeg = (T, x) => (T.linur || []).some(l => l.teg === SVT[x]) || (!!T.pontun && (T.svid || []).includes(x));
   const mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
 
+
+  // 2.92.1: listi neðst á yfirlitum – allt opið, raðað eftir því sem er næst á dagskrá (seint efst)
+  const nextList = (title, items, more) => { // items: [{ attr, when, what, nr, heiti, who, st, dark }]
+    const xs = items.slice().sort((a, b) => (a.when ? 0 : 1) - (b.when ? 0 : 1) || String(a.when || "").localeCompare(String(b.when || "")));
+    const dl = w => { if (!w) return "–"; const n = daysTo(w); return n === 0 ? "Í dag" : n === 1 ? "Á morgun" : fmtD(w); };
+    const body = !xs.length ? `<div class="uempty">Ekkert opið.</div>` : WIDE()
+      ? wl("130px 120px 90px minmax(0,1.4fr) minmax(0,1fr) 110px 130px", wcols(["Næst", "", "Nr.", "Heiti", "Viðskiptavinur", "Stofnandi", "Staða"])
+        + xs.map(x => wrow(x.attr, [wc(`<b${x.when && daysTo(x.when) < 0 ? ' class="t-red"' : ""}>${E(dl(x.when))}</b>`), wc(E(x.what || "")), wc(E(x.nr || "")), wc(E(x.heiti || ""), "t"), wc(E(x.who || "")), wc(E(x.sf || "")), wc(pill(x.st, x.dark), "r")])).join(""))
+      : xs.map(x => `<a class="uhrow" ${x.attr}><span><b>${E((x.nr ? x.nr + " " : "") + (x.heiti || ""))}</b><small>${E([dl(x.when) + (x.what ? " · " + x.what : ""), x.who].filter(Boolean).join(" · "))}</small></span>${pill(x.st, x.dark)}</a>`).join("");
+    return `<section class="card ucard uhc unext"><div class="uhch"><h3>${E(title)} <span class="ucnt">${xs.length}</span></h3>${more ? `<a href="#" data-act="tab:${more}">Sjá allt →</a>` : ""}</div>${body}</section>`; };
   U.verkyf = function () {
     const ps = verkefni().filter(p => !isDone(p)), ti = isoD(today);
     const late = ps.filter(p => p.skiladagur && p.skiladagur < ti), soon = ps.filter(p => p.skiladagur && daysTo(p.skiladagur) >= 0 && daysTo(p.skiladagur) <= 7).sort((a, b) => a.skiladagur.localeCompare(b.skiladagur));
@@ -836,7 +846,11 @@
       + svCards(x => { const xs = ps.filter(p => svidOf(p).includes(x)); return { n: xs.length, t: xs.length === 1 ? "verkefni í gangi" : "verkefni í gangi" }; }, { Leiga: "lverk", Sala: "sverk", "Þjónusta": "tverk" })
       + `<div class="udash">${dcard("Skil framundan", [...late, ...soon].map(p => drow(go("verk", "verk:" + p.id), E(p.nr + " " + (p.stutt || "")), E((p.vidskiptavinur || "") + " · " + fmtD(p.skiladagur)), daysTo(p.skiladagur) < 0 ? "Seint" : p.stada, daysTo(p.skiladagur) < 0)), "verk", "Engin skil næstu 7 daga.")}`
       + dcard("Undirverk framundan", subs.map(({ p, u }) => drow(go("verk", "verk:" + p.id), E(u.heiti || u.nr), E(p.nr + " · skil " + fmtD(u.skiladagur)), STL[u.stada] || u.stada, u.stada === "In progress")), "", "Engin opin undirverk.")
-      + dcard("Eftir stöðu", st0.map(x => { const n = ps.filter(p => p.stada === x.n).length; return `<div class="ubr"><span>${E(x.n)}</span><div class="ubar"><i style="width:${ps.length ? n / ps.length * 100 : 0}%"></i></div><span>${n}</span></div>`; }), "verk") + `</div>`;
+      + dcard("Eftir stöðu", st0.map(x => { const n = ps.filter(p => p.stada === x.n).length; return `<div class="ubr"><span>${E(x.n)}</span><div class="ubar"><i style="width:${ps.length ? n / ps.length * 100 : 0}%"></i></div><span>${n}</span></div>`; }), "verk") + `</div>`
+      + nextList("Öll verkefni í gangi – næst efst", ps.map(p => { const d10 = x => x ? String(x).slice(0, 10) : "";
+        const ev = [[d10(p.skiladagur), "Skil"], [d10(p.vidburdur), "Viðburður"], [d10(p.timabilFra), "Hefst"], [d10(p.timabilTil), "Lýkur"], ...(p.undirverk || []).filter(u => u.stada !== "Done" && u.skiladagur).map(u => [d10(u.skiladagur), "Undirverk"])].filter(x => x[0]);
+        const late = ev.filter(x => x[0] < ti && x[1] === "Skil").sort((a, b) => a[0].localeCompare(b[0]))[0], up = ev.filter(x => x[0] >= ti).sort((a, b) => a[0].localeCompare(b[0]))[0], n = late || up;
+        return { attr: go("verk", "verk:" + p.id), when: n?.[0] || "", what: n?.[1] || "", nr: p.nr, heiti: p.stutt || p.nafn, who: p.vidskiptavinur || "", sf: (p.starfsmenn || []).map(sk => (STARFS().find(x => x.sk === sk)?.nafn || sk).split(" ")[0]).join(", "), st: late ? "Seint" : p.stada, dark: !!late }; }), "verk");
   };
 
   const vskSvid = c => { const api = window.salaAPI, out = new Set(), mine = o => String(o.vskId || "") === String(c.id) || (!o.vskId && o.vidskiptavinur === c.name);
@@ -876,7 +890,9 @@
       + svCards(x => { const xs = all.filter(P => !["Skilað", "Lokið"].includes(P.stada) && hasTeg(P, x)); return { n: xs.length, t: "opnar pantanir" }; }, { Leiga: "pnl", Sala: "pns", "Þjónusta": "pnt" })
       + `<div class="udash">${dcard("Nýjar – þarf að staðfesta", ny.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · " + E(fmtD(P.fra)), "Ný", true)), "pantanir", "Engar nýjar pantanir.")}`
       + dcard("Afhendingar næstu 7 daga", wk.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · " + E(fmtD(P.fra)), P.stada)), "pantanir", "Engar afhendingar næstu 7 daga.")
-      + dcard("Bíða skila", skil.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · skil " + E(fmtD(P.til || P.fra)), (P.til || P.fra) < ti ? "Seint" : "Úti", (P.til || P.fra) < ti)), "pantanir", "Ekkert úti.") + `</div>`;
+      + dcard("Bíða skila", skil.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · skil " + E(fmtD(P.til || P.fra)), (P.til || P.fra) < ti ? "Seint" : "Úti", (P.til || P.fra) < ti)), "pantanir", "Ekkert úti.") + `</div>`
+      + nextList("Allar opnar pantanir – næst efst", all.filter(P => !["Skilað", "Lokið"].includes(P.stada)).map(P => { const ut = P.stada === "Afhent", w = String((ut ? (P.til || P.fra) : P.fra) || "").slice(0, 10);
+        return { attr: go("pantanir", "tb:" + P.id), when: w, what: ut ? "Skil" : "Afhending", nr: P.nr, heiti: P.heiti && P.heiti !== "Pöntun" ? P.heiti : "", who: P.vidskiptavinur || P.tengilidur || "", sf: window.tbStofnandi ? tbStofnandi(P) : "", st: ut && w && w < ti ? "Seint" : P.stada, dark: (ut && w && w < ti) || P.stada === "Ný" }; }), "pantanir");
   };
 
   U.tbyf_gamalt = function () {
