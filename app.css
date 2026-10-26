@@ -1322,3 +1322,14 @@ body.pv.ui1 .leitbox{position:static;padding:12px 0 8px;background:none}
 body.pv.ui1 .leitbox .leitf{margin:0;padding:0}
 body.pv.ui1 #leitres .viewtitle:first-child{margin-top:6px}
 .unext{margin-top:16px}.unext .uwl{margin:4px -4px 0}
+/* 2.93.1: upphafsskjár – merki fyrirtækis jafnhátt Atrium-merkinu */
+.ustatr,.ustco{display:flex;flex-direction:column;align-items:center;gap:34px}
+.ustrow{display:flex;align-items:flex-start;gap:64px}
+.ustsep{width:1px;align-self:stretch;background:var(--line,#D5D9DB);margin:0 -8px}
+.ustco img{height:205px;width:auto;max-width:300px;object-fit:contain;display:block}
+/* 2.93.1: merkin efst í vinstri stiku jafnhá – merki fyrirtækisins og Atrium-táknið fá sömu hæð */
+@media (min-width:1024px){
+  html.hasco body.pv.ui1 .side .colog{height:30px;max-width:110px}
+  html.hasco body.pv.ui1 .side .cobrand .logo{height:30px!important;width:auto!important;aspect-ratio:82/24;background-size:contain!important;background-repeat:no-repeat;background-position:center}
+  html.hasco body.pv.ui1 .side .cosep{height:30px}
+}

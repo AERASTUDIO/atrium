@@ -281,6 +281,11 @@ body.simi1.sidesheet #view{margin-right:460px}
 body.simi1.sidesheet .split .splist{display:none}
 body.simi1.sidesheet .split{grid-template-columns:1fr!important}
 
+/* app.css: @media (min-width:1024px) */
+html.hasco body.pv.ui1 .side .colog{height:30px;max-width:110px}
+html.hasco body.pv.ui1 .side .cobrand .logo{height:30px!important;width:auto!important;aspect-ratio:82/24;background-size:contain!important;background-repeat:no-repeat;background-position:center}
+html.hasco body.pv.ui1 .side .cosep{height:30px}
+
 /* brand.css: @media (min-width:1024px) */
 body.simi1 nav.mbar.tbar{display:none}
 

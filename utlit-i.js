@@ -350,7 +350,10 @@
     // Atrium-merkið sem vírmynd (sömu fletir og í merkinu, aðeins útlínur), kyrrt
     const P = ["0,0 72,0 58,14 0,14", "0,14 58,14 72,28 0,28", "72,0 72,28 58,14", "100,0 100,72 86,58 86,0", "86,0 86,58 72,72 72,0", "100,72 72,72 86,58",
       "100,100 28,100 42,86 100,86", "100,86 42,86 28,72 100,72", "28,100 28,72 42,86", "0,100 0,28 14,42 14,100", "14,100 14,42 28,28 28,100", "0,28 28,28 14,42"];
-    return `<div class="ustart"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div><div class="uver">Atrium ${esc(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</div></div>`;
+    // 2.93.1: merki fyrirtækisins við hlið Atrium-merkisins, jafnhátt (ljóst/dökkt eftir þema)
+    const L = (window.ORG && (ORG.merki || ORG.logo)) || {}, dk = document.documentElement.dataset.theme === "dark", co = ORG.nafn !== "Atrium" && (dk ? (L.dokk || L.ljos) : (L.ljos || L.dokk));
+    const atr = `<div class="ustatr"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div></div>`;
+    return `<div class="ustart">${co ? `<div class="ustrow">${atr}<span class="ustsep" aria-hidden="true"></span><div class="ustco"><img src="${esc(co)}" alt="${esc(ORG.nafn || "")}"><div class="u3name">&nbsp;</div></div></div>` : atr}<div class="uver">Atrium ${esc(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</div></div>`;
   }
 
 
