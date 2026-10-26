@@ -240,7 +240,9 @@
      Lögformlegur reikningur (rg. 505/2013, lög 145/1994: samfelld númeraröð, ekki eytt, yfirlýsing og kerfislýsing)
      er gefinn út í bókhaldskerfi. Á meðan ekkert bókhaldskerfi er tengt (Stillingar › Reikningar › Bókhaldskerfi)
      býr Atrium til REIKNINGSDRÖG: grunn að reikningi sem er færður í bókhaldskerfið. Drögum er ekki eytt heldur ógilt. */
-  const DROG = () => !RK().bokhald;
+  const DROG = () => true; // 2.92.0: reikningur í Atrium er alltaf drög – lögformlegur reikningur er gefinn út í bókhaldskerfinu (handvirkt eða með tengingu)
+  const BK = () => RK().bokhald || "", DKON = () => BK() === "dk", DKC = () => ({ solumadur: "", lykill: "", mati: "", skilmali: "", stadgKt: "", stadgMati: "", stadgSkilmali: "", grId: "", grNafn: "", post: false, ...(RK().dk || {}) });
+  const BKS = { bidur: "Sendist í DK…", sent: "Í DK", villa: "Villa frá DK" };
   const TT = () => DROG() ? "Reikningsdrög" : "Reikningur";
   const NRL = R => (DROG() ? "Drög nr. " : "Reikningur nr. ") + R.nr;
   const DROG_TXT = "Reikningsdrög – ekki reikningur. Lögformlegur reikningur er gefinn út í bókhaldskerfi.";
@@ -389,8 +391,21 @@
   // Hvað vantar áður en reikningurinn getur farið sjálfvirkt í bókhald
   const vidbunadur = R => { const P = pakki(R), v = [];
     if (!R.stadgreitt && !ktOK(P.kaupandi.kt)) v.push("kennitölu greiðanda"); if (!ktOK(P.utgefandi.kt)) v.push("kennitölu seljanda (Stillingar › Reikningar)");
-    const nl = [...new Set(P.linur.filter(l => !l.lykill).map(l => (FLOKKAR.find(f => f[0] === l.flokkur) || [, "óflokkaðar línur"])[1].toLowerCase()))]; if (nl.length) v.push("tekjulykil fyrir " + nl.join(", "));
+    if (DKON()) { const d = DKC(); if (R.stadgreitt && !ktOK(P.kaupandi.kt) && !d.stadgKt) v.push("staðgreiðsluviðskiptavin í DK (Stillingar › Reikningar › DK)"); if (R.stadgreitt && !d.grId) v.push("greiðslumáta staðgreiðslu í DK"); }
+    const nl = [...new Set(P.linur.filter(l => !l.lykill).map(l => (FLOKKAR.find(f => f[0] === l.flokkur) || [, "óflokkaðar línur"])[1].toLowerCase()))]; if (nl.length) v.push((DKON() ? "vörunúmer í DK fyrir " : "tekjulykil fyrir ") + nl.join(", "));
     return v; };
+  // 2.92.0: staða í bókhaldi og „Senda í DK“ (netþjónninn – fallið bokhaldDk – sér um sendinguna; lykillinn er í Secret Manager)
+  window.rkBkHTML = function (R) {
+    if (!R || OGILT(R)) return ""; const b = R.bokhald || {}, fj = FJ(), v = vidbunadur(R);
+    if (DKON()) {
+      if (b.stada === "sent") return `<div class="rkvb ok"><b>✓ Í DK</b> – reikningur nr. <b>${esc(String(b.nr || R.bokhaldNr || ""))}</b>${b.dags ? " · " + esc(dIS(String(b.dags).slice(0, 10))) : ""}${b.post ? " · sendur greiðanda úr DK" : ""}</div>`;
+      if (b.stada === "bidur") return `<div class="rkvb"><b>Sendist í DK…</b> Netþjónninn stofnar viðskiptavin ef þarf og reikninginn í DK.</div>`;
+      const err = b.stada === "villa" ? `<b>Villa frá DK:</b> ${esc(b.villa || "óþekkt")}<br>` : "";
+      return `<div class="rkvb ${v.length || err ? "no" : "ok"}">${err}${v.length ? `<b>Ekki tilbúið:</b> vantar ${esc(v.join(" og "))}.` : `<b>✓ Tilbúið</b> – greiðandi og allar línur með VSK og vörunúmeri í DK.`}
+        ${fj && !v.length ? `<button type="button" class="btn sm primary" data-act="rkdk:${esc(R.id)}" style="margin-left:6px">${err ? "Reyna aftur" : "Senda í DK"}</button>` : ""} <button type="button" class="pflink" data-act="rkcsv:${esc(R.id)}">CSV</button></div>`;
+    }
+    return `<div class="rkvb ${v.length ? "no" : "ok"}">${v.length ? `<b>Ekki tilbúið fyrir bókhaldstengingu:</b> vantar ${esc(v.join(" og "))}.` : `<b>✓ Tilbúið fyrir bókhald</b> – greiðandi með kennitölu og allar línur með VSK og tekjulykli.`} <button type="button" class="pflink" data-act="rkcsv:${esc(R.id)}">Sækja fyrir bókhald (CSV)</button></div>`;
+  };
   function csvOf(R) { const P = pakki(R), q = x => `"${String(x ?? "").replace(/"/g, '""')}"`, n = x => String(x ?? "").replace(".", ",");
     const H = ["Atrium nr.", "Dags.", "Gjalddagi", "Kt. greiðanda", "Greiðandi", "Tilvísun", "Lýsing", "Magn", "Eining", "Einingaverð", "Upphæð án VSK", "VSK %", "VSK", "Tekjulykill", "Flokkur"];
     return "\ufeff" + [H.map(q).join(";"), ...P.linur.map(l => [P.atriumNr, P.dags, P.gjalddagi, P.kaupandi.kt, P.kaupandi.nafn, P.tilvisun, l.lysing, n(l.magn), l.eining, l.einingaverd, l.upphaed, n(l.vsk), l.vskUpphaed, l.lykill, l.flokkur].map(q).join(";"))].join("\r\n"); }
@@ -403,10 +418,10 @@
       <p class="sub">${ps.map(projLink).join(", ")}${ps.length ? " · " : ""}${(R.pontunIds || []).map(i => PNs().find(x => x.id === i)).filter(Boolean).map(x => `<a class="plink" data-open="tb:${esc(x.id)}">${esc(x.nr)}</a>`).join(", ")}${(R.pontunIds || []).length ? " · " : ""}${esc(kr(R.tot))} með VSK</p>
       <div class="links"><button type="button" class="btn primary" data-act="rkpdf:${esc(R.id)}">Sækja PDF</button><button type="button" class="btn" data-act="rkpv:${esc(R.id)}">Forskoða PDF</button>
         ${R.pdfUrl ? `<a class="btn" href="${esc(R.pdfUrl)}" target="_blank" rel="noopener">📁 Í ${ODN()}</a>` : on && FJ() ? `<button type="button" class="btn" data-act="rkod:${esc(R.id)}">Vista í OneDrive</button>` : ""}
-        ${on && FJ() ? `<button type="button" class="btn" data-act="rksend:${esc(R.id)}">✉ Senda${R.sent ? " aftur" : ""}</button>` : ""}<button type="button" class="btn" data-act="rkprint:${esc(R.id)}">Prenta</button><button type="button" class="btn" data-act="rkxlsx:${esc(R.id)}">Excel</button>
+        <button type="button" class="btn" data-act="rkprint:${esc(R.id)}">Prenta</button><button type="button" class="btn" data-act="rkxlsx:${esc(R.id)}">Excel</button>
         ${FJ() && !OGILT(R) ? `${DROG() ? `<button type="button" class="btn" data-act="rkbok:${esc(R.id)}">${R.bokhaldNr ? "Breyta númeri í bókhaldi" : "Skrá í bókhald"}</button>` : ""}<button type="button" class="btn" data-act="rkpaid:${esc(R.id)}">${greitt ? "Merkja ógreitt" : "✓ Merkja greitt"}</button><button type="button" class="btn danger" data-act="rkogilda:${esc(R.id)}">Ógilda</button>` : ""}</div>
       ${DROG() ? `<p class="hint" style="margin-top:8px">${esc(DROG_TXT)} Þegar reikningurinn hefur verið gefinn út þar: <b>Skrá í bókhald</b> og skráðu númerið.</p>` : ""}
-      ${!OGILT(R) && FJ() ? (() => { const v = vidbunadur(R); return `<div class="rkvb ${v.length ? "no" : "ok"}">${v.length ? `<b>Ekki tilbúið fyrir bókhaldstengingu:</b> vantar ${esc(v.join(" og "))}.` : `<b>✓ Tilbúið fyrir bókhald</b> – greiðandi með kennitölu og allar línur með VSK og tekjulykli.`} <button type="button" class="pflink" data-act="rkcsv:${esc(R.id)}">Sækja fyrir bókhald (CSV)</button></div>`; })() : ""}
+      ${FJ() ? rkBkHTML(R) : ""}
       <div class="invwrap">${invoiceHTML(R)}</div>
       ${R.pdfUrl ? `<p class="hint" style="margin-top:8px">PDF vistað í ${ODN()}: ${esc(ORG.od.reikningar.replace(/\//g, " › "))} › ${esc(String(R.dags || "").slice(0, 4))}.${on && FJ() ? ` <a class="plink" data-act="rkod:${esc(R.id)}">Vista aftur</a>` : ""}</p>` : ""}`;
   };
@@ -430,7 +445,7 @@
   window.rkStillingarHTML = function () {
     const r = RK(), f = (k, l, extra = "") => `<label>${l}<input id="rk-${k}" value="${esc(String(r[k] ?? ""))}" ${extra}></label>`;
     return `<div class="viewtitle">Reikningar</div>
-      <label>Bókhaldskerfi<select id="rk-bokhald"><option value="">Ekkert tengt – Atrium býr til reikningsdrög</option></select></label>
+      <label>Bókhaldskerfi<select id="rk-bokhald"><option value="">Ekkert tengt – drög færð handvirkt (CSV)</option><option value="dk"${r.bokhald === "dk" ? " selected" : ""}>DK (dkPlus)</option><option value="payday" disabled>Payday – kemur síðar</option></select></label>
       <p class="hint" style="margin:0 0 12px">Lögformlegir reikningar (samfelld númeraröð, ekki eytt, varðveittir í 7 ár) eru gefnir út í bókhaldskerfi. Á meðan ekkert er tengt eru reikningar í Atrium <b>reikningsdrög</b>: grunnur sem er færður í bókhaldskerfið, og númer reikningsins þar er skráð á drögin. Tenging við bókhaldskerfi (t.d. Payday eða DK) verður valmöguleiki hér.</p>
       <p class="hint" style="margin:0 0 8px">Upplýsingar um seljanda sem birtast á reikningum. PDF reikninga vistast í ${ODN()}: ${esc(ORG.od.reikningar.replace(/\//g, " › "))} › ár.</p>
       ${f("nafn", "Nafn seljanda")}
@@ -440,17 +455,28 @@
       ${f("banki", "Bankareikningur", 'placeholder="0000-26-000000"')}
       <div class="two">${f("timagjald", "Sjálfgefið tímagjald (kr./klst.)", 'inputmode="numeric"')}${f("vsk", "VSK %", 'inputmode="decimal"')}</div>
       <div class="two">${f("frestur", "Greiðslufrestur (dagar)", 'inputmode="numeric"')}${f("nastaNr", DROG() ? "Næsta númer draga" : "Næsta reikningsnúmer", 'inputmode="numeric"')}</div>
+      ${r.bokhald === "dk" ? (() => { const d = { ...(r.dk || {}) }, fd = (k, l, ph = "") => `<label>${l}<input id="rk-dk-${k}" value="${esc(String(d[k] ?? ""))}" placeholder="${esc(ph)}"></label>`;
+        return `<div class="viewtitle" style="margin-top:22px">DK (dkPlus)</div>
+        <p class="hint" style="margin:0 0 8px">„Senda í DK“ á reikningsdrögum stofnar viðskiptavin (eftir kennitölu) og sölureikning í DK. Aðgangslykillinn úr dkPlus er geymdur á netþjóninum (Secret Manager), aldrei í appinu. Gildin hér fást hjá bókara úr DK.</p>
+        <div class="two">${fd("solumadur", "Sölumaður (númer í DK)", "t.d. 1")}${fd("lykill", "Viðskiptamannaflokkur / lykill", "t.d. 1")}</div>
+        <div class="two">${fd("mati", "Greiðslumáti – reikningur", "t.d. MI")}${fd("skilmali", "Greiðsluskilmálar – reikningur", "t.d. 14")}</div>
+        <div class="two">${fd("stadgKt", "Staðgreiðsluviðskiptavinur (nr. í DK)", "notaður ef kennitölu vantar")}${fd("grId", "Greiðslumáti staðgreiðslu – auðkenni", "t.d. 10")}</div>
+        <div class="two">${fd("grNafn", "Greiðslumáti staðgreiðslu – heiti", "t.d. Posi")}${fd("stadgMati", "Greiðslumáti (Mode) staðgreiðslu", "t.d. ST")}</div>
+        <label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="rk-dk-post"${d.post ? " checked" : ""} style="width:auto"> DK sendir reikninginn á netfang greiðanda</label>`; })() : ""}
       <div class="viewtitle" style="margin-top:22px">Bókhaldsflokkar</div>
-      <p class="hint" style="margin:0 0 8px">Hver lína á reikningi fær flokk. Hér er VSK og tekjulykill (bókhaldslykill eða vörunúmer í bókhaldskerfinu) fyrir hvern flokk – sama hvort tengt verður við Payday eða DK. Autt VSK = VSK fyrirtækisins (${esc(String(r.vsk))} %).</p>
-      <div class="rkfl">${FLOKKAR.map(([k, l]) => { const f = (r.flokkar || {})[k] || {}; return `<div class="rkflr"><span>${esc(l)}</span><select id="rk-f-${k}-vsk" aria-label="VSK ${esc(l)}"><option value="">Sjálfgefið (${esc(String(r.vsk))} %)</option>${[24, 11, 0].map(v => `<option value="${v}"${f.vsk !== "" && f.vsk != null && +f.vsk === v ? " selected" : ""}>${v} %</option>`).join("")}</select><input id="rk-f-${k}-lykill" value="${esc(f.lykill || "")}" placeholder="Tekjulykill, t.d. 3100" aria-label="Tekjulykill ${esc(l)}"></div>`; }).join("")}</div>
+      <p class="hint" style="margin:0 0 8px">Hver lína á reikningi fær flokk. Hér er VSK og tekjulykill (bókhaldslykill eða vörunúmer í bókhaldskerfinu) fyrir hvern flokk – sama hvort tengt verður við Payday eða DK. Autt VSK = VSK fyrirtækisins (${esc(String(r.vsk))} %).${r.bokhald === "dk" ? " <b>Í DK ræður varan VSK-flokknum</b> – VSK hér verður að passa við VSK vörunnar í DK, svo upphæðir á drögum og í DK stemmi." : ""}</p>
+      <div class="rkfl">${FLOKKAR.map(([k, l]) => { const f = (r.flokkar || {})[k] || {}; return `<div class="rkflr"><span>${esc(l)}</span><select id="rk-f-${k}-vsk" aria-label="VSK ${esc(l)}"><option value="">Sjálfgefið (${esc(String(r.vsk))} %)</option>${[24, 11, 0].map(v => `<option value="${v}"${f.vsk !== "" && f.vsk != null && +f.vsk === v ? " selected" : ""}>${v} %</option>`).join("")}</select><input id="rk-f-${k}-lykill" value="${esc(f.lykill || "")}" placeholder="${r.bokhald === "dk" ? "Vörunúmer í DK" : "Tekjulykill, t.d. 3100"}" aria-label="${r.bokhald === "dk" ? "Vörunúmer í DK" : "Tekjulykill"} ${esc(l)}"></div>`; }).join("")}</div>
       <button type="button" class="btn" data-act="rkcfg" style="margin-top:8px">Vista upplýsingar</button>`;
   };
 
   window.rkAct = function (k, r) {
     const id = r.join(":");
-    if (["rknew", "rkpn", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
+    if (["rknew", "rkpn", "rkdk", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpn") { billOrders(id); return; }
+    if (k === "rkdk") { const R = findR(id); if (!R) return; const v = vidbunadur(R); if (v.length) return toast("Vantar: " + v.join(", "));
+      if (!confirm(`Senda drög ${R.nr} (${kr(R.tot)}) í DK?\n\nDK gefur út reikninginn með sínu númeri${DKC().post ? " og sendir hann greiðanda í tölvupósti" : ""}.`)) return;
+      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) q.bokhald = { kerfi: "dk", stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" }; }).then(() => toast("Sendist í DK…")); return; }
     if (k === "rkcsv") { const R = findR(id); if (!R) return; const b = new Blob([csvOf(R)], { type: "text/csv;charset=utf-8" }), a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fileBase(R) + " – bókhald.csv"; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("CSV sótt"); return; }
     if (k === "rkvb") { const R = findR(id); if (!R) return; const v = vidbunadur(R); toast(v.length ? "Vantar: " + v.join(", ") : "Tilbúið fyrir bókhald"); return; }
     if (k === "rkpdf") { const R = findR(id); if (R) downloadPdf(R); return; }
@@ -479,7 +505,8 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
     if (k === "rkcfg") { const g = x => (document.getElementById("rk-" + x)?.value || "").trim(), n = x => parseFloat(g(x).replace(",", ".")) || 0;
       const o = { nafn: g("nafn"), kt: g("kt"), vsknr: g("vsknr"), heimilisfang: g("heimilisfang"), netfang: g("netfang"), simi: g("simi"), banki: g("banki"), timagjald: parseKr(g("timagjald")), vsk: n("vsk"), frestur: Math.round(n("frestur")) || 14, nastaNr: Math.round(n("nastaNr")) || 1001, bokhald: g("bokhald") || null,
         flokkar: Object.fromEntries(FLOKKAR.map(([k]) => [k, { vsk: g("f-" + k + "-vsk"), lykill: g("f-" + k + "-lykill") }])) };
-      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o }; }).then(() => toast("Upplýsingar um seljanda vistaðar")); return; }
+      if (document.getElementById("rk-dk-solumadur")) o.dk = { ...Object.fromEntries(["solumadur", "lykill", "mati", "skilmali", "stadgKt", "grId", "grNafn", "stadgMati"].map(x => [x, g("dk-" + x)])), post: !!document.getElementById("rk-dk-post")?.checked };
+      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o }; }).then(() => { toast("Upplýsingar um seljanda vistaðar"); render(); }); return; }
   };
   window.rkPdfBytes = invoicePdf;
 })();

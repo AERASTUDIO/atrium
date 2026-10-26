@@ -471,3 +471,74 @@ exports.pontunStadfestPostur = onDocumentWritten({ document: "pantanir/{id}", se
     await db.doc("kerfi/tilksent").update({ ["stadfp-" + ev.params.id]: admin.firestore.FieldValue.delete() }).catch(() => {});
   }
 });
+
+/* ---------- Bókhald: DK (dkPlus) – 2.92.0 ----------
+   Virkt aðeins í uppsetningu með BOKHALD=dk í .env.<verkefni> (t.d. Sonik). Aðgangslykill úr dkPlus í Secret Manager:
+     firebase functions:secrets:set DK_TOKEN --project sonik
+   Flæði: appið setur reikningar/{id}.bokhald = { kerfi:"dk", stada:"bidur" } („Senda í DK“) →
+     1) viðskiptavinur fundinn í DK eftir kennitölu (GET /Customer/{kt}), annars stofnaður (POST /Customer/)
+     2) athugað hvort reikningurinn sé þegar til (GET /Sales/Invoice/reference/ATR-<nr>) – endurtekning býr ekki til tvo
+     3) sölureikningur stofnaður (POST /Sales/Invoice/) – línur með ItemCode = vörunúmer flokksins (stillingar.reikn.flokkar), verð án VSK
+     4) valfrjálst: DK sendir reikninginn á netfang greiðanda (POST /Sales/Invoice/{nr}/email)
+     5) bokhald = { stada:"sent", nr, dags } og bokhaldNr – eða { stada:"villa", villa }
+   Snið dkPlus API (api.dkplus.is/api/v1, „Authorization: bearer <lykill>“) eftir opnum tengli fyrir DK (aldavigdis/connector-for-dk).
+   ATH: staðfesta þarf reitaheiti og hegðun gegn dkPlus (Swagger) með prufuaðgangi Sonik áður en þetta er notað á raunveruleg gögn. */
+if (process.env.BOKHALD === "dk") {
+  const DK_TOKEN = defineSecret("DK_TOKEN");
+  const DK_URL = "https://api.dkplus.is/api/v1";
+  const dk = async (method, path, body) => {
+    const r = await fetch(DK_URL + path, { method, headers: { Authorization: "bearer " + DK_TOKEN.value(), Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined });
+    const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+    return { ok: r.ok, status: r.status, data: j, text: t };
+  };
+  const kt10 = k => String(k || "").replace(/\D/g, "");
+  const txt = (s, n) => String(s || "").slice(0, n);
+  exports.bokhaldDk = onDocumentWritten({ document: "reikningar/{id}", secrets: [DK_TOKEN], timeoutSeconds: 120 }, async ev => {
+    const a = ev.data?.after?.exists ? ev.data.after.data() : null, b = ev.data?.before?.exists ? ev.data.before.data() : null;
+    if (!a || a.bokhald?.stada !== "bidur" || (b?.bokhald?.stada === "bidur" && b.bokhald.beidni === a.bokhald.beidni)) return;
+    const ref = ev.data.after.ref, R = a, done = x => ref.update(x);
+    try {
+      const st = (await db.doc("app/state").get()).data() || {}, rk = st.stillingar?.reikn || {}, D = rk.dk || {}, FL = rk.flokkar || {};
+      const kaup = R.kaupandi || {}, kt = kt10(kaup.kennitala), stadg = !!R.stadgreitt;
+      let custNr = kt.length === 10 ? kt : (stadg ? String(D.stadgKt || "") : "");
+      if (!custNr) throw new Error("Kennitölu greiðanda vantar (og enginn staðgreiðsluviðskiptavinur er stilltur).");
+      // 1) Viðskiptavinur
+      if (custNr === kt) {
+        const g = await dk("GET", "/Customer/" + encodeURIComponent(custNr));
+        if (!g.ok) {
+          if (g.status !== 404) throw new Error("DK svaraði " + g.status + " við leit að viðskiptavini: " + txt(g.text, 200));
+          const c = { Number: custNr, Name: txt(kaup.name, 80), Address1: txt(kaup.heimilisfang, 60), City: txt(kaup.stadur, 40), ZipCode: txt(kaup.postnumer, 10), Email: txt(kaup.netfang, 80),
+            ...(D.solumadur ? { SalesPerson: String(D.solumadur) } : {}), ...(D.mati ? { PaymentMode: String(D.mati) } : {}), ...(D.skilmali ? { PaymentTerm: String(D.skilmali) } : {}), ...(D.lykill ? { LedgerCode: String(D.lykill) } : {}) };
+          const p = await dk("POST", "/Customer/", c); if (!p.ok) throw new Error("Tókst ekki að stofna viðskiptavin í DK (" + p.status + "): " + txt(p.data?.Message || p.text, 200));
+        }
+      }
+      // 2) Þegar til? (endurtekin sending)
+      const reference = "ATR-" + R.nr, ex = await dk("GET", "/Sales/Invoice/reference/" + encodeURIComponent(reference));
+      let nr = ex.ok && ex.data ? (ex.data.Number || (Array.isArray(ex.data) && ex.data[0]?.Number)) : null;
+      // 3) Sölureikningur
+      if (!nr) {
+        const lines = (R.linur || []).filter(l => !l.haus && Math.round((+l.magn || 0) * (+l.verd || 0)) !== 0).map(l => {
+          const code = l.lykill || FL[l.flokkur]?.lykill; if (!code) throw new Error("Vörunúmer í DK vantar fyrir línu: " + l.lysing);
+          return { ItemCode: String(code), Text: txt(l.lysing, 80), ...(String(l.lysing || "").length > 80 ? { Text2: txt(String(l.lysing).slice(80), 80) } : {}), Quantity: +l.magn || 0, Price: +l.verd || 0, IncludingVAT: false };
+        });
+        if (!lines.length) throw new Error("Engar línur til að senda.");
+        const tilv = [...(R.pontunIds || []).length ? ["Pöntun"] : [], ...(R.verkefniIds || []).length ? ["Verkefni"] : []].join("/");
+        const body = { Reference: reference, Customer: { Number: custNr }, Lines: lines, Text2: txt(`Atrium drög ${R.nr}${tilv ? " · " + tilv : ""}`, 80),
+          ...(D.solumadur ? { SalesPerson: String(D.solumadur) } : {}),
+          ...(stadg ? { ...(D.stadgMati ? { Mode: String(D.stadgMati) } : {}), ...(D.grId ? { Payments: [{ ID: String(D.grId), Name: String(D.grNafn || ""), Amount: +R.tot || 0 }] } : {}) }
+                    : { ...(D.mati ? { Mode: String(D.mati) } : {}), ...(D.skilmali ? { Term: String(D.skilmali) } : {}) }) };
+        const p = await dk("POST", "/Sales/Invoice/", body);
+        if (!p.ok) throw new Error("DK hafnaði reikningnum (" + p.status + "): " + txt(p.data?.Message || p.text, 300));
+        nr = p.data?.Number; if (!nr) throw new Error("DK skilaði ekki reikningsnúmeri.");
+      }
+      // 4) Tölvupóstur úr DK
+      let post = false;
+      if (D.post && kaup.netfang) { const m = await dk("POST", "/Sales/Invoice/" + encodeURIComponent(nr) + "/email", { To: kaup.netfang, Subject: `Reikningur ${nr}` }); post = m.ok; if (!m.ok) logger.warn("dk email", m.status, txt(m.text, 200)); }
+      await done({ bokhald: { ...a.bokhald, kerfi: "dk", stada: "sent", nr: String(nr), dags: new Date().toISOString(), post }, bokhaldNr: String(nr), bokhaldDags: new Date().toISOString().slice(0, 10) });
+      logger.info("bokhaldDk sent", { id: ev.params.id, nr });
+    } catch (e) {
+      logger.error("bokhaldDk", e);
+      await done({ bokhald: { ...a.bokhald, kerfi: "dk", stada: "villa", villa: String(e.message || e).slice(0, 400), dags: new Date().toISOString() } });
+    }
+  });
+}
