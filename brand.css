@@ -446,3 +446,14 @@ header .deildseg button{min-height:30px;padding:0 10px;font-size:12.5px;border-r
 @media (max-width:600px){#splash.hasco2 .spl-in{flex-wrap:wrap;max-width:320px;row-gap:26px}#splash.hasco2 .spl-sep{display:none}#splash.hasco2 .spl-co{flex-basis:100%;max-width:none;height:96px}}
 @media (prefers-reduced-motion: no-preference){#splash .spl-sep,#splash .spl-co{animation:aIn .6s var(--ease,cubic-bezier(.2,.7,.2,1)) 1.9s both}}
 @media (prefers-reduced-motion: no-preference){#splash .lword{animation:aIn .6s var(--ease,cubic-bezier(.2,.7,.2,1)) 1.7s both}}
+
+/* 2.93.2: innskráning – Atrium-merkið og merki fyrirtækisins hlið við hlið, jafnhá (96 px), fyrir ofan textann */
+.hasco #login .lpair{display:flex;align-items:center;justify-content:center;gap:0;margin:0 auto 26px}
+.hasco #login .lpair .llogo{position:static;transform:none;margin:0;animation:none}
+.hasco #login .lpair .lsep{width:1px;height:96px;background:rgba(255,255,255,.18);margin:0 32px}
+.hasco #login .lpair .lco{height:96px;max-height:96px;width:auto;max-width:220px;margin:0;object-fit:contain}
+@media (max-width:600px){.hasco #login .lpair{flex-direction:column;gap:22px}.hasco #login .lpair .lsep{display:none}}
+@media (prefers-reduced-motion: no-preference){
+  .hasco #login .lpair .lsep,.hasco #login .lpair .lco{animation:aIn .6s var(--ease) 1.9s both}
+  .hasco #login .login-in p{animation-delay:2.05s}.hasco #login .login-in .btn{animation-delay:2.2s}.hasco #login #login-btn{animation-delay:2.35s}
+}
