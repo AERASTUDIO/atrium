@@ -82,7 +82,7 @@
     return `<p class="hint" style="margin:14px 0 8px">${xs.length} í teyminu</p>` + llist(xs.map(u => {
       const sj = u.email === me();
       return `<div class="lrow tmrow"><div class="ll"><span class="mav sm">${esc(ini(u.nafn))}</span></div><div class="lm"><div class="lt">${esc(u.nafn)}${sj ? " (þú)" : ""}</div><div class="ls">${esc([ROLES[u.hlutverk]?.heiti || u.hlutverk, u.email, u.sidast ? "síðast inni " + fmtDate(u.sidast) : ""].filter(Boolean).join(" · "))}</div></div>
-        <div class="lr" style="gap:6px">${sj ? "" : `<button type="button" class="btn" data-act="spto:${esc(u.email)}" style="padding:4px 10px;min-height:32px">Skilaboð</button><a class="btn" href="mailto:${esc(u.email)}" style="padding:4px 10px;min-height:32px" aria-label="Tölvupóstur til ${esc(u.nafn)}">✉</a><a class="btn" href="https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(u.email)}" target="_blank" rel="noopener" style="padding:4px 10px;min-height:32px">Teams</a>`}</div></div>`; }));
+        <div class="lr" style="gap:6px">${sj ? "" : `<button type="button" class="btn" data-act="spto:${esc(u.email)}" style="padding:4px 10px;min-height:32px">Skilaboð</button><a class="btn" href="mailto:${esc(u.netfang || u.email)}" style="padding:4px 10px;min-height:32px" aria-label="Tölvupóstur til ${esc(u.nafn)}">✉</a><a class="btn" href="https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(u.email)}" target="_blank" rel="noopener" style="padding:4px 10px;min-height:32px">Teams</a>`}</div></div>`; }));
   };
 
   window.spAct = function (k, r) {

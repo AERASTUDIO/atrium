@@ -14,7 +14,7 @@ window.ORG = {
   logo: { ljos: "sonik/merki-ljos.svg", dokk: "sonik/merki-dokk.svg" },
   merki: { ljos: "sonik/merki-ljos.svg", dokk: "sonik/merki-dokk.svg" },
   litir: { ljos: "#F2FCFF", dokk: "#0C2127" },   // litur stöðustiku í síma
-  ms: { appNafn: "Atrium", clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f" },   // til bráðabirgða: Entra-forrit AERA
+  ms: { appNafn: "Atrium", clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f", gestir: "aerastudio.onmicrosoft.com" },   // til bráðabirgða: Entra-forrit AERA
 
   admin: { email: "dagur@aerastudio.is", nafn: "Dagur Fannar Möller", sk: "DFM", titillIS: "Eigandi", titillEN: "Owner" },   // til bráðabirgða
   legacyEmails: [],

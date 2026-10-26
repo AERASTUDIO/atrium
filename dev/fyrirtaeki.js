@@ -11,7 +11,7 @@ window.ORG = {
   lsForskeyti: "dev:",                  // eigið svæði í localStorage (sama lén og hinar uppsetningarnar)
 
   litir: { ljos: "#F6F7F8", dokk: "#121416" },
-  ms: { appNafn: "Atrium", clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f" },   // Entra-forritið „Atrium“ hjá AERA
+  ms: { appNafn: "Atrium", clientId: "bc976045-0274-48bb-a5c3-3a39aa987fd0", tenant: "ed06b359-9189-4e32-aeaa-7454e6be768f", gestir: "aerastudio.onmicrosoft.com" },   // Entra-forritið „Atrium“ hjá AERA
 
   admin: { email: "dagur@aerastudio.is", nafn: "Dagur Fannar Möller", sk: "DFM", titillIS: "Eigandi", titillEN: "Owner" },
   legacyEmails: [],

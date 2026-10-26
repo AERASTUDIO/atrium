@@ -21,6 +21,10 @@
 
   const lc = s => String(s || "").trim().toLowerCase();
   const DOMAIN = ORG.len;
+  // Gestir (2.99.2): Microsoft auðkennir gest sem „nafn_gmail.com#ext#@<umhverfi>.onmicrosoft.com“, ekki með netfanginu sjálfu.
+  // Admin skrifar venjulegt netfang; það er geymt undir auðkenninu (lykill notendaskrárinnar) og netfangið sjálft í reitnum netfang.
+  const gestKey = e => (!e || e.endsWith("@" + DOMAIN) || e.includes("#ext#") || !ORG.ms?.gestir) ? e : e.replace("@", "_") + "#ext#@" + ORG.ms.gestir;
+  const synt = u => u.netfang || u.email;
   const roleName = r => ROLES[r]?.heiti || r;
   const MN = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."], p2 = n => String(n).padStart(2, "0");
   const when = t => { if (!t) return "aldrei"; const x = new Date(t); return `${x.getDate()}. ${MN[x.getMonth()]} ${x.getFullYear()} kl. ${p2(x.getHours())}:${p2(x.getMinutes())}`; };
@@ -54,7 +58,7 @@
     if (!can("notendur")) return "";
     const list = nuUsers();
     const row = u => `<div class="cfgrow"${u.virkur ? "" : ' style="opacity:.6"'}><div class="grow">${esc(u.nafn || u.email)} ${u.sk ? `<span class="nr">${esc(u.sk)}</span>` : ""} <span class="tag">${esc(roleName(u.hlutverk))}</span>${u.virkur ? "" : ' <span class="tag">Óvirkur</span>'}${lc(u.email) === lc(USER?.email) ? ' <span class="tag">Ég</span>' : ""}
-        <div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(u.email)} · síðast inni ${esc(when(u.sidast))}</div></div>
+        <div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(synt(u))}${u.gestur ? " · gestur" : ""} · síðast inni ${esc(when(u.sidast))}</div></div>
       <div class="ctl">
         <select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(u.nafn)}">${Object.keys(ROLES).map(r => `<option value="${r}"${r === u.hlutverk ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>
         <button type="button" class="mini" data-act="nuren:${esc(u.email)}" aria-label="Breyta nafni og skammstöfun">✎</button>
@@ -88,7 +92,7 @@
     if (!can("notendur")) return `<div class="empty">Aðeins admin sér og breytir fólki.</div>`;
     const P = people(), me = x => (x.u && lc(x.u.email) === lc(USER?.email)) || (!x.u && x.sk === tr(() => ME(), ""));
     const row = x => { const u = x.u, n = faersluFj(x.sk), off = u && !u.virkur, id = u ? "u:" + u.email : "s:" + x.si;
-      const sub = u ? `${esc(u.email)} · síðast inni ${esc(when(u.sidast))}` : `Án innskráningar – skráð í tímaskráningu og á verkefnum`;
+      const sub = u ? `${esc(synt(u))}${u.gestur ? " · gestur" : ""} · síðast inni ${esc(when(u.sidast))}` : `Án innskráningar – skráð í tímaskráningu og á verkefnum`;
       return `<div class="fkrow${off ? " off" : ""}"><span class="fkav${u ? "" : " no"}" aria-hidden="true">${esc(x.sk || ini(x.nafn))}</span>
         <div class="fkm"><div class="fkn"><b>${esc(x.nafn)}</b>${me(x) ? '<span class="tag">Ég</span>' : ""}${off ? '<span class="tag">Óvirkur</span>' : ""}</div><div class="fks">${sub}</div><div class="fks">${n} ${n === 1 ? "tímaskráning" : "tímaskráningar"}</div></div>
         <div class="fkr">${u ? `<select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(x.nafn)}"${off ? " disabled" : ""}>${Object.keys(ROLES).map(r => `<option value="${r}"${r === u.hlutverk ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>`
@@ -131,11 +135,11 @@
       if (!nafn) return err("Skráðu nafn."); if (!s2) return err("Skráðu skammstöfun.");
       const taken = nuUsers().some(y => y.sk === s2 && (!u || lc(y.email) !== lc(u.email))) || (tr(() => STARFS(), [])).some(y => y.sk === s2 && y.sk !== x?.sk);
       if (taken) return err(`Skammstöfunin ${s2} er þegar í notkun.`);
-      if (hasAcc && mode !== "edit") { if (!/^[^@\s]+@[^@\s]+$/.test(e)) return err("Skráðu gilt netfang."); if (nuUsers().some(y => lc(y.email) === e)) return err("Þetta netfang er þegar skráð."); }
+      if (hasAcc && mode !== "edit") { if (!/^[^@\s]+@[^@\s]+$/.test(e)) return err("Skráðu gilt netfang."); if (nuUsers().some(y => lc(y.email) === gestKey(e))) return err("Þetta netfang er þegar skráð."); }
       const now = new Date().toISOString(), oldSk = x?.sk;
       try {
         if (mode === "edit" && u) { await nuSave(N => { Object.assign(N[lc(u.email)], { nafn, sk: s2, breytt: now }); }); }
-        if (hasAcc && mode !== "edit") await nuSave(N => { N[e] = { nafn, sk: s2, hlutverk: hl, virkur: true, stofnad: now, breytt: now }; });
+        if (hasAcc && mode !== "edit") await nuSave(N => { const g = gestKey(e); N[g] = { nafn, sk: s2, hlutverk: hl, virkur: true, stofnad: now, breytt: now, ...(g !== e ? { netfang: e, gestur: true } : {}) }; });
         await cfgSave(c => { const i = c.starfsmenn.findIndex(y => y.sk === (oldSk || s2)); if (i >= 0) Object.assign(c.starfsmenn[i], { sk: s2, nafn }); else if (!c.starfsmenn.some(y => y.sk === s2)) c.starfsmenn.push({ sk: s2, nafn }); });
         if (oldSk && oldSk !== s2) toast("Athugið: eldri tímaskráningar eru áfram merktar " + oldSk);
         close(); toast(mode === "edit" ? "Vistað" : mode === "give" ? `${nafn} fékk aðgang` : `${nafn} bætt við`); render();
@@ -160,10 +164,10 @@
       if (!/^[^@\s]+@[^@\s]+$/.test(e)) return toast("Skráðu gilt netfang.");
       if (!nafn) return toast("Skráðu nafn.");
       if (!sk) return toast("Skráðu skammstöfun.");
-      if (nuUsers().some(x => lc(x.email) === e)) return toast("Þessi notandi er þegar skráður.");
+      if (nuUsers().some(x => lc(x.email) === gestKey(e))) return toast("Þessi notandi er þegar skráður.");
       if (nuUsers().some(x => x.sk === sk && lc(x.email) !== e) || (CFG().starfsmenn || []).some(x => x.sk === sk && x.nafn !== nafn)) return toast(`Skammstöfunin ${sk} er þegar í notkun.`);
       const now = new Date().toISOString();
-      nuSave(n => { n[e] = { nafn, sk, hlutverk: hl, virkur: true, stofnad: now, breytt: now }; })
+      nuSave(n => { const g = gestKey(e); n[g] = { nafn, sk, hlutverk: hl, virkur: true, stofnad: now, breytt: now, ...(g !== e ? { netfang: e, gestur: true } : {}) }; })
         .then(() => { ensureStarf(sk, nafn); toast(`${nafn} bætt við`); });
       return;
     }
