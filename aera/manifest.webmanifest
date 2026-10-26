@@ -3,7 +3,7 @@
   "short_name": "AERA",
   "description": "Atrium by AERA Studio – uppsetning AERA Studio.",
   "lang": "is",
-  "id": "/atrium/aera/",
+  "id": "/aera/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -388,7 +388,7 @@ exports.eftirfylgni = onSchedule({ schedule: "0 9 * * 1-5", timeZone: TZ }, asyn
    (pantanir.tengillSendur) innan frestsins (Stillingar › Pantanir › Staðfestingartengill, sjálfgefið 2 klst., en í síðasta lagi 12 klst. fyrir afhendingu) sendir þetta
    fall hann úr sameiginlega pósthólfinu (POSTHOLF) og skráir tengillSendur = { dags, af: "sjálfvirkt", til }.
    Krefst forritaheimildarinnar Mail.Send (Application, admin consent) í Entra-forritinu „Atrium“. Aðeins pantanir 0–72 klst. gamlar. */
-const PUBBASE = "https://aerastudio.github.io/atrium/pontun/";
+const PUBBASE = "https://atrium.aerastudio.is/pontun/";
 // Afhendingartími pöntunar í ms (dagsetning + afhKl, annars kl. 08:00 að íslenskum tíma = UTC)
 const afhMs = P => { const d = d10(P.fra); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return 0; const k = /^(\d{1,2}):(\d{2})/.exec(P.afhKl || "") || [0, "08", "00"]; return Date.parse(`${d}T${String(k[1]).padStart(2, "0")}:${k[2]}:00Z`); };
 const escH = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
