@@ -976,6 +976,9 @@
     if (window.rkOrders && window.can && can("fjarmal")) rkOrders().forEach(P => { const sg = window.rkPnStadg && rkPnStadg(P), dt = sg ? P.greitt?.dags : (P.mottekid?.dags || P.afhent?.dags || P.til || P.fra);
       if (daysTo(dt) < -30) return;
       R.push({ k: "Reikningar", title: sg ? `${P.nr || ""} staðgreidd – gera þarf reikning (kvittun)` : `${P.nr || ""} afhent – reikningur ekki gerður`, sub: [P.vidskiptavinur || P.tengilidur, P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""].filter(Boolean).join(" · "), date: dt, pill: "Reikningur", dark: 1, open: "tb:" + P.id }); });
+    // 2.96.0: sjálfvirk reikningsdrög sem eru tilbúin en ekki komin í bókhald
+    if (window.can && can("fjarmal")) (S?.reikningar || []).filter(r => r.sjalf && r.tilbuid && !r.lifandi && !r.bokhald && !r.bokhaldNr && r.stada !== "Ógilt" && daysTo(String(r.tilbuid).slice(0, 10)) >= -30).forEach(r => {
+      R.push({ k: "Reikningar", title: `Reikningsdrög ${r.nr} tilbúin til bókunar`, sub: [r.kaupandi?.name, r.stadgreitt ? "staðgreitt" : ""].filter(Boolean).join(" · "), date: String(r.tilbuid).slice(0, 10), pill: "Reikningur", dark: 1, open: "reikn:" + r.id }); });
     (S?.thraedir || []).filter(t => daysTo(t.tengt) >= -3).forEach(t => R.push({ k: "Póstur", title: "Póstur tengdur verkefni", sub: t.efni || "", date: t.tengt, pill: "Póstur", open: t.verkefniId ? "verk:" + t.verkefniId : null, act: "tab:postur" }));
     return R.sort((a, b) => String(b.date || "9").localeCompare(String(a.date || "9")));
   }

@@ -127,6 +127,61 @@
   }
   window.rkBillOrders = billOrders;
 
+  /* ---------- Sjálfvirk reikningsdrög úr pöntunum (2.96.0) ----------
+     stillingar.reikn.sjalfvirkt (sjálfgefið á). Viðskiptavinur í reikningi: drög myndast þegar pöntun er staðfest (Staðfest/Afhent/…),
+     uppfærast með pöntuninni (línur, afsláttur, aukagjöld úr skilauppgjöri) og verða tilbúin (lifandi = false, tilbuid) við skil eða
+     afhendingu söluvara. Staðgreitt: greiddur reikningur (kvittun) um leið og greiðsla er skráð. Valfrjálst (dkSjalf): tilbúin drög
+     fara sjálfkrafa í DK ef ekkert vantar. Aðeins pantanir frá virkjun (sjalfFra) – eldri fara áfram handvirkt um „Pantanir án reiknings“.
+     Keyrir í appi fjármálanotanda (reglur: aðeins admin/bókari skrifa reikninga); auðkenni draga = "pn" + id pöntunar svo tveir
+     notendur búi ekki til tvenn drög. R.sjalf, R.lifandi, R.tilbuid. */
+  const AUTO_ST = ["Staðfest", "Afhent", "Skilað", "Lokið"];
+  const autoOn = () => RK().sjalfvirkt !== false && !!(window.ON && ON("pantanir"));
+  window.rkAutoOn = autoOn;
+  const pnDone = P => P.stada === "Skilað" || P.stada === "Lokið" || (P.stada === "Afhent" && !!window.pnSkil && !pnSkil(P));
+  const autoWant = (P, fra) => P && P.pontun !== false && (P.linur || []).length && P.stada !== "Hafnað" && String(P.dags || P.fra || "") >= fra
+    && (pnStadg(P) || (!P.greitt && hattur(P) === "reikningur" && !!P.vskId && AUTO_ST.includes(P.stada)));
+  const mkAuto = (P, nr, rk) => { const c = P.vskId ? findVsk(P.vskId) : null, L = orderLines([P]), vskP = +rk.vsk || 0, sl = { ...rk }, d0 = isoDay(new Date());
+    ["nastaNr", "timagjald", "sjalfvirkt", "sjalfFra", "dkSjalf", "flokkar", "dk", "bokhald"].forEach(k => delete sl[k]);
+    const R = { id: "pn" + P.id, nr, dags: d0, gjalddagi: addDays(d0, +rk.frestur || 14), verkefniIds: P.verkefniId ? [P.verkefniId] : [], verkefniId: P.verkefniId || null, pontunIds: [P.id], vskId: P.vskId || null,
+      kaupandi: buyerOf(c) || { name: P.tengilidur || "Staðgreiðsluviðskiptavinur", kennitala: "", heimilisfang: "", postnumer: "", stadur: "", netfang: P.netfang || "" },
+      seljandi: sl, linur: L, vskP, ...totals(L, vskP), timaIds: [], kostnIds: [], stada: "Ógreitt", stofnad: new Date().toISOString(), sjalf: true, lifandi: true };
+    if (pnStadg(P)) { R.stada = "Greitt"; R.greitt = String(P.greitt.dags).slice(0, 10); R.stadgreitt = true; R.gjalddagi = R.dags; R.lifandi = false; R.tilbuid = new Date().toISOString(); }
+    else if (pnDone(P)) { R.lifandi = false; R.tilbuid = new Date().toISOString(); }
+    return R; };
+  const dkAuto = (R, rk) => { if (rk.bokhald === "dk" && rk.dkSjalf && !R.bokhald && !vidbunadur(R).length) R.bokhald = { kerfi: "dk", stada: "bidur", beidni: new Date().toISOString(), af: "sjálfvirkt" }; };
+  let autoBusy = false, autoSig = "";
+  async function autoSync() {
+    if (autoBusy || typeof S === "undefined" || !S || !window.salaAPI) return;
+    try { if (!FJ() || !autoOn()) return; } catch (e) { return; }
+    const rk = RK(), Ps = PNs(), Rs = reikningar();
+    if (!rk.sjalfFra) { autoBusy = true; try { await saveSnapshot(st => { st.stillingar = st.stillingar || {}; st.stillingar.reikn = { ...(st.stillingar.reikn || {}), sjalfFra: isoDay(new Date()) }; }); } catch (e) {} autoBusy = false; return; }
+    const sig = JSON.stringify([Ps.map(p => [p.id, p.stada, p.reikningur, p.greitt?.dags, p.linur, p.afsl, p.vskId, p.greidsluhattur]), Rs.map(r => [r.id, r.lifandi, !!r.bokhald, r.stada]), rk.sjalfFra, rk.dkSjalf, rk.bokhald]);
+    if (sig === autoSig) return;
+    const nyjar = Ps.filter(P => !P.reikningur && autoWant(P, rk.sjalfFra)), upd = [];
+    Ps.forEach(P => { if (!P.reikningur || P.reikningur === "utan") return; const R = Rs.find(r => r.id === P.reikningur);
+      if (!R || !R.sjalf || !R.lifandi || R.bokhald || OGILT(R) || (R.pontunIds || []).length !== 1) return;
+      const L = orderLines([P]); if (JSON.stringify(L) !== JSON.stringify(R.linur) || pnDone(P) || R.vskId !== (P.vskId || null)) upd.push([P, L]); });
+    if (!nyjar.length && !upd.length) { autoSig = sig; return; }
+    autoBusy = true; const made = [];
+    try {
+      await saveSnapshot(st => { st.reikningar = st.reikningar || []; st.stillingar = st.stillingar || {}; const r0 = { ...RK(), ...(st.stillingar.reikn || {}) }; let nr = +r0.nastaNr || 1001;
+        nyjar.forEach(P0 => { const q = (st.pantanir || []).find(x => x.id === P0.id); if (!q || q.reikningur) return;
+          const ex = st.reikningar.find(r => r.id === "pn" + q.id); if (ex) { q.reikningur = ex.id; return; }
+          while (st.reikningar.some(r => r.nr === nr)) nr++;
+          const R = mkAuto(q, nr++, r0); dkAuto(R, r0); st.reikningar.push(R); q.reikningur = R.id; made.push(R.nr + " (" + q.nr + ")"); });
+        st.stillingar.reikn = { ...(st.stillingar.reikn || {}), nastaNr: Math.max(nr, +(st.stillingar.reikn?.nastaNr || 0)) };
+        upd.forEach(([P, L]) => { const R = st.reikningar.find(r => r.id === P.reikningur); if (!R || !R.lifandi || R.bokhald) return;
+          R.linur = L; Object.assign(R, totals(L, +R.vskP || 0)); R.vskId = P.vskId || null; { const c = P.vskId ? findVsk(P.vskId) : null; if (c) R.kaupandi = buyerOf(c); }
+          if (pnDone(P)) { R.lifandi = false; R.tilbuid = new Date().toISOString(); R.dags = isoDay(new Date()); R.gjalddagi = addDays(R.dags, +r0.frestur || 14); dkAuto(R, r0); } });
+      });
+      if (made.length) toast(`${made.length === 1 ? "Reikningsdrög" : made.length + " reikningsdrög"} ${made.length === 1 ? "búin til" : "búin til"} úr pöntun: ${made.slice(0, 3).join(", ")}${made.length > 3 ? " …" : ""}`);
+      autoSig = "";
+    } catch (e) { autoSig = sig; console.warn("Sjálfvirk reikningsdrög:", e); }
+    autoBusy = false;
+  }
+  window.rkAutoSync = autoSync;
+  setInterval(() => { autoSync().catch(() => {}); }, 4000);
+
   function buildLines(groups, sund) {
     const multi = groups.length > 1, L = [];
     groups.forEach(({ p, es, ks, verd }) => {
@@ -397,6 +452,11 @@
   // 2.92.0: staða í bókhaldi og „Senda í DK“ (netþjónninn – fallið bokhaldDk – sér um sendinguna; lykillinn er í Secret Manager)
   window.rkBkHTML = function (R) {
     if (!R || OGILT(R)) return ""; const b = R.bokhald || {}, fj = FJ(), v = vidbunadur(R);
+    const pn = R.sjalf ? (PNs().find(x => (R.pontunIds || [])[0] === x.id) || null) : null;
+    const au = R.sjalf ? `<div class="rkauto${R.lifandi ? "" : " ok"}">${R.lifandi ? `<b>Sjálfvirk drög</b> úr pöntun ${esc(pn?.nr || "")} – uppfærast með pöntuninni þar til henni er skilað.` : `<b>Sjálfvirk drög</b> úr pöntun ${esc(pn?.nr || "")} – ${R.stadgreitt ? "greidd (kvittun)" : "tilbúin"}${R.bokhald ? "" : " til bókunar"}.`}</div>` : "";
+    return au + rkBkInner(R, b, fj, v);
+  };
+  function rkBkInner(R, b, fj, v) {
     if (DKON()) {
       if (b.stada === "sent") return `<div class="rkvb ok"><b>✓ Í DK</b> – reikningur nr. <b>${esc(String(b.nr || R.bokhaldNr || ""))}</b>${b.dags ? " · " + esc(dIS(String(b.dags).slice(0, 10))) : ""}${b.post ? " · sendur greiðanda úr DK" : ""}</div>`;
       if (b.stada === "bidur") return `<div class="rkvb"><b>Sendist í DK…</b> Netþjónninn stofnar viðskiptavin ef þarf og reikninginn í DK.</div>`;
@@ -455,6 +515,9 @@
       ${f("banki", "Bankareikningur", 'placeholder="0000-26-000000"')}
       <div class="two">${f("timagjald", "Sjálfgefið tímagjald (kr./klst.)", 'inputmode="numeric"')}${f("vsk", "VSK %", 'inputmode="decimal"')}</div>
       <div class="two">${f("frestur", "Greiðslufrestur (dagar)", 'inputmode="numeric"')}${f("nastaNr", DROG() ? "Næsta númer draga" : "Næsta reikningsnúmer", 'inputmode="numeric"')}</div>
+      ${window.ON && ON("pantanir") ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);margin-top:6px"><input type="checkbox" id="rk-sjalfvirkt"${r.sjalfvirkt !== false ? " checked" : ""} style="width:auto"> Reikningsdrög myndast sjálfkrafa úr pöntunum</label>
+      <p class="hint" style="margin:0 0 8px">Viðskiptavinur í reikningi: drög verða til þegar pöntun er staðfest, uppfærast með henni og eru tilbúin við skil. Staðgreitt: greiddur reikningur (kvittun) þegar greiðsla er skráð. Gildir um pantanir frá ${esc(r.sjalfFra ? dIS(r.sjalfFra) : "deginum í dag")}.</p>
+      ${r.bokhald === "dk" ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="rk-dkSjalf"${r.dkSjalf ? " checked" : ""} style="width:auto"> Senda tilbúin drög sjálfkrafa í DK (ef ekkert vantar)</label>` : ""}` : ""}
       ${r.bokhald === "dk" ? (() => { const d = { ...(r.dk || {}) }, fd = (k, l, ph = "") => `<label>${l}<input id="rk-dk-${k}" value="${esc(String(d[k] ?? ""))}" placeholder="${esc(ph)}"></label>`;
         return `<div class="viewtitle" style="margin-top:22px">DK (dkPlus)</div>
         <p class="hint" style="margin:0 0 8px">„Senda í DK“ á reikningsdrögum stofnar viðskiptavin (eftir kennitölu) og sölureikning í DK. Aðgangslykillinn úr dkPlus er geymdur á netþjóninum (Secret Manager), aldrei í appinu. Gildin hér fást hjá bókara úr DK.</p>
@@ -505,6 +568,7 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
     if (k === "rkcfg") { const g = x => (document.getElementById("rk-" + x)?.value || "").trim(), n = x => parseFloat(g(x).replace(",", ".")) || 0;
       const o = { nafn: g("nafn"), kt: g("kt"), vsknr: g("vsknr"), heimilisfang: g("heimilisfang"), netfang: g("netfang"), simi: g("simi"), banki: g("banki"), timagjald: parseKr(g("timagjald")), vsk: n("vsk"), frestur: Math.round(n("frestur")) || 14, nastaNr: Math.round(n("nastaNr")) || 1001, bokhald: g("bokhald") || null,
         flokkar: Object.fromEntries(FLOKKAR.map(([k]) => [k, { vsk: g("f-" + k + "-vsk"), lykill: g("f-" + k + "-lykill") }])) };
+      ["sjalfvirkt", "dkSjalf"].forEach(x => { const el = document.getElementById("rk-" + x); if (el) o[x] = el.checked; });
       if (document.getElementById("rk-dk-solumadur")) o.dk = { ...Object.fromEntries(["solumadur", "lykill", "mati", "skilmali", "stadgKt", "grId", "grNafn", "stadgMati"].map(x => [x, g("dk-" + x)])), post: !!document.getElementById("rk-dk-post")?.checked };
       saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o }; }).then(() => { toast("Upplýsingar um seljanda vistaðar"); render(); }); return; }
   };

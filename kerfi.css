@@ -1026,3 +1026,5 @@ body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-
 .pvbd .bppdf{max-height:none}
 .pvbd img{max-width:100%;display:block;margin:0 auto;border-radius:10px}
 .vnrmiss{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:8px 12px;border:1px dashed var(--line);border-radius:12px;font-size:13px;color:var(--mut)}
+.rkauto{margin:0 0 8px;padding:8px 12px;border-radius:10px;background:var(--accent-soft,#E3E8EC);font-size:13px;line-height:1.45}
+.rkauto.ok{opacity:.85}
