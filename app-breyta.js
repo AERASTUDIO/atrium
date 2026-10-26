@@ -200,7 +200,10 @@ window.aeraStart=function(db){
   const migrateNow=async d=>{ migrating=true; toast("Flyt gögnin í nýtt snið…");
     try{ await db.commit(GOGN.migrate(d,USER.email,x=>skEmail(x.starfsmadur||x.sk))); toast("Gögnin eru flutt í nýja sniðið"); }
     catch(e){ migrating=false; console.warn("Flutningur",e); toast("Flutningur gagna mistókst: "+(e?.code||e?.message||"villa")); } };
-  db.watch("app/state",s=>{
+  // 2.94.4: stundum fékk fyrsti lestur app/state „permission-denied“ rétt eftir innskráningu (lykill ekki kominn til Firestore) og
+  // „Gögn ekki aðgengileg“ birtist. Nú er reynt aftur (með nýjum lykli) nokkrum sinnum áður en villan er sýnd.
+  let stTry=0; const stErr=e=>{ if(e?.code==="permission-denied"&&stTry<4&&!S){ const n=++stTry; if(db.refresh) db.refresh(); setTimeout(watchState,600*n); return; } showErr(e); };
+  const watchState=()=>db.watch("app/state",s=>{
     if(!s.exists){ if(s.fromCache) return;
       // Ný uppsetning (frá 2.4.1): admin stofnar tómt app/state í nýja sniðinu í stað þess að vera beðinn um gagnaskrá
       if(window.can&&can("notendur")&&!migrating){ migrating=true; db.set("app/state",{skipting:2,uppfaert:new Date().toISOString(),stillingar:{},timar:{samtals:0}}).then(()=>{migrating=false;}).catch(e=>{migrating=false; console.warn("Stofna app/state",e); importView();}); return; }
@@ -212,7 +215,8 @@ window.aeraStart=function(db){
     if(JSON.stringify(d)!==JSON.stringify(S)){S=d; render(); openFromHash();} else drawSync();
     if(!s.fromCache&&!migrating&&!s.pending&&window.can&&can("notendur")&&Array.isArray(d.verkefni)) migrateNow(d);
     if(!s.fromCache&&window.msTick) msTick();
-  }, showErr);
+  }, stErr);
+  watchState();
 };
 document.getElementById("fab").hidden=true;
 

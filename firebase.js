@@ -124,6 +124,8 @@ onAuthStateChanged(auth, async user => {
       return onSnapshot(q, { includeMetadataChanges: true },
         s => cb({ docs: s.docs.map(d => d.data()), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);
     },
+    // 2.94.4: endurnýja innskráningarlykil (notað ef fyrsta lestur fær permission-denied rétt eftir innskráningu)
+    async refresh() { try { await auth.currentUser?.getIdToken(true); } catch (e) {} },
     watch(path, cb, onErr) {
       return onSnapshot(ref(path), { includeMetadataChanges: true },
         s => cb({ exists: s.exists(), data: () => s.data(), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);
