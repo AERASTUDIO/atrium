@@ -124,6 +124,9 @@
   const applyBase = (T, B) => { if (!B) return; T.linur = baseLines(B, T); T.afsl = +B.afsl || 0; T.athugasemd = B.athugasemd || null; if (!T.stadsetning && B.stadsetning) T.stadsetning = B.stadsetning;
     T.ur = { src: B.src || "", id: B.id || null, nr: B.nr || null, heiti: B.snHeiti || null }; };
   // 2.78.2: ný pöntun opnast alltaf undir Pantanir (ekki á flipanum sem stofnað var frá); tóm pöntun í breytingaham, annars pöntunarsíðan
+  // 2.95.1: nýtt tilboð opnast undir Tilboðum (líka þegar það er stofnað úr pósti); póstþráður úr „+ Stofna…“ í pósti fylgir nýja skjalinu
+  const tbOpenNew = id => { try { if (!/^(ltilbod|tbl|tbs|tbt|stilbod)$/.test(tab)) tab = "ltilbod"; window.STSUB = null; } catch (e) {} openDetail("tb:" + id); };
+  const pendPost = () => { const x = window.__poPend; window.__poPend = null; return x?.conv && Date.now() - (x.t || 0) < 36e5 ? { postConv: x.conv, postBox: x.box || null } : {}; };
   window.pnOpenNew = P => { try { if (!/^(pantanir|pnl|pns|pnt)$/.test(tab)) tab = "pantanir"; window.STSUB = null; } catch (e) {}
     EDT = (P.linur || []).length ? null : structuredClone(P); openDetail("tb:" + P.id); };
   // Val efst í „Nýtt tilboð“ / „Ný pöntun“: autt, sniðmát eða afrit af eldra (snidmat.js sér um gluggann)
@@ -208,6 +211,23 @@
       ${tbs.length ? `<div class="viewtitle">Á tilboðum · ${tbs.length}</div>${llist(tbs.map(tbRow))}` : ""}`;
   };
 
+  /* 2.95.1: sjálfvirk vörunúmer – forskeyti eftir flokki og næsta lausa númer (HL-101, HL-102 …).
+     Forskeyti flokks: stillingar.tilbod.vnrPre[flokkur] ef stillt, annars algengasta forskeytið í flokknum, annars búið til úr heiti flokksins
+     (2–3 stafir, ekki í notkun hjá öðrum flokki). Númer eru einkvæm yfir allan vörulistann (leiga og sala). */
+  const NRRE = /^([A-Za-z]+)-?(\d+)$/, preOf = n => (String(n || "").trim().match(NRRE) || [])[1]?.toUpperCase() || "";
+  const ASC = t => String(t || "").replace(/[Þþ]/g, "TH").replace(/[Ææ]/g, "AE").replace(/[Ðð]/g, "D").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z]/g, "").toUpperCase();
+  const vnrPre = (fl, D, skip) => { const c = (CF().vnrPre || {})[fl]; if (c) return String(c).toUpperCase();
+    const cnt = {}; VR().filter(v => v.flokkur === fl && v.id !== skip).forEach(v => { const p = preOf(v.nr); if (p) cnt[p] = (cnt[p] || 0) + 1; });
+    const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (best) return best[0];
+    const used = new Set(VR().filter(v => v.flokkur !== fl).map(v => preOf(v.nr)).filter(Boolean)), b = ASC(fl) || (D === "sala" ? "SV" : "LB");
+    return [b.slice(0, 2), b.slice(0, 3), b[0] + (b[2] || "X"), b.slice(0, 4)].find(p => p.length >= 2 && !used.has(p)) || b.slice(0, 2) + "X"; };
+  const vnrNext = (pre, taken) => { let mx = 100; VR().forEach(v => { const m = String(v.nr || "").trim().match(NRRE); if (m && m[1].toUpperCase() === pre) mx = Math.max(mx, +m[2]); });
+    (taken || []).forEach(n => { const m = String(n).match(NRRE); if (m && m[1].toUpperCase() === pre) mx = Math.max(mx, +m[2]); }); return pre + "-" + (mx + 1); };
+  window.vnrAuto = (fl, D, skip) => vnrNext(vnrPre(fl, D, skip));
+  // Borði í vörulista: vörur án vörunúmers (admin getur gefið þeim öllum númer í einu)
+  window.vnrMissingHTML = D => { if (!MCP || !ADM()) return ""; const n = VR().filter(v => vDeild(v) === D && v.tegund !== "pakki" && !String(v.nr || "").trim()).length;
+    return n ? `<div class="vnrmiss"><span>${n} ${n === 1 ? "vara er" : "vörur eru"} án vörunúmers</span><button type="button" class="btn sm" data-act="vrnrall:${D}">Gefa vörunúmer</button></div>` : ""; };
+
   function varaForm(D, id) {
     const v = id ? findV(id) : null; D = v ? vDeild(v) : D;
     const T0 = DL[D].tegs, x = v ? { ...v, tegund: v.tegund === "baedi" ? "leiga" : v.tegund } : { tegund: VF[D] && T0.includes(VF[D]) ? VF[D] : T0[0], flokkur: VK[D] || FLOKKAR(D)[0], eining: "stk.", innihald: [] };
@@ -229,7 +249,7 @@
       <label>Heiti<input id="vr-heiti" value="${esc(x.heiti || "")}" placeholder="${D === "leiga" ? "T.d. Hátalari" : "T.d. Vegghátalari"}"></label>
       <div class="two"><label>Tegund<select id="vr-teg">${opts(T0.map(k => [k, TEG[k]]), x.tegund)}</select></label><label>Flokkur<select id="vr-fl">${opts(FLOKKAR(D).map(f => [f, f]), x.flokkur)}<option value="__nyr__">+ Nýr flokkur…</option></select></label></div>
       <label id="vr-flnl" style="display:none">Heiti nýs flokks<input id="vr-fln" placeholder="T.d. Rigging"></label>
-      <div class="two"><label>Vörunúmer<input id="vr-nr" value="${esc(x.nr || "")}" placeholder="Valfrjálst"></label><label>Eining<select id="vr-ein">${opts(["stk.", "klst.", "dagur", "ferð", "km", "sett", "m", "m²"].map(e => [e, e]), x.eining || "stk.")}</select></label></div>
+      <div class="two"><label>Vörunúmer<input id="vr-nr" value="${esc(x.nr || "")}" placeholder="Sjálfvirkt" autocomplete="off"></label><label>Eining<select id="vr-ein">${opts(["stk.", "klst.", "dagur", "ferð", "km", "sett", "m", "m²"].map(e => [e, e]), x.eining || "stk.")}</select></label></div>
       <div class="two"><label>Leiguverð á dag (kr.)<input id="vr-lv" inputmode="numeric" value="${+x.leiguverd ? esc(String(x.leiguverd)) : ""}"></label><label>Söluverð (kr.)<input id="vr-sv" inputmode="numeric" value="${+x.soluverd ? esc(String(x.soluverd)) : ""}"></label></div>
       <div class="two"><label>Fjöldi til<input id="vr-fj" inputmode="numeric" value="${+x.fjoldi ? esc(String(x.fjoldi)) : ""}"></label>${ADM() ? `<label>Innkaupsverð (kr.)<input id="vr-iv" inputmode="numeric" value="${+x.innkaupsverd ? esc(String(x.innkaupsverd)) : ""}"></label>` : "<span></span>"}</div>
       <div id="vr-pk"></div>
@@ -237,11 +257,19 @@
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="vr-cancel">Hætta við</button><button class="btn primary" id="vr-save">Vista</button></div></form>`;
     sheetwrap.hidden = false; draw();
     document.getElementById("vr-teg").onchange = () => { readPk(); draw(); };
-    document.getElementById("vr-fl").onchange = e => { document.getElementById("vr-flnl").style.display = e.target.value === "__nyr__" ? "" : "none"; };
+    // 2.95.1: vörunúmer fyllist sjálfkrafa eftir flokki (meðan notandinn hefur ekki skrifað sitt eigið)
+    const nrEl = document.getElementById("vr-nr"), curFl = () => { const f = val("vr-fl"); return f === "__nyr__" ? val("vr-fln") : f; };
+    const sugg = () => { if (!nrEl.dataset.auto) return; const f = curFl(); nrEl.value = f ? vnrAuto(f, D, id) : ""; };
+    if (!String(x.nr || "").trim()) { nrEl.dataset.auto = "1"; sugg(); }
+    nrEl.addEventListener("input", () => { delete nrEl.dataset.auto; });
+    document.getElementById("vr-fln").addEventListener("input", sugg);
+    document.getElementById("vr-fl").onchange = e => { document.getElementById("vr-flnl").style.display = e.target.value === "__nyr__" ? "" : "none"; sugg(); };
     document.getElementById("vr-cancel").onclick = closeSheet;
     document.getElementById("vrf").onsubmit = async e => { e.preventDefault(); readPk();
       const heiti = val("vr-heiti"), teg = val("vr-teg"); let fl = val("vr-fl"); if (fl === "__nyr__") fl = val("vr-fln");
       if (!heiti) return msg("Skrifaðu heiti.", "err"); if (!fl) return msg("Veldu flokk.", "err");
+      { const nr0 = val("vr-nr").trim(), dup = nr0 && VR().find(y => y.id !== id && String(y.nr || "").trim().toLowerCase() === nr0.toLowerCase());
+        if (dup) return msg(`Vörunúmerið ${esc(nr0)} er þegar á „${esc(dup.heiti)}“.`, "err"); if (!nr0) document.getElementById("vr-nr").value = vnrAuto(fl, D, id); }
       const o = { deild: D, heiti, tegund: teg, flokkur: fl, nr: val("vr-nr") || null, eining: val("vr-ein") || "stk.", leiguverd: D === "leiga" && teg !== "vinna" ? parseKr(val("vr-lv")) || 0 : 0, soluverd: D === "sala" || teg === "vinna" ? parseKr(val("vr-sv")) || 0 : 0, fjoldi: teg === "vinna" ? 0 : n0(val("vr-fj")) || 0, lysing: val("vr-lys") || null, innihald: teg === "pakki" ? inn.filter(i => i.v) : [] };
       if (document.getElementById("vr-iv")) o.innkaupsverd = parseKr(val("vr-iv")) || 0;
       if (D === "leiga" && teg !== "vinna" && !o.leiguverd) return msg("Skráðu leiguverð á dag.", "err");
@@ -293,7 +321,7 @@
       ${verkefni().length ? `<label>Verkefni<select id="tb-verk"><option value="">Ekkert verkefni</option>${verkefni().filter(p => !isDone(p) || (PP && p.id === PP.id)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(p => `<option value="${esc(p.id)}"${PP && p.id === PP.id ? " selected" : ""}>${esc(p.nafn || p.nr)}</option>`).join("")}</select></label>` : ""}
       ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
-      <label>${L || SV ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
+      <label>${L || SV ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" data-stadur placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
       ${L ? `<div class="two"><label>Frá${M ? "" : " (afhending)"}<input id="tb-fra" type="date" value="${pre?.fra || PD.fra || (M ? "" : d0)}"></label><label>Til${M ? "" : " (skil)"}<input id="tb-til" type="date" value="${pre?.til || pre?.fra || PD.til || (M ? "" : d0)}"></label></div>${M ? `<p class="hint" id="tb-tbh" style="margin:-4px 0 8px">Tímabil verksins${PP ? " – sömu dagar og verkefnið" : ""}. Leigulínur reiknast á þessa daga.</p>` : ""}` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
       <label>Tilboð gildir til<input id="tb-gildir" type="date" value="${g0}"></label>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="tb-cancel">Hætta við</button><button class="btn primary" id="tb-save">Búa til og bæta við línum</button></div></form>`;
@@ -318,11 +346,11 @@
         const cl = await pickVsk("tb", "client", "Viðskiptavinur"), id = gid(), n = +c[nK(D)] || 1001, nr = DL[D].pre + n;
         const T = { id, nr, heiti, deild: D, vskId: cl?.id || null, vidskiptavinur: cl?.name || null,
           tengilidur: val("tb-teng") || null, netfang: val("tb-net") || null, stadsetning: val("tb-stad") || null, fra, til, gildir: val("tb-gildir") || null, dags: d0,
-          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: (document.getElementById("tb-verk") ? val("tb-verk") : PP?.id) || null };
+          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: (document.getElementById("tb-verk") ? val("tb-verk") : PP?.id) || null , ...pendPost() };
         if (pre?.vara) { const v = findV(pre.vara); if (v) T.linur = [{ ...lineFrom(v, T), magn: +pre.magn || 1 }]; } // „+ Á tilboð“ af vöruspjaldi (2.30.0)
         applyBase(T, getB());
         await saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(T); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; });
-        toast("Tilboð " + nr + " stofnað"); closeSheet(); EDT = structuredClone(T); openDetail("tb:" + id);
+        toast("Tilboð " + nr + " stofnað"); closeSheet(); EDT = structuredClone(T); tbOpenNew(id);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
   }
 
@@ -336,6 +364,7 @@
       <label>Lýsing<input id="pn-heiti" value="${esc(PP?.stutt || "")}" placeholder="T.d. Hljóðnemi fyrir afmæli"></label>
       <div class="two"><label>Afhending<input id="pn-fra" type="date" value="${pre?.fra || d0}"></label><label>Skil<input id="pn-til" type="date" value="${pre?.til || pre?.fra || d0}"></label></div>
       <p class="hint" style="margin:-4px 0 8px">Leigubúnaður er frátekinn frá afhendingu til skila.</p>
+      <label>Staðsetning<input id="pn-stad" data-stadur placeholder="Hvar verður búnaðurinn notaður (valfrjálst)"></label>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="pn-cancel">Hætta við</button><button class="btn primary" id="pn-save">Búa til og bæta við línum</button></div></form>`;
     sheetwrap.hidden = false; wireVskSelects(sheet);
     document.getElementById("pn-fra").onchange = e => { const t = document.getElementById("pn-til"); if (!t.value || t.value < e.target.value) t.value = e.target.value; };
@@ -350,9 +379,10 @@
         const cl = await pickVsk("pn", "client", "Viðskiptavinur"), teng = val("pn-teng") || null; if (!cl && !teng) return msg("Veldu viðskiptavin eða skráðu nafn þess sem pantar.", "err");
         const id = gid(), n = +CF().nastaNrP || 1001, nr = "P-" + n;
         const P = { id, pontun: true, nr, deild: "blandad", heiti: val("pn-heiti") || "Pöntun", vskId: cl?.id || null, vidskiptavinur: cl?.name || null, tengilidur: teng, simi: val("pn-simi") || null, netfang: val("pn-net") || null,
-          uppruni: val("pn-upp") || "simi", ytriNr: null, stadsetning: null, fra, til, dags: isoDay(new Date()), stada: "Ný", svid: (() => { try { return ({ pnl: ["Leiga"], pns: ["Sala"], pnt: ["Þjónusta"] })[tab] || null; } catch (e) { return null; } })(), afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null, tilbodId: null };
+          uppruni: val("pn-upp") || "simi", ytriNr: null, stadsetning: val("pn-stad") || null, fra, til, dags: isoDay(new Date()), stada: "Ný", svid: (() => { try { return ({ pnl: ["Leiga"], pns: ["Sala"], pnt: ["Þjónusta"] })[tab] || null; } catch (e) { return null; } })(), afsl: 0, athugasemd: null, linur: [], verkefniId: PP?.id || null, tilbodId: null };
         if (pre?.vara) { const v = findV(pre.vara); if (v) P.linur = [{ ...lineFrom(v, P), magn: +pre.magn || 1 }]; } // „Taka frá“ af vöruspjaldi (2.30.0)
         { const B = getB(); applyBase(P, B); if (B) { if (B.afhending) P.afhending = B.afhending; if (B.afhStadur) P.afhStadur = B.afhStadur; if (B.svid) P.svid = B.svid; } }
+        Object.assign(P, pendPost());
         await saveSnapshot(s => { (s.pantanir = s.pantanir || []).push(P); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: n + 1 }; });
         toast("Pöntun " + nr + " stofnuð"); closeSheet(); window.pnOpenNew(P);
       } catch (err) { msg(esc(err?.code === "form" ? err.message : errText(err)), "err"); } };
@@ -962,6 +992,13 @@
     if (k === "vrf") { VF[r[0]] = r.slice(1).join(":"); VK[r[0]] = ""; render(); return; }
     if (k === "vrk") { VK[r[0]] = r.slice(1).join(":"); render(); return; }
     if (k === "vrnew") { varaForm(r[0] === "sala" ? "sala" : "leiga", r[1] || null); return; }
+    if (k === "vrnrall") { if (!ADM()) return toast("Aðeins admin."); const D = r[0] === "sala" ? "sala" : "leiga";
+      const xs = VR().filter(v => vDeild(v) === D && v.tegund !== "pakki" && !String(v.nr || "").trim()).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.heiti).localeCompare(String(b.heiti), "is"));
+      if (!xs.length) return; const taken = [], plan = xs.map(v => { const n = vnrNext(vnrPre(v.flokkur || "", D, v.id), taken); taken.push(n); return [v.id, n]; });
+      const ex = plan.slice(0, 4).map(([i, n]) => n + " " + (findV(i)?.heiti || "")).join("\n");
+      if (!confirm(`Gefa ${xs.length} ${xs.length === 1 ? "vöru" : "vörum"} vörunúmer eftir flokki?\n\n${ex}${xs.length > 4 ? "\n…" : ""}\n\nNúmerin má breyta á hverri vöru.`)) return;
+      const M = new Map(plan); saveSnapshot(s => { (s.vorur || []).forEach(v => { if (M.has(v.id) && !String(v.nr || "").trim()) v.nr = M.get(v.id); }); })
+        .then(() => toast(`${xs.length} vörunúmer gefin`)).catch(e => toast(errText(e))); return; }
     if (k === "vrdel") { const v = findV(a); if (!v) return; const n = TB().filter(t => (t.linur || []).some(l => l.v === a)).length;
       if (!confirm(`Eyða „${v.heiti}“?${n ? `\n\nHún er á ${n} tilboðum – línurnar þar haldast óbreyttar.` : ""}`)) return;
       saveSnapshot(s => { s.vorur = (s.vorur || []).filter(x => x.id !== a); }).then(() => { toast("Eytt"); goBack(); }).catch(e => toast(errText(e))); return; }

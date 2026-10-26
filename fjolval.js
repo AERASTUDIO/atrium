@@ -2,7 +2,7 @@
    Gátreitur birtist vinstra megin í röðinni (við bendil, alltaf þegar eitthvað er valið), „velja allt“ í dálkahausnum.
    Aðgerðastika efst í listanum: N valin · Breyta stöðu · Eyða · Hætta. Aðeins í tölvu (breiðir listar). */
 (() => {
-  const TABS = { tb: ["ltilbod", "tbl", "tbs", "tbt", "pantanir", "pnl", "pns", "pnt"], verk: ["verk", "lverk", "sverk", "tverk"], vsk: ["vsk", "vskl", "vsks", "vskt"] };
+  const TABS = { tb: ["ltilbod", "tbl", "tbs", "tbt", "pantanir", "pnl", "pns", "pnt"], verk: ["verk", "lverk", "sverk", "tverk"], vsk: ["vsk", "vskl", "vsks", "vskt"], vr: ["lvorur", "svorur"] };   // vr (2.95.1): vörulisti – eyða mörgum í einu
   const kindOf = t => Object.keys(TABS).find(k => TABS[k].includes(t)) || null;
   let SEL = new Set(), selTab = "", last = null;
   const E = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -53,6 +53,11 @@
   }
   async function delAll(k, nafn) {
     const ids = [...SEL]; if (!ids.length) return; const n = ids.length;
+    if (k === "vr") { if (!confirm(nafn ? `Eyða „${nafn}“ úr vörulistanum?\n\nTilboð og pantanir sem nota hana halda sínum línum.` : `Eyða ${n} ${n === 1 ? "vöru" : "vörum"} úr vörulistanum?\n\nTilboð og pantanir sem nota þær halda sínum línum.`)) { if (nafn) { SEL.clear(); deco(); } return; }
+      const before = structuredClone(S);
+      try { await saveSnapshot(s => { s.vorur = (s.vorur || []).filter(x => !ids.includes(String(x.id))); }); SEL.clear(); try { if (DETAIL && ids.includes(String(DETAIL).split(":")[1])) DETAIL = null; } catch (e) {} render();
+        toast(`${n} eytt`, () => saveSnapshot(s => { Object.keys(s).forEach(q => delete s[q]); Object.assign(s, structuredClone(before)); }).then(() => toast("Hætt við að eyða"))); } catch (e) { toast(window.errText ? errText(e) : String(e)); }
+      return; }
     const what = k === "verk" ? (n === 1 ? "verkefni" : "verkefnum") : k === "vsk" ? (n === 1 ? "viðskiptavini" : "viðskiptavinum") : isPant() ? (n === 1 ? "pöntun" : "pöntunum") : (n === 1 ? "tilboði" : "tilboðum");
     const extra = k === "verk" ? "\n\nTíma- og kostnaðarskráningar og undirverk verkefnanna eyðast líka. Fundir og skjöl haldast." : k === "vsk" ? "\n\nVerkefni sem tengjast þeim haldast en tengingin fellur niður." : "";
     if (!confirm(nafn ? `Eyða „${nafn}“?${extra}` : `Eyða ${n} ${what}?${extra}`)) { if (nafn) { SEL.clear(); deco(); } return; }

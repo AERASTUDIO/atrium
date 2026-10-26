@@ -189,7 +189,7 @@
       <p class="sub" style="margin-bottom:4px"><b style="color:var(--ink)">${esc(fromName(m))}</b>${m.from?.emailAddress?.address ? ` &lt;${esc(m.from.emailAddress.address)}&gt;` : ""} · ${esc(fmtDate(m.receivedDateTime))} kl. ${esc(new Date(m.receivedDateTime).toTimeString().slice(0, 5))}</p>
       <p class="hint" style="margin:0 0 4px">Til: ${esc(people(m.toRecipients))}${m.ccRecipients?.length ? " · Afrit: " + esc(people(m.ccRecipients)) : ""}</p>
       ${poToolbar(id, m)}
-      ${MCP ? `<div class="potengja"><span class="potl">${L ? "Tengt verkefni" : "Tengja"}</span>${g ? `<button type="button" class="uchip on" data-act="polink:${esc(id)}:${esc(g.id)}" title="Tengja þráðinn við ${esc(g.nr)} ${esc(g.stutt || "")}">+ ${esc(g.nr)}</button>` : ""}<label class="posel"><select data-polink="${esc(id)}" aria-label="Tengja þráðinn við verkefni"><option value="">${L ? "Aftengja þráðinn" : g ? "Annað verkefni…" : "Verkefni…"}</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${L && L.verkefniId === x.id ? " selected" : ""}>${esc(x.nr ? x.nr + " " : "")}${esc(x.stutt || x.nafn)}</option>`).join("")}</select></label>${stofnaOpts().length ? `<label class="posel postofna"><select data-postofna="${esc(id)}" aria-label="Stofna úr póstinum"><option value="">+ Stofna…</option>${stofnaOpts().map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>` : ""}</div>` : ""}
+      ${MCP ? `<div class="potengja"><span class="potl">${L ? "Tengt verkefni" : "Tengja"}</span>${g ? `<button type="button" class="uchip on" data-act="polink:${esc(id)}:${esc(g.id)}" title="Tengja þráðinn við ${esc(g.nr)} ${esc(g.stutt || "")}">+ ${esc(g.nr)}</button>` : ""}<label class="posel"><select data-polink="${esc(id)}" aria-label="Tengja þráðinn við verkefni"><option value="">${L ? "Aftengja þráðinn" : g ? "Annað verkefni…" : "Verkefni…"}</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${L && L.verkefniId === x.id ? " selected" : ""}>${esc(x.nr ? x.nr + " " : "")}${esc(x.stutt || x.nafn)}</option>`).join("")}</select></label>${tbSel(id, m)}${stofnaOpts().length ? `<label class="posel postofna"><select data-postofna="${esc(id)}" aria-label="Stofna úr póstinum"><option value="">+ Stofna…</option>${stofnaOpts().map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>` : ""}</div>` : ""}
       ${(() => { const T = m.conversationId && window.salaAPI ? [...salaAPI.TB(), ...salaAPI.PN()].find(x => x.postConv === m.conversationId) : null; return T ? `<p class="hint" style="margin:8px 0 0">Þráðurinn tilheyrir ${T.pontun ? "pöntun" : "tilboði"} <a class="plink" data-open="tb:${esc(T.id)}">${esc(T.nr)} ${esc(T.heiti || "")}</a>.</p>` : ""; })()}
       ${p ? `<p class="hint" style="margin:8px 0 0">Þráðurinn er tengdur við ${esc(p.nr)} ${esc(p.stutt || "")}. Nýir póstar í sama þræði birtast sjálfkrafa á síðu verkefnisins.</p>` : ""}
       ${atts.length ? `<div class="viewtitle">Viðhengi · ${atts.length}</div><div class="llist">${atts.map(a => `<div class="lrow"><div class="ll">📎</div><div class="lm"><div class="lt">${esc(a.name)}</div><div class="ls">${esc(kb(a.size))}</div></div>
@@ -223,13 +223,13 @@
     const subj = cleanSubj(m.subject), conv = m.conversationId, before = new Set((S?.verkefni || []).map(p => p.id));
     if (innerWidth >= 1024) document.body.classList.add("sidesheet"); // í síma: venjulegur gluggi
     if (typ === "verk") { kind = "verk"; openSheet(); } // kind: tegund forms í app-form.js
-    else if (typ === "pontun") FAB_EXT.pantanir(); else FAB_EXT.ltilbod();
+    else { window.__poPend = conv ? { conv, box: mb(mid), t: Date.now() } : null; if (typ === "pontun") FAB_EXT.pantanir(); else FAB_EXT.ltilbod(); } // 2.95.1: þráðurinn fylgir nýju tilboði/pöntun
     const set = (id, val, force) => { const el = document.getElementById(id); if (!el || val == null || val === "") return; if (el.tagName === "SELECT" && ![...el.options].some(o => o.value === String(val))) return; if (!force && el.value && el.tagName !== "SELECT") return; el.value = val; el.dispatchEvent(new Event("change", { bubbles: true })); };
     const P = { verk: ["f-name", "f-client"], pontun: ["pn-heiti", "pn-client", "pn-teng", "pn-net"], tilbod: ["tb-heiti", "tb-client", "tb-teng", "tb-net"] }[typ];
     set(P[2], nm); set(P[3], em); set(P[0], subj); if (v) set(P[1], v.id, true);
     if (typ === "pontun") set("pn-upp", "postur", true);
     document.getElementById("sheet-h")?.insertAdjacentHTML("afterend", `<p class="hint pofromh">Úr pósti frá <b>${esc(nm || em)}</b>${v ? ` · viðskiptavinur: ${esc(v.name)}` : em ? " · enginn viðskiptavinur með þetta netfang" : ""}</p>`);
-    const ob = new MutationObserver(() => { if (!sheetwrap.hidden) return; ob.disconnect(); document.body.classList.remove("sidesheet");
+    const ob = new MutationObserver(() => { if (!sheetwrap.hidden) return; ob.disconnect(); document.body.classList.remove("sidesheet"); window.__poPend = null;
       if (typ === "verk" && conv) { const n = (S?.verkefni || []).find(p => !before.has(p.id)); if (n) poLinkConv(conv, n.id, m.subject).then(() => toast("Póstþráðurinn tengdur við " + n.nr)); } });
     ob.observe(sheetwrap, { attributes: true, attributeFilter: ["hidden"] });
   }
@@ -407,9 +407,9 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden = false;
     const drawAtts = () => { document.getElementById("po-atts").innerHTML = atts.length ? atts.map((a, i) => `<span class="chipbtn" style="display:inline-flex;gap:6px;align-items:center">📎 <button type="button" class="poattpv" data-pv="${i}" title="Forskoða ${esc(a.name)}">${esc(a.name)}</button> <small>${esc(kb(a.size))}</small><button type="button" class="btn sm" data-pv="${i}" style="padding:2px 8px;min-height:0">Forskoða</button><button type="button" class="x" data-rm="${i}" aria-label="Fjarlægja">✕</button></span>`).join(" ") : `<span class="hint">Engin.</span>`;
       sheet.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { atts.splice(+b.dataset.rm, 1); drawAtts(); });
-      // 2.73.0: forskoða viðhengi (t.d. PDF tilboðs eða pöntunar) í nýjum flipa áður en sent er
+      // 2.73.0: forskoða viðhengi (t.d. PDF tilboðs eða pöntunar) áður en sent er – 2.95.1: í glugga yfir póstinum (ekki í vafra)
       sheet.querySelectorAll("[data-pv]").forEach(b => b.onclick = () => { const a = atts[+b.dataset.pv]; if (!a) return; const bl = a.data instanceof Blob ? a.data : new Blob([a.data], { type: a.type || "application/octet-stream" });
-        const u = URL.createObjectURL(bl), w = window.open(u, "_blank"); if (!w) { const x = document.createElement("a"); x.href = u; x.download = a.name; x.click(); } setTimeout(() => URL.revokeObjectURL(u), 60000); }); };
+        pvOverlay(bl, a.name); }); };
     drawAtts();
     { const sc = document.getElementById("po-sig"), sp = document.getElementById("po-sigprev"); if (sc) sc.onchange = () => { sp.hidden = !sc.checked; }; }
     const RF = ["po-to", "po-cc"].filter(x => document.getElementById(x + "-box")).map(x => rcptField(x, x === "po-to" ? o.to || "" : o.cc || ""));
@@ -534,6 +534,38 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
   document.addEventListener("submit", e => { if (e.target.id === "poqi" || e.target.id === "poq") { e.preventDefault(); q = (document.getElementById("poqi")?.value || "").trim(); reset(); render(); } });
   document.addEventListener("input", e => { if (e.target.id === "poqi" && fold === "tengilidir") { q = e.target.value.trim(); const pos = e.target.selectionStart; render(); const n = document.getElementById("poqi"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } } });
   document.addEventListener("change", e => { const id = e.target.dataset?.polink; if (id != null) link(id, e.target.value || null); });
+  // 2.95.1: þráð má líka tengja við tilboð eða pöntun (postConv) – póstarnir birtast þá á síðu hennar, svör rata í tilkynningar
+  // 2.95.1: forskoðun í appinu, ofan á póstglugganum (window.open opnaði vafrann í heimaskjáappi og glataði samhenginu)
+  function pvOverlay(bl, name) {
+    const u = URL.createObjectURL(bl), t = bl.type || "", ext = (String(name).split(".").pop() || "").toLowerCase();
+    const pdf = t === "application/pdf" || ext === "pdf", img = /^image\//.test(t) || /^(png|jpe?g|gif|webp)$/.test(ext);
+    const w = document.createElement("div"); w.className = "pvov"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true"); w.setAttribute("aria-label", "Forskoðun " + name);
+    w.innerHTML = `<div class="pvbox"><div class="pvhd"><b>${esc(name)}</b><a class="btn" href="${u}" download="${esc(name)}">Sækja</a><button type="button" class="btn primary pvx">Loka</button></div>
+      <div class="pvbd">${pdf ? '<div class="bppdf"><div class="empty">Opna PDF…</div></div>' : img ? `<img src="${u}" alt="${esc(name)}">` : '<div class="empty">Ekki hægt að forskoða þessa tegund skráar í appinu. Notaðu Sækja.</div>'}</div></div>`;
+    document.body.append(w);
+    const kd = e => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); close(); } };
+    const close = () => { w.remove(); document.removeEventListener("keydown", kd, true); setTimeout(() => URL.revokeObjectURL(u), 1000); };
+    document.addEventListener("keydown", kd, true); w.querySelector(".pvx").onclick = close; w.addEventListener("click", e => { if (e.target === w) close(); });
+    if (pdf) { const el = w.querySelector(".bppdf"); (typeof renderPdf === "function" ? renderPdf(bl, el) : Promise.reject(new Error("PDF-birting ekki tiltæk"))).catch(e => { el.innerHTML = `<div class="empty">Ekki tókst að birta PDF (${esc(e?.message || "villa")}). Notaðu Sækja.</div>`; }); }
+  }
+  function tbSel(id, m) {
+    const api = window.salaAPI; if (!api || !m?.conversationId || !((window.tbOK && tbOK()) || (window.ON && ON("pantanir")))) return "";
+    const T0 = [...api.PN(), ...api.TB()].find(x => x.postConv === m.conversationId), opn = x => !["Lokið", "Hafnað", "Skilað"].includes(x.stada) || (T0 && T0.id === x.id);
+    const srt = xs => xs.filter(opn).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })), P = srt(api.PN()), T = srt(api.TB());
+    const op = x => `<option value="${esc(x.id)}"${T0 && T0.id === x.id ? " selected" : ""}>${esc(x.nr)} ${esc(String(x.heiti || "").slice(0, 40))}${x.vidskiptavinur ? " · " + esc(String(x.vidskiptavinur).slice(0, 24)) : ""}</option>`;
+    if (!P.length && !T.length) return "";
+    return `<label class="posel"><select data-potb="${esc(id)}" aria-label="Tengja þráðinn við tilboð eða pöntun"><option value="">${T0 ? "Aftengja frá " + esc(T0.nr) : "Tilboð eða pöntun…"}</option>${P.length ? `<optgroup label="Pantanir">${P.map(op).join("")}</optgroup>` : ""}${T.length ? `<optgroup label="Tilboð">${T.map(op).join("")}</optgroup>` : ""}</select></label>`;
+  }
+  async function linkTb(gid, tid) {
+    let conv = convOf(gid);
+    try { if (!conv) { const m = await MS.g(`${mb(gid)}/messages/${encodeURIComponent(gid)}?$select=id,subject,conversationId`); noteConv([m]); conv = m.conversationId; } } catch (e) { return toast(e.message); }
+    if (!conv) return toast("Fann ekki þráð póstsins.");
+    const box = mb(gid), api = window.salaAPI, T = tid && api ? [...api.TB(), ...api.PN()].find(x => String(x.id) === String(tid)) : null;
+    try { await saveSnapshot(s => { [...(s.tilbod || []), ...(s.pantanir || [])].forEach(x => { if (x.postConv === conv && String(x.id) !== String(tid)) { delete x.postConv; delete x.postBox; }
+      if (tid && String(x.id) === String(tid)) { x.postConv = conv; x.postBox = box; } }); }); } catch (e) { return toast(window.errText ? errText(e) : String(e)); }
+    toast(T ? `Þráður tengdur við ${T.pontun ? "pöntun" : "tilboð"} ${T.nr}` : "Þráður aftengdur frá tilboði/pöntun"); render();
+  }
+  document.addEventListener("change", e => { const id = e.target.dataset?.potb; if (id != null) linkTb(id, e.target.value || null); });
   document.addEventListener("search", e => { if (e.target.id === "poqi" && !e.target.value && q) { q = ""; reset(); render(); } }, true);
 
   // Póstþræðir á síðu verkefnis – sóttir beint úr pósthólfinu, svo nýir póstar í þræðinum birtast sjálfkrafa
