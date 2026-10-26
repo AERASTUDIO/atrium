@@ -50,13 +50,23 @@
   // Ekkert breytist hjá uppsetningu sem hefur hvorki ORG.pakkar né S.stillingar.pakkar. Nýja stillingasíðan og flokkuð
   // valmynd birtast aðeins þar sem ORG.pakkaval = true (fyrst í dev/).
   // lykill: [heiti, lýsing, einingar pakkans]
+  // Leiðir og pakkar (2.97.0, verðlíkan 26.10.2026): KJARNI (alltaf) + kjarnaeiningar sem admin velur, og þrír PAKKAR sem
+  // LEIÐ uppsetningarinnar opnar (ORG.leid: core · pro · complete; ORG.aukapakkar bætir stökum pakka við). Innan þess sem er
+  // opið kveikir admin og slekkur. Uppsetning án ORG.leid hefur alla pakka opna eins og áður.
   const PAKKAR = {
-    verkstjorn: ["Verkstjórn", "Verkþættir með skiladögum, dagatal og fundir", ["undirverk", "dagatal", "fundir"]],
-    timar:      ["Tímaskráning", "Tímar, skeiðklukka, útlagður kostnaður og tímaskýrslur", ["timar", "kostnadur"]],
-    tilbod:     ["Tilboð og þjónustur", "Tilboð og þjónustulisti: þjónusta á tímagjaldi eða föstu verði, tímagjald á verkefnum og færslum", ["tilbod", "verdskra"]],
-    bunadur:    ["Vörulisti og lager", "Leiga og sala: leigubúnaður, söluvörur, vinna og þjónusta, lagerstaða, leigu- og sölutilboð", ["leiga", "sala", "qr", ...(window.ORG?.pakkaval && window.ORG?.utlit !== "I" ? ["pantanir"] : [])]],
-    fjarmal:    ["Fjármál", "Reikningsdrög úr tímum og kostnaði, PDF og Excel, óinnheimt", ["reikningar"]]
+    leigasala: ["Leiga og sala", "Vörulisti, leiga, sala, lager, pantanir og QR-merki", ["leiga", "sala", "pantanir", "qr", "deildir"]],
+    afhending: ["Afhending", "Pöntunarferli: staðfesting, greiðsla, pökkun, undirskrift og skil", ["pferli"]],
+    yfirsyn:   ["Yfirsýn", "Verkefnagreining, aukaverk, Snjall-Heim og rekstrarlínur", ["vgreind", "aukaverk", "snjall", "rlinur"]]
   };
+  const LEIDIR = {
+    core:     { heiti: "Core",     d: "Kjarninn – verkefni, tímar, tilboð og reikningsdrög", pakkar: [] },
+    pro:      { heiti: "Pro",      d: "Kjarninn + Leiga og sala og Afhending", pakkar: ["leigasala", "afhending"] },
+    complete: { heiti: "Complete", d: "Allt – líka Yfirsýn og nýjar einingar", pakkar: ["leigasala", "afhending", "yfirsyn"] }
+  };
+  // Einingar kjarnans sem admin getur slökkt á (verkefni og viðskiptavinir eru alltaf virk)
+  const KJARNI_EIN = ["undirverk", "dagatal", "fundir", "timar", "kostnadur", "tilbod", "verdskra", "reikningar"];
+  // Eldri pakkar (2.14–2.96): ef admin slökkti á gömlum pakka teljast einingar hans óvirkar þar til kveikt er á þeim aftur
+  const GAMLIR = { verkstjorn: ["undirverk", "dagatal", "fundir"], timar: ["timar", "kostnadur"], tilbod: ["tilbod", "verdskra"], bunadur: ["leiga", "sala", "qr"], fjarmal: ["reikningar"] };
   const TENGINGAR = {
     m365skrar:  ["Microsoft 365 – skrár", "Möppur verkefna á SharePoint/OneDrive, Mín skjöl, Nýlegt og skjalalisti", ["skjol", "onedrive"]],
     m365postur: ["Microsoft 365 – póstur", "Pósthólf, verkefnapóstur og póstþræðir á verkefnum", ["postur"]],
@@ -65,24 +75,28 @@
   };
   const PAKKI_AF = {}; [PAKKAR, TENGINGAR].forEach(G => Object.entries(G).forEach(([p, v]) => v[2].forEach(k => { PAKKI_AF[k] = p; })));
   // Útlit I (dev): Pantanir eru hluti af kjarnanum, alltaf virkar, ekki í pakkanum Vörulisti og lager
-  const KJARNI = ["verkefni", "vidskiptavinir", ...(window.ORG?.pakkaval && window.ORG?.utlit === "I" ? ["pantanir"] : [])];
+  const KJARNI = ["verkefni", "vidskiptavinir", ...(window.ORG?.pakkaval && window.ORG?.utlit === "I" && !window.ORG?.leid ? ["pantanir"] : [])];
   const ALLTAF = window.ORG?.pakkaval ? KJARNI.slice() : ["verkefni"];
   // S er skilgreint með let í app-grunnur.js (ekki á window) – lesið við keyrslu
   const st = () => { try { return typeof S !== "undefined" ? S : null; } catch (e) { return null; } };
-  const raw = () => ({ ...(window.ORG?.einingar || {}), ...(st()?.stillingar?.einingar || {}) });
+  const gamalt = () => { const P = st()?.stillingar?.pakkar || {}, o = {}; Object.entries(GAMLIR).forEach(([p, ks]) => { if (P[p] === false) ks.forEach(k => { o[k] = false; }); }); return o; };
+  const raw = () => ({ ...(window.ORG?.einingar || {}), ...gamalt(), ...(st()?.stillingar?.einingar || {}) });
+  const leid = () => LEIDIR[window.ORG?.leid] || null;
+  const leidPakkar = () => { const L = leid(); return L ? L.pakkar.concat(window.ORG?.aukapakkar || []) : null; };
   // Er eining virk? (og sú sem hún er háð)
   // Er pakki/tenging virk? false í fyrirtaeki.js = ekki í boði (læst); admin slekkur í S.stillingar.pakkar
-  const pakkiLast = p => (window.ORG?.pakkar || {})[p] === false;
+  const pakkiLast = p => (window.ORG?.pakkar || {})[p] === false || (!!PAKKAR[p] && !!leidPakkar() && !leidPakkar().includes(p));
   const pakkiOn = p => { if (!p) return true; if (pakkiLast(p)) return false; const v = (st()?.stillingar?.pakkar || {})[p]; return v !== false; };
   const ON = k => { if (ALLTAF.includes(k)) return true; if (!pakkiOn(PAKKI_AF[k])) return false; if ((window.ORG?.einingar || {})[k] === false) return false; const r = raw(); if (r[k] === false || r[k] === 0) return false; if (EININGAR[k]?.[3] && r[k] !== true) return false; const dep = EININGAR[k]?.[2]; return dep ? ON(dep) : true; };
   // Læst í uppsetningu (fyrirtaeki.js) – admin getur þá ekki kveikt á henni í appinu
   const LAST = k => (window.ORG?.einingar || {})[k] === false || pakkiLast(PAKKI_AF[k]);
   window.PAKKAR = PAKKAR; window.TENGINGAR = TENGINGAR; window.PAKKI_AF = PAKKI_AF; window.KJARNI = KJARNI;
+  window.LEIDIR = LEIDIR; window.KJARNI_EIN = KJARNI_EIN; window.leidNu = () => (leid() ? { k: window.ORG.leid, ...leid(), auka: window.ORG?.aukapakkar || [] } : null);
   window.pakkiOn = pakkiOn; window.pakkiLast = pakkiLast;
   // Eru tilboð virk? (2.22.0) Pakkaval: einingin Tilboð; annars Leiga eða Sala eins og áður
   window.tbOK = () => (window.ORG?.pakkaval ? ON("tilbod") : (ON("leiga") || ON("sala")));
   window.EININGAR = EININGAR; window.ON = ON; window.einLast = LAST; window.EIN_ALLTAF = ALLTAF;
-  window.einSig = () => Object.keys(EININGAR).map(k => ON(k) ? 1 : 0).join("");
+  window.einSig = () => Object.keys(EININGAR).map(k => ON(k) ? 1 : 0).join("") + "|" + (window.VIEWAS?.hlutverk || window.USER?.hlutverk || "");
 
   // Hvaða eining hver flipi tilheyrir (flipar án línu eru alltaf sýndir)
   window.TAB_EIN = { undir: "undirverk", vsk: "vidskiptavinir", dagatal: "dagatal", fundir: "fundir", timar: "timar", tfaer: "timar", tskyr: "timar",

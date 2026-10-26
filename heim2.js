@@ -7,7 +7,7 @@
    - Spjöld: eitt fyrir hvern virkan pakka (Tímar, Tilboð, Fjármál, Búnaður) og verkefni í gangi (kjarni). */
 (function () {
   const tag = t => `<span class="h2tag">${esc(t)}</span>`;
-  const G = k => (window.PAKKAR?.[k]?.[0]) || (window.TENGINGAR?.[k]?.[0]) || k;
+  const G = k => ({ verkstjorn: "Verkstjórn", timar: "Tímaskráning", bunadur: "Leiga og sala" })[k] || (window.PAKKAR?.[k]?.[0]) || (window.TENGINGAR?.[k]?.[0]) || k;
   const tilbodOn = () => (window.tbOK ? tbOK() : (ON("leiga") || ON("sala")));
   const fjOn = () => ON("reikningar") && !!(window.can && can("fjarmal"));
   const tbAll = () => (S?.tilbod || []).filter(T => !T.deild || ON(T.deild)).filter(T => !window.inDeild || inDeild(T));

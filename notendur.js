@@ -8,7 +8,9 @@
     // eyda: eyðir verkefnum, viðskiptavinum og reikningum (frá 1.9.0; firestore.rules: delete aðeins admin)
     admin:       { heiti: "Admin",       notendur: true,  stillingar: true,  fjarmal: true,  eyda: true  },
     bokari:      { heiti: "Bókari",      notendur: false, stillingar: false, fjarmal: true,  eyda: false },
-    starfsmadur: { heiti: "Starfsmaður", notendur: false, stillingar: false, fjarmal: false, eyda: false }
+    starfsmadur: { heiti: "Starfsmaður", notendur: false, stillingar: false, fjarmal: false, eyda: false },
+    // vettvangur (2.97.0): lager og vettvangur – Í dag, klukka, skanni, afhending, myndir; aðeins eigin verk (vettvangur.js, firestore.rules)
+    vettvangur:  { heiti: "Vettvangur",  notendur: false, stillingar: false, fjarmal: false, eyda: false, vettvangur: true }
   };
   let NU = null; // app/notendur
   window.USER = null; // innskráður notandi {email, nafn, sk, hlutverk, varaleid}

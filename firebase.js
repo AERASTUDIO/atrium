@@ -97,6 +97,8 @@ onAuthStateChanged(auth, async user => {
     const d = s.data(); if (!d.notendur?.[email]) return;
     d.notendur[email].sidast = new Date().toISOString(); t.set(ref("app/notendur"), d);
   }).catch(() => {});
+  // Notkun (2.97.0): hver notandi skráir sig sem virkan í mánuðinum (UTC) – s = skrifstofa, v = vettvangur. Grunnur áskriftar (Stillingar › Áskrift).
+  if (ms) { const mo = new Date().toISOString().slice(0, 7); setDoc(ref("app/notkun"), { [mo]: { [email]: U.hlutverk === "vettvangur" ? "v" : "s" } }, { merge: true }).catch(() => {}); }
 
   window.aeraStart({
     email, user: U,

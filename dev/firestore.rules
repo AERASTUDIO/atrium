@@ -36,6 +36,13 @@ service cloud.firestore {
     function role() { return legacy() ? "admin" : users()[em()].hlutverk; }
     // Fjármál: admin og bókari – búa til reikninga og sjá tíma og kostnað allra.
     function fjarmal() { return active() && (legacy() || role() in ["admin", "bokari"]); }
+    // Vettvangur (2.97.0): lager og vettvangur – skráir tíma, afhendir og tekur á móti pöntunum, en stofnar hvorki verkefni,
+    // tilboð, pantanir né viðskiptavini, breytir ekki tilboðum eða viðskiptavinum og sér aldrei reikninga (fjarmal()).
+    function vett() { return active() && role() == "vettvangur"; }
+    function skrif() { return active() && !vett(); }
+    // Mánuður (UTC) fyrir notkunarskráningu, t.d. "2026-10"
+    function mon() { return string(request.time.year()) + "-" + (request.time.month() < 10 ? "0" : "") + string(request.time.month()); }
+    function minnTegund() { return vett() ? "v" : "s"; }
 
     // app/state: stillingar, samtölur, netfangaskrá o.fl. (afgangurinn eftir skiptingu í söfn, frá 1.3.0).
     // Eftir flutning (skipting = 2) má ekki skrifa gömlu fylkin aftur inn – gamlar útgáfur appsins fá villu í stað þess að skrifa yfir.
@@ -45,22 +52,33 @@ service cloud.firestore {
         && (request.resource.data.keys().hasAny(["verkefni", "vidskiptavinir", "fundir", "skjol", "thraedir", "reikningar", "kostnadur", "klukka", "vorur", "tilbod", "pantanir"])
             || request.resource.data.get("timar", {}).keys().hasAny(["faerslur", "nyjast"])));
     }
+    // Notkun (2.97.0): hver notandi skráir sig virkan í mánuðinum – aðeins eigið netfang, rétt tegund og núverandi mánuður. Admin les.
+    match /app/notkun {
+      allow read: if admin();
+      allow create: if active() && request.resource.data.keys().hasOnly([mon()])
+        && request.resource.data[mon()].keys().hasOnly([em()]) && request.resource.data[mon()][em()] == minnTegund();
+      allow update: if active() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([mon()])
+        && request.resource.data[mon()][em()] == minnTegund()
+        && (!(mon() in resource.data) ? request.resource.data[mon()].keys().hasOnly([em()])
+            : request.resource.data[mon()].diff(resource.data[mon()]).affectedKeys().hasOnly([em()]));
+      allow delete: if false;
+    }
     match /app/skrar {
       allow read, write: if active();
     }
 
     // Sameiginleg söfn: allir virkir notendur lesa og skrifa.
     // Verkefnum og viðskiptavinum getur aðeins admin eytt (frá 1.9.0).
-    match /verkefni/{id}       { allow read, create, update: if active(); allow delete: if admin(); }
-    match /vidskiptavinir/{id} { allow read, create, update: if active(); allow delete: if admin(); }
+    match /verkefni/{id}       { allow read, update: if active(); allow create: if skrif(); allow delete: if admin(); }
+    match /vidskiptavinir/{id} { allow read: if active(); allow create, update: if skrif(); allow delete: if admin(); }
     match /fundir/{id}         { allow read, write: if active(); }
     match /skjol/{id}          { allow read, write: if active(); }
     match /thraedir/{id}       { allow read, write: if active(); }
     // Vörulisti og tilboð (frá 2.4.0): allir virkir notendur lesa og skrifa; aðeins admin eyðir.
-    match /vorur/{id}          { allow read, create, update: if active(); allow delete: if admin(); }
-    match /tilbod/{id}         { allow read, create, update: if active(); allow delete: if admin(); }
+    match /vorur/{id}          { allow read, update: if active(); allow create: if skrif(); allow delete: if admin(); }
+    match /tilbod/{id}         { allow read: if active(); allow create, update: if skrif(); allow delete: if admin(); }
     // Pantanir (frá 2.20.0): eins og tilboð
-    match /pantanir/{id}       { allow read, create, update: if active(); allow delete: if admin(); }
+    match /pantanir/{id}       { allow read, update: if active(); allow create: if skrif(); allow delete: if admin(); }
 
     // Reikningar: aðeins fjármál (admin, bókari) lesa og skrifa (lestur takmarkaður 2.94.2); aðeins admin eyðir (frá 1.9.0).
     match /reikningar/{id} {

@@ -200,7 +200,7 @@ function thjField(sel){const T=THJ(); if(window.ORG?.pakkaval&&window.ORG?.utlit
   return `<div><div class="kind" style="margin-bottom:6px">${VFL()}</div><div class="chips">${T.map(t=>`<label><input type="checkbox" name="thj" value="${esc(t)}"${(sel||[]).includes(t)?" checked":""}>${esc(t)}</label>`).join("")}</div></div>`;}
 function projDatesPv(pre,p){
   const hid=(k,v)=>`<input type="hidden" id="${pre}-${k}" value="${esc(v||"")}">`, tm=(k,lab,iso)=>`<label>${lab}<input id="${pre}-${k}" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label>`;
-  const showT=!!(hhmm(p?.timabilFra)||hhmm(p?.skiladagur)), sepTil=!!(p?.timabilTil&&dOnly(p.timabilTil)!==dOnly(p.skiladagur)), ev=window.pakkiOn&&pakkiOn("bunadur")&&(ON("leiga")||ON("sala"));
+  const showT=!!(hhmm(p?.timabilFra)||hhmm(p?.skiladagur)), sepTil=!!(p?.timabilTil&&dOnly(p.timabilTil)!==dOnly(p.skiladagur)), ev=window.pakkiOn&&pakkiOn(window.PAKKAR?.bunadur?"bunadur":"leigasala")&&(ON("leiga")||ON("sala"));
   return `<div class="kind" style="margin-top:6px">Tímasetning</div>
     <div class="two"><label>Byrjar (valfrjálst)<input id="${pre}-ps" type="date" value="${dOnly(p?.timabilFra)}"></label><label>Skil / lýkur<input id="${pre}-date" type="date" value="${dOnly(p?.skiladagur)}"></label></div>
     <div class="two" id="${pre}-kl" ${showT?"":"hidden"}>${tm("pst","Byrjar kl.",p?.timabilFra)}${tm("datet","Skil kl.",p?.skiladagur)}</div>

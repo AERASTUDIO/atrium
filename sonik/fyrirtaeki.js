@@ -30,6 +30,7 @@ window.ORG = {
   // Nýja einingaskiptingin og útlitið (pakkaval, 2.21.0 – eins og Dev) og allar einingar opnar; admin síar í Stillingar › Einingar
   personuvernd: { netfang: "aera@aerastudio.is", svaedi: "Belgíu (Google europe-west1, innan EES)" },   // persónuvernd (2.44.1): hýsingarsvæði Firestore; netfang: valfrjálst, annars admin
   pakkaval: true,
+  leid: "complete",                  // verðleið (2.97.0): Complete skv. tilboði 26.10.2026 (byrja á sölu; leiga kemur síðar)
   utlit: "I",                          // tölvuútlit I (frá 2.43.0, eins og Dev og party.is); síminn óbreyttur
   // Stöður verkefna með litum (eins og í Dev, 2.93.0) – gildir nema admin hafi vistað aðrar í Stillingum
   stodur: [{ n: "Fyrirspurn", c: "slate" }, { n: "Í vinnslu", c: "blue" }, { n: "Í bið", c: "amber" }, { n: "Afhent", c: "teal" }, { n: "Lokið", c: "green", lokid: true, falin: true }],

@@ -7,20 +7,22 @@
 (function () {
   // Réttindatafla – ein lína á hvert gagnasafn. Gildi: "rw" les og skrifar, "r" les, "own" eigin færslur, "—" ekkert.
   const PERMS = [
-    ["Verkefni og undirverk", "verkefni", { admin: "rw", bokari: "rw", starfsmadur: "rw" }],
-    ["Viðskiptavinir", "vidskiptavinir", { admin: "rw", bokari: "rw", starfsmadur: "rw" }],
-    ["Fundir", "fundir", { admin: "rw", bokari: "rw", starfsmadur: "rw" }],
-    ["Skjöl", "skjol", { admin: "rw", bokari: "rw", starfsmadur: "rw" }],
-    ["Póstþræðir á verkefnum", "thraedir", { admin: "rw", bokari: "rw", starfsmadur: "rw" }],
-    ["Spjall – Almennt", "spjall", { admin: "rw", bokari: "rw", starfsmadur: "rw" }],
-    ["Spjall – bein skilaboð", "spjall", { admin: "own", bokari: "own", starfsmadur: "own" }],
-    ["Reikningar", "reikningar", { admin: "rw", bokari: "rw", starfsmadur: "r" }],
-    ["Eyða verkefnum, viðskiptavinum og reikningum", "delete", { admin: "ja", bokari: "nei", starfsmadur: "nei" }],
-    ["Tímaskráning", "timar", { admin: "rw", bokari: "rw", starfsmadur: "own" }],
-    ["Útlagður kostnaður", "kostnadur", { admin: "rw", bokari: "rw", starfsmadur: "own" }],
-    ["Skeiðklukka", "klukka", { admin: "own", bokari: "own", starfsmadur: "own" }],
-    ["Stillingar fyrirtækis", "app/state", { admin: "rw", bokari: "—", starfsmadur: "—" }],
-    ["Notendur og hlutverk", "app/notendur", { admin: "rw", bokari: "r", starfsmadur: "r" }]
+    ["Verkefni og undirverk", "verkefni", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "rw" }],
+    ["Viðskiptavinir", "vidskiptavinir", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "r" }],
+    ["Fundir", "fundir", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "rw" }],
+    ["Skjöl", "skjol", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "rw" }],
+    ["Póstþræðir á verkefnum", "thraedir", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "r" }],
+    ["Spjall – Almennt", "spjall", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "rw" }],
+    ["Spjall – bein skilaboð", "spjall", { admin: "own", bokari: "own", starfsmadur: "own", vettvangur: "own" }],
+    ["Reikningar", "reikningar", { admin: "rw", bokari: "rw", starfsmadur: "—", vettvangur: "—" }],
+    ["Eyða verkefnum, viðskiptavinum og reikningum", "delete", { admin: "ja", bokari: "nei", starfsmadur: "nei", vettvangur: "nei" }],
+    ["Tímaskráning", "timar", { admin: "rw", bokari: "rw", starfsmadur: "own", vettvangur: "own" }],
+    ["Útlagður kostnaður", "kostnadur", { admin: "rw", bokari: "rw", starfsmadur: "own", vettvangur: "own" }],
+    ["Skeiðklukka", "klukka", { admin: "own", bokari: "own", starfsmadur: "own", vettvangur: "own" }],
+    ["Stillingar fyrirtækis", "app/state", { admin: "rw", bokari: "—", starfsmadur: "—", vettvangur: "—" }],
+    ["Pantanir – afhending og skil", "pantanir", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "rw" }],
+    ["Tilboð", "tilbod", { admin: "rw", bokari: "rw", starfsmadur: "rw", vettvangur: "—" }],
+    ["Notendur og hlutverk", "app/notendur", { admin: "rw", bokari: "r", starfsmadur: "r", vettvangur: "r" }]
   ];
   const TXT = { rw: "Les og skrifar", r: "Les", own: "Aðeins eigið", "—": "Enginn aðgangur", ja: "Já", nei: "Nei" };
   const CLS = { rw: "pa", r: "pr", own: "po", "—": "pn", ja: "pa", nei: "pn" };

@@ -65,7 +65,7 @@ if(window.ORG?.pakkaval){const by=k=>SECTIONS_ALL.find(x=>x.k===k), L=by("leiga"
 // Einingar (kjarni.js): flipar og hlutar sem eru ekki virkir hjá þessari uppsetningu eru faldir. Endurreiknað þegar stillingin breytist.
 const SECTIONS=[], TABS=[]; let _einSig=null;
 function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return false; _einSig=sg;
-  SECTIONS.length=0; SECTIONS_ALL.forEach(x=>{const tabs=x.tabs.filter(t=>!window.tabOn||tabOn(t[0])); const vis=tabs.filter(t=>!t[2]); if(!vis.length) return;
+  SECTIONS.length=0; const VT=window.isVett&&isVett(); SECTIONS_ALL.forEach(x=>{if(VT&&window.VETT_FELA?.includes(x.k)) return; const tabs=x.tabs.filter(t=>!window.tabOn||tabOn(t[0])); const vis=tabs.filter(t=>!t[2]); if(!vis.length) return;
     // Ef aðeins ein síða er eftir í hluta (t.d. Reikningar án tímaskráningar) ber hlutinn heiti hennar
     SECTIONS.push({...x,tabs,l:vis.length===1&&vis.length<x.tabs.filter(t=>!t[2]).length?vis[0][1]:x.l});});
   TABS.length=0; SECTIONS.forEach(x=>x.tabs.forEach(t=>TABS.push(t[0]))); return true;}
