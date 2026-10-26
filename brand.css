@@ -457,3 +457,8 @@ header .deildseg button{min-height:30px;padding:0 10px;font-size:12.5px;border-r
   .hasco #login .lpair .lsep,.hasco #login .lpair .lco{animation:aIn .6s var(--ease) 1.9s both}
   .hasco #login .login-in p{animation-delay:2.05s}.hasco #login .login-in .btn{animation-delay:2.2s}.hasco #login #login-btn{animation-delay:2.35s}
 }
+/* 2.93.4: merkin á innskráningu á nákvæmlega sama stað og á opnunarskjánum (miðja skjásins) – engin hreyfing á milli skjáa; texti og hnappur fyrir neðan */
+.hasco #login .login-in{position:absolute;left:50%;top:calc(50% - 48px);transform:translateX(-50%);width:min(620px,calc(100% - 48px));max-width:none}
+.hasco #login .login-in > :not(.lpair){max-width:320px}
+.hasco #login .lpair{margin:0 auto 30px}
+@media (max-width:600px){.hasco #login .login-in{top:calc(50% - 109px)}.hasco #login .lpair{gap:26px}}
