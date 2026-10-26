@@ -367,7 +367,7 @@
       ${odMode() === "tolva" ? `<label style="margin-top:8px">OneDrive-mappa í tölvunni<input id="od-rot" value="${esc(odRoot())}" placeholder="%UserProfile%\\OneDrive - …"></label>${ORG.sp ? `<label style="margin-top:8px">Samstillt mappa fyrirtækisins (SharePoint)<input id="sp-rot" value="${esc(odRoot(true))}" placeholder="%UserProfile%\\AERA Studio ehf\\…"></label>` : ""}<p class="hint" style="margin:4px 0 8px">Möppur: slóðin er afrituð til að líma í File Explorer. Word, Excel og PowerPoint opnast beint í forritunum. Annað opnast á netinu.</p>` : ""}
       <div class="links"><button type="button" class="btn" data-act="msmail">Sækja pósta núna</button>${nb ? `<button type="button" class="btn" data-act="mstick">Stofna möppur sem bíða (${nb})</button>` : ""}<button type="button" class="btn" data-act="mslogout">Aftengja</button></div>`;
   };
-  window.msMissing = () => `<div class="links" style="margin-top:8px"><button type="button" class="btn" data-act="mslogin">${MS.hadLogin() ? "Tengjast Microsoft aftur" : "Tengjast Microsoft"}</button></div>`;
+  window.msMissing = () => window.MS_GESTUR ? "" : `<div class="links" style="margin-top:8px"><button type="button" class="btn" data-act="mslogin">${MS.hadLogin() ? "Tengjast Microsoft aftur" : "Tengjast Microsoft"}</button></div>`;
 
   window.msAct = function (k, r) {
     if (k === "odmode") { LS("aera-od-opna", r[0]); render(); return; }

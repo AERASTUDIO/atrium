@@ -124,7 +124,7 @@
   const MS = window.MS = {
     login, g, token, ready,
     // Tengt = til er gildur lykill eða endurnýjunarlykill á þessu tæki.
-    on: () => !!(tok && ((tok.access && tok.exp > Date.now()) || (tok.refresh && (!tok.rexp || tok.rexp > Date.now())))),
+    on: () => !window.MS_GESTUR && !!(tok && ((tok.access && tok.exp > Date.now()) || (tok.refresh && (!tok.rexp || tok.rexp > Date.now())))),
     user: () => tok ? { name: tok.name, email: tok.email } : null,
     hadLogin: () => !!tok,
     // Hefur aðgangurinn veitt tiltekna heimild (t.d. "Mail.Send")?

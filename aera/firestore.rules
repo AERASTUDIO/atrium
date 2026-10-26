@@ -9,11 +9,14 @@ service cloud.firestore {
     function provider() { return request.auth.token.firebase.sign_in_provider; }
 
     // Starfsmenn: Microsoft-aðgangur @aerastudio.is.
-    function msUser() { return signedIn() && provider() == "microsoft.com" && em().matches(".*@aerastudio[.]is"); }
+    function lenUser() { return signedIn() && provider() == "microsoft.com" && em().matches(".*@aerastudio[.]is"); }
+    // 2.99.0: Microsoft-innskráning í umhverfi fyrirtækisins – starfsfólk á léni þess eða gestir (verktakar) með eigið netfang.
+    // Aðgangur ræðst af notendaskránni (active()); Entra hleypir aðeins inn notendum og boðnum gestum umhverfisins.
+    function msUser() { return signedIn() && provider() == "microsoft.com"; }
     // Google-varaleiðin var lögð niður 18.10.2026 (1.6.1). Aðeins Microsoft-aðgangar fyrirtækisins komast inn.
     function legacy() { return false; }
     // Fyrsti admin (fyrirtaeki.js) má stofna notendaskrána ef hún er ekki til – aðeins við nýja uppsetningu.
-    function firstAdmin() { return msUser() && em() == "dagur@aerastudio.is"; }
+    function firstAdmin() { return lenUser() && em() == "dagur@aerastudio.is"; }
 
     function usersDoc() { return /databases/$(database)/documents/app/notendur; }
     function users() { return get(usersDoc()).data.notendur; }

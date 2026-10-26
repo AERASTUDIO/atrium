@@ -33,12 +33,15 @@ async function signIn(provider) {
     }
   }
 }
-document.getElementById("login-ms").addEventListener("click", () => {
+const msLogin = gestur => {
   const p = new OAuthProvider("microsoft.com");
   // select_account: Microsoft spyr um aðgang en notar innskráningu sem er þegar til staðar í vafranum (MFA samkvæmt reglum Entra).
-  p.setCustomParameters({ tenant: MS_TENANT, prompt: "select_account", domain_hint: MS_DOMAIN });
+  // Gestir (2.99.0): án domain_hint, svo Microsoft vísi þeim á eigin innskráningu (t.d. Gmail með kóða í pósti).
+  p.setCustomParameters(gestur ? { tenant: MS_TENANT, prompt: "select_account" } : { tenant: MS_TENANT, prompt: "select_account", domain_hint: MS_DOMAIN });
   signIn(p);
-});
+};
+document.getElementById("login-ms").addEventListener("click", () => msLogin(false));
+document.getElementById("login-gestur")?.addEventListener("click", () => msLogin(true));
 getRedirectResult(auth).catch(e => showLogin("Innskráning tókst ekki: " + (e.code || e.message)));
 
 // Skrá út (2.44.0, persónuvernd): auk innskráningar hverfa gögn fyrirtækisins af tækinu – afrit Firestore í vafranum (IndexedDB),
@@ -67,9 +70,12 @@ onAuthStateChanged(auth, async user => {
   const prov = user.providerData?.[0]?.providerId || "";
   const email = lc(user.email || user.providerData?.[0]?.email);
   const legacy = false; // Google-varaleiðin var lögð niður í 1.6.1
-  const ms = prov === "microsoft.com" && email.endsWith("@" + MS_DOMAIN);
+  // 2.99.0: gestir (B2B í Microsoft-umhverfi fyrirtækisins, t.d. verktakar) mega skrá sig inn með eigin netfangi.
+  // Aðgangurinn ræðst af notendaskránni (Stillingar › Notendur), ekki léninu; reglurnar (firestore.rules) krefjast þess sama.
+  const ms = prov === "microsoft.com" && !!email;
+  const gestur = ms && !email.endsWith("@" + MS_DOMAIN);
   const deny = async m => { await signOut(auth); showLogin(m); };
-  if (!legacy && !ms) return deny(`${email || "Þessi aðgangur"} hefur ekki aðgang að appinu. Skráðu þig inn með Microsoft-aðgangi @${MS_DOMAIN}.`);
+  if (!legacy && !ms) return deny(prov === "microsoft.com" ? "Microsoft gaf ekki upp netfang fyrir þennan aðgang. Hafðu samband við admin." : `${email || "Þessi aðgangur"} hefur ekki aðgang að appinu. Skráðu þig inn með Microsoft-aðgangi @${MS_DOMAIN}.`);
 
   let r = await readUsers();
   // Fyrsta skipti (ný uppsetning): notendaskráin er ekki til – fyrsti admin (fyrirtaeki.js) stofnar hana við fyrstu innskráningu.
@@ -89,7 +95,9 @@ onAuthStateChanged(auth, async user => {
 
   login.hidden = true;
   if (started) return; started = true;
-  const U = { email, nafn: me.nafn || user.displayName || email, sk: me.sk || "", hlutverk: me.hlutverk || "starfsmadur", varaleid: !!me.varaleid, provider: prov };
+  const U = { email, nafn: me.nafn || user.displayName || email, sk: me.sk || "", hlutverk: me.hlutverk || "starfsmadur", varaleid: !!me.varaleid, provider: prov, gestur };
+  // Gestur hefur hvorki pósthólf, dagatal né OneDrive hjá fyrirtækinu – Microsoft-tengingin (ms.js) er ekki boðin honum.
+  window.MS_GESTUR = gestur;
 
   // Skrá síðustu innskráningu (hljóðlaust; mistekst ef reglur leyfa ekki).
   if (ms) runTransaction(fs, async t => {
