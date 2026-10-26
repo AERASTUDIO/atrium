@@ -222,13 +222,13 @@ section{padding:clamp(88px,11vw,150px) 0}
 .verd{background:var(--pappir)}
 .verd .bg i:nth-child(1){width:46vw;height:46vw;left:56vw;top:0;background:#D2E0EC;--t:32s}
 .verd .bg i:nth-child(2){width:34vw;height:34vw;left:-10vw;top:46%;background:#E2E9F1;--t:26s}
-.plans{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:900px){.plans{grid-template-columns:1fr}}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}@media(max-width:1100px){.plans{grid-template-columns:1fr}}
 .plan{--c:28px;background:#fff;padding:clamp(28px,3.4vw,44px);display:flex;flex-direction:column;gap:24px;box-shadow:inset 0 0 0 1px var(--li)}
 .plan.hi{background:linear-gradient(150deg,#2F3742 0%,#3B4A5C 100%);--fg:#F6F7F8;--tx:#DFE5EA;--mu:#AEBAC6;--li:rgba(255,255,255,.14);color:var(--tx);box-shadow:none}
 .plan h3{font-size:26px;color:var(--fg)}
 .plan .for{color:var(--mu);font-size:16px;margin-top:4px}
 .plan .pr{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.plan .pr b{font-size:clamp(46px,5vw,64px);font-weight:300;color:var(--fg);letter-spacing:-.035em;line-height:1}
+.plan .pr b{font-size:clamp(42px,3.8vw,56px);font-weight:300;color:var(--fg);letter-spacing:-.035em;line-height:1}
 .plan .pr span{color:var(--mu);font-size:16px}
 .plan .base{color:var(--mu);font-size:15px;margin-top:10px}
 .plan ul{list-style:none;margin:0;padding:22px 0 0;border-top:1px solid var(--li);display:grid;gap:12px}
@@ -242,11 +242,11 @@ section{padding:clamp(88px,11vw,150px) 0}
 .cnt{display:flex;align-items:center;gap:12px}
 .cnt button{font:inherit;font-size:22px;width:46px;height:46px;border:0;box-shadow:inset 0 0 0 1px var(--li);background:#fff;color:var(--fg);cursor:pointer}.cnt button:hover{box-shadow:inset 0 0 0 1px var(--stal)}
 .cnt output{min-width:44px;text-align:center;font-size:28px;color:var(--fg);font-weight:300}
-.cnt span{color:var(--mu);font-size:15.5px}
+.cnt span{color:var(--mu);font-size:15.5px}.cnts{display:flex;flex-wrap:wrap;gap:16px 36px}
 .tot{margin-left:auto;text-align:right}.tot b{font-size:clamp(38px,4vw,52px);font-weight:300;color:var(--fg);letter-spacing:-.03em;line-height:1}.tot span{color:var(--mu);font-size:16px}
 .tot small{display:block;color:var(--mu);font-size:14px;margin-top:6px}
 @media(max-width:760px){.tot{margin-left:0;text-align:left}}
-.extra{display:grid;grid-template-columns:repeat(3,1fr);margin-top:20px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px var(--li)}
+.extra{display:grid;grid-template-columns:repeat(4,1fr);margin-top:20px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px var(--li)}
 .extra>div{padding:24px clamp(24px,3.4vw,44px)}.extra>div+div{box-shadow:-1px 0 0 var(--li)}
 @media(max-width:900px){.extra{grid-template-columns:1fr}.extra>div+div{box-shadow:0 -1px 0 var(--li)}}
 .extra b{display:block;color:var(--fg);font-weight:400}.extra span{color:var(--mu);font-size:15px}
@@ -391,42 +391,40 @@ footer .lg{display:flex;gap:24px;margin-left:auto}footer a{text-decoration:none}
 <section id="verd" class="verd live">
   <div class="bg" aria-hidden="true"><i></i><i></i></div>
   <div class="w">
-  <div class="sh"><h2>Greiddu fyrir þá sem nota kerfið.</h2><p class="lead">Grunngjald fyrir fyrirtækið og gjald fyrir hvern virkan notanda í mánuðinum.</p></div>
+  <div class="sh"><h2>Greiddu fyrir þá sem nota kerfið.</h2><p class="lead">Grunngjald fyrir fyrirtækið og gjald fyrir hvern skrifstofunotanda. Fólkið á lagernum og á vettvangi kostar 990 kr. á mann.</p></div>
   <div class="plans">
     <div class="plan cut">
-      <div><h3>Grunnur</h3><p class="for">Stofur, ráðgjöf og þjónusta</p></div>
-      <div><div class="pr"><b>2.400 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 4.900 kr. grunngjald, lágmark 9.900 kr. á mánuði</p></div>
-      <ul><li>Verkefni, viðskiptavinir og pantanir</li><li>Tímaskráning og tímaskýrslur</li><li>Tilboð og reikningsdrög, tengt bókhaldi</li><li>Póstur, fundir, skjöl og spjall</li></ul>
+      <div><h3>Þjónusta</h3><p class="for">Stofur, ráðgjöf og þjónustufyrirtæki</p></div>
+      <div><div class="pr"><b>2.400 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 4.900 kr. grunngjald</p></div>
+      <ul><li>Verkefni, undirverk og viðskiptavinir</li><li>Dagatal, fundir og tímaskráning</li><li>Tilboð og reikningsdrög, tengt bókhaldi</li><li>Póstur, skjöl og spjall</li></ul>
     </div>
     <div class="plan hi cut">
-      <div><h3>Allt</h3><p class="for">Leigur, verslanir og viðburðafyrirtæki</p></div>
-      <div><div class="pr"><b>4.400 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 9.900 kr. grunngjald, nýjar einingar fylgja</p></div>
-      <ul><li>Allt í Grunni</li><li>Leiga, sala og vörulisti með lager</li><li>Pöntunarferli og QR-skönnun</li><li>Verkefnagreining, aukaverk og fleira</li></ul>
+      <div><h3>Leiga og sala</h3><p class="for">Leigur, verslanir og viðburðafyrirtæki</p></div>
+      <div><div class="pr"><b>3.900 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 7.900 kr. grunngjald</p></div>
+      <ul><li>Allt í Þjónustu</li><li>Vörulisti, leiga, sala og lager</li><li>Pantanir og verkdagatal</li><li>Afhending, QR-skönnun og undirskrift</li></ul>
+    </div>
+    <div class="plan cut">
+      <div><h3>Allt</h3><p class="for">Fyrir þá sem vilja fulla yfirsýn</p></div>
+      <div><div class="pr"><b>4.900 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 9.900 kr. grunngjald</p></div>
+      <ul><li>Allt í Leigu og sölu</li><li>Afkoma og verkefnagreining</li><li>Aukaverk, Snjall-Heim og rekstrarlínur</li><li>Nýjar einingar fylgja</li></ul>
     </div>
   </div>
   <div class="calc cut" id="reikna">
     <span class="q">Hvað kostar það fyrir ykkur?</span>
-    <div class="seg" role="group" aria-label="Leið"><button type="button" data-p="g" aria-pressed="false">Grunnur</button><button type="button" data-p="a" class="on" aria-pressed="true">Allt</button></div>
-    <div class="cnt"><button type="button" data-d="-1" aria-label="Fækka notendum">−</button><output id="vno" aria-live="polite">8</output><button type="button" data-d="1" aria-label="Fjölga notendum">+</button><span>notendur</span></div>
-    <div class="tot"><b id="vtot">45.100</b> <span>kr. / mán.</span><small id="vsub">9.900 + 8 × 4.400 kr.</small></div>
+    <div class="seg" role="group" aria-label="Leið"><button type="button" data-p="t" aria-pressed="false">Þjónusta</button><button type="button" data-p="l" class="on" aria-pressed="true">Leiga og sala</button><button type="button" data-p="a" aria-pressed="false">Allt</button></div>
+    <div class="cnts">
+      <div class="cnt"><button type="button" data-k="o" data-d="-1" aria-label="Fækka skrifstofunotendum">−</button><output id="vno" aria-live="polite">4</output><button type="button" data-k="o" data-d="1" aria-label="Fjölga skrifstofunotendum">+</button><span>á skrifstofu</span></div>
+      <div class="cnt"><button type="button" data-k="v" data-d="-1" aria-label="Fækka vettvangsnotendum">−</button><output id="vnv" aria-live="polite">2</output><button type="button" data-k="v" data-d="1" aria-label="Fjölga vettvangsnotendum">+</button><span>á vettvangi</span></div>
+    </div>
+    <div class="tot"><b id="vtot">25.480</b> <span>kr. / mán.</span><small id="vsub"></small></div>
   </div>
-  <details class="mods"><summary>Stakar einingar með Grunni</summary>
-    <table class="mtab"><tbody>
-      <tr><td>Leiga</td><td>Leigubúnaður, framboð og útleiga</td><td>4.900 kr./mán.</td></tr>
-      <tr><td>Sala</td><td>Vörulisti, tilboð og sala</td><td>4.900 kr./mán.</td></tr>
-      <tr><td>Pöntunarferli</td><td>Staðfesting, greiðsla og afhending</td><td>3.900 kr./mán.</td></tr>
-      <tr><td>QR</td><td>Skönnun við tiltekt og skil</td><td>2.900 kr./mán.</td></tr>
-      <tr><td>Snjall-heim</td><td>Heimaskjár sem sýnir hvað er næst</td><td>2.900 kr./mán.</td></tr>
-      <tr><td>Verkefnagreining</td><td>Afkoma og tímar eftir verkefnum</td><td>2.900 kr./mán.</td></tr>
-      <tr><td>Aukaverk</td><td>Viðbætur og aukaverk á verkefni</td><td>2.900 kr./mán.</td></tr>
-      <tr><td>Rekstrarlínur</td><td>Eigin línur þvert á leigu, sölu og þjónustu</td><td>2.900 kr./mán.</td></tr>
-    </tbody></table></details>
   <div class="extra">
-    <div><b>Uppsetning – Grunnur</b><span>150.000 kr. í eitt skipti</span></div>
-    <div><b>Uppsetning – Allt</b><span>290.000 kr. í eitt skipti</span></div>
-    <div><b>Sérþróun</b><span>12.000 kr./klst., smíðað sem eining</span></div>
+    <div><b>Uppsetning – Þjónusta</b><span>90.000 kr., allt að 8 klst.</span></div>
+    <div><b>Uppsetning – Leiga og sala</b><span>220.000 kr., allt að 18 klst.</span></div>
+    <div><b>Uppsetning – Allt</b><span>290.000 kr., allt að 25 klst.</span></div>
+    <div><b>Sérþróun og umframvinna</b><span>12.000 kr./klst.</span></div>
   </div>
-  <p class="vnote">Öll verð án VSK. Aðeins virkir notendur í mánuðinum eru rukkaðir.</p>
+  <p class="vnote">Öll verð án VSK. Aðeins virkir notendur í mánuðinum eru rukkaðir. Vettvangsnotandi (Í dag, klukka, skanni, afhending, myndir) kostar 990 kr. á mánuði. Lágmark 9.900 kr. á mánuði. Yfirsýn má bæta við Þjónustu eða Leigu og sölu fyrir 4.900 kr. á mánuði.</p>
 </div></section>
 
 <div class="end live">
@@ -481,14 +479,15 @@ const nav = $("nav"), onS = () => nav.classList.toggle("sc", scrollY > 20); addE
   const st = () => { p.disabled = r.scrollLeft < 8; n.disabled = r.scrollLeft > r.scrollWidth - r.clientWidth - 8; };
   p.onclick = () => r.scrollBy({ left: -step(), behavior: RM ? "auto" : "smooth" }); n.onclick = () => r.scrollBy({ left: step(), behavior: RM ? "auto" : "smooth" });
   r.addEventListener("scroll", st, { passive: true }); addEventListener("resize", st); st(); })();
-/* Verðreiknivél */
-(() => { const P = { g: [4900, 2400], a: [9900, 4400] }, f = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  let p = "a", n = 8;
-  const up = () => { const [b, u] = P[p], raw = b + u * n, t = Math.max(9900, raw);
-    $("vno").textContent = n; $("vtot").textContent = f(t); $("vsub").textContent = t > raw ? "Lágmarksgjald" : f(b) + " + " + n + " × " + f(u) + " kr.";
+/* Verðreiknivél: grunngjald + skrifstofunotendur + vettvangsnotendur (990 kr.) */
+(() => { const P = { t: [4900, 2400], l: [7900, 3900], a: [9900, 4900] }, V = 990, f = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  let p = "l", n = { o: 4, v: 2 };
+  const up = () => { const [b, u] = P[p], raw = b + u * n.o + V * n.v, t = Math.max(9900, raw);
+    $("vno").textContent = n.o; $("vnv").textContent = n.v; $("vtot").textContent = f(t);
+    $("vsub").textContent = t > raw ? "Lágmarksgjald" : f(b) + " + " + n.o + " × " + f(u) + (n.v ? " + " + n.v + " × " + f(V) : "") + " kr.";
     document.querySelectorAll("#reikna [data-p]").forEach(x => { x.classList.toggle("on", x.dataset.p === p); x.setAttribute("aria-pressed", x.dataset.p === p); }); };
   document.querySelectorAll("#reikna [data-p]").forEach(x => x.onclick = () => { p = x.dataset.p; up(); });
-  document.querySelectorAll("#reikna [data-d]").forEach(x => x.onclick = () => { n = Math.min(50, Math.max(1, n + +x.dataset.d)); up(); });
+  document.querySelectorAll("#reikna [data-d]").forEach(x => x.onclick = () => { const k = x.dataset.k; n[k] = Math.min(50, Math.max(k === "o" ? 1 : 0, n[k] + +x.dataset.d)); up(); });
   up(); })();
 </script>
 </body></html>
