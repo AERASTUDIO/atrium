@@ -63,9 +63,9 @@ service cloud.firestore {
     // Pantanir (frá 2.20.0): eins og tilboð
     match /pantanir/{id}       { allow read, create, update: if active(); allow delete: if admin(); }
 
-    // Reikningar: allir lesa; aðeins fjármál (admin, bókari) skrifa; aðeins admin eyðir (frá 1.9.0).
+    // Reikningar: aðeins fjármál (admin, bókari) lesa og skrifa (lestur takmarkaður 2.94.2); aðeins admin eyðir (frá 1.9.0).
     match /reikningar/{id} {
-      allow read: if active();
+      allow read: if fjarmal();
       allow create, update: if fjarmal();
       allow delete: if admin();
     }
@@ -115,15 +115,11 @@ service cloud.firestore {
         && request.resource.data.stadfest.nafn is string && request.resource.data.stadfest.nafn.size() > 1 && request.resource.data.stadfest.nafn.size() < 120
         && request.resource.data.stadfest.undirskrift is string && request.resource.data.stadfest.undirskrift.size() < 200000
         && (!("athugasemd" in request.resource.data.stadfest) || (request.resource.data.stadfest.athugasemd is string && request.resource.data.stadfest.athugasemd.size() < 2000)))
-      // 2.72.0: viðskiptavinur hafnar tilboði (einu sinni) eða sendir spurningu (bætt aftan við svor, mest 30)
+      // 2.72.0: viðskiptavinur hafnar tilboði (einu sinni). Spurningar af tilboðssíðunni lokaðar 2.94.2 – þær koma sem svar við póstinum
       || (resource.data.stadfest == null && resource.data.get("hafnad", null) == null
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["hafnad", "uppfaert"])
         && request.resource.data.hafnad is map && request.resource.data.hafnad.nafn is string && request.resource.data.hafnad.nafn.size() > 1 && request.resource.data.hafnad.nafn.size() < 120
-        && (!("astaeda" in request.resource.data.hafnad) || (request.resource.data.hafnad.astaeda is string && request.resource.data.hafnad.astaeda.size() < 2000)))
-      || (resource.data.stadfest == null
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["svor", "uppfaert"])
-        && request.resource.data.svor is list && request.resource.data.svor.size() <= 30
-        && request.resource.data.svor.size() == resource.data.get("svor", []).size() + 1);
+        && (!("astaeda" in request.resource.data.hafnad) || (request.resource.data.hafnad.astaeda is string && request.resource.data.hafnad.astaeda.size() < 2000)));
     }
   }
 }
