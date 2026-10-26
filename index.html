@@ -209,7 +209,7 @@ section{padding:clamp(88px,11vw,150px) 0}
 
 /* Lausnin */
 .lausn{background:#fff}
-.sol{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.sol{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .sol>div{--c:14px;padding:28px 26px 30px;background:linear-gradient(160deg,#F6F8FA,#EEF2F6);clip-path:polygon(0 0,calc(100% - var(--c)) 0,100% var(--c),100% 100%,0 100%);transition:background .3s}
 .sol>div:hover{background:linear-gradient(160deg,#EEF3F8,#E2EAF2)}
 .sol .ic{width:44px;height:44px;display:grid;place-items:center;background:#fff;color:var(--blar);margin-bottom:20px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
@@ -384,6 +384,7 @@ footer .lg{display:flex;gap:24px;margin-left:auto}footer a{text-decoration:none}
     <div><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.5-4 3-6 6-6s5.5 2 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .8 3 2.8 3.3 6"/></svg></span><b>Hlutverk og réttindi</b><span>Admin, bókari og starfsmaður, framfylgt á netþjóni.</span></div>
     <div><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><b>Persónuvernd</b><span>Byggt með GDPR í huga, vinnslusamningur í boði.</span></div>
     <div><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><b>Vikuleg afrit</b><span>Öll gögn afrituð sjálfkrafa.</span></div>
+    <div><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/><path d="M14.5 16.5h5m0 0-2-2m2 2-2 2"/></svg></span><b>Beintenging við bókhald</b><span>Reikningsdrög send beint í DK, sett upp með hverju fyrirtæki. Payday væntanlegt.</span></div>
   </div>
 </div></section>
 
@@ -395,7 +396,7 @@ footer .lg{display:flex;gap:24px;margin-left:auto}footer a{text-decoration:none}
     <div class="plan cut">
       <div><h3>Grunnur</h3><p class="for">Stofur, ráðgjöf og þjónusta</p></div>
       <div><div class="pr"><b>2.400 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 4.900 kr. grunngjald, lágmark 9.900 kr. á mánuði</p></div>
-      <ul><li>Verkefni, viðskiptavinir og pantanir</li><li>Tímaskráning og tímaskýrslur</li><li>Tilboð og reikningsdrög</li><li>Póstur, fundir, skjöl og spjall</li></ul>
+      <ul><li>Verkefni, viðskiptavinir og pantanir</li><li>Tímaskráning og tímaskýrslur</li><li>Tilboð og reikningsdrög, tengt bókhaldi</li><li>Póstur, fundir, skjöl og spjall</li></ul>
     </div>
     <div class="plan hi cut">
       <div><h3>Allt</h3><p class="for">Leigur, verslanir og viðburðafyrirtæki</p></div>
@@ -456,7 +457,7 @@ const nav = $("nav"), onS = () => nav.classList.toggle("sc", scrollY > 20); addE
     ["tilbod", "atrium › tilboð", "Tilboð", "Leiga, sala og þjónusta í sama tilboði. Viðskiptavinurinn samþykkir með tengli og svarar í sama pósti.", ["Lagerstaða sést um leið", "Samþykkt með tengli", "Svör í sama póstþræði"], "-33%", "0%"],
     ["pontun", "atrium › pantanir", "Pöntun eða verkefni", "Verður til þegar starfsmaður staðfestir. Staða, greiðsla og afhending á einum stað.", ["Ný, staðfest, afhent og skilað", "Greiðsla skráð fyrir afhendingu", "Pökkunarlisti og undirskrift"], "-12%", "0%"],
     ["verkdag", "atrium › verkdagatal", "Afhending og tímar", "Verkefni, pantanir og búnaður á einni tímalínu. Búnaður skannaður út og inn og tímar skráðir beint á verkið.", ["Tvær vikur eða mánuður í senn", "Skanni við tiltekt og skil", "Skeiðklukka á verkefni"], "-22%", "0%"],
-    ["verkefni", "atrium › verkefni", "Reikningsdrög", "Tekjur, kostnaður og framlegð verksins sjást um leið. Reikningsdrögin verða til úr tilboði og tímum og eru tilbúin fyrir bókhaldskerfið.", ["Afkoma í rauntíma", "Aukaverk samþykkt með tengli", "Drög tilbúin fyrir bókhaldið"], "-33%", "0%"]
+    ["verkefni", "atrium › verkefni", "Reikningsdrög", "Tekjur, kostnaður og framlegð verksins sjást um leið. Reikningsdrögin verða til úr tilboði og tímum og fara beint í bókhaldskerfið.", ["Afkoma í rauntíma", "Aukaverk samþykkt með tengli", "Beintenging við DK, Payday væntanlegt"], "-33%", "0%"]
   ];
   const T = $("tabs"), B = [...T.querySelectorAll("[data-i]")], body = $("pb"), im = $("pi"), CK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   let cur = -1, auto = !RM, seen = false, hover = false, tm = null; const DUR = 7000;
