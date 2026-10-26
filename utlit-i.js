@@ -58,7 +58,7 @@
   coSide(); new MutationObserver(coSide).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   // 2.68.1: Heim, Dagatal og Tímar efst án fyrirsagnar · Starfsemi · Viðskipti · Samskipti (hlutverk, ekki einingar – passar öllum tegundum starfsemi)
-  const GRP = { heim: "", dagatal: "", timar: "", verkefni: "Starfsemi", pantanir: "Starfsemi", verkdag: "Starfsemi", bunadur: "Starfsemi", vidsk: "Viðskipti", tilbod: "Viðskipti", fjarmal: "Viðskipti", postur: "Samskipti", spjall: "Samskipti", skjol: "Samskipti" };
+  const GRP = { heim: "Mitt", dagatal: "Mitt", timar: "Mitt", verkefni: "Starfsemi", pantanir: "Starfsemi", verkdag: "Starfsemi", bunadur: "Starfsemi", vidsk: "Viðskipti", tilbod: "Viðskipti", fjarmal: "Viðskipti", postur: "Samskipti", spjall: "Samskipti", skjol: "Samskipti" };
   // Símaútlit I (2.46.0, ORG.simi === "I"): síminn notar sama útlit og tölvan (listi og spjald, simi-ui1.css + simi.css);
   // wideScr() = raunverulegur breiður skjár, desk() = tölvuútlitið er í notkun
   const SIMI = window.ORG?.simi === "I";

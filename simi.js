@@ -136,7 +136,7 @@
     return `<div class="sd"><div class="sdh"><h1>Leita</h1></div><label class="sdq">${ico("leit", 17)}<input type="search" id="simq" placeholder="Verkefni, pöntun, viðskiptavinur eða sími" value="${E(Q)}" autocomplete="off" enterkeyhint="search" aria-label="Leita"></label><div id="simres">${res}</div></div>`;
   }
   // Meira: allir hlutar flokkaðir eins og í tölvunni (Kjarni / Verkfæri / Tengingar), prófíll og stillingar neðst
-  const GRP = { heim: "", dagatal: "", timar: "", verkefni: "Starfsemi", pantanir: "Starfsemi", verkdag: "Starfsemi", bunadur: "Starfsemi", vidsk: "Viðskipti", tilbod: "Viðskipti", fjarmal: "Viðskipti", postur: "Samskipti", spjall: "Samskipti", skjol: "Samskipti" };
+  const GRP = { heim: "Mitt", dagatal: "Mitt", timar: "Mitt", verkefni: "Starfsemi", pantanir: "Starfsemi", verkdag: "Starfsemi", bunadur: "Starfsemi", vidsk: "Viðskipti", tilbod: "Viðskipti", fjarmal: "Viðskipti", postur: "Samskipti", spjall: "Samskipti", skjol: "Samskipti" };
   function meiraHTML() {
     let c = {}; try { c = secCounts(); } catch (e) {}
     const S0 = secs().filter(x => x.k !== "meira" && x.k !== "heim" && !x.nobar && x.tabs.some(t => ok(t[0])));
