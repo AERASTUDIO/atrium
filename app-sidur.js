@@ -52,7 +52,7 @@ function dVerk(p){
   fixTab(tabs);
   const head=backBar()+`<div class="kicker"><span class="nr">${esc(p.nr)}</span>${statusPill(p.stada)}${p.skiladagur&&!isDone(p)?relPill(daysTo(p.skiladagur)):""}${svcTags(p)}${taxtiTxt(p)?`<span class="pill ptaxti" title="Þjónusta og tímagjald úr verðskrá">${esc(taxtiTxt(p))}</span>`:""}</div>
   <h2 class="big" style="margin-top:6px">${esc(p.stutt||p.nafn)}</h2>
-  <p class="sub" style="margin-bottom:0">${projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")||"Verkefni"}</p>`+dtabs(tabs);
+  <p class="sub" style="margin-bottom:0">${projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")||"Verkefni"}</p>${window.rlRowHTML?rlRowHTML("verk",p):""}`+dtabs(tabs);
   let body="";
   if(DTAB==="yfirlit"){
     const soon=[...openS.filter(u=>u.skiladagur).map(u=>({w:u.skiladagur,h:subRowL(u)})),...upF.map(f=>({w:f.date,h:meetRowL(f)}))].sort((a,b)=>String(a.w).localeCompare(String(b.w))).slice(0,5);

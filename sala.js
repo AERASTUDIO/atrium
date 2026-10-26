@@ -466,7 +466,7 @@
       <h2 class="big" style="margin-top:6px">${esc(T.heiti || "")}</h2>
       <p class="sub">${[T.vskId && findVsk(T.vskId) ? `<a class="plink" data-open="vsk:${esc(T.vskId)}">${esc(T.vidskiptavinur || findVsk(T.vskId).name)}</a>` : esc(T.vidskiptavinur || ""), P && T.tengilidur ? esc(T.tengilidur) : "", P && T.simi ? `<a class="plink" href="tel:${esc(T.simi)}">${esc(T.simi)}</a>` : "", esc(dRange(T)), L && T.fra ? esc(tbDagar(T) + (tbDagar(T) === 1 ? " dagur" : " dagar")) : "", esc(T.stadsetning || "")].filter(Boolean).join(" · ")}</p>
       ${pr ? `<p class="sub">Verkefni: <a class="plink" data-open="verk:${esc(pr.id)}">${esc(pr.nafn)}</a></p>` : ""}
-      ${tbMennHTML(T)}
+      ${tbMennHTML(T)}${window.rlRowHTML ? rlRowHTML("tb", T) : ""}
       <div class="links">${MCP && !laest(T) && !(T.bidur && !P) ? `<button type="button" class="btn primary" data-act="tbed:start:${esc(T.id)}">✎ Breyta</button>` : ""}${P ? "" : `<button type="button" class="btn" data-act="tbpdf:pv:${esc(T.id)}">Forskoða PDF</button><button type="button" class="btn" data-act="tbpdf:dl:${esc(T.id)}">Sækja PDF</button>
         ${MCP && !P ? `<button type="button" class="btn" data-act="tbsend:${esc(T.id)}">✉ Senda í pósti</button>` : ""}`}</div>
       ${MCP ? `<div class="kind" style="margin-top:14px">Staða</div>${PV() ? `<div class="fsels">${fsel(STOD(T).map(s => [`tbst:${T.id}:${s}`, s, T.stada === s]), P ? "Staða pöntunar" : "Staða tilboðs")}</div>` : `<div class="chips">${STADA.map(s => `<button type="button" class="chipbtn" data-act="tbst:${esc(T.id)}:${s}" aria-pressed="${T.stada === s}">${s}</button>`).join("")}</div>`}

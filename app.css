@@ -1344,3 +1344,16 @@ body.pv.ui1 #leitres .viewtitle:first-child{margin-top:6px}
 .ustart.ustdark{background:#121416}
 .ustart.ustdark .ustpair .ustsep{background:rgba(255,255,255,.18)}
 .ustart.ustdark .uver{color:#93A0AD}
+/* Rekstrarlínur (2.95.0) */
+.rldot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px;flex:none}
+.rlbar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+body.pv.ui1 .splist .rlbar{padding:0 16px}
+.rlb{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer}
+.rlb.on{border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+.rlrow{display:flex;align-items:center;gap:8px;margin:8px 0}
+.rlrow .kind{margin-right:4px}
+.rlsel{font:inherit;font-size:13px;padding:4px 26px 4px 10px;border-radius:999px;border:1px solid var(--line);background-color:var(--surface);color:var(--ink);width:auto;min-height:0}
+.rlcfg{margin:10px 0;padding:14px}
+.rllit{display:flex;gap:6px;padding-top:8px}
+.rlc{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.rlc.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}

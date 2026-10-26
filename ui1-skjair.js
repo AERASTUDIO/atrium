@@ -7,7 +7,8 @@
 
   /* ---------- sameiginlegt ---------- */
   const head = (sup, title, right = "") => `<div class="uhead"><div><div class="spsup">${E(sup)}</div><h2 class="ptitle">${E(title)}</h2></div><div class="uhr">${right}</div></div>`;
-  const lhead = (sup, title, nb = "") => `<div class="phead">${sup ? `<div class="spsup">${E(sup)}</div>` : ""}<div class="phrow"><h2 class="ptitle">${E(title)}</h2>${nb}</div></div>`;
+  const lhead = (sup, title, nb = "") => `<div class="phead">${sup ? `<div class="spsup">${E(sup)}</div>` : ""}<div class="phrow"><h2 class="ptitle">${E(title)}</h2>${nb}</div></div>` + (RLT.has(typeof tab !== "undefined" ? tab : "") && window.rlBar ? rlBar() : "");
+  const RLT = new Set(["ltilbod", "tbl", "tbs", "tbt", "tbyf", "pantanir", "pnl", "pns", "pnt", "verk", "lverk", "sverk", "tverk"]); // 2.95.0: sía eftir rekstrarlínu
   const btn = (l, act, cls = "") => `<button type="button" class="btn ${cls}" data-act="${act}">${l}</button>`;
   const chips = (arr, cur, pre) => `<div class="uchips">${arr.map(([k, l]) => `<button type="button" class="uchip${k === cur ? " on" : ""}" data-act="${pre}:${k}">${E(l)}</button>`).join("")}</div>`;
   const pill = (t, dark) => `<span class="upill${dark ? " dark" : ""} ${window.toneOf ? toneOf(t) : ""}">${E(t)}</span>`;
@@ -148,14 +149,14 @@
   st.vf = { verk: "gangi", lverk: "gangi", sverk: "gangi" };
   const mineP = p => (p.starfsfolk || p.starfsmenn || []).some(x => (x.sk || x) === ME()) || (window.projStaff && projStaff(p).some(x => (x.sk || x) === ME()));
   function vlist(key, title, pf, vfl) {
-    const all = verkefni().filter(pf), f = st.vf[key] || "gangi", fv = vfl ? st.vf[key + "V"] || "" : "";
+    const all = verkefni().filter(p => pf(p) && (!window.rlMatch || rlMatch(p))), f = st.vf[key] || "gangi", fv = vfl ? st.vf[key + "V"] || "" : "";
     const fls = vfl ? THJ().filter(t => all.some(p => (p.thjonusta || []).includes(t))) : [];
     const xs = all.filter(p => SQ() || (!fv || (p.thjonusta || []).includes(fv)) && (f === "lokid" ? isDone(p) : !isDone(p) && (f !== "min" || mineP(p)))).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const n = all.filter(p => !isDone(p)).length, nm = all.filter(p => !isDone(p) && mineP(p)).length;
     const flSel = fls.length ? `<label class="uflsel"><select onchange="doAct('u1vf:${key}V:'+this.value)" aria-label="Verkflokkur"><option value="">Allir verkflokkar</option>${fls.map(x => `<option${x === fv ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label>` : "";
     const top = lhead("Verkefni", title, nbtn("Verkefni")) + `<div class="ulbar">${chips([["gangi", "Í gangi · " + n], ["min", "Mín · " + nm], ["lokid", "Lokið"]], f, "u1vf:" + key)}${flSel}</div>`;
     if (WIDE()) return top + wl("80px minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) 120px 130px 90px 110px", wcols(["Nr.", "Heiti", "Viðskiptavinur", vfl ? "Verkflokkur" : "Svið", "Starfsfólk", "Tímar", "Skil", "Staða"])
-      + (xs.map(p => wrow(tapAttr("verk", p.id), [wc(E(p.nr)), wc(E(p.stutt || p.nafn || ""), "t"), wc(E(p.vidskiptavinur || "")), wc(E(vfl ? (p.thjonusta || []).join(", ") : svidOf(p).join(", "))), wc(E((p.starfsmenn || []).map(x => x.sk || x).join(", "))), wc(E(H(+p.timar || 0) + (+p.aklst ? " / " + H(+p.aklst) : "") + " klst.")), wc(E(relD(p.skiladagur))), wc(pill(p.stada), "r")])).join("") || `<div class="uempty">Engin verkefni.</div>`));
+      + (xs.map(p => wrow(tapAttr("verk", p.id), [wc(E(p.nr)), wc((window.rlDot ? rlDot(p) : "") + E(p.stutt || p.nafn || ""), "t"), wc(E(p.vidskiptavinur || "")), wc(E(vfl ? (p.thjonusta || []).join(", ") : svidOf(p).join(", "))), wc(E((p.starfsmenn || []).map(x => x.sk || x).join(", "))), wc(E(H(+p.timar || 0) + (+p.aklst ? " / " + H(+p.aklst) : "") + " klst.")), wc(E(relD(p.skiladagur))), wc(pill(p.stada), "r")])).join("") || `<div class="uempty">Engin verkefni.</div>`));
     return top
       + cols("Nr.", vfl ? "Heiti · Verkflokkur" : "Heiti · Viðskiptavinur", "Skil", "Staða")
       + (xs.map(p => row(tapAttr("verk", p.id), E(p.nr), E(p.stutt || p.nafn || ""), E(vfl ? ((p.thjonusta || []).join(", ") || p.vidskiptavinur || "") : (p.vidskiptavinur || "")), E(relD(p.skiladagur)), p.stada, false)).join("") || `<div class="uempty">Engin verkefni.</div>`);
@@ -192,7 +193,7 @@
   function tlist(key, title, teg) {
     const api = window.salaAPI; if (!api) return "";
     // 2.70.0: Tilboð eru ein síða – lykiltölur efst (smellanlegar síur), síðan síur og listinn. Svið eru flögur (utlit-i.js).
-    const all = api.TB().filter(T => !teg || (T.linur || []).some(l => l.teg === teg)), f = st.vf.ltilbod || "opin";
+    const all = api.TB().filter(T => (!teg || (T.linur || []).some(l => l.teg === teg)) && (!window.rlMatch || rlMatch(T))), f = st.vf.ltilbod || "opin";
     const FT = { opin: T => ["Drög", "Sent"].includes(T.stada), drog: T => T.stada === "Drög", sent: T => T.stada === "Sent", samth: T => T.stada === "Samþykkt", allt: () => true };
     const xs = all.filter(T => SQ() || (FT[f] || FT.opin)(T)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const cn = k => all.filter(FT[k]).length, open = all.filter(FT.opin), d90 = all.filter(T => daysTo(T.dags) >= -90);
@@ -202,7 +203,7 @@
     const top = lhead("", teg ? title : "Tilboð", nbtn("Tilboð")) + kp + `<div class="ulbar">${chips([["opin", "Opin · " + cn("opin")], ["drog", "Drög · " + cn("drog")], ["sent", "Bíða svars · " + cn("sent")], ["samth", "Samþykkt · " + cn("samth")], ["allt", "Allar stöður"]], f, "u1vf:ltilbod")}</div>`;
     const SF = T => window.tbStofnandi ? tbStofnandi(T) : ""; // 2.88.0: stofnandi
     if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 100px 56px 120px 150px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Stofnandi", "Línur", "Upphæð m. vsk", "Staða"])
-      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc(E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(E(SF(T))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
+      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc((window.rlDot ? rlDot(T) : "") + E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(E(SF(T))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
     return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Dags.", "Staða")
       + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E([T.vidskiptavinur, SF(T) ? "stofnaði: " + SF(T) : ""].filter(Boolean).join(" · ")), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
@@ -213,7 +214,7 @@
   U.tbt = () => tlist("tbt", "Þjónusta", "vinna");
   const pnList = (title, teg) => function () {
     const api = window.salaAPI; if (!api) return "";
-    const SVL = { leiga: "Leiga", sala: "Sala", vinna: "Þjónusta" }, all = api.PN().filter(P => !teg || (P.linur || []).some(l => l.teg === teg) || (P.svid || []).includes(SVL[teg])), f = st.vf.pn || "opnar", OP = ["Ný", "Staðfest"];
+    const SVL = { leiga: "Leiga", sala: "Sala", vinna: "Þjónusta" }, all = api.PN().filter(P => (!teg || (P.linur || []).some(l => l.teg === teg) || (P.svid || []).includes(SVL[teg])) && (!window.rlMatch || rlMatch(P))), f = st.vf.pn || "opnar", OP = ["Ný", "Staðfest"];
     // Síur (2.63.1): Opnar · Nýjar · Staðfestar · Afhentar · Seint · Lokið – lykiltölurnar á Pantanir › Yfirliti opna listann með réttri síu
     const ti = isoD(today), seint = P => P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)) && String(P.til || P.fra || "").slice(0, 10) < ti;
     const sk = P => !window.pnSkil || pnSkil(P), FL = { opnar: P => OP.includes(P.stada) || (P.stada === "Afhent" && !sk(P)), ny: P => P.stada === "Ný", stf: P => P.stada === "Staðfest", afh: P => P.stada === "Afhent" && sk(P), seint, lokid: P => ["Skilað", "Lokið"].includes(P.stada) };
@@ -222,7 +223,7 @@
     const top = lhead("Pantanir", title, nbtn("Pöntun")) + `<div class="ulbar">${chips([["opnar", "Opnar · " + all.filter(FL.opnar).length], ["ny", "Nýjar · " + all.filter(FL.ny).length], ["stf", "Staðfestar · " + all.filter(FL.stf).length], ["afh", "Afhentar · " + all.filter(FL.afh).length], ...(nL || f === "seint" ? [["seint", "Seint · " + nL]] : []), ["lokid", "Lokið"]], f, "u1vf:pn")}</div>`;
     const SF = T => window.tbStofnandi ? tbStofnandi(T) : ""; // 2.88.0: stofnandi
     if (WIDE()) return top + wl("80px minmax(0,1.3fr) minmax(0,1fr) 84px 100px 100px 100px 56px 120px 100px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Afhending", "Skil", "Stofnandi", "Línur", "Upphæð m. vsk", "Staða"])
-      + (xs.map(P => wrow(tapAttr("tb", P.id), [wc(E(P.nr || "")), wc(E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun"), "t"), wc(E(P.vidskiptavinur || P.tengilidur || "")), wc(E(pnr(P.verkefniId))), wc(E(P.fra ? dateIS(d(P.fra)) : "")), wc(E(P.til ? dateIS(d(P.til)) : "")), wc(E(SF(P))), wc(fjL(P)), wc(E(totK(P))), wc(pill(P.stada, P.stada === "Ný"), "r")])).join("") || `<div class="uempty">Engar pantanir.</div>`));
+      + (xs.map(P => wrow(tapAttr("tb", P.id), [wc(E(P.nr || "")), wc((window.rlDot ? rlDot(P) : "") + E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun"), "t"), wc(E(P.vidskiptavinur || P.tengilidur || "")), wc(E(pnr(P.verkefniId))), wc(E(P.fra ? dateIS(d(P.fra)) : "")), wc(E(P.til ? dateIS(d(P.til)) : "")), wc(E(SF(P))), wc(fjL(P)), wc(E(totK(P))), wc(pill(P.stada, P.stada === "Ný"), "r")])).join("") || `<div class="uempty">Engar pantanir.</div>`));
     return top
       + cols("Nr.", "Heiti · Viðskiptavinur", "Afhending", "Staða")
       + (xs.map(P => row(tapAttr("tb", P.id), E(P.nr || ""), E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""), E([P.vidskiptavinur || P.tengilidur, SF(P) ? "stofnaði: " + SF(P) : ""].filter(Boolean).join(" · ")), E(relD(P.fra)), P.stada, P.stada === "Ný")).join("") || `<div class="uempty">Engar pantanir.</div>`);
@@ -837,12 +838,12 @@
       : xs.map(x => `<a class="uhrow" ${x.attr}><span><b>${E((x.nr ? x.nr + " " : "") + (x.heiti || ""))}</b><small>${E([dl(x.when) + (x.what ? " · " + x.what : ""), x.who].filter(Boolean).join(" · "))}</small></span>${pill(x.st, x.dark)}</a>`).join("");
     return `<section class="card ucard uhc unext"><div class="uhch"><h3>${E(title)} <span class="ucnt">${xs.length}</span></h3>${more ? `<a href="#" data-act="tab:${more}">Sjá allt →</a>` : ""}</div>${body}</section>`; };
   U.verkyf = function () {
-    const ps = verkefni().filter(p => !isDone(p)), ti = isoD(today);
+    const ps = verkefni().filter(p => !isDone(p) && (!window.rlMatch || rlMatch(p))), ti = isoD(today);
     const late = ps.filter(p => p.skiladagur && p.skiladagur < ti), soon = ps.filter(p => p.skiladagur && daysTo(p.skiladagur) >= 0 && daysTo(p.skiladagur) <= 7).sort((a, b) => a.skiladagur.localeCompare(b.skiladagur));
     const unb = window.rkUnbilledKr ? ps.reduce((a, p) => a + rkUnbilledKr(p.id), 0) : 0;
     const subs = ps.flatMap(p => (p.undirverk || []).filter(u => u.stada !== "Done" && u.skiladagur).map(u => ({ p, u }))).sort((a, b) => a.u.skiladagur.localeCompare(b.u.skiladagur));
     const st0 = STODUR().filter(x => !x.falin);
-    return head("Verkefni", "Yfirlit", nbtn("Verkefni")) + kp4([["Í gangi", ps.length], ["Skil næstu 7 daga", soon.length], ["Komið fram yfir", late.length], ["Óreikningsfært", kr(unb)]])
+    return head("Verkefni", "Yfirlit", nbtn("Verkefni")) + (window.rlBar ? rlBar() : "") + kp4([["Í gangi", ps.length], ["Skil næstu 7 daga", soon.length], ["Komið fram yfir", late.length], ["Óreikningsfært", kr(unb)]])
       + svCards(x => { const xs = ps.filter(p => svidOf(p).includes(x)); return { n: xs.length, t: xs.length === 1 ? "verkefni í gangi" : "verkefni í gangi" }; }, { Leiga: "lverk", Sala: "sverk", "Þjónusta": "tverk" })
       + `<div class="udash">${dcard("Skil framundan", [...late, ...soon].map(p => drow(go("verk", "verk:" + p.id), E(p.nr + " " + (p.stutt || "")), E((p.vidskiptavinur || "") + " · " + fmtD(p.skiladagur)), daysTo(p.skiladagur) < 0 ? "Seint" : p.stada, daysTo(p.skiladagur) < 0)), "verk", "Engin skil næstu 7 daga.")}`
       + dcard("Undirverk framundan", subs.map(({ p, u }) => drow(go("verk", "verk:" + p.id), E(u.heiti || u.nr), E(p.nr + " · skil " + fmtD(u.skiladagur)), STL[u.stada] || u.stada, u.stada === "In progress")), "", "Engin opin undirverk.")
@@ -882,11 +883,11 @@
 
   U.pnyf = function () {
     const api = window.salaAPI; if (!api) return head("Pantanir", "Yfirlit");
-    const all = api.PN(), ti = isoD(today), ny = all.filter(P => P.stada === "Ný"), stf = all.filter(P => P.stada === "Staðfest"), af = all.filter(P => P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)));
+    const all = api.PN().filter(P => !window.rlMatch || rlMatch(P)), ti = isoD(today), ny = all.filter(P => P.stada === "Ný"), stf = all.filter(P => P.stada === "Staðfest"), af = all.filter(P => P.stada === "Afhent" && (!window.pnSkil || pnSkil(P)));
     const late = af.filter(P => (P.til || P.fra) < ti), wk = all.filter(P => ["Ný", "Staðfest"].includes(P.stada) && daysTo(P.fra) >= 0 && daysTo(P.fra) <= 7).sort((a, b) => String(a.fra).localeCompare(String(b.fra)));
     const skil = af.slice().sort((a, b) => String(a.til || a.fra).localeCompare(String(b.til || b.fra)));
     const nm = P => E((P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : "")), who = P => E(P.vidskiptavinur || P.tengilidur || "");
-    return head("Pantanir", "Yfirlit", nbtn("Pöntun")) + `<div class="ukps k4">${[["Nýjar", ny.length, "ny"], ["Staðfestar", stf.length, "stf"], ["Úti / bíða skila", af.length, "afh"], ["Skil komin fram yfir", late.length, "seint"]].map(([l, v, f]) => `<div class="ukp tap" data-act="u1pnf:${f}" role="button" tabindex="0" title="Sýna lista"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`
+    return head("Pantanir", "Yfirlit", nbtn("Pöntun")) + (window.rlBar ? rlBar() : "") + `<div class="ukps k4">${[["Nýjar", ny.length, "ny"], ["Staðfestar", stf.length, "stf"], ["Úti / bíða skila", af.length, "afh"], ["Skil komin fram yfir", late.length, "seint"]].map(([l, v, f]) => `<div class="ukp tap" data-act="u1pnf:${f}" role="button" tabindex="0" title="Sýna lista"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`
       + svCards(x => { const xs = all.filter(P => !["Skilað", "Lokið"].includes(P.stada) && hasTeg(P, x)); return { n: xs.length, t: "opnar pantanir" }; }, { Leiga: "pnl", Sala: "pns", "Þjónusta": "pnt" })
       + `<div class="udash">${dcard("Nýjar – þarf að staðfesta", ny.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · " + E(fmtD(P.fra)), "Ný", true)), "pantanir", "Engar nýjar pantanir.")}`
       + dcard("Afhendingar næstu 7 daga", wk.map(P => drow(go("pantanir", "tb:" + P.id), nm(P), who(P) + " · " + E(fmtD(P.fra)), P.stada)), "pantanir", "Engar afhendingar næstu 7 daga.")

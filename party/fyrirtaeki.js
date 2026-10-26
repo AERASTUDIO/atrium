@@ -32,7 +32,7 @@ window.ORG = {
   pakkaval: true,
   // Útlit I (2.35.0, fyrst eftir Dev): dökk vinstri stika, listi og spjald hlið við hlið á tölvu. Síminn er óbreyttur.
   utlit: "I",
-  einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
+  einingar: { leiga: true, sala: true, deildir: true, pantanir: true, rlinur: true },
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
   kerfi: true,
   // Símaútlit (2.45.0–2.49, simi.js og simi.css): Í dag · Leita · (Skanna) · Tímar · Meira.

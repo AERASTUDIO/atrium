@@ -41,6 +41,8 @@
     vgreind:        ["Verkefnagreining", "Afkoma verkefna í rauntíma (tekjur, kostnaður, framlegð og spá), lokauppgjör við lok verkefnis og tillaga að áætlun út frá fyrri verkefnum", null, 1],
     aukaverk:       ["Aukaverk", "Aukaverk á verkefnum sem viðskiptavinurinn samþykkir með tengli og undirskrift; samþykkt aukaverk fara í áætlun og á reikning", null, 1],
     snjall:         ["Snjall-Heim", "Á Heim: drög að tímaskráningu dagsins (Loka deginum), viðvaranir um áætlun og bókanir, hver er hvar, skipanalína í mæltu máli og rekstrarpúls", null, 1],
+    // Frá 2.95.0: Rekstrarlínur (rlinur.js) – eigin línur fyrirtækisins þvert á svið, t.d. Drykkjaþjónusta. Sjálfgefið óvirk.
+    rlinur:         ["Rekstrarlínur", "Eigin rekstrarlínur fyrirtækisins (t.d. Drykkjaþjónusta) þvert á leigu, sölu og þjónustu: tilboð, pantanir og verkefni merkt línu, sjálfkrafa út frá vöruflokkum, og sía í listum og yfirlitum", null, 1],
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
   // Pakkar og tengingar (frá 2.14.0, einingatillagan 21.10.2026): einingarnar flokkaðar í kjarna, fimm pakka og tengingar.
