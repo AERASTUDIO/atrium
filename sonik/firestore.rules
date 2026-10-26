@@ -78,8 +78,10 @@ service cloud.firestore {
     // Vörulisti og tilboð (frá 2.4.0): allir virkir notendur lesa og skrifa; aðeins admin eyðir.
     match /vorur/{id}          { allow read, update: if active(); allow create: if skrif(); allow delete: if admin(); }
     match /tilbod/{id}         { allow read: if active(); allow create, update: if skrif(); allow delete: if admin(); }
-    // Pantanir (frá 2.20.0): eins og tilboð
-    match /pantanir/{id}       { allow read, update: if active(); allow create: if skrif(); allow delete: if admin(); }
+    // Pantanir (frá 2.20.0): eins og tilboð. 2.98.0: vettvangur les og uppfærir aðeins pantanir sem hann er skráður á
+    // (reiturinn menn = netföng starfsfólks á pöntuninni og verkefni hennar; appið heldur honum við og les með array-contains).
+    function minPontun() { return !vett() || em() in resource.data.menn; }
+    match /pantanir/{id}       { allow read, update: if active() && minPontun(); allow create: if skrif(); allow delete: if admin(); }
 
     // Reikningar: aðeins fjármál (admin, bókari) lesa og skrifa (lestur takmarkaður 2.94.2); aðeins admin eyðir (frá 1.9.0).
     match /reikningar/{id} {

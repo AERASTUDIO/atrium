@@ -54,11 +54,13 @@
         if (!x || typeof x !== "object") return;
         if (!x.id) x.id = genIdG();
         const o = old.get(x.id);
+        // 2.98.0: pantanir bera lista yfir starfsfólk (menn) svo vettvangsnotendur fái aðeins sínar (firestore.rules)
+        if (c.k === "pantanir" && window.pnMenn) { const m = window.pnMenn(x); if (m && J(m) !== J(x.menn || null)) x.menn = m; }
         if (!o) {
           if (x.stofnad_af == null) x.stofnad_af = email; if (x.stofnad_t == null) x.stofnad_t = t;
           x.breytt_af = email; x.breytt_t = t;
           if (typeof x._o !== "number") x._o = i === 0 && arr.length > 1 ? --lo : ++hi;
-        } else if (J(o) !== J(x)) { x.breytt_af = email; x.breytt_t = t; if (typeof x._o !== "number") x._o = o._o ?? ++hi; }
+        } else if (J({ ...o, menn: 0 }) !== J({ ...x, menn: 0 })) { x.breytt_af = email; x.breytt_t = t; if (typeof x._o !== "number") x._o = o._o ?? ++hi; }
         if (c.eigandi && !x.eigandi) x.eigandi = ownerOf(x) || email;
       });
     }

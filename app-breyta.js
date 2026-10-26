@@ -193,7 +193,8 @@ window.aeraStart=function(db){
     if(JSON.stringify(nd)!==JSON.stringify(S)){S=nd; render(); openFromHash();} else drawSync(); };
   const startSplit=()=>{ if(mode==="split") return; mode="split"; window.SPLIT=true; window.__DB=db; /* 2.56.0: pöntunarsíða (pantanir2.js) */ const fj=window.can&&can("fjarmal"); if(window.spStart) spStart(db); if(window.heimStart) heimStart(db);
     for(const c of GOGN.COLS){ if(c.k==="reikningar"&&!fj&&!window.AERA_DEMO){P.cols[c.k]=[]; P.ready.add(c.k); continue;} // 2.94.2: reikningar aðeins fyrir fjármál (admin, bókari)
-    db.watchCol(c.k, c.eigandi&&!fj?["eigandi",USER.email]:null,
+    const vt=c.k==="pantanir"&&USER?.hlutverk==="vettvangur"&&!window.AERA_DEMO; // 2.98.0: vettvangur les aðeins sínar pantanir
+    db.watchCol(c.k, c.eigandi&&!fj?["eigandi",USER.email]:vt?["menn",USER.email,"array-contains"]:null,
       r=>{P.cols[c.k]=r.docs; P.pend[c.k]=r.pending; P.ready.add(c.k); rebuild(); if(!r.fromCache&&window.msTick) msTick();},
       e=>{console.warn("Safn "+c.k,e); P.cols[c.k]=P.cols[c.k]||[]; P.ready.add(c.k); rebuild();}); }
     db.watch("klukka/"+USER.email, s=>{P.klukka=s.exists?s.data():null; P.ready.add("klukka"); rebuild();}, ()=>{P.ready.add("klukka"); rebuild();}); };
