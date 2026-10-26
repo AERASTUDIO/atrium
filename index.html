@@ -212,19 +212,19 @@ footer .lg{display:flex;gap:20px;margin-left:auto}footer a{text-decoration:none}
   <div class="plans">
     <div class="plan rv">
       <div><h3 style="font-size:22px;font-weight:400">Grunnur</h3><p class="for">Stofur, ráðgjöf og þjónusta</p></div>
-      <div><div class="pr"><b>1.900 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 4.900 kr. grunngjald · lágmark 9.900 kr. á mánuði</p></div>
+      <div><div class="pr"><b>2.400 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 4.900 kr. grunngjald · lágmark 9.900 kr. á mánuði</p></div>
       <ul class="ch"><li>Verkefni, viðskiptavinir og pantanir</li><li>Tímaskráning og tímaskýrslur</li><li>Tilboð og reikningsdrög</li><li>Póstur, fundir, skjöl og spjall</li></ul>
     </div>
     <div class="plan hi rv">
       <div><h3 style="font-size:22px;font-weight:400">Allt</h3><p class="for">Leigur, verslanir og viðburðafyrirtæki</p></div>
-      <div><div class="pr"><b>3.900 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 9.900 kr. grunngjald · nýjar einingar fylgja</p></div>
+      <div><div class="pr"><b>4.400 kr.</b><span>á notanda / mán.</span></div><p class="base">+ 9.900 kr. grunngjald · nýjar einingar fylgja</p></div>
       <ul class="ch"><li>Allt í Grunni</li><li>Leiga, sala og vörulisti með lager</li><li>Pöntunarferli og QR-skönnun</li><li>Verkefnagreining, aukaverk og fleira</li></ul>
     </div>
   </div>
   <div class="calc rv" id="reikna">
     <div class="seg" role="group" aria-label="Leið"><button type="button" data-p="g">Grunnur</button><button type="button" data-p="a" class="on">Allt</button></div>
     <div class="cnt"><button type="button" data-d="-1" aria-label="Fækka notendum">−</button><output id="vno" aria-live="polite">8</output><button type="button" data-d="1" aria-label="Fjölga notendum">+</button><span>notendur</span></div>
-    <div class="tot"><b id="vtot">41.100</b> <span>kr. / mán.</span><small id="vsub">9.900 + 8 × 3.900 kr.</small></div>
+    <div class="tot"><b id="vtot">45.100</b> <span>kr. / mán.</span><small id="vsub">9.900 + 8 × 4.400 kr.</small></div>
   </div>
   <details class="mods rv"><summary>Stakar einingar með Grunni</summary>
     <table class="mtab"><tbody>
@@ -274,7 +274,7 @@ document.querySelectorAll(".rv").forEach(el => io ? io.observe(el) : el.classLis
     $("scL").innerHTML = l.map(x => "<li>" + x + "</li>").join(""); B.forEach((b, j) => b.setAttribute("aria-selected", i === j)); };
   B.forEach((b, i) => b.onclick = () => set(i)); set(0);
   D.forEach(([f]) => { const im = new Image(); im.src = "vefur/" + f + "-i.webp"; }); })();
-(() => { const P = { g: [4900, 1900], a: [9900, 3900] }, $ = id => document.getElementById(id), f = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+(() => { const P = { g: [4900, 2400], a: [9900, 4400] }, $ = id => document.getElementById(id), f = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   let p = "a", n = 8;
   const up = () => { const [b, u] = P[p], raw = b + u * n, t = Math.max(9900, raw);
     $("vno").textContent = n; $("vtot").textContent = f(t); $("vsub").textContent = t > raw ? "Lágmarksgjald" : f(b) + " + " + n + " × " + f(u) + " kr.";
