@@ -31,7 +31,9 @@ window.ORG = {
   personuvernd: { netfang: "aera@aerastudio.is", svaedi: "Belgíu (Google europe-west1, innan EES)" },   // persónuvernd (2.44.1): hýsingarsvæði Firestore; netfang: valfrjálst, annars admin
   pakkaval: true,
   utlit: "I",                          // tölvuútlit I (frá 2.43.0, eins og Dev og party.is); síminn óbreyttur
-  einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
+  // Stöður verkefna með litum (eins og í Dev, 2.93.0) – gildir nema admin hafi vistað aðrar í Stillingum
+  stodur: [{ n: "Fyrirspurn", c: "slate" }, { n: "Í vinnslu", c: "blue" }, { n: "Í bið", c: "amber" }, { n: "Afhent", c: "teal" }, { n: "Lokið", c: "green", lokid: true, falin: true }],
+  einingar: { leiga: true, sala: true, deildir: true, pantanir: true, qr: true, snjall: true, pferli: true, vgreind: true, aukaverk: true },   // 2.93.0: sömu einingar og í Dev (admin getur slökkt í Stillingar › Einingar)
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
   kerfi: true,
   // Símaútlit (2.45.0–2.49, simi.js og simi.css): Í dag · Leita · (Skanna) · Tímar · Meira.

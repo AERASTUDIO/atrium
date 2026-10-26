@@ -24,3 +24,15 @@
 
 /* Útlit C (2.51.0): áherslulitur fyrirtækisins */
 html body.kerfi{--kacc:var(--hi);--on-kacc:var(--on-hi)}
+
+/* 2.93.0: sterkari stöðulitir hjá Sonik – litaður bakgrunnur á stöðumerkjum, litir úr merki Sonik */
+body.kerfi{--t-red:#B2597D;--t-amb:#B87800;--t-blu:#2A7289;--t-grn:#1C8C5E}
+html:not([data-theme="light"]) body.kerfi{--t-red:#F08BB4;--t-amb:#F2C14E;--t-blu:#7ED0E4;--t-grn:#5FD99F}
+body.kerfi :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t-blu,.t-grn){background:color-mix(in srgb,currentColor 20%,transparent)!important;font-weight:600}
+body.kerfi :is(.upill,.pill,.dbadge).t-red{background:color-mix(in srgb,currentColor 22%,transparent)!important}
+/* lykiltölur og spjöld: táknin í lit fyrirtækisins */
+body.kerfi #view .ukp :is(svg,i){color:#2A7289}
+html:not([data-theme="light"]) body.kerfi #view .ukp :is(svg,i){color:#7ED0E4}
+body.kerfi #view .uhch h3 .ucnt{background:#B2597D;color:#fff}
+/* virkur flipi í vinstri stiku */
+body.kerfi .side .tab[aria-current="page"],body.kerfi .side .tab.on{box-shadow:inset 3px 0 0 #B2597D}
