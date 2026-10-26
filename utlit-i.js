@@ -97,7 +97,17 @@
   const ALLSV = { vsk: "Allir", ltilbod: "Öll" };
   const SPH = { verkefni: "heiti eða verknr.", vsk: "nafni eða tengilið", vidsk: "nafni eða tengilið", tilbod: "heiti, nr. eða viðskiptavini", pantanir: "heiti, nr. eða viðskiptavini", lvorur: "heiti eða vnr.", svorur: "heiti eða vnr.", vvinna: "heiti eða vnr.", bunadur: "heiti eða vnr.", fundir: "heiti fundar", tfaer: "lýsingu eða verknr.", timar: "lýsingu eða verknr.", trk: "nafni eða nr.", fjarmal: "nafni eða nr.", heim: "heiti", postur: "sendanda eða efni" };
   const _render = window.render || render;
+  // 2.94.0: mjúk skipti frá upphafsskjánum – dökki liturinn dofnar yfir í ljósa grunninn (ef upphafsskjárinn er dökkur)
+  let prevTabI = null;
+  function fadeFromStart() {
+    const st = document.querySelector("#view .ustart.ustdark"); if (!st || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const r = document.getElementById("view").getBoundingClientRect(), c = getComputedStyle(st).backgroundColor, o = document.createElement("div");
+    o.className = "ustfade"; o.style.cssText = `position:fixed;left:${r.left}px;top:0;right:0;bottom:0;background:${c};z-index:30;pointer-events:none;opacity:1;transition:opacity .7s ease`;
+    document.body.append(o); requestAnimationFrame(() => requestAnimationFrame(() => { o.style.opacity = "0"; })); setTimeout(() => o.remove(), 900);
+  }
   function renderI() {
+    if (prevTabI === "upphaf" && tab !== "upphaf") fadeFromStart();
+    prevTabI = tab;
     if (fltTab !== tab) { flt = ""; window.u1Q = ""; fltTab = tab; }
     const v = document.getElementById("view");
     if (tab === "upphaf") {

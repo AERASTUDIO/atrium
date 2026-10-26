@@ -9,7 +9,7 @@
   --late:#E39BB8; --late-soft:#3B2230; --crit:#E39BB8;
 }
 :root[data-theme="light"], :root[data-theme="light"][data-variant]{
-  --bg:#F2FCFF; --surface:#FFFFFF; --ink:#0C2127; --muted:#4D7584; --line:#D6ECF2;
+  --bg:#E4EEF1; --surface:#FFFFFF; --ink:#0C2127; --muted:#4D7584; --line:#D2E2E7;  /* 2.94.0: ljós útgáfa af dökka lit upphafsskjásins (#0C2127) */
   --accent:#2A7289; --accent-soft:#D4F7FF; --on-accent:#FFFFFF; --hi:#2A7289; --on-hi:#FFFFFF;
   --b0:#E6F6FA; --b1:#D4F0F7; --b2:#9FD0DE; --b3:#2A7289; --b4:#0C2127;
   --t0:#2A7289; --t1:#2A7289; --t2:#0C2127; --t3:#FFFFFF; --t4:#FFFFFF;
@@ -38,4 +38,7 @@ body.kerfi #view .uhch h3 .ucnt{background:#B2597D;color:#fff}
 body.kerfi .side .tab[aria-current="page"],body.kerfi .side .tab.on{box-shadow:inset 3px 0 0 #B2597D}
 /* 2.93.4: opnunarskjár í sama lit og innskráningin */
 #splash{background:#0C2127!important}
-.ustart.ustdark{background:#0C2127!important}.ustart.ustdark .uver{color:#8DBBC8}
+.ustart.ustdark{background:#0C2127}.ustart.ustdark .uver{color:#8DBBC8}
+
+/* 2.94.0: upphafsskjárinn birtist mjúklega (ljóst → dökkt) þegar farið er á hann */
+@media (prefers-reduced-motion: no-preference){ .ustart.ustdark{animation:ustIn .6s ease both} @keyframes ustIn{from{background:#E4EEF1}to{background:#0C2127}} .ustart.ustdark .ustpair{animation:aIn .6s ease .15s both} }
