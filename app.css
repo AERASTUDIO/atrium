@@ -1333,3 +1333,10 @@ body.pv.ui1 #leitres .viewtitle:first-child{margin-top:6px}
   html.hasco body.pv.ui1 .side .cobrand .logo{height:30px!important;width:auto!important;aspect-ratio:82/24;background-size:contain!important;background-repeat:no-repeat;background-position:center}
   html.hasco body.pv.ui1 .side .cosep{height:30px}
 }
+/* 2.93.3: upphafsskjár eins og innskráning – merkin hlið við hlið, jafnhá (96 px) */
+.ustpair{display:flex;align-items:center;justify-content:center}
+.ustatr2{display:flex;align-items:center;gap:18px}
+.ustmk{width:96px;height:96px;display:block}
+.ustwd{width:190px;height:auto;display:block}
+.ustpair .ustsep{width:1px;height:96px;align-self:center;background:var(--line,#D5D9DB);margin:0 32px}
+.ustco2{height:96px;width:auto;max-width:220px;object-fit:contain;display:block}
