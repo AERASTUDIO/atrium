@@ -383,8 +383,10 @@
   document.addEventListener("mousedown", e => { if (e.button === 1 && e.target.closest?.("[data-open]")) e.preventDefault(); }, true);
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="win"]'); if (!b) return; u1OpenWin(tab, DETAIL, DTAB); });
   if (!(desk() && fromHash()) && wideScr()) { tab = "upphaf"; }
-  // Smellt aftur á opinn yfirflokk: hann lokast og upphafsskjárinn birtist
-  document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
+  // 2.94.3: smellt aftur á opinn yfirflokk fer á yfirlit hans (ekki á upphafsskjáinn – grái skjárinn poppaði upp við hvern smell á t.d. Heim).
+  // Upphafsskjárinn opnast aðeins með smelli á merkið efst í vinstri stikunni.
+  document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation();
+    const t0 = b.dataset.tab; if (tab === t0 && !DETAIL && !window.STSUB) return; DETAIL = null; window.STSUB = null; tab = t0; render(); }, true);
   document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo"); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   // Til baka (2.38.0): saga yfir skjái og spjöld sem opnuð eru (flipi, atriði, undirflipi, stillingasíða); ← Til baka, Alt+← og bakhnappur músar
   const NAV = []; let navLast = null, navBusy = false;
