@@ -228,7 +228,7 @@
       w.innerHTML = `<div class="qmb"><div class="qmh"><b style="color:var(--ink)">${why ? "Ógreidd pöntun" : "Skrá greiðslu"}</b><span>${E(P.nr || "")} · ${E(P.vidskiptavinur || P.tengilidur || "")}</span></div>
         <div class="pfpb">${why ? `<p class="pfhint t-amb" style="margin:0 0 12px">${E(why)}</p>` : ""}
           <label>Upphæð (kr.)<input id="pfpu" inputmode="numeric" value="${totOf(P)}"></label>
-          <div class="pfpl" role="radiogroup" aria-label="Greiðsluleið">${LEIDIR.map(([k, l], i) => `<button type="button" role="radio" data-l="${k}" aria-checked="${i === 0}">${l}</button>`).join("")}</div></div>
+          <div class="pfpl" role="radiogroup" aria-label="Greiðsluleið">${HVL.map(([k, l], i) => `<button type="button" role="radio" data-l="${k}" aria-checked="${i === 0}">${l}</button>`).join("")}</div></div>
         <div class="qma"><button type="button" class="btn primary" data-v="1">${why ? "Skrá greiðslu og halda áfram" : "Skrá greiðslu"}</button><button type="button" class="btn" data-v="0">Hætta við</button></div></div>`;
       let leid = "kort"; const end = v => { w.remove(); res(v); };
       w.addEventListener("click", async e => { const l = e.target.closest("[data-l]"); if (l) { leid = l.dataset.l; w.querySelectorAll("[data-l]").forEach(x => x.setAttribute("aria-checked", x === l)); return; }
@@ -660,17 +660,70 @@
     const hm = x => `${E(dfmt(x))} kl. ${E(String(x).slice(11, 16))}`;
     const row = (cls, txt) => `<div class="pfln${cls ? " " + cls : ""}">${txt}</div>`;
     const lines = [
-      v ? row("ok", `✓ Staðfest af ${E(v.nafn)}${v.ur ? ` <span class="m">· undirskrift á ${E(v.ur)}</span>` : ""}<small>${hm(v.dags)}</small>`) : P.stada === "Ný" ? row("wait", "Bíður staðfestingar viðskiptavinar") : row("ok", `✓ ${E(P.stada)}${P.tilbodId ? ' <span class="m">· úr samþykktu tilboði</span>' : ""}`),
+      v && v.handvirkt ? row("ok", `✓ Staðfest af ${E(v.nafn)} <span class="m">· með ${E(v.ur || "")} – skráð af ${E(v.handvirkt.nafn || v.handvirkt.af || "")}</span><small>${hm(v.dags)}</small>`)
+      : v ? row("ok", `✓ Staðfest af ${E(v.nafn)}${v.ur ? ` <span class="m">· undirskrift á ${E(v.ur)}</span>` : ""}<small>${hm(v.dags)}</small>`) : P.stada === "Ný" ? row("wait", "Bíður staðfestingar viðskiptavinar") : row("ok", `✓ ${E(P.stada)}${P.tilbodId ? ' <span class="m">· úr samþykktu tilboði</span>' : ""}`),
       v?.athugasemd ? row("note", `„${E(v.athugasemd)}“`) : "",
       !v && P.tengillSendur ? row("", `✉ Tengill sendur${P.tengillSendur.af === "sjálfvirkt" ? " sjálfkrafa" : ""}<small>${hm(P.tengillSendur.dags)}${P.tengillSendur.til ? " · " + E(P.tengillSendur.til) : ""}</small>`) : "",
       !v && !P.tengillSendur && P.opinber && TENG().on && P.stada === "Ný" ? row("m", `Tengillinn fer sjálfkrafa ${E(String(TENG().klst).replace(".", ","))} klst. eftir stofnun, í síðasta lagi ${E(String(TENG().fyrir))} klst. fyrir afhendingu`) : "",
-      P.stada !== "Ný" ? (pm ? row("ok", `✓ Staðfestingarpóstur sendur<small>${hm(pm.dags)} · ${E(pm.til || to)}</small>`) : !to ? row("wait", "Ekkert netfang – staðfestingarpóstur fer ekki") : row("wait", `Staðfestingarpóstur ekki farinn${ed() && (msOn() || DEMO()) && P.opinber ? ` · <button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Forskoða og senda</button>` : " · fer sjálfkrafa frá netþjóni"}`)) : ""
+      P.stada !== "Ný" ? (pm && pm.ekki ? row("m", "Staðfestingarpóstur ekki sendur – valið við handvirka staðfestingu") : pm ? row("ok", `✓ Staðfestingarpóstur sendur<small>${hm(pm.dags)} · ${E(pm.til || to)}</small>`) : !to ? row("wait", "Ekkert netfang – staðfestingarpóstur fer ekki") : row("wait", `Staðfestingarpóstur ekki farinn${ed() && (msOn() || DEMO()) && P.opinber ? ` · <button type="button" class="pflink" data-pf="pubmail:${E(P.id)}">Forskoða og senda</button>` : " · fer sjálfkrafa frá netþjóni"}`)) : ""
     ].filter(Boolean).join("");
-    const acts = !ed() ? "" : !P.opinber ? `<button type="button" class="btn sm" data-pf="pub:${E(P.id)}">Búa til pöntunarsíðu</button>`
-      : `<button type="button" class="btn sm" data-pf="pubsend:${E(P.id)}">✉ Senda tengil</button><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita tengil</button><a class="btn sm" href="${E(pubUrl(P.opinber))}" target="_blank" rel="noopener">Opna síðu</a><button type="button" class="pflink pfx" data-pf="pubrev:${E(P.id)}">Loka síðu</button>`;
+    const hv = ed() && !v ? `<button type="button" class="btn sm" data-pf="handv:${E(P.id)}">✓ Staðfesta handvirkt</button>` : "";
+    const acts = !ed() ? "" : !P.opinber ? `${hv}<button type="button" class="btn sm" data-pf="pub:${E(P.id)}">Búa til pöntunarsíðu</button>`
+      : `${hv}<button type="button" class="btn sm" data-pf="pubsend:${E(P.id)}">✉ Senda tengil</button><button type="button" class="btn sm" data-pf="pubcopy:${E(P.id)}">Afrita tengil</button><a class="btn sm" href="${E(pubUrl(P.opinber))}" target="_blank" rel="noopener">Opna síðu</a><button type="button" class="pflink pfx" data-pf="pubrev:${E(P.id)}">Loka síðu</button>`;
     return `<section class="pfsec pfpub pfcard"><div class="pfsh"><b>Viðskiptavinur</b><span class="m">${E(P.vidskiptavinur || P.tengilidur || "")}${to ? " · " + E(to) : ""}</span></div><div class="pfbd">${lines}</div>${acts ? `<div class="pfft">${acts}</div>` : ""}</section>`;
   }
 
+
+  /* Handvirk staðfesting (2.103.0): starfsmaður staðfestir fyrir hönd viðskiptavinar (símtal, tölvupóstur, á staðnum, annað).
+     Skráð í vidskStadfest = { nafn, dags, ur, athugasemd, handvirkt: { af, nafn, leid } } og á pöntunarsíðuna (opinber/{t}.stadfest),
+     svo viðskiptavinurinn er ekki beðinn um að staðfesta aftur. Valið í hvert sinn hvort pöntunarstaðfesting fer á viðskiptavininn:
+     ef ekki er stadfPostur / opinber.postur merkt { ekki: true } og hvorki appið né netþjónninn senda. */
+  const HVL = [["simi", "Símtal", "símtali"], ["postur", "Tölvupóstur", "tölvupósti"], ["stadur", "Á staðnum", "staðfestingu á staðnum"], ["annad", "Annað", "öðrum hætti"]];
+  function handvirkt(id) {
+    const P = findP(id); if (!P) return;
+    const to = P.netfang || tr(() => findVsk(P.vskId)?.netfang, ""), getSend = !!(to && P.opinber);
+    document.querySelector(".pfhv")?.remove();
+    const w = document.createElement("div"); w.className = "vtmod pfhv"; w.setAttribute("role", "dialog"); w.setAttribute("aria-label", "Staðfesta pöntun handvirkt");
+    w.innerHTML = `<form class="vtbox" style="display:flex;flex-direction:column;gap:14px">
+      <div class="vtbar" style="margin:0"><h2 style="margin:0;font-size:20px;font-weight:500">Staðfesta handvirkt</h2><button type="button" class="btn" data-hx="1" aria-label="Loka" style="min-height:44px">✕</button></div>
+      <p style="margin:0;color:var(--muted);font-size:14px">${E([[P.nr, P.heiti].filter(Boolean).join(" "), P.vidskiptavinur].filter(Boolean).join(" · "))}. Skráðu hvernig viðskiptavinurinn staðfesti pöntunina.</p>
+      <fieldset style="border:0;padding:0;margin:0"><legend style="font-size:13px;color:var(--muted);margin-bottom:6px">Hvernig var staðfest? *</legend>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${HVL.map(([k, l], i) => `<label class="chk" style="flex-direction:row;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-height:44px;margin:0"><input type="radio" name="hvl" value="${k}" style="width:auto"${i === 0 ? " checked" : ""}>${l}</label>`).join("")}</div></fieldset>
+      <label>Hver staðfesti? *<input id="hv-nafn" required value="${E(P.tengilidur || "")}" placeholder="Nafn tengiliðs"></label>
+      <label><span>Nánar <span id="hv-krafa" style="color:var(--muted)">(valfrjálst)</span></span><textarea id="hv-ath" rows="2" placeholder="T.d. staðfest í símtali kl. 10:15 – vill fá sent"></textarea></label>
+      <label class="chk" style="flex-direction:row;align-items:center;gap:10px;margin:0"><input type="checkbox" id="hv-senda" style="width:auto"${getSend ? " checked" : " disabled"}> Senda pöntunarstaðfestingu á viðskiptavin${to ? ` (${E(to)})` : ""}</label>
+      ${getSend ? "" : `<p style="margin:-6px 0 0;font-size:12.5px;color:var(--muted)">${!to ? "Ekkert netfang er skráð á pöntunina." : "Búðu fyrst til pöntunarsíðu til að geta sent staðfestingu."}</p>`}
+      <div id="hv-msg" role="alert" style="color:#B4472E;font-size:13.5px"></div>
+      <div style="display:flex;gap:10px"><button type="button" class="btn" data-hx="1" style="flex:1;min-height:48px">Hætta við</button><button type="submit" class="btn primary" style="flex:1;min-height:48px">Staðfesta pöntun</button></div></form>`;
+    document.body.appendChild(w);
+    const f = w.querySelector("form"), ath = w.querySelector("#hv-ath"), krafa = w.querySelector("#hv-krafa");
+    const leid = () => (f.querySelector('input[name="hvl"]:checked') || {}).value;
+    f.addEventListener("change", () => { krafa.textContent = leid() === "annad" ? "*" : "(valfrjálst)"; });
+    w.addEventListener("click", e => { if (e.target === w || e.target.closest("[data-hx]")) w.remove(); });
+    setTimeout(() => w.querySelector("#hv-nafn").focus(), 30);
+    f.addEventListener("submit", async e => {
+      e.preventDefault(); const msg = t => { w.querySelector("#hv-msg").textContent = t; };
+      const nafn = w.querySelector("#hv-nafn").value.trim(), athv = ath.value.trim(), l = leid(), senda = getSend && w.querySelector("#hv-senda").checked;
+      if (!l) return msg("Veldu hvernig var staðfest.");
+      if (nafn.length < 2) return msg("Skráðu nafn þess sem staðfesti.");
+      if (l === "annad" && athv.length < 3) return msg("Lýstu í „Nánar“ hvernig var staðfest.");
+      const dags = nowIso(), L = HVL.find(x => x[0] === l), U = window.USER || {};
+      const st = { nafn: nafn.slice(0, 118), dags, ur: L[2], handvirkt: { af: String(U.email || me()), nafn: U.nafn || me(), leid: l }, ...(athv ? { athugasemd: athv.slice(0, 1990) } : {}) };
+      const ekki = senda ? null : { af: "handvirkt", ekki: true, dags, til: "" };
+      try {
+        if (P.opinber) {
+          // Pöntunarsíðan sýnir að pöntunin er staðfest; „postur“ fyrst ef ekki á að senda, svo enginn sendi óvart
+          if (DEMO()) { const cur = JSON.parse(LS().getItem(lsKey(P.opinber)) || "null"); if (cur) { cur.stadfest = st; if (ekki) cur.postur = ekki; LS().setItem(lsKey(P.opinber), JSON.stringify(cur)); } }
+          else await window.__DB.tx("opinber/" + P.opinber, cur => ({ ...(cur || {}), stadfest: st, ...(ekki ? { postur: ekki } : {}), uppfaert: dags }));
+          PUB[P.opinber] = { ...(PUB[P.opinber] || {}), stadfest: st, ...(ekki ? { postur: ekki } : {}) };
+        }
+        await savePN(id, Q0 => { Q0.vidskStadfest = st; if (Q0.stada === "Ný") Q0.stada = "Staðfest"; if (ekki) Q0.stadfPostur = ekki; });
+        w.remove(); toast(senda ? "Pöntun staðfest – pöntunarstaðfesting send" : "Pöntun staðfest handvirkt");
+        if (senda && P.opinber) mailConfirm(P.opinber, id, true).catch(err => console.warn("staðfestingarpóstur", err));
+        document.querySelectorAll("#view .pfwrap").forEach(x => x.remove()); render(); setTimeout(() => { try { decorate(); } catch (e) {} }, 50);
+      } catch (err) { console.warn(err); msg("Tókst ekki: " + (err?.code || err?.message || "villa")); }
+    });
+  }
 
   /* ---------- Tengt inn í appið ---------- */
   document.addEventListener("click", e => {
@@ -697,6 +750,7 @@
     if (op === "payx") { if (!confirm("Afturkalla skráða greiðslu?")) return; return savePN(id, P => { delete P.greitt; }).then(() => { toast("Greiðsla afturkölluð"); render(); }); }
     if (op === "payh") return savePN(id, P => { P.greidsluhattur = a; }).then(() => render());
     if (op === "rkut0") return savePN(id, P => { delete P.reikningur; }).then(() => render());
+    if (op === "handv") return handvirkt(id);
     if (op === "pub") return pubCreate(id);
     if (op === "pubrev") return pubRevoke(id);
     // 2.90.3: „Senda núna“ opnar póstglugga með PDF pöntunarinnar í viðhengi – hægt að forskoða og breyta áður en sent er

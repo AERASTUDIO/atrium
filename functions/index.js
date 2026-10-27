@@ -88,6 +88,7 @@ exports.vidskStadfestir = onDocumentUpdated("opinber/{t}", async ev => {
     return;
   }
   if (a.stadfest || !b.stadfest) return;
+  if (b.stadfest.handvirkt) return;   // 2.103.0: starfsmaður staðfesti handvirkt í appinu – pöntunin er þegar uppfærð og engin þörf á tilkynningu
   const t = ev.params.t, tilbod = b.teg === "tilbod", col = tilbod ? "tilbod" : "pantanir";
   // 2.75.0: staðfesting af pöntunarsíðu fer strax á pöntunina (þótt enginn hafi appið opið) – þá sendist staðfestingarpósturinn
   if (b.teg !== "tilbod" && b.teg !== "aukaverk") { try { const q = await db.collection("pantanir").where("opinber", "==", t).limit(1).get();
