@@ -282,7 +282,11 @@
           else if (!DETAIL && tab === "yfirlit") { const n = window.vtPending().length;
             if (n && !v.querySelector(".vtban") && !v.querySelector('.h2bi[data-act="vtsta"]')) { const at = v.querySelector(".snjban") || v.querySelector(".phead, .h2top"), h = `<button type="button" class="vtban" data-act="vtsta"><span class="vtbi">${n}</span><span class="vtbx"><b>${n === 1 ? "1 tími bíður" : n + " tímar bíða"} staðfestingar</b><small>Skráðir af vettvangsnotendum – staðfestu eða hafnaðu</small></span><span class="vtbg">Fara yfir →</span></button>`;
               at ? at.insertAdjacentHTML("afterend", h) : v.insertAdjacentHTML("afterbegin", h); } }
-          else if (!DETAIL && ["timar", "tfaer", "tskyr"].includes(tab)) { const ps = window.vtPending();
+          // 2.103.7: Vörulisti með eitt svið – Yfirlit er ekki í stikunni; hnappur í haus vörulistans í staðinn
+          if (!DETAIL && ["svorur", "lvorur"].includes(tab) && tr(() => SECTIONS.find(x => x.k === "bunadur")?.tabs.find(t => t[0] === "vyfir")?.[2] === 2, false) && !v.querySelector('[data-act="tab:vyfir"]')) {
+            const nb = v.querySelector('.phrow [data-act^="fabnew"]'), h = `<button type="button" class="btn" data-act="tab:vyfir" style="margin-left:auto">Yfirlit</button>`;
+            nb ? nb.insertAdjacentHTML("beforebegin", h) : v.querySelector(".phrow")?.insertAdjacentHTML("beforeend", h); }
+          if (!DETAIL && ["timar", "tfaer", "tskyr"].includes(tab)) { const ps = window.vtPending();
             if (ps.length && !v.querySelector(".vtkort")) { const h = v.querySelector(".uhead") || v.querySelector(".phead"); (h ? h : v).insertAdjacentHTML(h ? "afterend" : "afterbegin", window.vtKort(ps)); } }
         }
       } catch (e) { console.warn("vtKort", e); }

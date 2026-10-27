@@ -69,9 +69,9 @@ function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return 
     // 2.103.4: aðeins eitt svið virkt (t.d. Sala hjá Sonik) → engir sviðsundirliðir né Yfirlit í stikunni; hlutinn opnar Yfirlitið (listinn með „Sjá allt →“).
     // Tvö svið eða fleiri → Yfirlit og eitt á hvert svið eins og áður. (SVID_TABS: ui1-skjair.js)
     let einSv=false; {const SV=window.SVID_TABS, YF=["pnyf","verkyf","vskyf","tbyf","vyfir"], MAIN=["pantanir","verk","ltilbod","vsk"];
-      if(SV&&tabs.filter(t=>SV.has(t[0])&&!t[2]).length===1){// Yfirlit helst sem upphafssíða þar sem það vísar á listann („Sjá allt →“); Vörulisti opnar vörurnar sjálfar og Yfirlit er undirliður
+      if(SV&&tabs.filter(t=>SV.has(t[0])&&!t[2]).length===1){// Yfirlit helst sem upphafssíða þar sem það vísar á listann („Sjá allt →“); Vörulisti opnar vörurnar sjálfar (hnappurinn Yfirlit í haus listans – vett-ui.js)
         const YL=["pnyf","verkyf"], m=tabs.find(t=>YL.includes(t[0])&&!t[2])||tabs.find(t=>MAIN.includes(t[0]))||tabs.find(t=>SV.has(t[0])&&!t[2]);
-        tabs=tabs.map(t=>t===m?[t[0],MAIN.includes(t[0])||SV.has(t[0])?x.l:t[1]]:t[0]==="vyfir"?t:SV.has(t[0])||YF.includes(t[0])?[t[0],t[1],2]:MAIN.includes(t[0])?[t[0],t[1],t[2]||1]:t); if(m){tabs=[tabs.find(t=>t[0]===m[0]),...tabs.filter(t=>t[0]!==m[0])];} einSv=true;}}
+        tabs=tabs.map(t=>t===m?[t[0],MAIN.includes(t[0])||SV.has(t[0])?x.l:t[1]]:SV.has(t[0])||YF.includes(t[0])?[t[0],t[1],2]:MAIN.includes(t[0])?[t[0],t[1],t[2]||1]:t); if(m){tabs=[tabs.find(t=>t[0]===m[0]),...tabs.filter(t=>t[0]!==m[0])];} einSv=true;}}
     const vis=tabs.filter(t=>!t[2]); if(!vis.length) return;
     // Ef aðeins ein síða er eftir í hluta (t.d. Reikningar án tímaskráningar) ber hlutinn heiti hennar
     SECTIONS.push({...x,tabs,l:!einSv&&vis.length===1&&vis.length<x.tabs.filter(t=>!t[2]).length?vis[0][1]:x.l});});
