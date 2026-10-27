@@ -228,7 +228,7 @@
       w.innerHTML = `<div class="qmb"><div class="qmh"><b style="color:var(--ink)">${why ? "Ógreidd pöntun" : "Skrá greiðslu"}</b><span>${E(P.nr || "")} · ${E(P.vidskiptavinur || P.tengilidur || "")}</span></div>
         <div class="pfpb">${why ? `<p class="pfhint t-amb" style="margin:0 0 12px">${E(why)}</p>` : ""}
           <label>Upphæð (kr.)<input id="pfpu" inputmode="numeric" value="${totOf(P)}"></label>
-          <div class="pfpl" role="radiogroup" aria-label="Greiðsluleið">${HVL.map(([k, l], i) => `<button type="button" role="radio" data-l="${k}" aria-checked="${i === 0}">${l}</button>`).join("")}</div></div>
+          <div class="pfpl" role="radiogroup" aria-label="Greiðsluleið">${LEIDIR.map(([k, l], i) => `<button type="button" role="radio" data-l="${k}" aria-checked="${i === 0}">${l}</button>`).join("")}</div></div>
         <div class="qma"><button type="button" class="btn primary" data-v="1">${why ? "Skrá greiðslu og halda áfram" : "Skrá greiðslu"}</button><button type="button" class="btn" data-v="0">Hætta við</button></div></div>`;
       let leid = "kort"; const end = v => { w.remove(); res(v); };
       w.addEventListener("click", async e => { const l = e.target.closest("[data-l]"); if (l) { leid = l.dataset.l; w.querySelectorAll("[data-l]").forEach(x => x.setAttribute("aria-checked", x === l)); return; }
@@ -782,7 +782,11 @@
     if (D && String(D).startsWith("tb:")) { const P = findP(String(D).slice(3)); if (!P || !P.pontun) return; const host = root.querySelector(".spdet") || root; if (host.querySelector(".pfwrap")) return;
       { const slot = host.querySelector("#tbed .tbafhslot"); if (host.querySelector("#tbed")) { if (slot && !slot.firstChild) slot.innerHTML = afhHTML(P); return; } } // 2.71.0: í breytingasýn aðeins afhendingarmáti, í sínum hluta
       try { pubSync(P); } catch (e) {}
-      const html = `<div class="pfwrap">${ferillHTML(P)}${subsHTML(P)}<div class="pfgrid">${pubHTML(P)}${payHTML(P)}${afhHTML(P)}</div>${pickHTML(P)}${settleHTML(P)}</div>`;
+      // 2.103.1: næsta skref (Afhenda / Taka á móti) efst á pöntuninni í síma – tölvuútlitið hefur það neðst (utlit-i.js)
+      const sima = !matchMedia("(min-width:1024px)").matches, skil = !window.pnSkil || tr(() => pnSkil(P), true);
+      const nxt = !sima ? null : ["Ný", "Staðfest"].includes(P.stada) ? ["Afhent", AFH(P) === "sott" ? "Afhenda – sótt →" : "Afhenda →"] : P.stada === "Afhent" && skil ? ["Skilað", "Taka á móti →"] : null;
+      const nxH = nxt && !host.querySelector(`[data-act="tbst:${P.id}:${nxt[0]}"]`) ? `<div class="pfnext" style="margin:0 0 12px"><button type="button" class="btn primary" style="width:100%;min-height:52px;font-size:16px;border-radius:14px" data-act="tbst:${E(P.id)}:${nxt[0]}">${E(nxt[1])}</button></div>` : "";
+      const html = `<div class="pfwrap">${nxH}${ferillHTML(P)}${subsHTML(P)}<div class="pfgrid">${pubHTML(P)}${payHTML(P)}${afhHTML(P)}</div>${pickHTML(P)}${settleHTML(P)}</div>`;
       const anchor = host.querySelector(".qrbox") || host.querySelector(".utb") || [...host.querySelectorAll(".viewtitle")].find(x => /^Línur/.test(x.textContent.trim()));
       anchor ? anchor.insertAdjacentHTML("beforebegin", html) : host.insertAdjacentHTML("beforeend", html);
       host.querySelectorAll(".qrbox .qrbb").forEach(x => x.remove());

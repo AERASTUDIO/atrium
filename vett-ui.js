@@ -185,6 +185,19 @@
   };
   wrapRender(); document.addEventListener("DOMContentLoaded", wrapRender); setTimeout(wrapRender, 0);
 
+  // ---------- Pöntun hjá vettvangsnotanda (2.103.1): aðeins skoða og afhenda / taka á móti ----------
+  // Falið: breyta, eyða, gera að verkefni, staða, staðfesting (handvirk, tengill, pöntunarsíða, staðfestingarpóstur),
+  // breyta greiðslumáta, starfsfólk, panta aftur og sniðmát. Firestore-reglurnar leyfa honum aðeins að uppfæra sínar pantanir.
+  const BANN = ['[data-act^="tbverk:"]', '[data-act^="tbdel:"]', '[data-act^="tbed:"]', '[data-act^="tbutg:"]', '[data-act^="u1pnconf:"]', '[data-act^="tbmenn:"]', '.tbmenn select', '.fsels', '[data-act$=":Staðfest"]', '[data-act$=":Lokið"]', '[data-act$=":Hætt við"]',
+    '[data-pf^="handv:"]', '[data-pf^="pub:"]', '[data-pf^="pubsend:"]', '[data-pf^="pubcopy:"]', '[data-pf^="pubrev:"]', '[data-pf^="pubmail:"]', '[data-pf^="payh:"]', '[data-pf^="payx:"]', '[data-pf^="rkut"]', '[data-pf^="again:"]', '[data-pf^="tpl:"]', '.pfmore', '.pfpub a.btn[href]', '.umore'];
+  const hreinsa = () => {
+    if (!VT() || !DETAIL || !String(DETAIL).startsWith("tb:")) return;
+    const v = document.getElementById("view"); if (!v) return;
+    v.querySelectorAll(BANN.join(",")).forEach(x => x.remove());
+    v.querySelectorAll(".kind").forEach(k => { if (/^Staða$/.test(k.textContent.trim()) && !k.nextElementSibling?.matches?.("select, .fsels, .chips")) k.remove(); });
+  };
+  new MutationObserver(() => { try { hreinsa(); } catch (e) {} }).observe(document.documentElement, { childList: true, subtree: true });
+
   // ---------- Staðfesting (skrifstofa) ----------
   // 2.102.0: tími telst bíða ef hann er merktur vett EÐA skráður af notanda með hlutverkið vettvangur (eldri færslur án merkis)
   let VETT_TIMAR = [], watching = false;
