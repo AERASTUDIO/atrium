@@ -366,8 +366,11 @@
     // 2.93.3: sama samsetning og á innskráningu – Atrium-merkið og merki fyrirtækisins hlið við hlið, jafnhá (ljóst/dökkt eftir þema)
     const L = (window.ORG && (ORG.merki || ORG.logo)) || {}, dk = document.documentElement.dataset.theme === "dark", co = ORG.nafn !== "Atrium" && (L.dokk || L.ljos), v = "dokk"; // 2.93.5: sömu litir og á innskráningu (dökkur grunnur, ljós merki)
     const ver = `<div class="uver">Atrium ${esc(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</div>`;
-    if (co) return `<div class="ustart ustdark"><div class="ustpair"><div class="ustatr2"><img class="ustmk" src="icons/atrium-merki-${v}.svg" alt="Atrium"><img class="ustwd" src="icons/atrium-ordmerki-${v}.svg" alt=""></div><span class="ustsep" aria-hidden="true"></span><img class="ustco2" src="${esc(co)}" alt="${esc(ORG.nafn || "")}"></div>${ver}</div>`;
-    return `<div class="ustart"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div>${ver}</div>`;
+    // 2.103.3: áskriftarleið fyrirtækisins undir merkjunum (t.d. COMPLETE eða PRO · YFIRSÝN)
+    const ln = window.leidNu ? leidNu() : null, lt = ln ? [ln.heiti, ...(ln.auka || []).map(k => window.PAKKAR?.[k]?.[0] || k)].join(" · ") : "";
+    const lh = lt ? `<div class="ustleid" title="Áskriftarleið">${esc(lt)}</div>` : "";
+    if (co) return `<div class="ustart ustdark">${lh ? `<div class="ustcol">` : ""}<div class="ustpair"><div class="ustatr2"><img class="ustmk" src="icons/atrium-merki-${v}.svg" alt="Atrium"><img class="ustwd" src="icons/atrium-ordmerki-${v}.svg" alt=""></div><span class="ustsep" aria-hidden="true"></span><img class="ustco2" src="${esc(co)}" alt="${esc(ORG.nafn || "")}"></div>${lh ? lh + `</div>` : ""}${ver}</div>`;
+    return `<div class="ustart"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div>${lh}${ver}</div>`;
   }
 
 
