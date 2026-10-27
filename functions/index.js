@@ -542,3 +542,17 @@ if (process.env.BOKHALD === "dk") {
     }
   });
 }
+
+/* ---------- 2.102.0: tími vettvangsnotanda bíður staðfestingar ---------- */
+// timar/{id} með vett: true → starfsfólk á skrifstofu á verkefninu fær tilkynningu (annars admin). Val: vtimi.
+exports.vettTimi = onDocumentCreated("timar/{id}", async ev => {
+  const e = ev.data && ev.data.data(); if (!e || e.vett !== true || e.stadfest) return;
+  const us = await activeUsers(), skr = us.filter(u => u.hlutverk !== "vettvangur"), af = lc(e.eigandi);
+  const hver = us.find(u => u.email === af), nafn = (hver && hver.nafn) || e.starfsmadur || "Vettvangsnotandi";
+  let p = null; if (e.verkefniId) { const s = await db.doc("verkefni/" + e.verkefniId).get().catch(() => null); p = s && s.exists ? s.data() : null; }
+  const sk = new Set(((p && p.starfsmenn) || []).map(String));
+  let to = skr.filter(u => u.sk && sk.has(u.sk)).map(u => u.email);
+  if (!to.length) to = skr.filter(u => u.hlutverk === "admin").map(u => u.email);
+  const klst = String(Math.round((+e.timar || 0) * 100) / 100).replace(".", ",");
+  await send(to.filter(x => x !== af), "vtimi", { title: `${nafn} skráði ${klst} klst.`, body: [p ? (p.nr ? p.nr + " " : "") + (p.stutt || p.nafn || "") : "", e.fra && e.til ? e.fra + "–" + e.til : "", "bíður staðfestingar"].filter(Boolean).join(" · "), link: "#t=yfirlit&vt=1", tag: "vt-" + ev.params.id });
+});

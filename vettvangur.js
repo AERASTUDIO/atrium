@@ -7,7 +7,7 @@
    hver pöntun ber reitinn menn (netföng úr tbMenn – Starfsfólk, stofnandi og starfsmenn verkefnisins). Hann er settur við
    vistun (gogn.js › stamp) og aðrir notendur en vettvangur fylla í hann þar sem hann vantar eða er úreltur (pnMennSync). */
 (function () {
-  window.VETT_FELA = ["vidsk", "tilbod", "fjarmal", "postur", "skjol", "bunadur"];
+  window.VETT_FELA = ["folk", "vidsk", "tilbod", "fjarmal", "postur", "skjol", "bunadur"];
   window.isVett = () => (window.VIEWAS?.hlutverk || window.USER?.hlutverk) === "vettvangur";
   const lc = s => String(s || "").trim().toLowerCase();
   // Er ég skráð(ur) á þetta? Tilboð/pantanir: Starfsfólk (tbMenn). Verkefni: starfsmenn (skammstafanir).

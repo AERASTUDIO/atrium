@@ -173,6 +173,7 @@
   wrapRender(); document.addEventListener("DOMContentLoaded", wrapRender); setTimeout(wrapRender, 0);
 
   // ---------- Staðfesting (skrifstofa) ----------
+  // 2.102.0: tími telst bíða ef hann er merktur vett EÐA skráður af notanda með hlutverkið vettvangur (eldri færslur án merkis)
   let VETT_TIMAR = [], watching = false;
   const startWatch = () => {
     if (watching || VT() || fj() || window.AERA_DEMO || !window.__DB?.watchCol || !window.USER) return;
@@ -180,8 +181,11 @@
     window.__DB.watchCol("timar", ["vett", true], r => { VETT_TIMAR = r.docs; try { render(); } catch (e) {} }, e => console.warn("Vettvangstímar", e));
   };
   setInterval(startWatch, 3000);
-  const pending = () => (fj() ? tr(() => faerslur(), []) : VETT_TIMAR).filter(e => e && e.vett && !e.stadfest && !e.hafnad);
-  window.vtBidaN = () => VT() ? 0 : pending().length;
+  const vettEm = () => new Set(tr(() => nuUsers(), []).filter(u => u.hlutverk === "vettvangur").map(u => lc(u.email)));
+  const pending = () => { const ve = vettEm(); return (fj() ? tr(() => faerslur(), []) : VETT_TIMAR).filter(e => e && !e.stadfest && !e.hafnad && !e.live && (e.vett || ve.has(lc(e.eigandi)))); };
+  window.vtPending = (f) => VT() ? [] : pending().filter(f || (() => true)).sort((a, b) => String(a.date + (a.fra || "")).localeCompare(String(b.date + (b.fra || ""))));
+  window.vtBidaN = () => window.vtPending().length;
+  const nmOf = e => tr(() => starfName(e.starfsmadur), "") || tr(() => nuUsers().find(u => lc(u.email) === lc(e.eigandi))?.nafn, "") || e.eigandi || "";
 
   async function merkja(e, key, extra) {
     const U = window.USER || {}, now = new Date().toISOString();
@@ -189,33 +193,76 @@
     if (window.AERA_DEMO) { const x = faerslur().find(y => y.id === e.id); if (x) Object.assign(x, d); render(); return; }
     await window.__DB.set("timar/" + e.id, d);
   }
+  // Raðir til staðfestingar – notaðar í glugganum, á verkefni, á tímaskráningarsíðu og á spjaldi starfsmanns
+  window.vtRadir = (ps, o = {}) => ps.map(e => { const p = findProj(e.verkefniId);
+    return `<div class="vtp"><div class="vtpt"><b>${o.nafn === false ? "" : E(nmOf(e)) + " · "}${E(tr(() => hrs(e.timar), e.timar))}</b><span>${E(tr(() => fmtDate(e.date), e.date))}${e.fra ? " · " + E(e.fra + "–" + (e.til || "")) : ""}</span></div>
+      <div class="vtps">${o.verk === false ? "" : E(p ? (p.nr || "") + " " + (p.stutt || p.nafn || "") : e.nr || "Án verkefnis") + " · "}${E(tr(() => cleanLys(e.lysing), e.lysing || ""))}</div>
+      <div class="vtpb"><button type="button" class="btn primary" data-vtq="ok:${E(e.id)}">Staðfesta</button><button type="button" class="btn" data-vtq="no:${E(e.id)}">Hafna</button></div></div>`; }).join("");
+  window.vtKort = (ps, titill, o) => ps.length ? `<section class="card vtkort"><div class="vtkh"><h3>${E(titill || (ps.length === 1 ? "1 tími bíður staðfestingar" : ps.length + " tímar bíða staðfestingar"))}</h3>${ps.length > 1 ? `<button type="button" class="btn" data-vtq="all:${E(ps.map(e => e.id).join(","))}">Staðfesta alla</button>` : ""}</div>${window.vtRadir(ps, o)}</section>` : "";
+  const css2 = document.createElement("style");
+  css2.textContent = `
+  .vtkort { margin: 0 0 14px; padding: 16px; } .vtkh { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; } .vtkh h3 { margin: 0; font-size: 15px; font-weight: 500; }
+  .vtp { border: 1px solid var(--line, #dce5e9); border-radius: 12px; padding: 12px 14px; margin-top: 10px; background: var(--surface, #fff); }
+  .vtpt { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; } .vtpt b { font-weight: 500; } .vtpt span, .vtps { font-size: 13px; color: var(--muted); }
+  .vtban { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; font: inherit; color: var(--ink); background: var(--surface, #fff); border: 1px solid var(--accent, #2a7289); border-radius: 14px; padding: 12px 16px; margin: 12px 0; cursor: pointer; min-height: 56px; }
+  .vtban .vtbi { width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--accent, #2a7289); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+  .vtban .vtbx { flex: 1; min-width: 0; display: flex; flex-direction: column; } .vtban b { font-weight: 500; font-size: 14.5px; } .vtban small { color: var(--muted); font-size: 12.5px; }
+  .vtban .vtbg { color: var(--accent, #2a7289); font-size: 13.5px; white-space: nowrap; }
+  .vtps { margin-top: 3px; } .vtpb { display: flex; gap: 8px; margin-top: 10px; } .vtpb .btn { flex: 1; min-height: 40px; }
+  @media (min-width: 900px) { .vtkort .vtp { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 16px; } .vtkort .vtpb { grid-row: 1 / span 2; grid-column: 2; margin: 0; } .vtkort .vtpb .btn { flex: none; min-width: 104px; } }
+  `;
+  document.head.appendChild(css2);
+
+  async function vtAct(a) {
+    const k = a.slice(0, a.indexOf(":")), arg = a.slice(a.indexOf(":") + 1), all = pending();
+    try {
+      if (k === "all") { const ids = new Set(arg.split(",")), ps = all.filter(e => ids.has(String(e.id))); if (!ps.length || !confirm(`Staðfesta ${ps.length} tíma?`)) return; for (const e of ps) await merkja(e, "stadfest"); toast(`${ps.length} tímar staðfestir`); }
+      else { const e = all.find(x => String(x.id) === arg); if (!e) return;
+        if (k === "ok") { await merkja(e, "stadfest"); toast("Tími staðfestur"); }
+        else { const ast = prompt("Ástæða (sést hjá þeim sem skráði):", ""); if (ast == null) return; await merkja(e, "hafnad", ast.trim() ? { astaeda: ast.trim().slice(0, 300) } : {}); toast("Tíma hafnað"); } }
+    } catch (err) { console.warn(err); toast("Tókst ekki: " + (err?.code || err?.message || "villa")); }
+  }
   function modal() {
-    const ps = pending().sort((a, b) => String(a.date + (a.fra || "")).localeCompare(String(b.date + (b.fra || ""))));
     document.querySelector(".vtmod")?.remove();
+    const ps = window.vtPending();
     const w = document.createElement("div"); w.className = "vtmod"; w.setAttribute("role", "dialog"); w.setAttribute("aria-label", "Tímar sem bíða staðfestingar");
-    const nm = e => tr(() => starfName(e.starfsmadur), "") || e.eigandi || "";
-    w.innerHTML = `<div class="vtbox"><div class="vtbar"><h2 style="margin:0;font-size:20px">Tímar sem bíða staðfestingar</h2><button type="button" class="btn" aria-label="Loka" data-vt="x" style="min-height:44px">✕</button></div>
-      ${ps.length ? `<p style="margin:4px 0 0;color:var(--muted);font-size:14px">Skráðir af vettvangsnotendum. Óstaðfestir tímar fara ekki á reikning.</p>
-      ${ps.map(e => { const p = findProj(e.verkefniId); return `<div class="vtp"><div style="font-weight:600">${E(nm(e))} · ${E(tr(() => hrs(e.timar), e.timar))}</div>
-        <div style="font-size:14px;color:var(--muted);margin-top:2px">${E(tr(() => fmtDate(e.date), e.date))}${e.fra ? " · " + E(e.fra + "–" + (e.til || "")) : ""} · ${E(p ? (p.nr || "") + " " + (p.stutt || p.nafn || "") : e.nr || "Án verkefnis")}</div>
-        <div style="font-size:14px;margin-top:6px">${E(tr(() => cleanLys(e.lysing), e.lysing || ""))}</div>
-        <div class="vtpb"><button type="button" class="btn primary" data-vt="ok:${E(e.id)}">Staðfesta</button><button type="button" class="btn" data-vt="no:${E(e.id)}">Hafna</button></div></div>`; }).join("")}
-      ${ps.length > 1 ? `<button type="button" class="btn primary vtbig" style="width:100%;min-height:52px;margin-top:16px" data-vt="all">Staðfesta alla (${ps.length})</button>` : ""}`
+    w.innerHTML = `<div class="vtbox"><div class="vtbar"><h2 style="margin:0;font-size:20px;font-weight:500">Tímar sem bíða staðfestingar</h2><button type="button" class="btn" aria-label="Loka" data-vtx="1" style="min-height:44px">✕</button></div>
+      ${ps.length ? `<p style="margin:4px 0 0;color:var(--muted);font-size:14px">Skráðir af vettvangsnotendum. Óstaðfestir tímar fara ekki á reikning.</p>${window.vtRadir(ps)}${ps.length > 1 ? `<button type="button" class="btn primary vtbig" data-vtq="all:${E(ps.map(e => e.id).join(","))}">Staðfesta alla (${ps.length})</button>` : ""}`
       : `<p class="vtempty" style="margin-top:12px">Engir tímar bíða staðfestingar.</p>`}</div>`;
     document.body.appendChild(w);
-    w.addEventListener("click", async ev => {
-      if (ev.target === w) return w.remove();
-      const a = ev.target.closest("[data-vt]")?.dataset.vt; if (!a) return;
-      if (a === "x") return w.remove();
-      try {
-        if (a === "all") { if (!confirm(`Staðfesta alla ${ps.length} tímana?`)) return; for (const e of ps) await merkja(e, "stadfest"); toast(`${ps.length} tímar staðfestir`); }
-        else { const [k, id] = [a.slice(0, a.indexOf(":")), a.slice(a.indexOf(":") + 1)], e = ps.find(x => String(x.id) === id); if (!e) return;
-          if (k === "ok") { await merkja(e, "stadfest"); toast("Tími staðfestur"); }
-          else { const ast = prompt("Ástæða (sést hjá þeim sem skráði):", ""); if (ast == null) return; await merkja(e, "hafnad", ast.trim() ? { astaeda: ast.trim().slice(0, 300) } : {}); toast("Tíma hafnað"); } }
-      } catch (err) { console.warn(err); toast("Tókst ekki: " + (err?.code || err?.message || "villa")); }
-      setTimeout(modal, 400);
-    });
+    w.addEventListener("click", ev => { if (ev.target === w || ev.target.closest("[data-vtx]")) w.remove(); });
   }
   window.vtStadfesta = modal;
-  document.addEventListener("click", ev => { const t = ev.target.closest('[data-act="vtsta"]'); if (!t) return; ev.preventDefault(); ev.stopImmediatePropagation(); modal(); }, true);
+  // Smellt á ýtitilkynningu (functions › vettTimi: link „#t=yfirlit&vt=1“) → staðfestingarglugginn opnast þegar gögnin eru komin
+  if (/[#&]vt=1/.test(location.hash)) { let n = 0; const iv = setInterval(() => { if (typeof S !== "undefined" && S && window.USER && ++n > 2) { clearInterval(iv); modal(); } else if (n > 80) clearInterval(iv); }, 500); }
+  document.addEventListener("click", async ev => {
+    const t = ev.target.closest('[data-act="vtsta"]'); if (t) { ev.preventDefault(); ev.stopImmediatePropagation(); modal(); return; }
+    const q = ev.target.closest("[data-vtq]"); if (!q) return; ev.preventDefault(); ev.stopImmediatePropagation();
+    q.disabled = true; await vtAct(q.dataset.vtq);
+    setTimeout(() => { try { render(); } catch (e) {} if (document.querySelector(".vtmod")) modal(); }, 400);
+  }, true);
+
+  // Staðfesting beint á verkefni og á tímaskráningarsíðunni (sett inn eftir teikningu)
+  const wrap2 = () => {
+    if (typeof window.render !== "function" || window.render.__vt2) return;
+    const o = window.render;
+    window.render = function () {
+      const r = o.apply(this, arguments);
+      try {
+        if (!VT() && typeof S !== "undefined" && S) {
+          const v = document.getElementById("view");
+          if (DETAIL && DETAIL.startsWith("verk:")) { const pid = DETAIL.slice(5), ps = window.vtPending(e => e.verkefniId === pid);
+            if (ps.length && !v.querySelector(".vtkort")) { const k = window.vtKort(ps, null, { verk: false }), db = v.querySelector(".dbody"), at = v.querySelector(".dtabs") || v.querySelector(".backrow"); db ? db.insertAdjacentHTML("afterbegin", k) : at ? at.insertAdjacentHTML("afterend", k) : v.insertAdjacentHTML("afterbegin", k); } }
+          else if (!DETAIL && tab === "yfirlit") { const n = window.vtPending().length;
+            if (n && !v.querySelector(".vtban") && !v.querySelector('.h2bi[data-act="vtsta"]')) { const at = v.querySelector(".snjban") || v.querySelector(".phead, .h2top"), h = `<button type="button" class="vtban" data-act="vtsta"><span class="vtbi">${n}</span><span class="vtbx"><b>${n === 1 ? "1 tími bíður" : n + " tímar bíða"} staðfestingar</b><small>Skráðir af vettvangsnotendum – staðfestu eða hafnaðu</small></span><span class="vtbg">Fara yfir →</span></button>`;
+              at ? at.insertAdjacentHTML("afterend", h) : v.insertAdjacentHTML("afterbegin", h); } }
+          else if (!DETAIL && ["timar", "tfaer", "tskyr"].includes(tab)) { const ps = window.vtPending();
+            if (ps.length && !v.querySelector(".vtkort")) { const h = v.querySelector(".uhead") || v.querySelector(".phead"); (h ? h : v).insertAdjacentHTML(h ? "afterend" : "afterbegin", window.vtKort(ps)); } }
+        }
+      } catch (e) { console.warn("vtKort", e); }
+      return r;
+    };
+    window.render.__vt2 = true;
+  };
+  wrap2(); document.addEventListener("DOMContentLoaded", wrap2); setTimeout(wrap2, 0);
 })();
