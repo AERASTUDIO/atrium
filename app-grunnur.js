@@ -66,11 +66,11 @@ if(window.ORG?.pakkaval){const by=k=>SECTIONS_ALL.find(x=>x.k===k), L=by("leiga"
 const SECTIONS=[], TABS=[]; let _einSig=null;
 function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return false; _einSig=sg;
   SECTIONS.length=0; const VT=window.isVett&&isVett(); SECTIONS_ALL.forEach(x=>{if(VT&&window.VETT_FELA?.includes(x.k)) return; let tabs=x.tabs.filter(t=>!window.tabOn||tabOn(t[0]));
-    // 2.103.4: aðeins eitt svið virkt (t.d. Sala hjá Sonik) → engir sviðsundirliðir né Yfirlit í stikunni; hlutinn opnar listann beint.
+    // 2.103.4: aðeins eitt svið virkt (t.d. Sala hjá Sonik) → engir sviðsundirliðir né Yfirlit í stikunni; hlutinn opnar Yfirlitið (listinn með „Sjá allt →“).
     // Tvö svið eða fleiri → Yfirlit og eitt á hvert svið eins og áður. (SVID_TABS: ui1-skjair.js)
     let einSv=false; {const SV=window.SVID_TABS, YF=["pnyf","verkyf","vskyf","tbyf","vyfir"], MAIN=["pantanir","verk","ltilbod","vsk"];
-      if(SV&&tabs.some(t=>SV.has(t[0]))&&tabs.filter(t=>SV.has(t[0])&&!t[2]).length<=1){const m=tabs.find(t=>MAIN.includes(t[0]))||tabs.find(t=>SV.has(t[0]));
-        tabs=tabs.map(t=>t===m?[t[0],MAIN.includes(t[0])?x.l:t[1]]:SV.has(t[0])||YF.includes(t[0])?[t[0],t[1],2]:t); if(m){tabs=[tabs.find(t=>t[0]===m[0]),...tabs.filter(t=>t[0]!==m[0])];} einSv=true;}}
+      if(SV&&tabs.filter(t=>SV.has(t[0])&&!t[2]).length===1){const m=tabs.find(t=>YF.includes(t[0])&&!t[2])||tabs.find(t=>MAIN.includes(t[0]))||tabs.find(t=>SV.has(t[0]));   // Yfirlit helst sem upphafssíða hlutans
+        tabs=tabs.map(t=>t===m?[t[0],MAIN.includes(t[0])?x.l:t[1]]:SV.has(t[0])||YF.includes(t[0])?[t[0],t[1],2]:MAIN.includes(t[0])?[t[0],t[1],t[2]||1]:t); if(m){tabs=[tabs.find(t=>t[0]===m[0]),...tabs.filter(t=>t[0]!==m[0])];} einSv=true;}}
     const vis=tabs.filter(t=>!t[2]); if(!vis.length) return;
     // Ef aðeins ein síða er eftir í hluta (t.d. Reikningar án tímaskráningar) ber hlutinn heiti hennar
     SECTIONS.push({...x,tabs,l:!einSv&&vis.length===1&&vis.length<x.tabs.filter(t=>!t[2]).length?vis[0][1]:x.l});});
