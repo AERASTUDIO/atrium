@@ -48,7 +48,7 @@
   .vt .vtclk.on .vtbtn { background: var(--bg); color: var(--ink); border-color: transparent; }
   .vt .vtbtn.wide { width: 100%; min-height: 52px; font-size: 15px; border-radius: 14px; }
   .vt .vtbtn.sm { min-height: 36px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
-  .vt .vtseg { display: flex; gap: 4px; padding: 4px; background: color-mix(in srgb, var(--line) 55%, transparent); border-radius: 12px; position: sticky; top: calc(58px + env(safe-area-inset-top, 0px)); z-index: 6; }
+  .vt .vtseg { display: flex; gap: 4px; padding: 4px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line), 0 6px 10px -8px rgba(15,37,48,.25); border-radius: 12px; position: sticky; top: calc(58px + env(safe-area-inset-top, 0px)); z-index: 6; }
   .vt .vtseg button { flex: 1 1 0; min-width: 0; white-space: nowrap; word-break: normal; overflow-wrap: normal; border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--muted); padding: 0 8px; min-height: 40px; border-radius: 9px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
   .vt .vtseg button[aria-selected="true"] { background: var(--surface, #fff); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(15,37,48,.08); }
   .vt .vtseg i { font-style: normal; font-size: 11.5px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--bg); display: inline-grid; place-items: center; padding: 0 6px; color: var(--muted); }
@@ -75,6 +75,9 @@
   .vt .vtsum { display: grid; grid-template-columns: repeat(3, 1fr); }
   .vt .vtsum div { padding: 12px 14px; border-right: 1px solid var(--line); } .vt .vtsum div:last-child { border-right: 0; }
   .vt .vtsum b { display: block; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; } .vt .vtsum span { font-size: 12px; color: var(--muted); }
+  .vt .vtrep { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .vt .vtrh { display: flex; flex-direction: column; } .vt .vtrh b { font-size: 15px; font-weight: 500; } .vt .vtrh small { font-size: 12.5px; color: var(--muted); }
+  .vt .vtrd { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .vt .vtrd label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); margin: 0; } .vt .vtrd input { min-height: 44px; width: 100%; }
   .vt .vtnote { font-size: 12.5px; color: var(--muted); margin: -4px 2px 0; line-height: 1.45; }
   .vtbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
   .vtmod { position: fixed; inset: 0; z-index: 900; background: rgba(15,37,48,.45); display: flex; align-items: flex-end; justify-content: center; }
@@ -93,7 +96,8 @@
   const DN = ["Sunnudagur", "Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur"];
   const SV = (d, w = 16) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const IC = { play: '<path d="M7 5l11 7-11 7z" fill="currentColor" stroke="none"/>', stop: '<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>', plus: '<path d="M12 5v14M5 12h14"/>', chev: '<path d="M9 6l6 6-6 6"/>', left: '<path d="M15 6l-6 6 6 6"/>', dl: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>' };
-  let VTAB = "pantanir", VMON = null;
+  let VTAB = "pantanir", VMON = null; const REP = { fra: "", til: "" };
+  const lastDay = m => { const [y, n] = m.split("-").map(Number); return m + "-" + String(new Date(y, n, 0).getDate()).padStart(2, "0"); };
   try { VTAB = sessionStorage.getItem("vt-tab") || "pantanir"; } catch (e) {}
   const dblk = iso => { const x = new Date(String(iso || "").slice(0, 10) + "T12:00"); return isNaN(x) ? `<div class="vtd"><b>–</b></div>` : `<div class="vtd"><b>${x.getDate()}</b><span>${MS3[x.getMonth()]}</span></div>`; };
   const klst = n => (typeof hrs === "function" ? hrs(n) : String(n).replace(".", ",") + " klst.");
@@ -132,11 +136,16 @@
         <div class="vtcard vtsum"><div><b>${E(String(Math.round(tot * 100) / 100).replace(".", ","))}</b><span>klst. alls</span></div><div><b>${E(String(Math.round(ok * 100) / 100).replace(".", ","))}</b><span>staðfestar</span></div><div><b>${E(String(Math.round(bid * 100) / 100).replace(".", ","))}</b><span>bíða</span></div></div>
         ${es.length ? `<div class="vtcard vtlist">${es.map(e => { const p = findProj(e.verkefniId), [st, c] = stada(e);
           return `<a class="vtr" ${tapAttr("time", e.id)}>${dblk(e.date)}<div class="vtx"><b>${E(p ? p.stutt || p.nafn : e.nr || "Án verkefnis")}</b><small>${E([e.fra && e.fra + "–" + (e.til || ""), tr(() => cleanLys(e.lysing), "")].filter(Boolean).join(" · "))}${e.hafnad?.astaeda ? " · „" + E(e.hafnad.astaeda) + "“" : ""}</small></div><div class="vth2">${E(klst(e.timar))}<br>${st ? `<span class="pill ${c}">${st}</span>` : ""}</div></a>`; }).join("")}</div>
-          <button type="button" class="vtbtn wide" data-vtu="yfirlit">${SV(IC.dl)}Sækja yfirlit – ${E(monName(m).toLowerCase())}</button><p class="vtnote">Yfirlitið (PDF eða Excel) sýnir aðeins staðfesta tíma og hentar sem fylgiskjal með reikningi.</p>`
-          : `<div class="vtcard vtempty">Engir tímar skráðir í ${E(MN[+m.slice(5) - 1])}.</div>`}`;
+`
+          : `<div class="vtcard vtempty">Engir tímar skráðir í ${E(MN[+m.slice(5) - 1])}.</div>`}
+        <section class="vtcard vtrep"><div class="vtrh"><b>Yfirlit fyrir reikning</b><small>Veldu tímabil – aðeins staðfestir tímar</small></div>
+          <div class="vtrd"><label>Frá<input type="date" id="vt-fra" value="${E(REP.fra || m + "-01")}"></label><label>Til<input type="date" id="vt-til" value="${E(REP.til || lastDay(m))}"></label></div>
+          <button type="button" class="vtbtn pri wide" data-vtu="yfirlit">${SV(IC.dl)}Sækja yfirlit (PDF eða Excel)</button></section>`;
     }
     return `<div class="vt">${hdr}${clock}<button type="button" class="vtbtn pri wide" onclick="kind='tima';PREFILL=null;openSheet()">${SV(IC.plus)}Skrá tíma</button>${seg}${body}</div>`;
   }
+  // Valið tímabil helst þótt skjárinn teiknist upp á nýtt (ný gögn berast)
+  document.addEventListener("change", ev => { if (ev.target?.id === "vt-fra") REP.fra = ev.target.value; if (ev.target?.id === "vt-til") REP.til = ev.target.value; });
   // Hnappar vettvangsskjásins
   document.addEventListener("click", ev => {
     const b = ev.target.closest("[data-vtu]"), mn = document.querySelector(".vt .vtmenu");
@@ -144,11 +153,15 @@
     if (!b) return; const a = b.dataset.vtu;
     if (a === "menu") { if (mn) { mn.hidden = !mn.hidden; b.setAttribute("aria-expanded", String(!mn.hidden)); } return; }
     if (a.startsWith("tab:")) { VTAB = a.slice(4); try { sessionStorage.setItem("vt-tab", VTAB); } catch (e) {} render(); return; }
-    if (a.startsWith("mon:")) { VMON = shiftMon(curMon(), +a.slice(4)); render(); return; }
+    if (a.startsWith("mon:")) { VMON = shiftMon(curMon(), +a.slice(4)); REP.fra = ""; REP.til = ""; render(); return; }
     if (a === "yfirlit") {
-      const m = curMon(), U = window.VIEWAS || window.USER || {};
+      const U = window.VIEWAS || window.USER || {}, fra = document.getElementById("vt-fra")?.value, til = document.getElementById("vt-til")?.value;
+      if (!fra || !til) return toast("Veldu dagsetningar frá og til");
+      if (til < fra) return toast("Dagsetningin „til“ er á undan „frá“");
+      REP.fra = fra; REP.til = til;
       if (typeof openReport !== "function") return toast("Yfirlit er ekki í boði");
-      openReport(e => monOf(e) === m && !!e.stadfest && (lc(e.eigandi) === me() || (!e.eigandi && e.starfsmadur === ME())), { bil: monName(m), verkefni: "", starf: U.nafn || "", flokka: false });
+      const dIs = x => { const [y, mo, dd] = x.split("-"); return +dd + "." + +mo + "." + y; };
+      openReport(e => { const dg = String(e.date || "").slice(0, 10); return dg >= fra && dg <= til && !!e.stadfest && (lc(e.eigandi) === me() || (!e.eigandi && e.starfsmadur === ME())); }, { bil: dIs(fra) + " – " + dIs(til), verkefni: "", starf: U.nafn || "", flokka: false });
     }
   });
 
