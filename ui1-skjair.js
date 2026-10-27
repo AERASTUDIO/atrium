@@ -3,6 +3,7 @@
 (function () {
   if (window.ORG?.utlit !== "I") return;
   const E = esc, U = window.UI1V = window.UI1V || {};
+  const tr0 = f => { try { return f(); } catch (e) { return false; } };   // 2.104.1: lykiltölur listans eru á Yfirliti (hausflipar)
   const st = { wk: 0, ff: "", sel: new Set(), rep: "hvert", rp: "m0", grp: "svid" };
 
   /* ---------- sameiginlegt ---------- */
@@ -175,7 +176,7 @@
     const f = st.vf.vsk || "", so = st.vf.vsksort || "nafn";
     const FV = { "": () => true, opin: v => cnt(v), an: v => !cnt(v), anv: v => !vskSvid(v).size };
     const xs = L.filter(v => SQ() || (FV[f] || FV[""])(v)).sort(so === "vid" ? (a, b) => (R.get(b.id) || 0) - (R.get(a.id) || 0) : (a, b) => String(a.name || "").localeCompare(String(b.name || ""), "is"));
-    const kp = (typeof DETAIL !== "undefined" && DETAIL) ? "" : kp4([["Viðskiptavinir", L.length, key + ":"], ["Með opin verkefni", L.filter(FV.opin).length, key + ":opin"], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–", api ? key + ":vid" : ""], ["Án viðskipta", L0.filter(FV.anv).length, "vsk:anv"]]);
+    const kp = (typeof DETAIL !== "undefined" && DETAIL) || tr0(() => secOf(tab).hdr) ? "" : kp4([["Viðskiptavinir", L.length, key + ":"], ["Með opin verkefni", L.filter(FV.opin).length, key + ":opin"], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–", api ? key + ":vid" : ""], ["Án viðskipta", L0.filter(FV.anv).length, "vsk:anv"]]);
     const top = lhead("", x ? svH(x) : "Viðskiptavinir", nbtn("Viðskiptavinur")) + kp + `<div class="ulbar">${chips([["", "Allir · " + L.length], ["opin", "Með opin verkefni"], ["an", "Án verkefna"], ["anv", "Án viðskipta"]], f, "u1vf:vsk")}<label class="usort"><span>Raða</span><select onchange="doAct('u1vf:vsksort:'+this.value)" aria-label="Raða eftir"><option value="nafn"${so === "nafn" ? " selected" : ""}>Nafni</option><option value="vid"${so === "vid" ? " selected" : ""}>Viðskiptum</option></select></label></div>`;
     const rk = v => R.get(v.id) ? kr(R.get(v.id)) : "";
     let h = "", last = "";
@@ -199,7 +200,7 @@
     const cn = k => all.filter(FT[k]).length, open = all.filter(FT.opin), d90 = all.filter(T => daysTo(T.dags) >= -90);
     const won = d90.filter(T => T.stada === "Samþykkt"), lost = d90.filter(T => T.stada === "Hafnað"), rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) + " %" : "–";
     const w7 = all.filter(T => T.stada === "Sent" && daysTo(T.sent || T.dags) <= -7).length;
-    const kp = (typeof DETAIL !== "undefined" && DETAIL) ? "" : kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), key + ":opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), key + ":samth"], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", w7, key + ":sent"]]);
+    const kp = (typeof DETAIL !== "undefined" && DETAIL) || tr0(() => secOf(tab).hdr) ? "" : kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), key + ":opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), key + ":samth"], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", w7, key + ":sent"]]);
     const top = lhead("", teg ? title : "Tilboð", nbtn("Tilboð")) + kp + `<div class="ulbar">${chips([["opin", "Opin · " + cn("opin")], ["drog", "Drög · " + cn("drog")], ["sent", "Bíða svars · " + cn("sent")], ["samth", "Samþykkt · " + cn("samth")], ["allt", "Allar stöður"]], f, "u1vf:ltilbod")}</div>`;
     const SF = T => window.tbStofnandi ? tbStofnandi(T) : ""; // 2.88.0: stofnandi
     if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 100px 56px 120px 150px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Stofnandi", "Línur", "Upphæð m. vsk", "Staða"])
