@@ -128,7 +128,7 @@ async function saveEdit(type,id){
       if(!desc||!dt) return msg("Fylltu út lýsingu og dag.","err");
       if(!(fr&&to)) return msg("Skráðu tímabil: frá og til (hh:mm).","err");
       const t=fr&&to?hoursBetween(fr,to):kl, lys=lysFmt(dt,desc,t), sk=val("e-starf")||e.starfsmadur||ME();
-      if(fr&&to){const ov=overlaps(dt,fr,to,sk,id); if(ov&&!confirm(`Þessi tími skarast við „${cleanLys(ov.lysing)}“ kl. ${ov.fra}–${ov.til}.\n\nVista samt?`)) return;}
+      if(fr&&to){const ov=overlaps(dt,fr,to,sk,id); if(ov) return msg(`Skarast við „${esc(cleanLys(ov.lysing))}“ kl. ${ov.fra}–${ov.til}. Tvær tímaskráningar mega ekki skarast.`,"err");}
       busy(); const old=+e.timar||0, diff=t-old;
       await saveSnapshot(s=>{const L=sTimes(s); const q=L.find(x=>x.id===id); const p=sFindP(s,pid), u=sid?sFindU(s,sid)[1]:null;
         const oP=sFindP(s,e.verkefniId), oU=e.undirverkId?sFindU(s,e.undirverkId)[1]:null; if(oP) oP.timar=(oP.timar||0)-old; if(oU) oU.timar=(oU.timar||0)-old;

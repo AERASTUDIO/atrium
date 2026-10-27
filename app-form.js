@@ -313,6 +313,7 @@ async function saveSnapshot(mut){
 // Afgangurinn (stillingar, samtölur …) fer í app/state með færslu (transaction) eins og áður.
 function saveSplit(mut){
   const prev=S, cur=structuredClone(S||{}); const ids=[]; ID_REC=ids; try{ mut(cur); } finally { ID_REC=null; }
+  const skv=skorunVillu(prev,cur); if(skv){toast(skv); throw {code:"form",message:skv};}
   const me=USER?.email||""; GOGN.stamp(prev,cur,me,ownerOf);
   const clean=fsClean(cur); S=clean; render();
   const fail=e=>{saveErr=e; if(S===clean){S=prev; render();} toast("Vistun mistókst – breytingin fór ekki upp. ("+(e?.code||e?.message||"villa")+")");};
@@ -333,6 +334,14 @@ const sTimes=s=>{s.timar=s.timar||{}; return s.timar.faerslur||(s.timar.nyjast=s
 const urlOk=u=>!u||/^https?:\/\//.test(u);
 function hoursBetween(fr,to){const [h1,m1]=fr.split(":").map(Number),[h2,m2]=to.split(":").map(Number); let mins=(h2*60+m2)-(h1*60+m1); if(mins<=0) mins+=1440; return Math.round(mins/60*100)/100;}
 const toMin=t=>{const [h,m]=String(t).split(":").map(Number); return h*60+m;};
+/* 2.101.1: tvær tímaskráningar sama starfsmanns (eða vettvangsnotanda) mega aldrei skarast. Athugað við hverja vistun (saveSplit):
+   nýjar eða breyttar færslur bornar saman við aðrar færslur sama aðila sama dag. */
+function skorunVillu(prev,cur){const old=new Map(((prev?.timar?.faerslur)||[]).map(e=>[e.id,JSON.stringify(e)])), L=(cur?.timar?.faerslur)||[];
+  const mn=e=>{const a=toMin(e.fra), b0=toMin(e.til); return [a,b0<=a?b0+1440:b0];};
+  for(const x of L){ if(!x||x.live||!x.fra||!x.til||old.get(x.id)===JSON.stringify(x)) continue; const [a,b]=mn(x), who=x.starfsmadur||ME(), dag=String(x.date||"").slice(0,10);
+    const y=L.find(e=>e&&e!==x&&e.id!==x.id&&!e.live&&e.fra&&e.til&&String(e.date||"").slice(0,10)===dag&&(e.starfsmadur||ME())===who&&(()=>{const [c,dd]=mn(e); return a<dd&&c<b;})());
+    if(y) return `Tíminn ${x.fra}–${x.til} ${dIS(dag)} skarast við „${cleanLys(y.lysing)}“ kl. ${y.fra}–${y.til}${who!==ME()?" ("+starfName(who)+")":""}. Tvær tímaskráningar mega ekki skarast – breyttu tímanum.`; }
+  return null;}
 function overlaps(dt,fr,to,sk,exceptId){const a=toMin(fr), b0=toMin(to), b=b0<=a?b0+1440:b0;
   return faerslur().find(e=>!e.live&&e.id!==exceptId&&e.fra&&e.til&&String(e.date||"").slice(0,10)===dt&&(e.starfsmadur||ME())===sk&&(()=>{const c=toMin(e.fra), d0=toMin(e.til), dd=d0<=c?d0+1440:d0; return a<dd&&c<b;})())||null;}
 function parseKlst(v){v=String(v||"").trim().replace(",","."); if(!v) return 0; const m=v.match(/^(\d+):(\d{1,2})$/); const n=m?(+m[1])+(+m[2])/60:+v;
@@ -348,7 +357,7 @@ async function save(ev){
       if(!desc||!dt) return msg("Fylltu út lýsingu og dag.","err");
       if(!(fr&&to)) return msg("Skráðu tímabil: frá og til (hh:mm).","err");
       const t=fr&&to?hoursBetween(fr,to):kl, lys=lysFmt(dt,desc,t), sk=val("f-starf")||ME();
-      if(fr&&to){const ov=overlaps(dt,fr,to,sk,null); if(ov&&!confirm(`Þessi tími skarast við „${cleanLys(ov.lysing)}“ kl. ${ov.fra}–${ov.til} (${starfName(sk)}).\n\nVista samt?`)) return;}
+      if(fr&&to){const ov=overlaps(dt,fr,to,sk,null); if(ov) return msg(`Skarast við „${esc(cleanLys(ov.lysing))}“ kl. ${ov.fra}–${ov.til}${sk!==ME()?" ("+starfName(sk)+")":""}. Tvær tímaskráningar mega ekki skarast.`,"err");}
       busy(); try{localStorage.setItem("aera-last",JSON.stringify({pid,sid,sk}));}catch(e){}
       const id=newId();
       await saveSnapshot(s=>{const p=sFindP(s,pid), u=sid?sFindU(s,sid)[1]:null; if(p) p.timar=(p.timar||0)+t; if(u) u.timar=(u.timar||0)+t;

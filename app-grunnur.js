@@ -358,7 +358,7 @@ setInterval(()=>{document.querySelectorAll(".kt[data-start]").forEach(el=>el.tex
 async function stopKlukka(){const k=klukka(); if(!k) return; const st=new Date(k.start), en=new Date();
   const mins=Math.max(1,Math.round((en-st)/60000)), t=Math.round(mins/60*100)/100, dt=isoDay(st), fr=pad(st.getHours())+":"+pad(st.getMinutes()), to=pad(en.getHours())+":"+pad(en.getMinutes());
   const desc=k.desc||"Vinna", lys=lysFmt(dt,desc,t), id=newId();
-  const ov=overlaps(dt,fr,to,k.sk||ME(),null); if(ov&&!confirm(`Klukkutíminn skarast við „${cleanLys(ov.lysing)}“ kl. ${ov.fra}–${ov.til}.\n\nSkrá samt?`)) return;
+  const ov=overlaps(dt,fr,to,k.sk||ME(),null); if(ov){alert(`Klukkutíminn ${fr}–${to} skarast við „${cleanLys(ov.lysing)}“ kl. ${ov.fra}–${ov.til}.\n\nTvær tímaskráningar mega ekki skarast. Leiðréttu upphafstíma klukkunnar (✎) eða breyttu hinni færslunni fyrst.`); return;}
   await saveSnapshot(s=>{s.klukka=null; const p=sFindP(s,k.pid), u=k.sid?sFindU(s,k.sid)[1]:null; if(p) p.timar=(p.timar||0)+t; if(u) u.timar=(u.timar||0)+t;
     s.timar=s.timar||{}; s.timar.samtals=(s.timar.samtals||0)+t; const L=sTimes(s);
     L.unshift({id,date:dt,lysing:lys,nr:u?.nr||p?.nr,verkefniId:k.pid,undirverkId:k.sid||null,fra:fr,til:to,timar:t,starfsmadur:k.sk||ME(),timabil:timabilOf(dt)});
