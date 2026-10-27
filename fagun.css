@@ -119,3 +119,19 @@ html:root body.kerfi #view .usvc > *{position:relative}
 html:root body.kerfi #view .usvc > * .gic{position:absolute;right:20px;top:20px;margin:0;width:36px;height:36px;border-radius:10px}
 html:root body.kerfi #view .usvc > * b{font-size:34px!important;font-weight:300!important}
 @media (max-width:1023px){html:root body.kerfi #view{background:none}}
+
+/* 2.103.2: Til baka er aðeins tákn (hringlaga hnappur), vinstra megin í línu við efnið – líka í síma (áður hliðrað um 40px) */
+.back{width:40px;height:40px;min-height:40px;padding:0;margin:10px 0 0;gap:0;justify-content:center;border-radius:50%;border:1px solid var(--line);background:var(--surface,#fff);color:var(--ink);flex:none}
+.backrow .back{margin:0}
+.back svg{width:20px;height:20px}
+.back:hover,.back:focus-visible{border-color:var(--accent);color:var(--accent)}
+.pback{width:36px;height:36px;min-height:36px;justify-content:center;gap:0;margin:0 0 4px;border-radius:50%;border:1px solid var(--line);background:var(--surface,#fff);color:var(--ink)}
+.pback:hover,.pback:focus-visible{border-color:var(--accent);color:var(--accent)}
+@media (max-width:1023px){body.simi1 .backrow{margin-inline:-16px;padding-inline:16px}}
+.pfft:empty{display:none}
+html body #view .uback.uback.uback{display:inline-flex!important;align-items:center;justify-content:center;width:36px;height:36px;min-height:36px;padding:0!important;gap:0!important;font-size:0!important;border-radius:50%;border:1px solid var(--line);background:var(--surface,#fff);color:var(--ink)}
+html body #view .uback.uback.uback svg{width:18px;height:18px;flex:none}
+html body #view .uback.uback.uback:hover,html body #view .uback.uback.uback:focus-visible{border-color:var(--accent);color:var(--accent)}
+body.simi1 #view .simback{margin:10px 0 4px!important}
+html body #view .back.back.back{font-size:0!important;width:40px!important;padding:0!important;color:var(--ink)}
+html body #view .pback.pback.pback{font-size:0!important;width:36px!important;padding:0!important;color:var(--ink)}
