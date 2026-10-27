@@ -686,6 +686,7 @@
   window.svidOn = k => (CFG().svid?.[k]?.off ?? window.ORG?.svid?.[k]?.off) !== true &&   /* 2.96.2: sjálfgefið í uppsetningu (ORG.svid), admin getur breytt */
     (k === "Leiga" ? ON("leiga") : k === "Sala" ? ON("sala") : true);
   { const SVTAB = { lverk: "Leiga", sverk: "Sala", tverk: "Þjónusta", tbl: "Leiga", tbs: "Sala", tbt: "Þjónusta", pnl: "Leiga", pns: "Sala", pnt: "Þjónusta", vskl: "Leiga", vsks: "Sala", vskt: "Þjónusta", lvorur: "Leiga", svorur: "Sala", vvinna: "Þjónusta" };
+    window.SVID_TABS = new Set(Object.keys(SVTAB));
     const t0 = window.tabOn; const hasS = () => { try { return typeof S !== "undefined" && !!S; } catch (e) { return false; } };
     window.tabOn = t => (!t0 || t0(t)) && (!SVTAB[t] || !hasS() || svidOn(SVTAB[t]));
     const e0 = window.einSig; window.einSig = () => (e0 ? e0() : "") + "|" + (hasS() ? ["Leiga", "Sala", "Þjónusta"].map(k => svidOn(k) ? 1 : 0).join("") : "");
