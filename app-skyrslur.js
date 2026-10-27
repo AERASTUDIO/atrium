@@ -106,6 +106,8 @@ async function renderPdf(blob,box){
 }
 async function reportPreview(R){toast("Bý til PDF…"); try{const bytes=await reportPdf(R,true); blobPreview(new Blob([bytes],{type:"application/pdf"}),repName(R)+".pdf",()=>openReportAgain());}catch(e){toast("PDF tókst ekki: "+(e?.message||e));}}
 async function deliverDoc(bytes,name,type,sub){
+  // 2.101.0: vettvangsnotandi (t.d. verktaki) sækir skrána beint á tækið – hún fer hvorki í skjöl fyrirtækisins né OneDrive
+  if(window.isVett&&isVett()){const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); toast("Skráin "+name+" var sótt"); return;}
   if(window.saveDoc&&window.ORG?.utlit==="I"){closeSheet(); return saveDoc({data:bytes,name,type,kind:"Tímaskýrslur",mineSub:sub,pid:(typeof REP_PID!=="undefined"?REP_PID:null)});}
   const dl=document.getElementById("rep-dl")?.checked;
   if(!dl&&window.MS&&MS.on()&&window.odSaveMine){toast("Vista í Mín skjöl…");
