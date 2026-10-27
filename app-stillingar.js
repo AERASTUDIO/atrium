@@ -148,7 +148,7 @@ function drawMenu(){
     // Fljótandi undirflipar (2.18.0, tölva): flipar þess hluta sem er valinn, vinstra megin
     let sn=document.getElementById("subnav2"); if(!sn){sn=document.createElement("nav"); sn.id="subnav2"; sn.setAttribute("aria-label","Undirflipar"); document.body.appendChild(sn); sn.addEventListener("click",e=>{const b=e.target.closest("[data-tab]"); if(!b) return; tab=b.dataset.tab; DETAIL=null; window.STSUB=null; try{localStorage.setItem("aera-tab",tab)}catch(x){} render(); window.scrollTo({top:0});});}
     // Föst vinstri stika (2.18.1, tillaga E6): allir hlutar nema Heim, Leit og Meira – undirflipar + nýlega opnuð verkefni
-    const vis=(cur?.tabs||[]).filter(t=>!t[2]), show=!!cur&&cur.k!=="heim"&&cur.k!=="meira"&&tab!=="leit";
+    const vis=cur?.hdr?[]:(cur?.tabs||[]).filter(t=>!t[2]), show=!!cur&&cur.k!=="heim"&&cur.k!=="meira"&&tab!=="leit";
     document.body.classList.toggle("hassub",show);
     let rec=[]; try{rec=JSON.parse(localStorage.getItem("aera-recent")||"[]");}catch(x){} const rp=rec.map(findProj).filter(Boolean).slice(0,5);
     const FL={verkefni:[["+ Nýtt verkefni","kind='verk';openSheet()"],...(ON("undirverk")?[["+ Undirverk","kind='undir';openSheet()"]]:[]),["+ Viðskiptavinur","kind='vsk';openSheet()"]],

@@ -68,13 +68,15 @@ function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return 
   SECTIONS.length=0; const VT=window.isVett&&isVett(); SECTIONS_ALL.forEach(x=>{if(VT&&window.VETT_FELA?.includes(x.k)) return; let tabs=x.tabs.filter(t=>!window.tabOn||tabOn(t[0]));
     // 2.103.4: aðeins eitt svið virkt (t.d. Sala hjá Sonik) → engir sviðsundirliðir né Yfirlit í stikunni; hlutinn opnar Yfirlitið (listinn með „Sjá allt →“).
     // Tvö svið eða fleiri → Yfirlit og eitt á hvert svið eins og áður. (SVID_TABS: ui1-skjair.js)
-    let einSv=false; {const SV=window.SVID_TABS, YF=["pnyf","verkyf","vskyf","tbyf","vyfir"], MAIN=["pantanir","verk","ltilbod","vsk"];
-      if(SV&&tabs.filter(t=>SV.has(t[0])&&!t[2]).length===1){// Yfirlit helst sem upphafssíða þar sem það vísar á listann („Sjá allt →“); Vörulisti opnar vörurnar sjálfar (hnappurinn Yfirlit í haus listans – vett-ui.js)
-        const YL=["pnyf","verkyf"], m=tabs.find(t=>YL.includes(t[0])&&!t[2])||tabs.find(t=>MAIN.includes(t[0]))||tabs.find(t=>SV.has(t[0])&&!t[2]);
-        tabs=tabs.map(t=>t===m?[t[0],MAIN.includes(t[0])||SV.has(t[0])?x.l:t[1]]:SV.has(t[0])||YF.includes(t[0])?[t[0],t[1],2]:MAIN.includes(t[0])?[t[0],t[1],t[2]||1]:t); if(m){tabs=[tabs.find(t=>t[0]===m[0]),...tabs.filter(t=>t[0]!==m[0])];} einSv=true;}}
+    // 2.104.0 (útlit I): Verkefni, Pantanir, Viðskiptavinir, Tilboð, Reikningar og Vörulisti – einn liður í stikunni; Yfirlit opnast fyrst
+    // og flipar efst á síðunni (hausflipar.js): Yfirlit · listinn · svið (aðeins ef fleiri en eitt svið er virkt; Vörulisti alltaf).
+    let hdr=false; {const SV=window.SVID_TABS, YF={verkefni:"verkyf",pantanir:"pnyf",vidsk:"vskyf",tilbod:"tbyf",fjarmal:"rkyf",bunadur:"vyfir"}, MAIN={verkefni:"verk",pantanir:"pantanir",vidsk:"vsk",tilbod:"ltilbod",fjarmal:"trk"};
+      if(SV&&window.ORG?.utlit==="I"&&YF[x.k]&&tabs.some(t=>t[0]===YF[x.k])){const yk=YF[x.k], mk=MAIN[x.k], nSv=tabs.filter(t=>SV.has(t[0])).length;
+        tabs=tabs.map(t=>t[0]===yk?[yk,"Yfirlit"]:t[0]===mk?[mk,nSv>1&&x.k!=="fjarmal"?({pantanir:"Allar",vidsk:"Allir"}[x.k]||"Öll"):x.l]:SV.has(t[0])?(x.k==="bunadur"?[t[0],nSv===1?"Vörur":t[1]]:nSv>1?[t[0],t[1]]:[t[0],t[1],2]):t);
+        tabs=[tabs.find(t=>t[0]===yk),...tabs.filter(t=>t[0]===mk),...tabs.filter(t=>t[0]!==yk&&t[0]!==mk)]; hdr=true;}}
     const vis=tabs.filter(t=>!t[2]); if(!vis.length) return;
     // Ef aðeins ein síða er eftir í hluta (t.d. Reikningar án tímaskráningar) ber hlutinn heiti hennar
-    SECTIONS.push({...x,tabs,l:!einSv&&vis.length===1&&vis.length<x.tabs.filter(t=>!t[2]).length?vis[0][1]:x.l});});
+    SECTIONS.push({...x,tabs,hdr,l:!hdr&&vis.length===1&&vis.length<x.tabs.filter(t=>!t[2]).length?vis[0][1]:x.l});});
   TABS.length=0; SECTIONS.forEach(x=>x.tabs.forEach(t=>TABS.push(t[0]))); return true;}
 applyEin();
 const secOf=t=>SECTIONS.find(x=>x.tabs.some(y=>y[0]===t))||SECTIONS[0];

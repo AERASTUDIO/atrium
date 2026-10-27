@@ -910,7 +910,20 @@
       + dcard("Nýlega samþykkt", won.sort((a, b) => String(b.dags).localeCompare(String(a.dags))).map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)), true)), "ltilbod", "Ekkert samþykkt síðustu 90 daga.") + `</div>`;
   };
 
-  U.vskyf = () => U.vsk(); U.tbyf = () => U.ltilbod(); // 2.70.0: yfirlitið er efst í listanum
+  // 2.104.0: Yfirlit og listi eru aðskildir flipar (hausflipar.js) – yfirlitin eru aftur sér síður
+  U.vskyf = () => U.vskyf_gamalt(); U.tbyf = () => U.tbyf_gamalt();
+  U.rkyf = function () {
+    const R = (S?.reikningar || []).filter(r => r.stada !== "Ógilt"), og = R.filter(r => r.stada !== "Greitt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
+    const d30 = R.filter(r => r.stada === "Greitt" && daysTo(r.greitt?.dags || r.dags) >= -30);
+    const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
+    const PO = window.rkOrders ? rkOrders() : [], pnN = P => { try { return salaAPI.totals(P).net; } catch (e) { return 0; } };
+    const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ubK = ub.reduce((a, x) => a + x.kr, 0) + PO.reduce((a, P) => a + pnN(P), 0);
+    return head("Reikningar", "Yfirlit", nbtn("Reikningur").replace(/data-act="fabnew[^"]*"/, 'data-act="rknew:"'))
+      + kp4([["Óreikningsfært", mkr(ubK), "trk:oreikn"], ["Ógreitt", og.length + " · " + mkr(sum(og)), "trk:ogr"], ["Fram yfir gjalddaga", late.length + (late.length ? " · " + mkr(sum(late)) : ""), "trk:ogr"], ["Greitt 30 daga", mkr(sum(d30)), "trk:gr"]])
+      + `<div class="udash">${dcard("Óreikningsfært eftir verkefnum", ub.map(x => drow(tapAttr("verk", x.p.id), E((x.p.nr || "") + " " + (x.p.stutt || "")), E(H(x.h) + " klst. · " + (x.p.vidskiptavinur || "")), kr(x.kr))), "trk", "Allt reikningsfært.")}`
+      + dcard("Ógreiddir reikningar", og.sort((a, b) => String(a.gjalddagi || "").localeCompare(String(b.gjalddagi || ""))).map(r => drow(tapAttr("reikn", r.id), E(String(r.nr).padStart(3, "0") + " " + (r.kaupandi?.name || "")), E(r.gjalddagi ? "gjalddagi " + fmtD(r.gjalddagi) : ""), kr(r.tot), r.gjalddagi && daysTo(r.gjalddagi) < 0)), "trk", "Engir ógreiddir reikningar.")
+      + dcard("Pantanir án reiknings", PO.map(P => drow(`data-act="rkpn:${E(P.id)}" role="button" tabindex="0"`, E((P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : "")), E(P.vidskiptavinur || ""), kr(pnN(P)))), "trk", "Engar afhentar pantanir bíða reiknings.") + `</div>`;
+  };
   U.timyf = function () {
     const a = mondayOf(today), fs = faerslur(), wk = fs.filter(e => d(e.date) >= a), g = goal();
     const staff = STARFS().filter(x => fs.some(e => e.starfsmadur === x.sk));

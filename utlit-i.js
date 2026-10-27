@@ -42,6 +42,8 @@
   // Starfsfólk (2.102.0): eigin hluti í Starfsemi (áður Spjall › Samstarfsfólk) – spjald starfsmanns (folk.js)
   { const SP = by("spjall"); if (SP && !by("folk")) { SP.tabs = SP.tabs.filter(t => t[0] !== "teymi");
     SECTIONS_ALL.push({ k: "folk", l: "Starfsfólk", ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.8 14.6c2.4.1 4.1 1.6 4.7 4.4"/></svg>', tabs: [["teymi", "Starfsfólk"]] }); } }
+  // Reikningar (2.104.0): Yfirlit fyrst (UI1V.rkyf)
+  { const F = by("fjarmal"); if (F && !F.tabs.some(t => t[0] === "rkyf")) F.tabs.unshift(["rkyf", "Yfirlit"]); Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { rkyf: "reikningar" }); }
   // Persónulega dagatalið: fyrsti undirflipi heitir Yfirlit (ekki sama nafn og hlutinn)
   { const D = by("dagatal"); if (D) D.tabs = D.tabs.map(t => t[0] === "dagatal" ? ["dagatal", "Yfirlit"] : t); }
   // Röð í vinstri stiku (2.68.0): Heim, Dagatal, Tímar efst (án fyrirsagnar) · Kjarni · Verkfæri · Samskipti
@@ -81,7 +83,7 @@
       const on = x === cur && tab !== "leit" && tab !== "stillingar";
       h += `<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${esc(x.l)}</span></button>`;
       const vis = x.tabs.filter(t => !t[2]);
-      if (on && vis.length > 1) {
+      if (on && vis.length > 1 && !x.hdr) {   // 2.104.0: hausflipa-hlutar sýna flipana efst á síðunni (hausflipar.js), ekki hér
         const act = vis.some(t => t[0] === tab) ? tab : x.tabs.some(t => t[0] === tab && t[2] === 2) ? (vis.find(t => t[0] === "vsk" || t[0] === "ltilbod") || vis[0])[0] : vis[0][0];
         h += `<div class="tsubs">${vis.map(([k, l]) => `<button type="button" class="tab tsub" data-tab="${k}"${k === act ? ' aria-current="true"' : ""}>${esc(["Leiga", "Sala", "Þjónusta"].includes(l) && window.svidHeiti ? svidHeiti(l) : l)}</button>`).join("")}</div>`;
       }
