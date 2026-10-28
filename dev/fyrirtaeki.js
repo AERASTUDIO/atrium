@@ -27,7 +27,7 @@ window.ORG = {
   // Nýja einingaskiptingin (2.14.0): kjarni, pakkar og tengingar – flokkuð valmynd og ný Stillingar › Einingar. Prófað hér fyrst.
   personuvernd: { netfang: "aera@aerastudio.is", svaedi: "Belgíu (Google europe-west1, innan EES)" },   // persónuvernd (2.44.1): hýsingarsvæði Firestore; netfang: valfrjálst, annars admin
   pakkaval: true,
-  leid: "core",                      // verðleið (2.97.0; dev á Core frá 28.10.2026): core · pro · complete – ræður hvaða pakkar eru opnir
+  leid: "complete",                  // verðleið (2.97.0; dev aftur á Complete frá 28.10.2026): core · pro · complete – ræður hvaða pakkar eru opnir
   // Útlit I (2.23.0): dökk vinstri stika með undirflipum, listi og spjald hlið við hlið á tölvu. Prófað hér fyrst.
   utlit: "I",
   // Stöður verkefna (2.15.4): fjórar stöður sem lýsa hvar verkið stendur; „Lokið“ er falin staða sem aðeins hnappurinn
