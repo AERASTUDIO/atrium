@@ -52,10 +52,12 @@
   const birgir = n => CFG().birgjar.find(b => String(b.nafn || "").toLowerCase() === String(n || "").trim().toLowerCase()) || null;
 
   /* ---------- Tollgengi ---------- */
+  // Dagsetning í ISO-sniði (Skatturinn skilar dd-mm-áááá eða áááá-mm-dd)
+  const isoD = d => { const t = String(d || "").slice(0, 10), m = t.match(/^(\d{2})[-.](\d{2})[-.](\d{4})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : t; };
   async function saekjaGengi() {
     if (window.AERA_DEMO) return { k: { ...DEMO_GENGI }, dags: new Date().toISOString().slice(0, 10), src: "sýnigengi" };
     const pid = window.ORG?.firebase?.projectId;
-    if (pid) { try { const r = await fetch(`https://europe-west1-${pid}.cloudfunctions.net/tollgengi`, { cache: "no-store" }); if (r.ok) { const j = await r.json(); if (j && j.k && Object.keys(j.k).length) return { ...j, src: "Skatturinn (tollgengi)" }; } } catch (e) {} }
+    if (pid) { try { const r = await fetch(`https://europe-west1-${pid}.cloudfunctions.net/tollgengi`, { cache: "no-store" }); if (r.ok) { const j = await r.json(); if (j && j.k && Object.keys(j.k).length) return { ...j, dags: isoD(j.dags), src: "Skatturinn (tollgengi)" }; } } catch (e) {} }
     return null;
   }
   async function gengiNu(force) {

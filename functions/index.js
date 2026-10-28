@@ -580,6 +580,7 @@ exports.tollgengi = onRequest({ cors: true, maxInstances: 2 }, async (req, res) 
       if (kodi && !k[kodi] && /gengi|rate|mid/i.test(L.t)) { const v = tal(L.v); if (v && v > 0) { k[kodi] = v; cur = null; } }
     }
     const gild = (xml.match(/<GildisDagsetningFra>([^<]+)</) || [])[1] || "";
-    res.set("Cache-Control", "public, max-age=3600").json({ dags: gild.slice(0, 10), k, fjoldi: Object.keys(k).length });
+    const gd = gild.slice(0, 10), gm = gd.match(/^(\d{2})[-.](\d{2})[-.](\d{4})$/);   // dd-mm-áááá → áááá-mm-dd
+    res.set("Cache-Control", "public, max-age=3600").json({ dags: gm ? `${gm[3]}-${gm[2]}-${gm[1]}` : gd, k, fjoldi: Object.keys(k).length });
   } catch (e) { logger.error("tollgengi", e); res.status(500).json({ villa: String(e.message || e) }); }
 });
