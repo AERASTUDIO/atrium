@@ -1,40 +1,36 @@
 #!/usr/bin/env bash
-# Leyfir nýtt lén í öllum Firebase-verkefnum Atrium (keyrt í Cloud Shell):
-#  1) bætir https://<lén>/* og https://<lén> við vefslóðir sem API-lyklarnir mega koma frá (heldur öllu sem fyrir er, líka API-takmörkunum)
+# Leyfir nýtt lén í öllum Firebase-verkefnum Atrium – keyrt í Cloud Shell (innskráð/ur sem eigandi verkefnanna):
+#  1) API-lyklar með vefslóðatakmörkun fá https://<lén> og https://<lén>/* (allt annað helst, líka API-takmarkanir)
 #     – Firebase-innskráning sendir aðeins upprunann (https://<lén>) sem referer, svo /* dugar ekki eitt og sér
-#  2) bætir léninu við „Authorized domains“ í Firebase Authentication
-# Sýnir hvern lykil og villur frá Google svo ekkert fari framhjá.
-# Notkun: bash tools/leyfa_len.sh [lén]   (sjálfgefið atrium.aerastudio.is)
+#  2) lénið fer í „Authorized domains“ í Firebase Authentication
+# Kveikir á API Keys API í verkefninu ef þarf. Sýnir hvern lykil og allar villur.
+# Notkun: bash tools/leyfa_len.sh [lén] [verkefni …]   (sjálfgefið atrium.aerastudio.is og öll fjögur verkefnin)
 set -uo pipefail
-LEN="${1:-atrium.aerastudio.is}"
-T=$(gcloud auth print-access-token)
-for P in atrium-499a2 aera-app-cfdb3 atrium-sonik atrium-party; do
+LEN="${1:-atrium.aerastudio.is}"; shift || true
+PROJ=("$@"); [ ${#PROJ[@]} -eq 0 ] && PROJ=(atrium-499a2 aera-app-cfdb3 atrium-sonik atrium-party)
+NY=("https://$LEN" "https://$LEN/*")
+T=$(gcloud auth print-access-token) || { echo "Ekki innskráð/ur í gcloud"; exit 1; }
+for P in "${PROJ[@]}"; do
   echo "== $P"
-  H=(-H "Authorization: Bearer $T" -H "X-Goog-User-Project: $P" -H "Content-Type: application/json")
-  # 1) API-lyklar með vefslóðatakmörkun
-  curl -s "${H[@]}" "https://apikeys.googleapis.com/v2/projects/$P/locations/global/keys" | python3 -c '
+  gcloud services enable apikeys.googleapis.com --project="$P" --quiet >/dev/null 2>&1 || echo "   (gat ekki kveikt á API Keys API – reyni samt)"
+  # 1) API-lyklar
+  KEYS=$(gcloud services api-keys list --project="$P" --format=json 2>&1) || { echo "   API-lyklar: VILLA – $KEYS"; KEYS="[]"; }
+  echo "$KEYS" | python3 -c '
 import sys, json
-d = json.load(sys.stdin)
-if "error" in d: print("VILLA", d["error"].get("message", ""), "", sep="\t"); sys.exit()
-ks = d.get("keys", [])
-if not ks: print("ENGIR", "", "", sep="\t")
-for k in ks:
-    r = k.get("restrictions", {}).get("browserKeyRestrictions", {}).get("allowedReferrers")
-    print(k["name"], k.get("displayName", ""), json.dumps(r), sep="\t")
-' | while IFS=$'\t' read -r NAME DN REFS; do
-    if [ "$NAME" = "VILLA" ]; then echo "   API-lyklar: villa frá Google – $DN"; continue; fi
-    if [ "$NAME" = "ENGIR" ]; then echo "   API-lyklar: engir lyklar fundust"; continue; fi
+for k in json.load(sys.stdin):
+    r = (k.get("restrictions") or {}).get("browserKeyRestrictions", {}).get("allowedReferrers")
+    print(k["name"], k.get("displayName") or "(nafnlaus)", json.dumps(r), sep="\t")' | while IFS=$'\t' read -r NAME DN REFS; do
     if [ "$REFS" = "null" ]; then echo "   lykill $DN: engin vefslóðatakmörkun – ekkert að gera"; continue; fi
-    BODY=$(python3 -c '
+    NEW=$(python3 -c '
 import sys, json
-r = json.loads(sys.argv[1]); L = sys.argv[2]; add = [x for x in ("https://"+L+"/*", "https://"+L) if x not in r]
-print(json.dumps({"restrictions": {"browserKeyRestrictions": {"allowedReferrers": r + add}}}) if add else "")' "$REFS" "$LEN")
-    if [ -z "$BODY" ]; then echo "   lykill $DN: lénið var þegar leyft"; continue; fi
-    OUT=$(curl -s -X PATCH "${H[@]}" "https://apikeys.googleapis.com/v2/$NAME?updateMask=restrictions.browserKeyRestrictions" -d "$BODY")
-    if echo "$OUT" | grep -q '"error"'; then echo "   lykill $DN: VILLA – $(echo "$OUT" | python3 -c 'import sys,json; print(json.load(sys.stdin)["error"].get("message",""))')"
-    else echo "   lykill $DN: $LEN bætt við"; fi
+r = json.loads(sys.argv[1]); add = [x for x in sys.argv[2:] if x not in r]
+print(",".join(r + add) if add else "")' "$REFS" "${NY[@]}")
+    if [ -z "$NEW" ]; then echo "   lykill $DN: lénið var þegar leyft"; continue; fi
+    if OUT=$(gcloud services api-keys update "$NAME" --allowed-referrers="$NEW" --quiet 2>&1); then echo "   lykill $DN: $LEN bætt við"
+    else echo "   lykill $DN: VILLA – $OUT"; fi
   done
   # 2) Authorized domains í Firebase Authentication
+  H=(-H "Authorization: Bearer $T" -H "X-Goog-User-Project: $P" -H "Content-Type: application/json")
   CFG=$(curl -s "${H[@]}" "https://identitytoolkit.googleapis.com/admin/v2/projects/$P/config")
   BODY=$(echo "$CFG" | python3 -c '
 import sys, json; j = json.load(sys.stdin)
