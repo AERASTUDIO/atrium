@@ -87,6 +87,28 @@
   .vtmod .vtpb { display: flex; gap: 8px; margin-top: 10px; } .vtmod .vtpb .btn { flex: 1; min-height: 44px; }
   .vtmod .vtbig { width: 100%; min-height: 52px; margin-top: 16px; }
   .vtmod .vtempty { color: var(--muted); }
+  /* Tölva (2.108.0): tveir dálkar – vinstra megin merki, kveðja, klukka, Skrá tíma og vikan; hægra megin flipar og listar */
+  .vt .vtbrand, .vt .vtwk { display: none; }
+  @media (min-width: 1024px) {
+    body.vettui, body.vettui.pv.ui1, body.vettui.simi1, body.vettui.simi1.pv.ui1 { padding-left: 0 !important; }
+    body.vettui main#view { max-width: 1120px; margin: 0 auto !important; padding: 28px 32px 48px; }
+    /* Opið atriði í tölvu: aðeins spjaldið (listinn er á vettvangsskjánum), í fullri breidd */
+    body.vettui .splist { display: none !important; }
+    body.vettui .split, body.vettui .spdet { display: block !important; width: 100% !important; max-width: none !important; grid-template-columns: none !important; }
+    body.vettui .spdet .spx { display: none !important; }
+    body.vettui .spdet { margin: 0 !important; box-sizing: border-box; }
+    .vt.vtgrid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 28px; align-items: start; }
+    .vt.vtgrid .vtcol { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 24px; }
+    .vt.vtgrid .vtmain { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .vt.vtgrid .vtseg { top: 0; }
+    .vt .vtbrand { display: flex; align-items: center; gap: 12px; padding: 2px 2px 6px; }
+    .vt .vtbrand img { height: 30px; width: auto; max-width: 150px; object-fit: contain; }
+    .vt .vtbrand .lsep { width: 1px; height: 24px; background: var(--line); }
+    .vt .vtwk { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 14px 16px; }
+    .vt .vtwk > div { display: flex; flex-direction: column; } .vt .vtwk b { font-size: 22px; font-weight: 500; } .vt .vtwk span { font-size: 12.5px; color: var(--muted); }
+    .vt .vtwk .vtl { grid-column: 1 / -1; }
+    .vt .vtr { padding-top: 16px; padding-bottom: 16px; }
+  }
   `;
   document.head.appendChild(css);
 
@@ -142,7 +164,13 @@
           <div class="vtrd"><label>Frá<input type="date" id="vt-fra" value="${E(REP.fra || m + "-01")}"></label><label>Til<input type="date" id="vt-til" value="${E(REP.til || lastDay(m))}"></label></div>
           <button type="button" class="vtbtn pri wide" data-vtu="yfirlit">${SV(IC.dl)}Sækja yfirlit (PDF eða Excel)</button></section>`;
     }
-    return `<div class="vt">${hdr}${clock}<button type="button" class="vtbtn pri wide" onclick="kind='tima';PREFILL=null;openSheet()">${SV(IC.plus)}Skrá tíma</button>${seg}${body}</div>`;
+    // Tölva (2.108.0): merki fyrirtækisins og Atrium, og vikan í tölum (birtist aðeins í tölvu)
+    const lg = window.ORG?.merki || window.ORG?.logo || {}, dk = matchMedia("(prefers-color-scheme: dark)").matches || document.documentElement.dataset.theme === "dark";
+    const brand = `<div class="vtbrand">${lg.ljos || lg.dokk ? `<img src="${E(dk ? lg.dokk || lg.ljos : lg.ljos || lg.dokk)}" alt="${E(window.ORG?.nafn || "")}"><span class="lsep" aria-hidden="true"></span>` : ""}<img src="icons/${dk ? "atrium-merki-dokk" : "atrium-merki-ljos"}.svg" alt="Atrium" style="height:24px"></div>`;
+    const wk = (() => { const d0 = new Date(now); d0.setHours(0, 0, 0, 0); d0.setDate(d0.getDate() - ((d0.getDay() + 6) % 7)); const a = tr(() => isoDay(d0), d0.toISOString().slice(0, 10));
+      const es = timar().filter(e => String(e.date || "") >= a), s = f => es.filter(f).reduce((x, e) => x + (+e.timar || 0), 0), n = v => String(Math.round(v * 100) / 100).replace(".", ",");
+      return `<section class="vtcard vtwk"><div class="vtl">Þessi vika</div><div><b>${n(s(() => true))}</b><span>klst.</span></div><div><b>${n(s(e => e.stadfest))}</b><span>staðfestar</span></div><div><b>${n(s(e => !e.stadfest && !e.hafnad))}</b><span>bíða</span></div></section>`; })();
+    return `<div class="vt vtgrid"><aside class="vtcol">${brand}${hdr}${clock}<button type="button" class="vtbtn pri wide" onclick="kind='tima';PREFILL=null;openSheet()">${SV(IC.plus)}Skrá tíma</button>${wk}</aside><div class="vtmain">${seg}${body}</div></div>`;
   }
   // Valið tímabil helst þótt skjárinn teiknist upp á nýtt (ný gögn berast)
   document.addEventListener("change", ev => { if (ev.target?.id === "vt-fra") REP.fra = ev.target.value; if (ev.target?.id === "vt-til") REP.til = ev.target.value; });
@@ -170,12 +198,14 @@
     if (typeof window.render !== "function" || window.render.__vt) return;
     const o = window.render;
     window.render = function () {
+      // 2.108.0: opið atriði teiknast á sinni síðu (annars sýnir tölvuútlitið upphafsskjáinn í stað spjaldsins)
+      if (VT() && typeof DETAIL !== "undefined" && DETAIL && matchMedia("(min-width:1024px)").matches) { try { const t = DETAIL.startsWith("tb:") ? "pantanir" : DETAIL.startsWith("time:") ? "tfaer" : DETAIL.startsWith("verk:") ? "tverk" : null; if (t && tab !== t) tab = t; } catch (e) {} }
       const r = o.apply(this, arguments), on = VT();
       document.body.classList.toggle("vettui", on);
       if (on && typeof S !== "undefined" && S) {
         const v = document.getElementById("view");
         if (!DETAIL) v.innerHTML = (window.viewAsBanner ? viewAsBanner() : "") + vVett();
-        else if (!v.querySelector(".backrow, .back")) v.insertAdjacentHTML("afterbegin", `<p style="margin:0 0 10px"><button type="button" class="btn" style="min-height:44px" onclick="DETAIL=null;render();scrollTo(0,0)">‹ Til baka</button></p>`);
+        else if (!v.querySelector(".backrow, .back, .uback")) v.insertAdjacentHTML("afterbegin", `<p style="margin:0 0 10px"><button type="button" class="btn" style="min-height:44px" onclick="DETAIL=null;render();scrollTo(0,0)">‹ Til baka</button></p>`);
         // Staðfestan tíma má ekki breyta – fela breytingahnappa á honum
         if (DETAIL && DETAIL.startsWith("time:")) { const e = tr(() => findTime(DETAIL.slice(5)), null); if (e && e.stadfest) v.querySelectorAll("[data-act^='edit:'], [data-act^='del:']").forEach(x => x.remove()); }
       }

@@ -40,8 +40,10 @@ const msLogin = gestur => {
   p.setCustomParameters(gestur ? { tenant: MS_TENANT, prompt: "select_account" } : { tenant: MS_TENANT, prompt: "select_account", domain_hint: MS_DOMAIN });
   signIn(p);
 };
-document.getElementById("login-ms").addEventListener("click", () => msLogin(false));
-document.getElementById("login-gestur")?.addEventListener("click", () => msLogin(true));
+// 2.108.0: munað hvor hnappurinn var valinn – gestur (utan léns fyrirtækisins) má ekki skrá sig inn um „Starfsfólk“
+const leid = v => { try { sessionStorage.setItem("atr:leid", v); } catch (e) {} };
+document.getElementById("login-ms").addEventListener("click", () => { leid("s"); msLogin(false); });
+document.getElementById("login-gestur")?.addEventListener("click", () => { leid("g"); msLogin(true); });
 getRedirectResult(auth).catch(e => showLogin("Innskráning tókst ekki: " + (e.code || e.message)));
 
 // Skrá út (2.44.0, persónuvernd): auk innskráningar hverfa gögn fyrirtækisins af tækinu – afrit Firestore í vafranum (IndexedDB),
@@ -75,6 +77,8 @@ onAuthStateChanged(auth, async user => {
   const ms = prov === "microsoft.com" && !!email;
   const gestur = ms && !email.endsWith("@" + MS_DOMAIN);
   const deny = async m => { await signOut(auth); showLogin(m); };
+  { let v = ""; try { v = sessionStorage.getItem("atr:leid") || ""; sessionStorage.removeItem("atr:leid"); } catch (e) {}
+    if (v === "s" && gestur) return deny(`${email} er gestaaðgangur. Skráðu þig inn með hnappnum „Gestur“.`); }
   if (!legacy && !ms) return deny(prov === "microsoft.com" ? "Microsoft gaf ekki upp netfang fyrir þennan aðgang. Hafðu samband við admin." : `${email || "Þessi aðgangur"} hefur ekki aðgang að appinu. Skráðu þig inn með Microsoft-aðgangi @${MS_DOMAIN}.`);
 
   let r = await readUsers();
