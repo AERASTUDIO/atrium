@@ -557,3 +557,29 @@ exports.vettTimi = onDocumentCreated("timar/{id}", async ev => {
   const klst = String(Math.round((+e.timar || 0) * 100) / 100).replace(".", ",");
   await send(to.filter(x => x !== af), "vtimi", { title: `${nafn} skráði ${klst} klst.`, body: [p ? (p.nr ? p.nr + " " : "") + (p.stutt || p.nafn || "") : "", e.fra && e.til ? e.fra + "–" + e.til : "", "bíður staðfestingar"].filter(Boolean).join(" · "), link: "#t=yfirlit&vt=1", tag: "vt-" + ev.params.id });
 });
+
+/* ---------- Tollgengi (2.109.0, eining innflutningur) ----------
+   Sækir tollafgreiðslugengi Skattsins (XML, vefskil.tollur.is) og skilar { dags, k: { EUR: 145.3, … } }.
+   Opinber gögn – engin innskráning. Appið kallar á https://europe-west1-<verkefni>.cloudfunctions.net/tollgengi[?d=ddmmáááá]. */
+exports.tollgengi = onRequest({ cors: true, maxInstances: 2 }, async (req, res) => {
+  try {
+    const d = String(req.query.d || "").replace(/\D/g, "");
+    const url = "https://vefskil.tollur.is/Tollalinan/gengi/Innflutningur.aspx" + (d.length === 8 ? "?dagsetning=" + d : "");
+    const r = await fetch(url, { headers: { "User-Agent": "Atrium (AERA Studio)" } });
+    if (!r.ok) { res.status(502).json({ villa: "Skatturinn svaraði " + r.status }); return; }
+    const xml = await r.text(), k = {};
+    // Sniðið er lesið án fyrirframþekkingar: hver færsla með þriggja stafa myntkóða og tölu (gengi) – íslenskur eða enskur tugabrotsritháttur
+    const tal = s => { let t = String(s).trim(); if (/,\d+$/.test(t)) t = t.replace(/\./g, "").replace(",", "."); const v = parseFloat(t); return isFinite(v) ? v : null; };
+    // Laufþættir í röð: þegar myntkóði kemur er gengið fyrsti þáttur á eftir sem heitir eitthvað með „gengi“/„rate“ (þar til næsti myntkóði)
+    const leaves = [...xml.matchAll(/<([\w:]+)([^>]*)>([^<]*)<\/\1>/g)].map(m => ({ t: m[1], a: m[2], v: m[3].trim() }));
+    let cur = null;
+    for (const L of leaves) {
+      const am = L.a.match(/([A-Z]{3})/);   // <Gengi mynt="EUR">145,3</Gengi>
+      if (/^[A-Z]{3}$/.test(L.v)) { cur = L.v; continue; }
+      const kodi = cur || (am && /mynt|kodi|code|currency/i.test(L.a) ? am[1] : null);
+      if (kodi && !k[kodi] && /gengi|rate|mid/i.test(L.t)) { const v = tal(L.v); if (v && v > 0) { k[kodi] = v; cur = null; } }
+    }
+    const gild = (xml.match(/<GildisDagsetningFra>([^<]+)</) || [])[1] || "";
+    res.set("Cache-Control", "public, max-age=3600").json({ dags: gild.slice(0, 10), k, fjoldi: Object.keys(k).length });
+  } catch (e) { logger.error("tollgengi", e); res.status(500).json({ villa: String(e.message || e) }); }
+});

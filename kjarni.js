@@ -44,6 +44,8 @@
     snjall:         ["Snjall-Heim", "Á Heim: drög að tímaskráningu dagsins (Loka deginum), viðvaranir um áætlun og bókanir, hver er hvar, skipanalína í mæltu máli og rekstrarpúls", null, 1],
     // Frá 2.95.0: Rekstrarlínur (rlinur.js) – eigin línur fyrirtækisins þvert á svið, t.d. Drykkjaþjónusta. Sjálfgefið óvirk.
     rlinur:         ["Rekstrarlínur", "Eigin rekstrarlínur fyrirtækisins (t.d. Drykkjaþjónusta) þvert á leigu, sölu og þjónustu: tilboð, pantanir og verkefni merkt línu, sjálfkrafa út frá vöruflokkum, og sía í listum og yfirlitum", null, 1],
+    // Frá 2.109.0: Innflutningur og kostnaðarverð (innflutningur.js) – tilboð úr verðum erlendra birgja, innkaup og tollskýrsla. Sjálfgefið óvirk.
+    innflutningur:  ["Innflutningur og kostnaðarverð", "Tilboð reiknuð úr verðum erlendra birgja (tollverð, tollgengi, aukagjöld, flutningur, álagning), innkaup á pöntunum og tollskýrsla borin saman við áætlun", "sala", 1],
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
   // Pakkar og tengingar (frá 2.14.0, einingatillagan 21.10.2026): einingarnar flokkaðar í kjarna, fimm pakka og tengingar.
@@ -55,7 +57,7 @@
   // LEIÐ uppsetningarinnar opnar (ORG.leid: core · pro · complete; ORG.aukapakkar bætir stökum pakka við). Innan þess sem er
   // opið kveikir admin og slekkur. Uppsetning án ORG.leid hefur alla pakka opna eins og áður.
   const PAKKAR = {
-    leigasala: ["Leiga og sala", "Vörulisti, leiga, sala, lager, pantanir og QR-merki", ["leiga", "sala", "pantanir", "qr", "deildir"]],
+    leigasala: ["Leiga og sala", "Vörulisti, leiga, sala, lager, pantanir, QR-merki og innflutningur", ["leiga", "sala", "pantanir", "qr", "innflutningur", "deildir"]],
     afhending: ["Afhending", "Pöntunarferli: staðfesting, greiðsla, pökkun, undirskrift og skil", ["pferli"]],
     yfirsyn:   ["Yfirsýn", "Verkefnagreining, aukaverk, Snjall-Heim og rekstrarlínur", ["vgreind", "aukaverk", "snjall", "rlinur"]]
   };

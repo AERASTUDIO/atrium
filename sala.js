@@ -240,7 +240,7 @@
       document.getElementById("vr-pk").innerHTML = pk ? `<div class="kind" style="margin-top:6px">Innihald pakka</div>${inn.map((i, k) => `<div class="two" style="grid-template-columns:1fr 90px 40px;align-items:end"><label>Búnaður<select data-pk="v:${k}">${items.map(y => `<option value="${esc(y.id)}"${y.id === i.v ? " selected" : ""}>${esc(y.heiti)}</option>`).join("")}</select></label><label>Magn<input data-pk="m:${k}" inputmode="decimal" value="${esc(fx(i.m || 1))}"></label><button type="button" class="btn" data-pkdel="${k}" aria-label="Fjarlægja" style="min-height:44px">×</button></div>`).join("")}
         <button type="button" class="btn" id="vr-pkadd" style="margin-top:6px"${items.length ? "" : " disabled"}>+ Bæta búnaði í pakka</button>` : "";
       const show = (k, on) => { const el = document.getElementById(k)?.closest("label"); if (el) el.style.display = on ? "" : "none"; };
-      show("vr-lv", D === "leiga" && teg !== "vinna"); show("vr-sv", D === "sala" || teg === "vinna"); show("vr-fj", teg !== "vinna"); show("vr-sm", D === "sala" && !["vinna", "pakki"].includes(teg)); show("vr-fnr", !["vinna", "pakki"].includes(teg));
+      show("vr-lv", D === "leiga" && teg !== "vinna"); show("vr-sv", D === "sala" || teg === "vinna"); show("vr-fj", teg !== "vinna"); show("vr-sm", D === "sala" && !["vinna", "pakki"].includes(teg)); show("vr-fnr", !["vinna", "pakki"].includes(teg)); { const ii = document.getElementById("vr-innfl"); if (ii) ii.style.display = D === "sala" && !["vinna", "pakki"].includes(teg) && window.ON && ON("innflutningur") ? "" : "none"; }
       const sl = document.getElementById("vr-sv")?.closest("label"); if (sl) sl.firstChild.textContent = teg === "vinna" ? "Verð á einingu (kr.)" : "Söluverð (kr.)";
       const fl = document.getElementById("vr-fj")?.closest("label"); if (fl) fl.firstChild.textContent = D === "sala" ? "Á lager" : "Fjöldi til";
       const ad = document.getElementById("vr-pkadd"); if (ad) ad.onclick = () => { readPk(); inn.push({ v: items[0]?.id, m: 1 }); draw(); };
@@ -253,6 +253,7 @@
       <label id="vr-flnl" style="display:none">Heiti nýs flokks<input id="vr-fln" placeholder="T.d. Rigging"></label>
       <div class="two"><label>Vörunúmer<input id="vr-nr" value="${esc(x.nr || "")}" placeholder="Sjálfvirkt" autocomplete="off"></label><label>Eining<select id="vr-ein">${opts(["stk.", "klst.", "dagur", "ferð", "km", "sett", "m", "m²"].map(e => [e, e]), x.eining || "stk.")}</select></label></div>
       <label>Vörunúmer framleiðanda<input id="vr-fnr" value="${esc(x.fnr || "")}" placeholder="T.d. ACEG1R21BLK – notað við innkaup" autocomplete="off"></label>
+      <div class="two" id="vr-innfl"><label>Þyngd á stk. (kg)<input id="vr-kg" inputmode="decimal" value="${+x.kg ? esc(String(x.kg).replace(".", ",")) : ""}" placeholder="Fyrir flutning"></label><label>Tollskrárnúmer<input id="vr-tnr" value="${esc(x.tollnr || "")}" placeholder="T.d. 8518.2200"></label></div>
       <label>Strikamerki (EAN)<span style="display:flex;gap:6px"><input id="vr-sm" value="${esc(x.strikamerki || "")}" placeholder="Af umbúðum – fleiri en eitt með kommu" inputmode="numeric" autocomplete="off" style="flex:1">${window.qrScanCode && window.qrIsOn?.() ? `<button type="button" class="btn" id="vr-smscan" aria-label="Skanna strikamerki">Skanna</button>` : ""}</span></label>
       <div class="two"><label>Leiguverð á dag (kr.)<input id="vr-lv" inputmode="numeric" value="${+x.leiguverd ? esc(String(x.leiguverd)) : ""}"></label><label>Söluverð (kr.)<input id="vr-sv" inputmode="numeric" value="${+x.soluverd ? esc(String(x.soluverd)) : ""}"></label></div>
       <div class="two"><label>Fjöldi til<input id="vr-fj" inputmode="numeric" value="${+x.fjoldi ? esc(String(x.fjoldi)) : ""}"></label>${ADM() ? `<label>Innkaupsverð (kr.)<input id="vr-iv" inputmode="numeric" value="${+x.innkaupsverd ? esc(String(x.innkaupsverd)) : ""}"></label>` : "<span></span>"}</div>
@@ -282,6 +283,7 @@
       if (document.getElementById("vr-iv")) o.innkaupsverd = parseKr(val("vr-iv")) || 0;
       if (smL) o.strikamerki = smL.join(", ") || null;
       if (!["vinna", "pakki"].includes(teg)) o.fnr = val("vr-fnr").trim() || null;   // 2.107.0: vörunúmer framleiðanda
+      if (document.getElementById("vr-innfl")?.style.display !== "none" && D === "sala") { o.kg = parseFloat(String(val("vr-kg")).replace(",", ".")) || null; o.tollnr = val("vr-tnr").trim() || null; }   // 2.109.0
       if (D === "leiga" && teg !== "vinna" && !o.leiguverd) return msg("Skráðu leiguverð á dag.", "err");
       if ((D === "sala" || teg === "vinna") && !o.soluverd) return msg("Skráðu verð.", "err");
       const nid = id || gid(), fk = D === "sala" ? "flokkarS" : "flokkarL";
@@ -886,7 +888,7 @@
   }
   const mkPontun = (T, id, nr) => ({ starfsmenn: (T.starfsmenn || []).slice(), postConv: T.postConv || null, postBox: T.postBox || null, id, pontun: true, nr, deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
     uppruni: "tilbod", ytriNr: null, stadsetning: T.stadsetning || null, fra: T.fra || null, til: T.til || T.fra || null, dags: isoDay(new Date()), stada: "Staðfest", afsl: +T.afsl || 0, athugasemd: null,
-    linur: (T.linur || []).map(l => ({ ...l, id: gid() })), verkefniId: T.verkefniId || null, tilbodId: T.id });
+    linur: (T.linur || []).map(l => ({ ...l, id: gid() })), verkefniId: T.verkefniId || null, tilbodId: T.id, ...(T.ink ? { ink: structuredClone(T.ink) } : {}) });   // ink (2.109.0): innkaup frá birgjum fylgja pöntuninni
   const mkVerk = (T, id, nr) => { const st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
     return { id, nr, stutt: T.heiti, nafn: nr + " " + T.heiti, stada: st, vidskiptavinur: T.vidskiptavinur || null, verkkaupi: null, vskId: T.vskId || null, vkId: null,
       thjonusta: vflOf(T), timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: klstOf(T), ...(vinnaEin(T) ? { innheimta: "timar" } : {}), tilbod: isP(T) ? null : totals(T).net, tilbodId: isP(T) ? null : T.id, ...(isP(T) ? { pontunId: T.id } : {}), deild: isMix(T) ? null : tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
