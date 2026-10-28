@@ -128,7 +128,7 @@
     const k = keyOf(p);
     if (!k) {
       const pending = (S?.odBidrod || []).some(b => b.verkefniId === p.id);
-      return head() + `<div class="empty">${pending ? "Verið er að stofna möppu fyrir verkefnið í " + ODN() + "…" : noFolder(p) ? "Almenn verkefni fá ekki eigin möppu í " + ODN() + ". Fundargerðir og kvittanir þeirra fara í Óflokkað." : `Engin mappa fannst fyrir ${esc(p.nafn)} undir ${esc(ORG.od.verkefni)}.`}${pending ? "" : `<br><button type="button" class="btn primary" style="margin-top:10px" data-act="msmk:${esc(p.id)}">Stofna möppu með 01–08</button>`}</div>`;
+      return head() + `<div class="empty">${pending ? (window.__mappaVilla ? "Ekki tókst að stofna möppu í " + ODN() + ": " + esc(window.__mappaVilla) : "Verið er að stofna möppu fyrir verkefnið í " + ODN() + "…") : noFolder(p) ? "Almenn verkefni fá ekki eigin möppu í " + ODN() + ". Fundargerðir og kvittanir þeirra fara í Óflokkað." : `Engin mappa fannst fyrir ${esc(p.nafn)} undir ${esc(ORG.od.verkefni)}.`}<br><button type="button" class="btn${pending ? "" : " primary"}" style="margin-top:10px" data-act="msmk:${esc(p.id)}">${pending ? "Stofna núna" : STD.length ? "Stofna möppu með " + esc(STD[0].slice(0, 2)) + "–" + esc(STD[STD.length - 1].slice(0, 2)) : "Stofna möppu"}</button></div>`;   // 2.114.3: hnappur líka ef biðröðin stendur föst
     }
     const tr = TREE[k];
     const extra = `<a class="plink" data-act="msref:${esc(k)}">↻ Uppfæra</a><a class="plink" ${odLink({ ...VK[k], folder: {} }, ORG.od.verkefni + "/" + (VK[k].name || k))}>Opna möppu</a>`;
@@ -346,7 +346,7 @@
           const p = findProj(b.verkefniId), it = await mkProj(p?.nafn || b.nafn);
           await saveSnapshot(s => { s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== b.verkefniId); const q = sFindP(s, b.verkefniId); if (q && !q.mappa) q.mappa = it.webUrl; });
           VK = null;
-        } catch (e) { console.warn("Mappa", e); break; }
+        } catch (e) { console.warn("Mappa", e); window.__mappaVilla = (e && (e.message || e.code)) || String(e); break; }   // 2.114.3: villan sýnd á verkefninu
       }
       if ((!window.ON || ON("postur")) && Date.now() - lastMail > 5 * 60 * 1000) await postar(false).catch(e => console.warn("Póstar", e));
     } finally { ticking = false; }
@@ -376,7 +376,7 @@
     if (!isOn()) { toast("Tengdu Microsoft fyrst (Stillingar)."); return; }
     if (k === "msprev") { preview(r.join(":")); return; }
     if (k === "msref") { const key = r.join(":"); VKerr = null; if (key && TREE[key]) delete TREE[key]; else VK = null; render(); return; }
-    if (k === "msmk") { const p = findProj(r[0]); if (!p) return; if (!company()) return toast("Möppur verkefna eru stofnaðar af admin þar til SharePoint-síða fyrirtækisins er komin."); toast("Stofna möppu…"); mkProj(p.nafn).then(it => saveSnapshot(s => { const q = sFindP(s, p.id); if (q && !q.mappa) q.mappa = it.webUrl; s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== p.id); })).then(() => { VK = null; toast("Mappa stofnuð"); render(); }).catch(e => toast(e.message)); return; }
+    if (k === "msmk") { const p = findProj(r[0]); if (!p) return; if (!company()) return toast("Möppur verkefna eru stofnaðar af admin þar til SharePoint-síða fyrirtækisins er komin."); toast("Stofna möppu…"); mkProj(p.nafn).then(it => saveSnapshot(s => { const q = sFindP(s, p.id); if (q && !q.mappa) q.mappa = it.webUrl; s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== p.id); })).then(() => { VK = null; window.__mappaVilla = null; toast("Mappa stofnuð"); render(); }).catch(e => toast(e.message)); return; }
     if (k === "msfg") { toast("Bý til fundargerð…"); msFundargerd(r[0]); return; }
     if (k === "msmail") { postar(true).catch(e => toast(e.message)); return; }
     if (k === "mstick") { lastMail = Date.now(); msTick().then(() => toast("Möppur stofnaðar")); return; }

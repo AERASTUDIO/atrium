@@ -889,6 +889,8 @@
   const mkPontun = (T, id, nr) => ({ starfsmenn: (T.starfsmenn || []).slice(), postConv: T.postConv || null, postBox: T.postBox || null, id, pontun: true, nr, deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
     uppruni: "tilbod", ytriNr: null, stadsetning: T.stadsetning || null, fra: T.fra || null, til: T.til || T.fra || null, dags: isoDay(new Date()), stada: "Staðfest", afsl: +T.afsl || 0, athugasemd: null,
     linur: (T.linur || []).map(l => ({ ...l, id: gid() })), verkefniId: T.verkefniId || null, tilbodId: T.id, ...(T.ink ? { ink: structuredClone(T.ink) } : {}) });   // ink (2.109.0): innkaup frá birgjum fylgja pöntuninni
+  // 2.114.3: verkefni úr tilboði/pöntun fara líka í biðröð möppustofnunar (eins og verkefni úr forminu) – SharePoint-mappa verður til
+  const mappaBid = (s, V) => { (s.odBidrod = s.odBidrod || []).push({ verkefniId: V.id, nafn: V.nafn || V.stutt || V.nr, stofnad: new Date().toISOString() }); };
   const mkVerk = (T, id, nr) => { const st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
     return { id, nr, stutt: T.heiti, nafn: nr + " " + T.heiti, stada: st, vidskiptavinur: T.vidskiptavinur || null, verkkaupi: null, vskId: T.vskId || null, vkId: null,
       thjonusta: vflOf(T), timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: klstOf(T), ...(vinnaEin(T) ? { innheimta: "timar" } : {}), tilbod: isP(T) ? null : totals(T).net, tilbodId: isP(T) ? null : T.id, ...(isP(T) ? { pontunId: T.id } : {}), deild: isMix(T) ? null : tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
@@ -942,7 +944,7 @@
           q.stada = "Samþykkt"; q.samthykkt = { dags: new Date().toISOString(), af: ME(), ...(V ? { vidsk: { nafn: V.nafn || null, dags: V.dags || null, utgafa: V.utgafa || null, athugasemd: V.athugasemd || null } } : {}) };
           if (V) delete q.bidur;
           lagerSync(q, s);
-          if (wV) { (s.verkefni = s.verkefni || []).push(mkVerk(q, vid, vnr)); q.verkefniId = vid; }
+          if (wV) { const V = mkVerk(q, vid, vnr); (s.verkefni = s.verkefni || []).push(V); q.verkefniId = vid; mappaBid(s, V); }
           if (wP) { (s.pantanir = s.pantanir || []).push(mkPontun(q, pid, "P-" + nP)); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), nastaNrP: nP + 1 }; } });
         closeSheet();
         toast(["Tilboð " + T.nr + " samþykkt", wP ? "pöntun P-" + nP : "", wV ? "verkefni " + vnr : ""].filter(Boolean).join(" · "));
@@ -1121,7 +1123,7 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
     if (k === "tbpubx") { const T = findT(a); if (!T?.opinber || !confirm("Loka samþykktartenglinum? Hann hættir að virka.")) return; tbUnlink(T).then(() => { toast("Tengli lokað"); render(); }); return; }
     if (k === "tbverk") { const T = findT(a); if (!T || T.verkefniId) return; if (!confirm(`Stofna verkefni úr ${isP(T) ? "pöntun" : "tilboði"} ${T.nr}?\n\n„${T.heiti}“ fyrir ${T.vidskiptavinur || T.tengilidur || "–"}, ${krs(totals(T).net)} án VSK.`)) return;
       const id = gid(), nr = nextProjNr();
-      saveSnapshot(s => { (s.verkefni = s.verkefni || []).push(mkVerk(T, id, nr));
+      saveSnapshot(s => { const V = mkVerk(T, id, nr); (s.verkefni = s.verkefni || []).push(V); mappaBid(s, V);
         const q = (s.tilbod || []).find(x => x.id === a) || (s.pantanir || []).find(x => x.id === a); if (q) q.verkefniId = id; })
         .then(() => { toast(`Verkefni ${nr} stofnað`); openDetail("verk:" + id); }).catch(e => toast(errText(e))); return; }
     if (k === "tbcfg") { const g = x => (document.getElementById(x)?.value ?? null), gt = x => (g(x) || "").trim(), c = CF(), o = { vsk: n0(gt("ts-vsk")), gildisdagar: Math.round(n0(gt("ts-gd"))) || 14 };
