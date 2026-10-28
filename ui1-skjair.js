@@ -29,8 +29,8 @@
     const out = new Set(), api = window.salaAPI;
     if (p.deild === "leiga") out.add("Leiga"); if (p.deild === "sala") out.add("Sala");
     if (api) api.TB().filter(T => T.verkefniId === p.id).forEach(T => (T.linur || []).forEach(l => out.add(l.teg === "leiga" ? "Leiga" : l.teg === "sala" ? "Sala" : "Þjónusta")));
-    if (!out.size) out.add("Þjónusta");
-    return [...out];
+    const on = [...out].filter(x => !window.svidOn || svidOn(x));   // 2.113.1: aðeins virk svið (Core: bara Þjónusta)
+    return on.length ? on : ["Þjónusta"];
   };
 
   /* ---------- Tímar › Vikan ---------- */
@@ -272,7 +272,7 @@
     xs.forEach(v => { const g = v.flokkur || "Annað"; if (g !== last) { h += grpH(g); last = g; }
       if (WIDE()) { h += wrow(tapAttr("vara", v.id), [wc(E(v.nr || "")), wc(E(v.heiti || ""), "t"), wc(E(v.flokkur || "")), wc(E(v.lysing || "")), wc(E(v.eining || "")), wc(pill(kr(v.soluverd || v.leiguverd)), "r")]); return; }
       h += `<div class="urow uv3" ${tapAttr("vara", v.id)}><span class="m">${E(v.nr || "")}</span><span class="t">${E(v.heiti || "")}${v.flokkur ? `<span class="m"> · ${E(v.flokkur)}</span>` : ""}</span><span class="m">${E(v.eining || "")}</span><span class="r">${pill(kr(v.soluverd || v.leiguverd))}</span></div>`; });
-    const top = lhead("Vörulisti", "Þjónusta", nbtn("Þjónusta")) + `<div class="ulbar">${chips([["", "Allar · " + all.length], ...fl.map(x => [x, x])], f, "u1vf:vvinna")}</div>`;
+    const top = lhead(!ON("leiga") && !ON("sala") ? "Þjónustuliðir tilboða" : "Vörulisti", "Þjónusta", nbtn("Þjónusta")) + `<div class="ulbar">${chips([["", "Allar · " + all.length], ...fl.map(x => [x, x])], f, "u1vf:vvinna")}</div>`;
     if (WIDE()) return top + wl("84px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.5fr) 90px 110px", wcols(["Vnr.", "Heiti", "Flokkur", "Lýsing", "Eining", "Verð"]) + (h || `<div class="uempty">Engin þjónusta skráð.</div>`));
     return top
       + `<div class="ucols uv3"><span>Vnr.</span><span>Heiti · Flokkur</span><span>Eining</span><span class="r">Verð</span></div>` + (h || `<div class="uempty">Engin þjónusta skráð.</div>`);
@@ -825,7 +825,7 @@
   const kp4 = arr => `<div class="ukps k4">${arr.map(([l, v, a]) => a ? `<div class="ukp tap" data-act="u1kpf:${a}" role="button" tabindex="0" title="Sýna lista"><small>${E(l)}</small><b>${v}</b></div>` : `<div class="ukp"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`;
   const dcard = (title, rows, more, empty) => `<section class="card ucard uhc"><div class="uhch"><h3>${E(title)}</h3>${more ? `<a href="#" data-act="tab:${more}">Sjá allt →</a>` : ""}</div>${rows.length ? rows.slice(0, 6).join("") : `<div class="usub" style="padding:10px 0">${E(empty || "Ekkert hér.")}</div>`}</section>`;
   const drow = (attr, a, b, pl, dark) => `<a class="uhrow" ${attr}><span><b>${a}</b><small>${b || ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
-  const svCards = (items, tabs, lab) => { const on = SV.filter(x => svidOn(x)); return `<div class="usvc n${on.length}">${on.map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`; };   // 2.104.4: n1/n2 – færri svið fylla breiddina
+  const svCards = (items, tabs, lab) => { const on = SV.filter(x => svidOn(x)); if (on.length < 2 && !ON("leiga") && !ON("sala")) return ""; /* 2.113.1: Core – eitt svið, engin sundurliðun */ return `<div class="usvc n${on.length}">${on.map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`; };   // 2.104.4: n1/n2 – færri svið fylla breiddina
   const tbSum = T => window.salaAPI.netOf(T); // án VSK, eftir afslátt á línum og skjali
   // Svið: tegund línanna + svið sem bætt hefur verið við pöntun (P.svid, 2.56.2)
   const hasTeg = (T, x) => (T.linur || []).some(l => l.teg === SVT[x]) || (!!T.pontun && (T.svid || []).includes(x));

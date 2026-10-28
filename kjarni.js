@@ -104,7 +104,7 @@
   // Hvaða eining hver flipi tilheyrir (flipar án línu eru alltaf sýndir)
   window.TAB_EIN = { undir: "undirverk", vsk: "vidskiptavinir", dagatal: "dagatal", fundir: "fundir", timar: "timar", tfaer: "timar", tskyr: "timar",
     trk: "reikningar", skjolmin: "onedrive", skjol: "skjol", skjolnyl: "onedrive", postur: "postur", spjall: "spjall", lverk: "deildir", sverk: "deildir", lvsk: ["deildir", "vidskiptavinir"], svsk: ["deildir", "vidskiptavinir"], ltilbod: "leiga", lvorur: "leiga", stilbod: "sala", svorur: "sala" };
-  window.tabOn = t => !window.TAB_EIN[t] || [].concat(window.TAB_EIN[t]).every(k => ON(k)); // gildi má vera fylki (allar einingar þurfa að vera virkar)
+  window.tabOn = t => { const v = window.TAB_EIN[t]; return !v || (typeof v === "function" ? !!v() : [].concat(v).every(k => ON(k))); }; // 2.113.1: gildi má líka vera fall // gildi má vera fylki (allar einingar þurfa að vera virkar)
   // Tegundir í „+ Nýtt“
   window.KIND_EIN = { tima: "timar", kostn: "kostnadur", fund: "fundir", undir: "undirverk", verk: "verkefni", vsk: "vidskiptavinir", skjal: "skjol" };
   window.kindOn = k => !window.KIND_EIN[k] || ON(window.KIND_EIN[k]);

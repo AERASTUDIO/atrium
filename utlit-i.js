@@ -13,6 +13,8 @@
   const H = by("heim"), V = by("verkefni"), T = by("tilbod"), B = by("bunadur"), P = by("pantanir"), TI = by("timar");
   if (H) H.tabs = [["yfirlit", "Yfirlit"], ["hfrag", "Óklárað"], ["hfram", "Framundan"], ["hnyl", "Tilkynningar"]];
   if (V) V.tabs = V.tabs.map(t => t[0] === "verk" ? ["verk", "Öll verkefni"] : t[0] === "lverk" ? ["lverk", "Leiga"] : t[0] === "sverk" ? ["sverk", "Sala"] : t[0] === "undir" ? ["undir", "Undirverk", 1] : t);
+  // 2.113.1: án leigu og sölu (t.d. leiðin Core) heitir hlutinn Þjónusta – hann geymir aðeins þjónustuliði tilboða
+  if (B) { const l0 = B.l; Object.defineProperty(B, "l", { configurable: true, get: () => (typeof ON === "function" && !ON("leiga") && !ON("sala")) ? "Þjónusta" : l0 }); }
   if (T && B) {
     const vv = T.tabs.find(t => t[0] === "vvinna");
     T.tabs = T.tabs.filter(t => t[0] !== "vvinna").map(t => t[0] === "ltilbod" ? ["ltilbod", "Tilboð"] : t);
@@ -23,7 +25,7 @@
   if (P) P.tabs = [["pantanir", "Allar"], ["pnl", "Leiga"], ["pns", "Sala"], ["pnt", "Þjónusta"]];
   if (T) { const i = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i >= 0) T.tabs.splice(i, 1, ["ltilbod", "Tilboð"], ["tbl", "Leiga", 2], ["tbs", "Sala", 2], ["tbt", "Þjónusta", 2]); }
   if (B) B.tabs.unshift(["vyfir", "Yfirlit"]);
-  Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { tbl: ["tilbod", "leiga"], tbs: ["tilbod", "sala"], tbt: "tilbod", vyfir: "bunadur", tverk: "verkefni", pnl: ["pantanir", "leiga"], pns: ["pantanir", "sala"], pnt: "pantanir" });
+  Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { tbl: ["tilbod", "leiga"], tbs: ["tilbod", "sala"], tbt: "tilbod", vyfir: () => ON("bunadur") && (ON("leiga") || ON("sala")), tverk: "verkefni",   /* 2.113.1: Core – Vörulisti er aðeins Þjónusta, ekkert yfirlit leigu/sölu */ pnl: ["pantanir", "leiga"], pns: ["pantanir", "sala"], pnt: "pantanir" });
   if (TI) TI.tabs = TI.tabs.map(t => t[0] === "timar" ? ["timar", "Vikan"] : t);
   // Viðskiptavinir eigin hluti í Kjarna (ekki undir Verkefnum)
   let C = by("vidsk");
