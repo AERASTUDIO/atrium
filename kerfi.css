@@ -1031,3 +1031,11 @@ body.qropen.qropen.qropen .toast{bottom:auto!important;top:calc(16px + env(safe-
 /* 2.104.4: svið-reitir fylla breiddina þegar sviðin eru færri en þrjú */
 html body #view .usvc.n2{grid-template-columns:repeat(2,minmax(0,1fr))}
 html body #view .usvc.n1{grid-template-columns:minmax(0,1fr)}
+/* 2.113.3: það sem reyndist best hjá Sonik, nú í öllum uppsetningum (í lit hverrar uppsetningar – --kacc):
+   litaður bakgrunnur á stöðumerkjum, tákn lykiltalna og fjöldamerki í áherslulit, merki á virkum flipa í stiku,
+   mjúk skipti yfir á dökkan upphafsskjá (ekkert hvítt flass). :where() heldur reglunum veikum svo <m>/utlit.css (Sonik, party.is) ræður sínum litum. */
+:where(body.kerfi) :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t-blu,.t-grn){background:color-mix(in srgb,currentColor 16%,transparent)!important;font-weight:600}
+:where(body.kerfi #view) .ukp :is(svg,i){color:var(--kacc,var(--hi))}
+:where(body.kerfi #view) .uhch h3 .ucnt{background:var(--kacc,var(--hi));color:var(--on-kacc,#fff)}
+:where(body.kerfi) .side :is(.tab[aria-current="page"],.tab.on){box-shadow:inset 3px 0 0 var(--kacc,var(--hi))}
+@media (prefers-reduced-motion: no-preference){ :where(.ustart.ustdark){animation:ustInA .6s ease both} @keyframes ustInA{from{background:var(--bg)}to{background:#121416}} :where(.ustart.ustdark .ustpair){animation:aIn .6s ease .15s both} }
