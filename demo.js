@@ -210,6 +210,10 @@ const store = { "app/state": sampleState(), "app/notendur": notendur };
 // Vörulisti og tilboð (sala.js): sýnigögn þegar einingarnar eru virkar í uppsetningunni (t.d. Sonik)
 if (window.salaPrufa && window.ON && (ON("leiga") || ON("sala"))) { const st = store["app/state"], p = salaPrufa(st.vidskiptavinir); st.vorur = p.vorur; st.tilbod = p.tilbod; if (p.pantanir?.length) st.pantanir = p.pantanir;
   if (window.ORG?.utlit === "I") { [...st.vorur, ...st.tilbod, ...(st.pantanir || [])].forEach(x => { delete x.prufa; }); const L = { "L-0901": "p3", "L-0902": "p8", "S-0901": "p7", "S-0902": "p10", "L-0884": "p11", "T-0815": "p12" }; st.tilbod.forEach(t => { if (L[t.nr]) t.verkefniId = L[t.nr]; }); } }
+// Core (2.113.2): engin leiga eða sala – sýnigögn eru þá aðeins þjónustuliðir og þjónustutilboð (línur af tegundinni vinna)
+else if (window.salaPrufa && window.ON && ON("tilbod")) { const st = store["app/state"], p = salaPrufa(st.vidskiptavinir);
+  st.vorur = p.vorur.filter(v => v.tegund === "vinna"); st.tilbod = p.tilbod.map(t => ({ ...t, deild: "blandad", linur: (t.linur || []).filter(l => l.teg === "vinna") })).filter(t => t.linur.length);
+  [...st.vorur, ...st.tilbod].forEach(x => { delete x.prufa; }); const L = { "L-0901": "p3", "L-0902": "p8", "S-0901": "p7", "S-0902": "p10", "L-0884": "p11", "T-0815": "p12" }; st.tilbod.forEach(t => { if (L[t.nr]) t.verkefniId = L[t.nr]; }); }
 // Spjall í sýniútgáfu
 [["s1", "almennt", [], "gunnar@demo.example", "Gunnar Gunnarsson", "Er einhver með gögnin frá síðasta fundi?", -1],
  ["s2", "almennt", [], "jona@demo.example", "Jóna Jónsdóttir", "Þau eru í möppu verkefnisins 👍", -1],

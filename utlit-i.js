@@ -59,6 +59,8 @@
   if (T) { const i0 = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i0 > 0) T.tabs.unshift(T.tabs.splice(i0, 1)[0]); T.tabs.push(["tbyf", "Yfirlit", 1]); } // 2.70.0: Tilboð ein síða – yfirlitið efst í listanum
   if (TI) TI.tabs.unshift(["timyf", "Yfirlit"]);
   Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: "verkefni", tbyf: "tilbod", timyf: "timar" });
+  // 2.113.2: Core (hvorki leiga né sala) – sviðsflipar og sviðsflögur (Þjónusta) falla út; listinn sjálfur er þá „allt“
+  { const fl = (...k) => () => k.every(x => ON(x)) && (ON("leiga") || ON("sala")); Object.assign(window.TAB_EIN, { tverk: fl("verkefni"), tbt: fl("tilbod"), vskt: fl("vidskiptavinir"), pnt: fl("pantanir") }); }
   _einSig = null; applyEin();
   // Merki fyrirtækis í dökku stikunni: dökka útgáfan (ljóst merki) óháð þema
   const coSide = () => { const l = ORG.merki || ORG.logo || {}, src = l.dokk || l.ljos; const i = document.querySelector(".side .colog"); if (i && src && i.getAttribute("src") !== src) i.src = src; };
@@ -247,7 +249,7 @@
       const ss = el.querySelector('select[aria-label="Staða verkefnis"]'); if (ss) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(ss); act.append(w); ss.closest(".fsels")?.remove(); }
       [...el.querySelectorAll(".viewtitle")].find(x => x.textContent.trim() === "Staða verkefnis")?.remove();
       const p = findProj(id);
-      if (p && window.svidOf) { const sv = svidOf(p), vf = sv.includes("Þjónusta") ? (p.thjonusta || []) : []; hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${sv.length > 1 && i === 0 ? "★ " : ""}${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}${vf.length ? `<span class="usvf">Verkflokkur ${vf.map(x => `<span class="upill">${esc(x)}</span>`).join("")}</span>` : ""}</div>`); }
+      if (p && window.svidOf && (ON("leiga") || ON("sala"))) { const sv = svidOf(p), vf = sv.includes("Þjónusta") ? (p.thjonusta || []) : []; hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${sv.length > 1 && i === 0 ? "★ " : ""}${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}${vf.length ? `<span class="usvf">Verkflokkur ${vf.map(x => `<span class="upill">${esc(x)}</span>`).join("")}</span>` : ""}</div>`); }
       if (DTAB === "fundir" && p) { const th = (S?.thraedir || []).filter(t => t.verkefniId === p.id), po = (S?.postar || []).filter(t => t.verkefniId === p.id);
         const body = el.querySelector(".dbody"); if (body) body.insertAdjacentHTML("afterbegin", `<div class="viewtitle" style="margin-top:14px">Póstar · ${th.length + po.length}</div>` + ([...th.map(t => `<a class="ucpr" href="#" data-act="tab:postur"><span><b>✉ ${esc(t.efni || "Póstþráður")}</b><small>tengt ${esc(String(t.tengt || "").slice(0, 10).split("-").reverse().join("."))}${t.af ? " · " + esc(t.af) : ""}</small></span><span class="upill">Póstur</span></a>`), ...po.map(t => `<div class="ucpr"><span><b>✉ ${esc(t.efni || "")}</b><small>${esc(t.fra || "")} · ${esc(String(t.dags || "").slice(0, 10).split("-").reverse().join("."))}</small></span><span class="upill">Eldri póstur</span></div>`)].join("") || `<div class="usub" style="padding:6px 0">Engir póstar tengdir verkefninu. Tengdu póst úr Pósti.</div>`) + `<div class="viewtitle">Fundir</div>`); }
       if ((!DTAB || DTAB === "yfirlit") && p && window.u1VerkYfir) { const kp = el.querySelector(".dbody > .kpis"); if (kp) { const ub = [...kp.children].find(c => /óreikn/i.test(c.textContent)); const v = ub ? (ub.querySelector("b,strong,.n,.kv") || ub.firstElementChild)?.textContent.trim() : ""; kp.outerHTML = u1VerkYfir(p.id, v); } }
@@ -271,6 +273,7 @@
         if (c) { hd.querySelector(".spsup").textContent = "Viðskiptavinur" + (c.kennitala ? " · kt. " + c.kennitala : ""); const us = hd.querySelector(".usub"); if (us) { const ad = [c.heimilisfang, [c.postnumer, c.stadur].filter(Boolean).join(" ")].filter(Boolean).join(", "); us.innerHTML = [ad && window.mapLink ? mapLink(ad) : esc(ad), esc(c.netfang || "")].filter(Boolean).join(" · "); } }
         const ed = el.querySelector('[data-act^="edit:vsk:"]'), nv = [...el.querySelectorAll("button")].find(b => /\+ Verkefni/.test(b.textContent));
         if (ed) act.append(ed); if (nv) { nv.classList.add("primary"); act.append(nv); }
+        { const dl = el.querySelector('[data-act^="del:vsk:"]'); if (dl && MCP) { act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div></div></details>`); dl.className = ""; dl.textContent = "Eyða"; act.querySelector(".umore:last-child>div").append(dl); } }   // 2.113.2: Eyða viðskiptavini týndist
         const kp = el.querySelector(".kpis"), body = el.querySelector(".dbody") || kp?.parentElement;
         if (kp) { const wrap = document.createElement("div"); wrap.className = "uorig"; let n = kp.nextElementSibling; while (n) { const nx = n.nextElementSibling; wrap.append(n); n = nx; }
           kp.insertAdjacentHTML("afterend", r.tabs + (r.body !== null ? `<div class="uvy">${r.body}</div>` : ""));
@@ -289,7 +292,8 @@
         // Pöntun (2.56.1): sviðið er valið beint (P.svid) – smellt á Leiga · Sala · Þjónusta; án vals ræður tegund línanna eins og áður
         // 2.56.2: svið úr línum eru alltaf á (læst); valið (T.svid) bætir aðeins við sviðum sem engin lína gefur
         const sv = T.pontun ? [...new Set([...svL, ...(T.svid || [])])].sort((a, b) => ["Leiga", "Sala", "Þjónusta"].indexOf(a) - ["Leiga", "Sala", "Þjónusta"].indexOf(b)) : svL, canSv = T.pontun && (() => { try { return !!MCP; } catch (e) { return false; } })();
-        if (canSv) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${["Leiga", "Sala", "Þjónusta"].map(x => { const lk = svL.includes(x), o = sv.includes(x);
+        if (!ON("leiga") && !ON("sala")) {} // 2.113.2: Core – ekkert svið að sýna
+        else if (canSv) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${["Leiga", "Sala", "Þjónusta"].map(x => { const lk = svL.includes(x), o = sv.includes(x);
           return `<button type="button" class="upill svtog${o ? " dark on" : ""}${lk ? " lock" : ""}" ${lk ? "disabled" : `data-pnsvid="${esc(T.id)}:${x}"`} aria-pressed="${o}" title="${lk ? "Kemur úr línum pöntunarinnar" : o ? "Taka af sviðinu" : "Bæta pöntuninni á sviðið"}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</button>`; }).join("")}</div>`);
         else if (sv.length) hd.insertAdjacentHTML("beforeend", `<div class="usvid">Svið ${sv.map((x, i) => `<span class="upill${i === 0 ? " dark" : ""}">${esc(window.svidHeiti ? svidHeiti(x) : x)}</span>`).join("")}</div>`);
         const tt = api.totals(T) || {}, isP = !!T.pontun;

@@ -138,7 +138,7 @@
   const autoOn = () => RK().sjalfvirkt !== false && !!(window.ON && ON("pantanir"));
   window.rkAutoOn = autoOn;
   const pnDone = P => P.stada === "Skilað" || P.stada === "Lokið" || (P.stada === "Afhent" && !!window.pnSkil && !pnSkil(P));
-  const autoWant = (P, fra) => P && P.pontun !== false && (P.linur || []).length && P.stada !== "Hafnað" && String(P.dags || P.fra || "") >= fra
+  const autoWant = (P, fra) => P && !P.rkEytt && P.pontun !== false && (P.linur || []).length && P.stada !== "Hafnað" && String(P.dags || P.fra || "") >= fra
     && (pnStadg(P) || (!P.greitt && hattur(P) === "reikningur" && !!P.vskId && AUTO_ST.includes(P.stada)));
   const mkAuto = (P, nr, rk) => { const c = P.vskId ? findVsk(P.vskId) : null, L = orderLines([P]), vskP = +rk.vsk || 0, sl = { ...rk }, d0 = isoDay(new Date());
     ["nastaNr", "timagjald", "sjalfvirkt", "sjalfFra", "dkSjalf", "flokkar", "dk", "bokhald"].forEach(k => delete sl[k]);
@@ -563,8 +563,7 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
         .then(() => toast("Ógilt – tímar, kostnaður og pantanir aftur óreikningsfærð")); return; }
     if (k === "rkdel" && window.can && !can("eyda")) return toast("Aðeins admin getur eytt reikningum.");
     if (k === "rkdel") { const R = findR(id); if (!R || !confirm(`Eyða reikningi nr. ${R.nr}?\n\nTímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.pdfUrl ? "\nPDF-skjalið í OneDrive eyðist ekki." : ""}`)) return;
-      saveSnapshot(s => { s.reikningar = (s.reikningar || []).filter(x => x.id !== id); const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (e.reikningur === id) delete e.reikningur; }); (s.kostnadur || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); })
-        .then(() => { toast("Reikningi eytt"); goBack(); }); return; }
+      rkDelMany([id]).then(() => { toast("Reikningi eytt"); goBack(); }); return; }
     if (k === "rkcfg") { const g = x => (document.getElementById("rk-" + x)?.value || "").trim(), n = x => parseFloat(g(x).replace(",", ".")) || 0;
       const o = { nafn: g("nafn"), kt: g("kt"), vsknr: g("vsknr"), heimilisfang: g("heimilisfang"), netfang: g("netfang"), simi: g("simi"), banki: g("banki"), timagjald: parseKr(g("timagjald")), vsk: n("vsk"), frestur: Math.round(n("frestur")) || 14, nastaNr: Math.round(n("nastaNr")) || 1001, bokhald: g("bokhald") || null,
         flokkar: Object.fromEntries(FLOKKAR.map(([k]) => [k, { vsk: g("f-" + k + "-vsk"), lykill: g("f-" + k + "-lykill") }])) };
@@ -573,4 +572,10 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
       saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o }; }).then(() => { toast("Upplýsingar um seljanda vistaðar"); render(); }); return; }
   };
   window.rkPdfBytes = invoicePdf;
+  // 2.113.2: eyða reikningum (einum eða mörgum, t.d. úr lista) – tímar, kostnaður og pantanir verða aftur óreikningsfærð.
+  // Pöntun sem missir sjálfvirk drög fær ekki ný sjálfkrafa (rkEytt) – „Búa til reikning“ er áfram í boði.
+  window.rkDelMany = ids => { const I = new Set(ids.map(String)); return saveSnapshot(s => { s.reikningar = (s.reikningar || []).filter(x => !I.has(String(x.id)));
+    const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (I.has(String(e.reikningur))) delete e.reikningur; });
+    (s.kostnadur || []).forEach(x => { if (I.has(String(x.reikningur))) delete x.reikningur; });
+    (s.pantanir || []).forEach(q => { if (I.has(String(q.reikningur))) { delete q.reikningur; q.rkEytt = true; } }); }); };
 })();

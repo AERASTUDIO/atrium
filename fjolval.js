@@ -2,13 +2,14 @@
    Gátreitur birtist vinstra megin í röðinni (við bendil, alltaf þegar eitthvað er valið), „velja allt“ í dálkahausnum.
    Aðgerðastika efst í listanum: N valin · Breyta stöðu · Eyða · Hætta. Aðeins í tölvu (breiðir listar). */
 (() => {
-  const TABS = { tb: ["ltilbod", "tbl", "tbs", "tbt", "pantanir", "pnl", "pns", "pnt"], verk: ["verk", "lverk", "sverk", "tverk"], vsk: ["vsk", "vskl", "vsks", "vskt"], vr: ["lvorur", "svorur"] };   // vr (2.95.1): vörulisti – eyða mörgum í einu
+  const TABS = { tb: ["ltilbod", "tbl", "tbs", "tbt", "pantanir", "pnl", "pns", "pnt"], verk: ["verk", "lverk", "sverk", "tverk"], vsk: ["vsk", "vskl", "vsks", "vskt"], vr: ["lvorur", "svorur", "vvinna"], rk: ["trk"] };   // 2.113.2: þjónustuliðir og reikningar líka   // vr (2.95.1): vörulisti – eyða mörgum í einu
   const kindOf = t => Object.keys(TABS).find(k => TABS[k].includes(t)) || null;
   let SEL = new Set(), selTab = "", last = null;
   const E = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const curTab = () => { try { return tab; } catch (e) { return ""; } };
   const canEd = () => { try { return !!MCP; } catch (e) { return false; } };
-  const rows = () => [...document.querySelectorAll("#view .splist .urow[data-open], #view .uwl .urow[data-open]")];
+  const rows = () => { const k = kindOf(curTab()), pre = { rk: /^reikn:/, vr: /^vara:/ }[k];   // 2.113.2: aðeins raðir sem eiga við (t.d. ekki óreikningsfærð verkefni í Reikningum)
+    return [...document.querySelectorAll("#view .splist .urow[data-open], #view .uwl .urow[data-open]")].filter(r => !pre || pre.test(r.getAttribute("data-open") || "")); };
   const idOf = r => { const o = r.getAttribute("data-open") || ""; return o.slice(o.indexOf(":") + 1); };
   const isPant = () => /^(pantanir|pn[lst])$/.test(curTab());
   const findT = id => (window.salaAPI ? [...salaAPI.TB(), ...salaAPI.PN()] : []).find(x => String(x.id) === String(id));
@@ -53,6 +54,10 @@
   }
   async function delAll(k, nafn) {
     const ids = [...SEL]; if (!ids.length) return; const n = ids.length;
+    if (k === "rk") { if (!window.rkDelMany) return; const rs = (S?.reikningar || []).filter(x => ids.includes(String(x.id))); if (!rs.length) { SEL.clear(); deco(); return; }
+      if (!confirm(rs.length === 1 ? `Eyða reikningi nr. ${rs[0].nr}?\n\nTímar, kostnaður og pantanir á honum verða aftur óreikningsfærð.` : `Eyða ${rs.length} reikningum?\n\nTímar, kostnaður og pantanir á þeim verða aftur óreikningsfærð.`)) { if (nafn) { SEL.clear(); deco(); } return; }
+      try { await rkDelMany(rs.map(r => r.id)); SEL.clear(); try { if (DETAIL && ids.includes(String(DETAIL).split(":")[1])) DETAIL = null; } catch (e) {} render(); toast(`${rs.length} ${rs.length === 1 ? "reikningi" : "reikningum"} eytt`); } catch (e) { toast(window.errText ? errText(e) : String(e)); }
+      return; }
     if (k === "vr") { if (!confirm(nafn ? `Eyða „${nafn}“ úr vörulistanum?\n\nTilboð og pantanir sem nota hana halda sínum línum.` : `Eyða ${n} ${n === 1 ? "vöru" : "vörum"} úr vörulistanum?\n\nTilboð og pantanir sem nota þær halda sínum línum.`)) { if (nafn) { SEL.clear(); deco(); } return; }
       const before = structuredClone(S);
       try { await saveSnapshot(s => { s.vorur = (s.vorur || []).filter(x => !ids.includes(String(x.id))); }); SEL.clear(); try { if (DETAIL && ids.includes(String(DETAIL).split(":")[1])) DETAIL = null; } catch (e) {} render();

@@ -150,12 +150,13 @@
   st.vf = { verk: "gangi", lverk: "gangi", sverk: "gangi" };
   const mineP = p => (p.starfsfolk || p.starfsmenn || []).some(x => (x.sk || x) === ME()) || (window.projStaff && projStaff(p).some(x => (x.sk || x) === ME()));
   function vlist(key, title, pf, vfl) {
+    if (!ON("leiga") && !ON("sala")) vfl = true;   // 2.113.2: Core – verkflokkur í stað sviðs
     const all = verkefni().filter(p => pf(p) && (!window.rlMatch || rlMatch(p))), f = st.vf[key] || "gangi", fv = vfl ? st.vf[key + "V"] || "" : "";
     const fls = vfl ? THJ().filter(t => all.some(p => (p.thjonusta || []).includes(t))) : [];
-    const xs = all.filter(p => SQ() || (!fv || (p.thjonusta || []).includes(fv)) && (f === "lokid" ? isDone(p) : !isDone(p) && (f !== "min" || mineP(p)))).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
+    const xs = all.filter(p => SQ() || (!fv || (p.thjonusta || []).includes(fv)) && (f === "lokid" ? isDone(p) : f === "skil7" ? !isDone(p) && p.skiladagur && daysTo(p.skiladagur) >= 0 && daysTo(p.skiladagur) <= 7 : f === "seint" ? !isDone(p) && p.skiladagur && p.skiladagur < isoD(today) : !isDone(p) && (f !== "min" || mineP(p)))).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
     const n = all.filter(p => !isDone(p)).length, nm = all.filter(p => !isDone(p) && mineP(p)).length;
     const flSel = fls.length ? `<label class="uflsel"><select onchange="doAct('u1vf:${key}V:'+this.value)" aria-label="Verkflokkur"><option value="">Allir verkflokkar</option>${fls.map(x => `<option${x === fv ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label>` : "";
-    const top = lhead("Verkefni", title, nbtn("Verkefni")) + `<div class="ulbar">${chips([["gangi", "Í gangi · " + n], ["min", "Mín · " + nm], ["lokid", "Lokið"]], f, "u1vf:" + key)}${flSel}</div>`;
+    const top = lhead("Verkefni", title, nbtn("Verkefni")) + `<div class="ulbar">${chips([["gangi", "Í gangi · " + n], ["min", "Mín · " + nm], ["skil7", "Skil næstu 7 daga"], ["seint", "Komið fram yfir"], ["lokid", "Lokið"]], f, "u1vf:" + key)}${flSel}</div>`;
     if (WIDE()) return top + wl("80px minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) 120px 130px 90px 110px", wcols(["Nr.", "Heiti", "Viðskiptavinur", vfl ? "Verkflokkur" : "Svið", "Starfsfólk", "Tímar", "Skil", "Staða"])
       + (xs.map(p => wrow(tapAttr("verk", p.id), [wc(E(p.nr)), wc((window.rlDot ? rlDot(p) : "") + E(p.stutt || p.nafn || ""), "t"), wc(E(p.vidskiptavinur || "")), wc(E(vfl ? (p.thjonusta || []).join(", ") : svidOf(p).join(", "))), wc(E((p.starfsmenn || []).map(x => x.sk || x).join(", "))), wc(E(H(+p.timar || 0) + (+p.aklst ? " / " + H(+p.aklst) : "") + " klst.")), wc(E(relD(p.skiladagur))), wc(pill(p.stada), "r")])).join("") || `<div class="uempty">Engin verkefni.</div>`));
     return top
@@ -610,7 +611,7 @@
       return dHead(sup, R.kaupandi?.name || "", sub, acts) + `<div class="uvb">${kp3([["Samtals með VSK", kr(R.tot)], ["Gjalddagi", R.stada === "Greitt" ? "greitt " + E(u1D.dIS(R.greitt)) : R.gjalddagi ? E(dateIS(d(R.gjalddagi))) + (n < 0 ? " · seint" : "") : "–"], ["Staða", E(R.stada || "")]])}`
         + `<div class="utb"><div class="utbr r4 h"><span>Lína</span><span>Magn</span><span>Verð</span><span>Upphæð</span></div>${rows}</div><div class="utbt"><span>Samtals án VSK</span><b>${kr(R.net)}</b></div>${(R.vskSund?.length ? R.vskSund : [{ p: R.vskP ?? 24, net: R.net, vsk: R.vsk }]).map((x, i, A) => `<div class="utbt"><span>VSK ${String(x.p).replace(".", ",")}%${A.length > 1 ? " af " + kr(x.net) : ""}</span><b>${kr(x.vsk)}</b></div>`).join("")}`
         + (window.can && can("fjarmal") && window.rkBkHTML ? rkBkHTML(R) : "")
-        + (MCP && !og ? `<div class="ubot">${drog && window.can && can("fjarmal") && !(R.bokhald?.stada === "sent") ? `<button type="button" class="btn${S?.stillingar?.reikn?.bokhald === "dk" ? "" : " primary"}" data-act="rkbok:${E(R.id)}">${S?.stillingar?.reikn?.bokhald === "dk" ? "Skrá DK-númer handvirkt" : "Skrá í bókhald"}</button>` : ""}<button type="button" class="btn" data-act="rkpv:${E(R.id)}">Forskoða</button>${window.can && can("fjarmal") ? `<button type="button" class="btn" data-act="rkogilda:${E(R.id)}">Ógilda</button>` : ""}</div>` : "") + `</div>`;
+        + (MCP && !og ? `<div class="ubot">${drog && window.can && can("fjarmal") && !(R.bokhald?.stada === "sent") ? `<button type="button" class="btn${S?.stillingar?.reikn?.bokhald === "dk" ? "" : " primary"}" data-act="rkbok:${E(R.id)}">${S?.stillingar?.reikn?.bokhald === "dk" ? "Skrá DK-númer handvirkt" : "Skrá í bókhald"}</button>` : ""}<button type="button" class="btn" data-act="rkpv:${E(R.id)}">Forskoða</button>${window.can && can("fjarmal") ? `<button type="button" class="btn" data-act="rkogilda:${E(R.id)}">Ógilda</button>` : ""}${rkDelB(R)}</div>` : MCP && og && rkDelB(R) ? `<div class="ubot">${rkDelB(R)}</div>` : "") + `</div>`;
     }
   };
   // Verkefni › Undirverk (tafla með gátreitum) og Samskipti (tímalína funda og pósta)
@@ -822,8 +823,10 @@
   const SV = ["Leiga", "Sala", "Þjónusta"], SVT = { Leiga: "leiga", Sala: "sala", "Þjónusta": "vinna" }, svH = x => window.svidHeiti ? svidHeiti(x) : x;
   const go = (t, k) => `data-act="u1go:${t}:${E(k || "")}" role="button" tabindex="0"`;
   // 2.69.1: þriðja stak = aðgerð (t.d. "ltilbod:opin") – reiturinn opnar listann síaðan, eins og í Pöntunum
+  // 2.113.2: Eyða reikningi (admin) – ekki ef hann er kominn í bókhaldskerfið
+  const rkDelB = R => window.can && can("eyda") && R.bokhald?.stada !== "sent" && !R.bokhaldNr ? `<button type="button" class="btn danger" data-act="rkdel:${E(R.id)}">Eyða</button>` : "";
   const kp4 = arr => `<div class="ukps k4">${arr.map(([l, v, a]) => a ? `<div class="ukp tap" data-act="u1kpf:${a}" role="button" tabindex="0" title="Sýna lista"><small>${E(l)}</small><b>${v}</b></div>` : `<div class="ukp"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`;
-  const dcard = (title, rows, more, empty) => `<section class="card ucard uhc"><div class="uhch"><h3>${E(title)}</h3>${more ? `<a href="#" data-act="tab:${more}">Sjá allt →</a>` : ""}</div>${rows.length ? rows.slice(0, 6).join("") : `<div class="usub" style="padding:10px 0">${E(empty || "Ekkert hér.")}</div>`}</section>`;
+  const dcard = (title, rows, more, empty) => `<section class="card ucard uhc"><div class="uhch"><h3>${E(title)}</h3>${more ? `<a href="#" data-act="${String(more).includes(":") ? "u1kpf" : "tab"}:${more}">Sjá allt →</a>` : ""}</div>${rows.length ? rows.slice(0, 6).join("") : `<div class="usub" style="padding:10px 0">${E(empty || "Ekkert hér.")}</div>`}</section>`;
   const drow = (attr, a, b, pl, dark) => `<a class="uhrow" ${attr}><span><b>${a}</b><small>${b || ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
   const svCards = (items, tabs, lab) => { const on = SV.filter(x => svidOn(x)); if (on.length < 2 && !ON("leiga") && !ON("sala")) return ""; /* 2.113.1: Core – eitt svið, engin sundurliðun */ return `<div class="usvc n${on.length}">${on.map(x => { const it = items(x); return `<section class="card ucard" data-act="tab:${tabs[x]}" role="button" tabindex="0"><small class="m">${E(svH(x))}</small><b class="n">${it.n}</b><span class="usub">${E(it.t)}</span></section>`; }).join("")}</div>`; };   // 2.104.4: n1/n2 – færri svið fylla breiddina
   const tbSum = T => window.salaAPI.netOf(T); // án VSK, eftir afslátt á línum og skjali
@@ -847,7 +850,7 @@
     const unb = window.rkUnbilledKr ? ps.reduce((a, p) => a + rkUnbilledKr(p.id), 0) : 0;
     const subs = ps.flatMap(p => (p.undirverk || []).filter(u => u.stada !== "Done" && u.skiladagur).map(u => ({ p, u }))).sort((a, b) => a.u.skiladagur.localeCompare(b.u.skiladagur));
     const st0 = STODUR().filter(x => !x.falin);
-    return head("Verkefni", "Yfirlit", nbtn("Verkefni")) + (window.rlBar ? rlBar() : "") + kp4([["Í gangi", ps.length], ["Skil næstu 7 daga", soon.length], ["Komið fram yfir", late.length], ["Óreikningsfært", kr(unb)]])
+    return head("Verkefni", "Yfirlit", nbtn("Verkefni")) + (window.rlBar ? rlBar() : "") + kp4([["Í gangi", ps.length, "verk:gangi"], ["Skil næstu 7 daga", soon.length, "verk:skil7"], ["Komið fram yfir", late.length, "verk:seint"], ...(ON("reikningar") ? [["Óreikningsfært", kr(unb), "trk:oreikn"]] : [["Óreikningsfært", kr(unb)]])])
       + svCards(x => { const xs = ps.filter(p => svidOf(p).includes(x)); return { n: xs.length, t: xs.length === 1 ? "verkefni í gangi" : "verkefni í gangi" }; }, { Leiga: "lverk", Sala: "sverk", "Þjónusta": "tverk" })
       + `<div class="udash">${dcard("Skil framundan", [...late, ...soon].map(p => drow(go("verk", "verk:" + p.id), E(p.nr + " " + (p.stutt || "")), E((p.vidskiptavinur || "") + " · " + fmtD(p.skiladagur)), daysTo(p.skiladagur) < 0 ? "Seint" : p.stada, daysTo(p.skiladagur) < 0)), "verk", "Engin skil næstu 7 daga.")}`
       + dcard("Undirverk framundan", subs.map(({ p, u }) => drow(go("verk", "verk:" + p.id), E(u.heiti || u.nr), E(p.nr + " · skil " + fmtD(u.skiladagur)), STL[u.stada] || u.stada, u.stada === "In progress")), "", "Engin opin undirverk.")
@@ -878,11 +881,11 @@
     const act = L.filter(c => verkefni().some(p => p.vskId === c.id && !isDone(p))), none = L.filter(c => !vskSvid(c).size);
     const top = L.map(c => ({ c, r: rev(c) })).filter(x => x.r).sort((a, b) => b.r - a.r), tot = top.reduce((a, x) => a + x.r, 0);
     const nyj = L.slice().sort((a, b) => String(b.stofnad || b.id).localeCompare(String(a.stofnad || a.id))).slice(0, 6);
-    return head("Viðskiptavinir", "Yfirlit", nbtn("Viðskiptavinur")) + kp4([["Viðskiptavinir", L.length, "vsk:"], ["Með opin verkefni", act.length, "vsk:opin"], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–"], ["Án viðskipta", none.length]])
+    return head("Viðskiptavinir", "Yfirlit", nbtn("Viðskiptavinur")) + kp4([["Viðskiptavinir", L.length, "vsk:"], ["Með opin verkefni", act.length, "vsk:opin"], ["Selt 12 mán. án vsk", api ? mkr(tot) : "–", "vsk:vid"], ["Án viðskipta", none.length, "vsk:anv"]])
       + svCards(x => { const n = L.filter(c => vskSvid(c).has(x)).length; return { n, t: "viðskiptavinir" }; }, { Leiga: "vskl", Sala: "vsks", "Þjónusta": "vskt" })
       + `<div class="udash">${dcard("Stærstu viðskiptavinir · 12 mán.", top.map(({ c, r }) => drow(go("vskt", "vsk:" + c.id), E(c.name), E(kr(r)), Math.round(r / Math.max(1, tot) * 100) + " %")), "", "Engin samþykkt tilboð síðustu 12 mánuði.")}`
       + dcard("Með opin verkefni", act.map(c => { const n = verkefni().filter(p => p.vskId === c.id && !isDone(p)).length; return drow(go("vskt", "vsk:" + c.id), E(c.name), E(c.tengilidur || ""), n + " verkefni"); }), "", "Enginn með opin verkefni.")
-      + dcard("Án viðskipta", none.map(c => drow(go("vsk", "vsk:" + c.id), E(c.name), E(c.tengilidur || ""), "Nýr")), "vsk", "Allir viðskiptavinir eru með verkefni eða tilboð.") + `</div>`;
+      + dcard("Án viðskipta", none.map(c => drow(go("vsk", "vsk:" + c.id), E(c.name), E(c.tengilidur || ""), "Nýr")), "vsk:anv", "Allir viðskiptavinir eru með verkefni eða tilboð.") + `</div>`;
   };
 
   U.pnyf = function () {
@@ -905,7 +908,7 @@
     const all = api.TB(), open = all.filter(T => ["Drög", "Sent"].includes(T.stada)), d90 = all.filter(T => daysTo(T.dags) >= -90);
     const won = d90.filter(T => T.stada === "Samþykkt"), lost = d90.filter(T => T.stada === "Hafnað"), rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) + " %" : "–";
     const wait = all.filter(T => T.stada === "Sent").sort((a, b) => String(a.sent || a.dags).localeCompare(String(b.sent || b.dags))), drog = all.filter(T => T.stada === "Drög");
-    return head("Tilboð", "Yfirlit", nbtn("Tilboð")) + kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:samth"], ["Hlutfall samþykkt", rate], ["Bíða svars > 7 daga", wait.filter(T => daysTo(T.sent || T.dags) <= -7).length, "ltilbod:opin"]])
+    return head("Tilboð", "Yfirlit", nbtn("Tilboð")) + kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:samth"], ["Hlutfall samþykkt", rate, "ltilbod:samth"], ["Bíða svars > 7 daga", wait.filter(T => daysTo(T.sent || T.dags) <= -7).length, "ltilbod:opin"]])
       + svCards(x => { const xs = open.filter(T => hasTeg(T, x)); return { n: xs.length, t: "opin tilboð · " + mkr(xs.reduce((a, T) => a + tbSum(T), 0)) }; }, { Leiga: "tbl", Sala: "tbs", "Þjónusta": "tbt" })
       + `<div class="udash">${dcard("Bíða svars", wait.map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E((T.vidskiptavinur || "") + " · sent " + fmtD(T.sent || T.dags)), kr(tbSum(T)), daysTo(T.sent || T.dags) <= -7)), "ltilbod", "Ekkert bíður svars.")}`
       + dcard("Drög", drog.map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)))), "ltilbod", "Engin drög.")
