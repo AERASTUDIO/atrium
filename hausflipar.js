@@ -5,8 +5,10 @@
   const E = s => (typeof esc === "function" ? esc(s) : String(s ?? ""));
   const css = document.createElement("style");
   css.textContent = `
-  /* 2.104.1: sama breidd á spjaldinu í öllum skjám, flipar skipta henni jafnt; titillinn fær fasta lágmarksbreidd svo fliparnir byrji alltaf á sama stað */
-  .hdtabs { display: flex; flex: none; width: clamp(380px, calc(100vw - 860px), 560px); gap: 3px; padding: 4px; border-radius: 12px; background: color-mix(in srgb, var(--line) 50%, transparent); margin: 0 auto 0 24px; align-self: center; box-sizing: border-box; }
+  /* 2.104.2: fliparnir fylla breiddina milli titils og hnappa (sama breidd hvort sem svið eru virk eða ekki), flipar skipta henni jafnt;
+     titillinn fær fasta lágmarksbreidd svo fliparnir byrji alltaf á sama stað. Hæðin er óbreytt. */
+  .hdtabs { display: flex; flex: 1 1 auto; min-width: 320px; gap: 3px; padding: 4px; border-radius: 12px; background: color-mix(in srgb, var(--line) 50%, transparent); margin: 0 24px; align-self: center; box-sizing: border-box; }
+  .hashd > .hdtabs:last-child { margin-right: 0; }
   .hdtabs button { flex: 1 1 0; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14.5px; color: var(--muted); padding: 0 12px; min-height: 42px; border-radius: 9px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #view .hdtt { min-width: 230px; flex: 0 0 auto; }
   #view .hdhead { margin-top: 0; padding-top: 18px; }
