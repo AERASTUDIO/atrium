@@ -347,7 +347,7 @@
   }
   // Leit í listum: aðeins eftir númeri og heiti (heiti, viðskiptavinur, tengiliður) – ekki dagsetningum, stöðum eða upphæðum
   const keyText = n => {
-    if (n.matches(".urow")) { const c = n.children; const t = n.querySelector(".t"); return [c[0]?.matches(".t") ? "" : c[0]?.textContent, t?.textContent].filter(Boolean).join(" "); }
+    if (n.matches(".urow")) { const c = n.children; const t = n.querySelector(".t"); return [c[0]?.matches(".t") ? "" : c[0]?.textContent, t?.textContent, n.dataset.k].filter(Boolean).join(" "); }   // data-k (2.107.0): falin leitarorð, t.d. strikamerki og vörunúmer framleiðanda
     if (n.matches(".lrow")) return [n.querySelector(".nr")?.textContent, n.querySelector(".lt")?.textContent].filter(Boolean).join(" ");
     if (n.matches(".porow")) return [n.querySelector(".pofrom")?.textContent, n.querySelector(".ls")?.textContent].filter(Boolean).join(" ");
     return n.textContent;

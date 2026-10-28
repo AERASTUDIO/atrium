@@ -3,7 +3,7 @@
    Gögn (Firestore-söfn, sjá gogn.js) – sömu söfn, aðgreind með reitnum deild:
    - vorur/{id}: { deild: leiga|sala, nr, heiti, flokkur, tegund (leiga: leiga|pakki|vinna; sala: sala|vinna), eining,
                    leiguverd (kr. á dag), soluverd, innkaupsverd, fjoldi, lysing, innihald: [{ v, m }] (pakki), prufa,
-                   strikamerki (2.105.0: EAN/UPC af umbúðum söluvöru, fleiri aðskilin með kommu) }
+                   strikamerki (2.105.0: EAN/UPC af umbúðum söluvöru, fleiri aðskilin með kommu), fnr (2.107.0: vörunúmer framleiðanda) }
    - tilbod/{id}: { deild, nr (L-… / S-…), heiti, vskId, vidskiptavinur, tengilidur, netfang, stadsetning, fra, til (leiga),
                     gildir, dags, stada: Drög|Sent|Samþykkt|Hafnað, sent, utgafa, eldri: [{ utgafa, dags, net }], afsl (%), athugasemd,
                     linur: [{ id, v, heiti, teg: leiga|sala|vinna, hl (hluti), magn, ein, verd, dagar, afsl }], verkefniId, prufa }
@@ -240,7 +240,7 @@
       document.getElementById("vr-pk").innerHTML = pk ? `<div class="kind" style="margin-top:6px">Innihald pakka</div>${inn.map((i, k) => `<div class="two" style="grid-template-columns:1fr 90px 40px;align-items:end"><label>Búnaður<select data-pk="v:${k}">${items.map(y => `<option value="${esc(y.id)}"${y.id === i.v ? " selected" : ""}>${esc(y.heiti)}</option>`).join("")}</select></label><label>Magn<input data-pk="m:${k}" inputmode="decimal" value="${esc(fx(i.m || 1))}"></label><button type="button" class="btn" data-pkdel="${k}" aria-label="Fjarlægja" style="min-height:44px">×</button></div>`).join("")}
         <button type="button" class="btn" id="vr-pkadd" style="margin-top:6px"${items.length ? "" : " disabled"}>+ Bæta búnaði í pakka</button>` : "";
       const show = (k, on) => { const el = document.getElementById(k)?.closest("label"); if (el) el.style.display = on ? "" : "none"; };
-      show("vr-lv", D === "leiga" && teg !== "vinna"); show("vr-sv", D === "sala" || teg === "vinna"); show("vr-fj", teg !== "vinna"); show("vr-sm", D === "sala" && !["vinna", "pakki"].includes(teg));
+      show("vr-lv", D === "leiga" && teg !== "vinna"); show("vr-sv", D === "sala" || teg === "vinna"); show("vr-fj", teg !== "vinna"); show("vr-sm", D === "sala" && !["vinna", "pakki"].includes(teg)); show("vr-fnr", !["vinna", "pakki"].includes(teg));
       const sl = document.getElementById("vr-sv")?.closest("label"); if (sl) sl.firstChild.textContent = teg === "vinna" ? "Verð á einingu (kr.)" : "Söluverð (kr.)";
       const fl = document.getElementById("vr-fj")?.closest("label"); if (fl) fl.firstChild.textContent = D === "sala" ? "Á lager" : "Fjöldi til";
       const ad = document.getElementById("vr-pkadd"); if (ad) ad.onclick = () => { readPk(); inn.push({ v: items[0]?.id, m: 1 }); draw(); };
@@ -252,6 +252,7 @@
       <div class="two"><label>Tegund<select id="vr-teg">${opts(T0.map(k => [k, TEG[k]]), x.tegund)}</select></label><label>Flokkur<select id="vr-fl">${opts(FLOKKAR(D).map(f => [f, f]), x.flokkur)}<option value="__nyr__">+ Nýr flokkur…</option></select></label></div>
       <label id="vr-flnl" style="display:none">Heiti nýs flokks<input id="vr-fln" placeholder="T.d. Rigging"></label>
       <div class="two"><label>Vörunúmer<input id="vr-nr" value="${esc(x.nr || "")}" placeholder="Sjálfvirkt" autocomplete="off"></label><label>Eining<select id="vr-ein">${opts(["stk.", "klst.", "dagur", "ferð", "km", "sett", "m", "m²"].map(e => [e, e]), x.eining || "stk.")}</select></label></div>
+      <label>Vörunúmer framleiðanda<input id="vr-fnr" value="${esc(x.fnr || "")}" placeholder="T.d. ACEG1R21BLK – notað við innkaup" autocomplete="off"></label>
       <label>Strikamerki (EAN)<span style="display:flex;gap:6px"><input id="vr-sm" value="${esc(x.strikamerki || "")}" placeholder="Af umbúðum – fleiri en eitt með kommu" inputmode="numeric" autocomplete="off" style="flex:1">${window.qrScanCode && window.qrIsOn?.() ? `<button type="button" class="btn" id="vr-smscan" aria-label="Skanna strikamerki">Skanna</button>` : ""}</span></label>
       <div class="two"><label>Leiguverð á dag (kr.)<input id="vr-lv" inputmode="numeric" value="${+x.leiguverd ? esc(String(x.leiguverd)) : ""}"></label><label>Söluverð (kr.)<input id="vr-sv" inputmode="numeric" value="${+x.soluverd ? esc(String(x.soluverd)) : ""}"></label></div>
       <div class="two"><label>Fjöldi til<input id="vr-fj" inputmode="numeric" value="${+x.fjoldi ? esc(String(x.fjoldi)) : ""}"></label>${ADM() ? `<label>Innkaupsverð (kr.)<input id="vr-iv" inputmode="numeric" value="${+x.innkaupsverd ? esc(String(x.innkaupsverd)) : ""}"></label>` : "<span></span>"}</div>
@@ -280,6 +281,7 @@
       const o = { deild: D, heiti, tegund: teg, flokkur: fl, nr: val("vr-nr") || null, eining: val("vr-ein") || "stk.", leiguverd: D === "leiga" && teg !== "vinna" ? parseKr(val("vr-lv")) || 0 : 0, soluverd: D === "sala" || teg === "vinna" ? parseKr(val("vr-sv")) || 0 : 0, fjoldi: teg === "vinna" ? 0 : n0(val("vr-fj")) || 0, lysing: val("vr-lys") || null, innihald: teg === "pakki" ? inn.filter(i => i.v) : [] };
       if (document.getElementById("vr-iv")) o.innkaupsverd = parseKr(val("vr-iv")) || 0;
       if (smL) o.strikamerki = smL.join(", ") || null;
+      if (!["vinna", "pakki"].includes(teg)) o.fnr = val("vr-fnr").trim() || null;   // 2.107.0: vörunúmer framleiðanda
       if (D === "leiga" && teg !== "vinna" && !o.leiguverd) return msg("Skráðu leiguverð á dag.", "err");
       if ((D === "sala" || teg === "vinna") && !o.soluverd) return msg("Skráðu verð.", "err");
       const nid = id || gid(), fk = D === "sala" ? "flokkarS" : "flokkarL";
@@ -554,7 +556,7 @@
   function picker(M) {
     const D = M || tDeild(EDT), src = () => isMix(EDT) ? (M ? VRd(M) : VR()).filter(v => v.tegund !== "vinna") : VRd(D);
     let pf = "", pq = ""; const draw = () => {
-      const xs = src().filter(v => (!pf || (pf === "_vinna" ? v.tegund === "vinna" : v.flokkur === pf && v.tegund !== "vinna")) && (!pq || (v.heiti + " " + (v.nr || "")).toLowerCase().includes(pq))).sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || a.heiti.localeCompare(b.heiti, "is"));
+      const xs = src().filter(v => (!pf || (pf === "_vinna" ? v.tegund === "vinna" : v.flokkur === pf && v.tegund !== "vinna")) && (!pq || [v.heiti, v.nr, v.fnr, v.strikamerki].filter(Boolean).join(" ").toLowerCase().includes(pq))).sort((a, b) => FLOKKAR(D).indexOf(a.flokkur) - FLOKKAR(D).indexOf(b.flokkur) || a.heiti.localeCompare(b.heiti, "is"));
       document.getElementById("pk-list").innerHTML = xs.length ? xs.map(v => { const n = (EDT.linur || []).filter(l => l.v === v.id).reduce((a, l) => a + (+l.magn || 0), 0);
         const ls = lausFyrir(v, EDT);
         return `<button type="button" class="lrow tap pkrow${ls != null && ls <= 0 ? " uppb" : ""}" data-pick="${esc(v.id)}" style="width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit"><div class="lm"><div class="lt">${esc(v.heiti)}</div><div class="ls">${esc([v.flokkur, v.tegund === "pakki" ? "Pakki · " + pakkiTxt(v) : v.tegund === "vinna" ? "Vinna og þjónusta" : (D === "sala" && +v.fjoldi ? num(v.fjoldi) + " á lager" : "")].filter(Boolean).join(" · "))}</div></div><div class="lr">${ls != null ? `<span class="pill ${ls > 0 ? "pc-teal" : "pc-red"}">${ls > 0 ? esc(fx(ls)) + " laus" : "Ekki laust"}</span>` : ""}<span class="lc">${esc(krs(vPrice(v)))}</span>${n ? `<span class="pill">${esc(fx(n))} ${isP(EDT) ? "í pöntun" : "á tilboði"}</span>` : ""}</div></button>`; }).join("") : src().length ? `<div class="empty">Ekkert fannst.</div>` : `<div class="empty">${D === "leiga" || M === "leiga" ? "Enginn búnaður" : "Engar vörur"} í ${(M || D) === "leiga" ? "búnaðarlista" : "vörulista"} ennþá.<br><span class="ls">Skráðu ${(M || D) === "leiga" ? "búnað" : "vörur"} í Vörulisti › ${(M || D) === "leiga" ? "Leiga" : "Sala"}, eða notaðu „+ Sérlína“ fyrir staka línu.</span></div>`; };

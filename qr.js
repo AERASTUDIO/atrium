@@ -33,7 +33,7 @@
   const parse = txt => { const t = String(txt || "").trim(); const m = t.match(/[?&][ev]=([^&#]+)/); if (m) return decodeURIComponent(m[1]); const a = t.match(/^ATR:[EV]:(.+)$/i); return a ? a[1] : t; };
   // Söluvara eftir strikamerki, vörunúmeri eða QR-merki vörunnar (2.105.0). EAN-13 með 0 fremst = UPC-A.
   const normC = x => String(x || "").trim().toUpperCase().replace(/\s+/g, "");
-  const codesOf = v => [v.nr, ...String(v.strikamerki || "").split(/[\s,;]+/)].map(normC).filter(Boolean);
+  const codesOf = v => [v.nr, v.fnr, ...String(v.strikamerki || "").split(/[\s,;]+/)].map(normC).filter(Boolean);
   const varC = c => /^\d{12}$/.test(c) ? [c, "0" + c] : /^0\d{12}$/.test(c) ? [c, c.slice(1)] : [c];
   const findV = code => { const cs = varC(normC(code)); if (!cs[0]) return null; return VR().find(v => !["pakki", "vinna"].includes(v.tegund) && codesOf(v).some(x => cs.includes(x))) || null; };
   const salaOn = () => { try { return typeof ON === "function" && ON("sala"); } catch (e) { return false; } };
