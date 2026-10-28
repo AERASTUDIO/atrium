@@ -41,7 +41,7 @@
   const DOC = id => tr(() => A().TB().concat(A().PN()).find(x => String(x.id) === String(id)), null);
   const saveDoc = (id, fn) => saveSnapshot(s => { const q = (s.tilbod || []).find(x => String(x.id) === String(id)) || (s.pantanir || []).find(x => String(x.id) === String(id)); if (q) fn(q, s); });
   const MYNTIR = ["EUR", "USD", "GBP", "DKK", "SEK", "NOK", "CHF", "JPY", "CNY", "CAD", "AUD", "PLN"];
-  const DEMO_GENGI = { EUR: 145.3, USD: 138.9, GBP: 168.2, DKK: 19.47, SEK: 13.1, NOK: 12.62, CHF: 157.4, JPY: 0.92, CNY: 19.3, CAD: 101.2, AUD: 91.6, PLN: 34.1 };
+  const DEMO_GENGI = { EUR: 136.4, USD: 121.92, GBP: 162.73, DKK: 18.248, SEK: 12.246, NOK: 13.047, CHF: 147.57, JPY: 0.7743, CNY: 18.283, CAD: 86.91, AUD: 85.64, PLN: 30.973 };   // tollgengi 27.10.2026
 
   /* ---------- Stillingar ---------- */
   const CFG = () => ({ alag: 30, utanP: 1, tollsk: 17500, namun: 10, agj: 0, birgjar: [], ...(tr(() => S.stillingar.innflutningur, null) || {}) });
@@ -75,11 +75,11 @@
     let T = { kaup: 0, tollverd: 0, agj: 0, utan: 0, tollsk: 0, kostn: 0, sala: 0, vsk: 0, kg: 0 };
     (ink.s || []).forEach(s => {
       const g = s.mynt === "ISK" ? 1 : (+s.gengi || +G[s.mynt] || 0), alag0 = alagS(s);
-      const L = (s.linur || []).filter(l => (+l.magn || 0) > 0);
+      const L = (s.linur || []).filter(l => (+l.magn || 0) > 0 && (+l.verd > 0 || +l.sv > 0));   // aðeins línur með verði
       const rows = L.map(l => { const m = +l.magn || 0, kg = +l.kg || 0, vol = (+l.l || 0) * (+l.b || 0) * (+l.h || 0) / 5000;
         return { l, m, kaupM: (+l.verd || 0) * m, kgj: Math.max(kg, vol) * m, vol }; });
       const kaupM = rows.reduce((a, r) => a + r.kaupM, 0), kgAll = rows.reduce((a, r) => a + r.kgj, 0), allKg = rows.length && rows.every(r => r.kgj > 0);
-      const flutnISK = (+s.flutn || 0) * (s.flutnM === "ISK" ? 1 : g), vatrISK = (+s.vatr || 0) * (s.flutnM === "ISK" ? 1 : g), tollsk = s.tollsk === "" || s.tollsk == null ? +C.tollsk || 0 : +s.tollsk || 0;
+      const flutnISK = (+s.flutn || 0) * (s.flutnM === "ISK" ? 1 : g), vatrISK = (+s.vatr || 0) * (s.flutnM === "ISK" ? 1 : g), tollsk = !kaupM ? 0 : s.tollsk === "" || s.tollsk == null ? +C.tollsk || 0 : +s.tollsk || 0;
       const share = r => allKg ? r.kgj / kgAll : kaupM ? r.kaupM / kaupM : 1 / rows.length;
       const S1 = { kaup: 0, tollverd: 0, agj: 0, utan: 0, tollsk: 0, kostn: 0, sala: 0, vsk: 0 };
       const lines = rows.map(r => { const sh = share(r), kaup = r.kaupM * g, tollverd = kaup + (flutnISK + vatrISK) * sh, agjP = r.l.agj !== "" && r.l.agj != null ? +r.l.agj : +C.agj || 0;
@@ -125,6 +125,36 @@
   .ikw .ikrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .ikw textarea{font:inherit;font-size:13px;width:100%;min-height:110px;border:1px solid var(--line);border-radius:9px;padding:8px;box-sizing:border-box;background:var(--bg,#fff);color:var(--ink)}
   .ikw .ikman{color:#b4462f}.ikw .ikalg{color:var(--muted);font-size:11.5px;display:block}
+  /* 2.110.0: hreinna útlit – minni rammar, reitir í töflu án ramma fyrr en þeir fá fókus, nánar undir ▾ */
+  .ikw .ikb{width:min(1080px,100%)}
+  .ikw .ikh{gap:10px;padding:14px 20px}.ikw .ikh h2{font-size:18px}
+  .ikw .ikgh{display:flex}
+  .ikw .ikchip{font:inherit;font-size:12.5px;border:1px solid var(--line,#d5dde2);background:var(--surface,#fff);color:var(--ink);border-radius:20px;padding:5px 11px;cursor:pointer;white-space:nowrap}
+  .ikw .ikchip.on{background:#e6eef7;border-color:#bcd0e6;color:#1f5a96}
+  .ikw .ikib{border:0;background:none;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;padding:6px 7px;border-radius:8px}.ikw .ikib:hover{background:var(--bg,#eef2f4);color:var(--ink)}.ikw .ikib.big{font-size:22px}
+  .ikw .iklink{border:0;background:none;font:inherit;font-size:13px;color:var(--accent,#2a7289);cursor:pointer;padding:4px 2px;text-align:left}
+  .ikw .ikc{gap:12px;padding:14px 20px 8px}
+  .ikw .iks{padding:12px 14px;gap:8px;border-radius:12px}
+  .ikw .ikslim{gap:8px}.ikw .ikslim b{font-weight:500}
+  .ikw .ikshead{gap:8px}.ikw .ikbn{max-width:280px;font-weight:500}.ikw .ikmy{width:auto;min-width:84px}
+  .ikw .iksf{font-size:13px;color:var(--muted)}.ikw .iksf b{font-weight:500}
+  .ikw .ikcost{margin-top:-2px}.ikw .ikcost .iklink{color:var(--muted);font-size:12.5px}
+  .ikw .ikopt{gap:8px;align-items:flex-end;background:var(--bg,#f5f7f8);border-radius:10px;padding:10px}
+  .ikw .ikin{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted);width:120px}.ikw .ikin.wide{width:200px}
+  .ikw .ikin input,.ikw .ikin select{min-height:34px;padding:6px 8px;font-size:13px}
+  .ikw .iklbh{display:flex;gap:3px}.ikw .iklbh input{width:44px;min-width:0}
+  .ikw table{min-width:760px}
+  .ikw thead th{border-bottom:1px solid var(--line,#e3e8ec);padding:4px 6px}
+  .ikw tr.ikl td{border-bottom:1px solid var(--line,#eef1f3);padding:2px 4px}
+  .ikw tr.ikl td input{border-color:transparent;background:transparent;min-height:34px}
+  .ikw tr.ikl td input:hover{border-color:var(--line,#d5dde2)}.ikw tr.ikl td input:focus{border-color:var(--accent,#2a7289);background:var(--surface,#fff);outline:none}
+  .ikw td input.n{text-align:right}.ikw td input.man{color:#b4462f}
+  .ikw td.c{color:var(--muted)}.ikw .ikalg.neg{color:#b4462f}
+  .ikw td.ikact{white-space:nowrap;width:1%;text-align:right}
+  .ikw tr.ikdet td{background:var(--bg,#f5f7f8);padding:10px;border-bottom:1px solid var(--line,#eef1f3)}
+  .ikw .w-h{min-width:220px}.ikw .w-s{width:70px}.ikw .w-m{width:104px}
+  .ikw .ikf{gap:12px}.ikw .iktot{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.ikw .iktot b{color:var(--ink);font-weight:500;font-size:15px}.ikw .iktot b.pos{color:#1d7a4f}.ikw .iktot b.neg{color:#b4462f}
+  .ikw .sp{flex:1}
   .ikcard{border:1px solid var(--line,#dce3e8);border-radius:14px;padding:14px 16px;background:var(--surface,#fff);margin:12px 0;display:flex;flex-direction:column;gap:10px}
   .ikcard .ikct{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}.ikcard .ikct b{font-weight:500;font-size:15px}
   .ikcard .ikct small{color:var(--muted);font-weight:400;font-size:12.5px;display:block}
@@ -144,15 +174,15 @@
   document.head.appendChild(css);
 
   let W = null;   // { id, ink (vinnueintak), el }
-  function nySending(b) { const B = b ? birgir(b) : null; return { id: uid(), birgir: B?.nafn || b || "", mynt: B?.mynt || "EUR", utan: !!B?.utan, flutn: "", flutnM: "ISK", vatr: "", tollsk: "", alag: "", linur: [nyLina()] }; }
-  function nyLina(o) { return { k: uid(), v: null, heiti: "", bnr: "", magn: 1, verd: "", kg: "", l: "", b: "", h: "", agj: "", alag: "", sv: "", ...(o || {}) }; }
+  function nySending(b) { const B = b ? birgir(b) : null; return { id: uid(), birgir: B?.nafn || b || "", mynt: B?.mynt || "EUR", utan: !!B?.utan, flutn: "", flutnM: "ISK", vatr: "", tollsk: "", alag: "", hopur: "", syn: "linur", linur: [nyLina()] }; }
+  function nyLina(o) { return { k: uid(), v: null, heiti: "", bnr: "", magn: 1, verd: "", kg: "", l: "", b: "", h: "", agj: "", alag: "", sv: "", hopur: "", ...(o || {}) }; }
 
   async function opna(id) {
     const T = DOC(id); if (!T) return;
     const ink = T.ink ? structuredClone(T.ink) : { s: [nySending()] };
     if (!ink.s || !ink.s.length) ink.s = [nySending()];
     const w = document.createElement("div"); w.className = "ikw"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true"); w.setAttribute("aria-label", "Reikna úr verðum birgja");
-    w.innerHTML = `<div class="ikb"><div class="ikh"><h2>Reikna úr verðum birgja<small>${E((T.nr || "") + " · " + (T.heiti || T.vidskiptavinur || ""))}</small></h2><button type="button" class="btn" data-ik="x">Loka</button></div><div class="ikc"></div><div class="ikf"></div></div>`;
+    w.innerHTML = `<div class="ikb"><div class="ikh"><h2>Reikna úr verðum birgja<small>${E((T.nr || "") + " · " + (T.heiti || T.vidskiptavinur || ""))}</small></h2><span class="ikgh"></span><button type="button" class="ikib big" data-ik="x" aria-label="Loka">×</button></div><div class="ikc"></div><div class="ikf"></div></div>`;
     document.body.append(w); document.body.classList.add("qropen");
     W = { id, ink, el: w };
     if (!ink.gengi || !ink.gengi.k) { const g = await gengiNu(); ink.gengi = g ? { k: { ...g.k }, dags: g.dags || "", src: g.src || "" } : { k: {}, dags: "", src: "slegið inn" }; }
@@ -163,45 +193,58 @@
   function loka() { if (!W) return; W.el.remove(); W = null; document.body.classList.remove("qropen"); }
   const V = (x, k) => x[k] === "" || x[k] == null ? "" : String(x[k]).replace(".", ",");
 
+  const dIS = d => { const t = isoD(d); return t ? t.split("-").reverse().join(".") : ""; };
   function draw(keepFocus) {
-    if (!W) return; const { ink, el } = W, R = reikna(ink), C = CFG(), G = ink.gengi || { k: {} };
+    if (!W) return; const { ink, el } = W, R = reikna(ink), C = CFG(), G = ink.gengi || { k: {} }, ui = W.ui || (W.ui = { opin: {}, lx: {}, gengi: false });
     const af = document.activeElement, fk = af && af.dataset ? af.dataset.f : null, fp = af && af.selectionStart;
     const myntir = [...new Set(ink.s.map(s => s.mynt).filter(m => m && m !== "ISK"))];
-    const gengiH = `<section class="iks"><div class="ikrow" style="justify-content:space-between"><div><b style="font-weight:500">Tollgengi</b> <span class="ikhint">${E(G.src || "")}${G.dags ? " · " + E(String(G.dags).slice(0, 10).split("-").reverse().join(".")) : ""} – festist á tilboðinu</span></div><button type="button" class="btn" data-ik="gengi">Sækja tollgengi dagsins</button></div>
-      <div class="ikg">${(myntir.length ? myntir : ["EUR"]).map(m => `<label>${E(m)} → ISK<input data-f="g:${E(m)}" inputmode="decimal" value="${E(G.k && G.k[m] != null ? String(G.k[m]).replace(".", ",") : "")}" placeholder="t.d. 145,3"></label>`).join("")}</div></section>`;
-    const sH = R.send.map((r, si) => { const s = r.s, b = birgir(s.birgir);
-      const rows = s.linur.map((l, li) => { const x = r.lines.find(z => z.l === l);
-        return `<tr><td class="w-h"><input data-f="l:${si}:${li}:heiti" list="ikvl" value="${E(l.heiti)}" placeholder="Vara eða lýsing"></td><td class="w-m"><input data-f="l:${si}:${li}:bnr" value="${E(l.bnr)}" placeholder="Nr. birgis"></td>
-          <td class="w-s"><input data-f="l:${si}:${li}:magn" inputmode="decimal" value="${V(l, "magn")}"></td><td class="w-m"><input data-f="l:${si}:${li}:verd" inputmode="decimal" value="${V(l, "verd")}" placeholder="${E(s.mynt)}"></td>
-          <td class="w-s"><input data-f="l:${si}:${li}:kg" inputmode="decimal" value="${V(l, "kg")}" placeholder="kg"></td>
-          <td class="w-m"><div style="display:flex;gap:2px"><input class="w-x" data-f="l:${si}:${li}:l" inputmode="decimal" value="${V(l, "l")}" placeholder="L"><input class="w-x" data-f="l:${si}:${li}:b" inputmode="decimal" value="${V(l, "b")}" placeholder="B"><input class="w-x" data-f="l:${si}:${li}:h" inputmode="decimal" value="${V(l, "h")}" placeholder="H"></div></td>
-          <td class="w-s"><input data-f="l:${si}:${li}:agj" inputmode="decimal" value="${V(l, "agj")}" placeholder="${E(fx(C.agj, 1))}"></td>
-          <td class="n"><b>${x ? E(kr(x.kstk)) : "–"}</b></td>
-          <td class="w-s"><input data-f="l:${si}:${li}:alag" inputmode="decimal" value="${V(l, "alag")}" placeholder="${E(fx(alagS(s), 1))}"></td>
-          <td class="w-m"><input data-f="l:${si}:${li}:sv" inputmode="decimal" value="${V(l, "sv")}" placeholder="${x ? E(String(Math.round(x.svA))) : ""}" title="Autt = reiknað út frá álagningu"></td>
-          <td class="n">${x ? `<b>${E(kr(x.fram))}</b><span class="ikalg">${x.handv ? `<span class="ikman">handvirkt · </span>` : ""}${E(fx(x.alag, 1))} % álagn.</span>` : "–"}</td>
-          <td><button type="button" class="ikdel" data-ik="dl:${si}:${li}" aria-label="Eyða línu">×</button></td></tr>`; }).join("");
-      const sm = r.sum;
-      return `<section class="iks"><div class="ikrow" style="justify-content:space-between"><b style="font-weight:500">Sending ${si + 1}${s.birgir ? " · " + E(s.birgir) : ""}</b>${ink.s.length > 1 ? `<button type="button" class="btn" data-ik="ds:${si}">Fjarlægja sendingu</button>` : ""}</div>
-        <div class="ikg"><label>Birgir<input data-f="s:${si}:birgir" list="ikbl" value="${E(s.birgir)}" placeholder="Nafn birgis"></label>
-          <label>Mynt<select data-f="s:${si}:mynt">${["ISK", ...MYNTIR].map(m => `<option${m === s.mynt ? " selected" : ""}>${m}</option>`).join("")}</select></label>
-          <label class="ikchk"><input type="checkbox" data-f="s:${si}:utan"${s.utan ? " checked" : ""}>Utan Evrópu (+${E(fx(C.utanP, 1))} %)</label>
-          <label>Flutningur<input data-f="s:${si}:flutn" inputmode="decimal" value="${V(s, "flutn")}" placeholder="0"></label>
-          <label>Vátrygging<input data-f="s:${si}:vatr" inputmode="decimal" value="${V(s, "vatr")}" placeholder="0"></label>
-          <label>Í mynt<select data-f="s:${si}:flutnM"><option value="ISK"${s.flutnM === "ISK" ? " selected" : ""}>ISK</option>${s.mynt !== "ISK" ? `<option value="${E(s.mynt)}"${s.flutnM !== "ISK" ? " selected" : ""}>${E(s.mynt)}</option>` : ""}</select></label>
-          <label>Tollskýrslugerð<input data-f="s:${si}:tollsk" inputmode="decimal" value="${V(s, "tollsk")}" placeholder="${E(String(C.tollsk))}"></label>
-          <label>Álagning sendingar %<input data-f="s:${si}:alag" inputmode="decimal" value="${V(s, "alag")}" placeholder="${E(fx(alagB(b), 1))}"></label></div>
-        <div class="iktw"><table><thead><tr><th>Vara</th><th>Nr. birgis</th><th class="n">Magn</th><th class="n">Verð/stk (${E(s.mynt)})</th><th class="n">Kg/stk</th><th>L × B × H cm</th><th class="n">Aukagj. %</th><th class="n">Kostn./stk</th><th class="n">Álagn. %</th><th class="n">Söluverð/stk</th><th class="n">Framlegð</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-        <div class="ikrow"><button type="button" class="btn" data-ik="al:${si}">+ Lína</button><button type="button" class="btn" data-ik="paste:${si}">Líma úr Excel</button><span class="ikhint">${r.kgAll ? "Gjaldskyld þyngd " + E(fx(r.kgAll, 1)) + " kg" + (r.allKg ? " – flutningi dreift eftir þyngd" : " – vantar þyngd á línur, flutningi dreift eftir verði") : "Flutningi dreift eftir verði (skráðu kg eða mál til að dreifa eftir þyngd)"}${s.mynt !== "ISK" && !r.g ? ` · <span class="ikman">vantar gengi ${E(s.mynt)}</span>` : ""}</span></div>
-        <div class="iksum"><div><span>Kaupverð</span><b>${E(kr(sm.kaup))}</b></div><div><span>Tollverð (CIF)</span><b>${E(kr(sm.tollverd))}</b></div><div><span>Aukagjöld</span><b>${E(kr(sm.agj))}</b></div><div><span>Utan Evrópu</span><b>${E(kr(sm.utan))}</b></div><div><span>Tollskýrslugerð</span><b>${E(kr(sm.tollsk))}</b></div><div><span>Kostnaðarverð</span><b>${E(kr(sm.kostn))}</b></div><div><span>Söluverð</span><b>${E(kr(sm.sala))}</b></div><div><span>Framlegð</span><b class="${sm.sala - sm.kostn >= 0 ? "pos" : "neg"}">${E(kr(sm.sala - sm.kostn))}</b></div></div></section>`; }).join("");
+    // Haus: tollgengi sem lítil merki – smellt til að breyta
+    const gtxt = myntir.map(m => E(m) + " " + (G.k && G.k[m] ? E(fx(G.k[m], 2)) : '<span class="ikman">vantar</span>')).join(" · ");
+    el.querySelector(".ikgh").innerHTML = `<button type="button" class="ikchip" data-ik="tg">Tollgengi${G.dags ? " " + E(dIS(G.dags)) : ""} · ${gtxt || "–"} <span aria-hidden="true">✎</span></button>`;
+    const gengiH = ui.gengi ? `<section class="iks ikslim"><div class="ikrow"><b>Tollgengi</b><span class="ikhint">${E(G.src || "")}${G.dags ? " · gildir frá " + E(dIS(G.dags)) : ""} · festist á tilboðinu</span><span class="sp"></span><button type="button" class="btn sm" data-ik="gengi">Sækja tollgengi dagsins</button></div>
+      <div class="ikrow">${(myntir.length ? myntir : ["EUR"]).map(m => `<label class="ikin">${E(m)}<input data-f="g:${E(m)}" inputmode="decimal" value="${E(G.k && G.k[m] != null ? String(G.k[m]).replace(".", ",") : "")}" placeholder="0"></label>`).join("")}</div></section>` : "";
+    const sH = R.send.map((r, si) => { const s = r.s, b = birgir(s.birgir), sm = r.sum, fr = sm.sala - sm.kostn, op = !!ui.opin[s.id];
+      const rows = s.linur.map((l, li) => { const x = r.lines.find(z => z.l === l), lx = !!ui.lx[l.k];
+        const main = `<tr class="ikl${lx ? " open" : ""}"><td class="w-h"><input data-f="l:${si}:${li}:heiti" list="ikvl" value="${E(l.heiti)}" placeholder="Vara eða lýsing"></td>
+          <td class="w-s"><input class="n" data-f="l:${si}:${li}:magn" inputmode="decimal" value="${V(l, "magn")}"></td>
+          <td class="w-m"><input class="n" data-f="l:${si}:${li}:verd" inputmode="decimal" value="${V(l, "verd")}" placeholder="0"></td>
+          <td class="n c">${x ? E(kr(x.kstk)) : ""}</td>
+          <td class="w-s"><input class="n" data-f="l:${si}:${li}:alag" inputmode="decimal" value="${V(l, "alag")}" placeholder="${E(fx(alagS(s), 1))}"></td>
+          <td class="w-m"><input class="n${x && x.handv ? " man" : ""}" data-f="l:${si}:${li}:sv" inputmode="decimal" value="${V(l, "sv")}" placeholder="${x ? E(String(Math.round(x.svA))) : ""}" title="Autt = reiknað út frá álagningu"></td>
+          <td class="n">${x ? `<b>${E(kr(x.sala))}</b><span class="ikalg ${x.fram >= 0 ? "" : "neg"}">framlegð ${E(kr(x.fram))}</span>` : ""}</td>
+          <td class="ikact"><button type="button" class="ikib" data-ik="lx:${E(l.k)}" aria-expanded="${lx}" title="Nánar: nr. birgis, þyngd, mál, aukagjöld, hópur">${lx ? "▴" : "▾"}</button><button type="button" class="ikib" data-ik="dl:${si}:${li}" aria-label="Eyða línu">×</button></td></tr>`;
+        const det = lx ? `<tr class="ikdet"><td colspan="8"><div class="ikrow">
+          <label class="ikin">Nr. birgis<input data-f="l:${si}:${li}:bnr" value="${E(l.bnr)}"></label>
+          <label class="ikin">Kg/stk<input data-f="l:${si}:${li}:kg" inputmode="decimal" value="${V(l, "kg")}"></label>
+          <label class="ikin">L × B × H (cm)<span class="iklbh"><input data-f="l:${si}:${li}:l" inputmode="decimal" value="${V(l, "l")}" placeholder="L"><input data-f="l:${si}:${li}:b" inputmode="decimal" value="${V(l, "b")}" placeholder="B"><input data-f="l:${si}:${li}:h" inputmode="decimal" value="${V(l, "h")}" placeholder="H"></span></label>
+          <label class="ikin">Aukagjöld %<input data-f="l:${si}:${li}:agj" inputmode="decimal" value="${V(l, "agj")}" placeholder="${E(fx(C.agj, 1))}"></label>
+          <label class="ikin wide">Hópur á tilboði<input data-f="l:${si}:${li}:hopur" list="ikhl" value="${E(l.hopur || "")}" placeholder="${E(s.hopur || "Vörur")}"></label></div>
+          ${x ? `<p class="ikhint" style="margin:6px 0 0">Tollverð ${E(kr(x.tollverd / x.m))}/stk · aukagjöld ${E(kr(x.agj / x.m))} · ${s.utan ? "utan Evrópu " + E(kr(x.utan / x.m)) + " · " : ""}tollskýrslugerð ${E(kr(x.ts / x.m))}${x.vol ? " · rúmmálsþyngd " + E(fx(x.vol, 1)) + " kg" : ""}</p>` : ""}</td></tr>` : "";
+        return main + det; }).join("");
+      const chips = [`Flutningur ${E(kr(r.flutnISK))}`, +s.vatr ? `vátrygging ${E(kr(r.vatrISK))}` : "", `tollskýrslugerð ${E(kr(r.tollsk))}`, `álagning ${E(fx(alagS(s), 1))} %`, s.syn === "ein" ? "ein lína á tilboði" : ""].filter(Boolean).join(" · ");
+      return `<section class="iks"><div class="ikrow ikshead"><input class="ikbn" data-f="s:${si}:birgir" list="ikbl" value="${E(s.birgir)}" placeholder="Birgir" aria-label="Birgir">
+          <select class="ikmy" data-f="s:${si}:mynt" aria-label="Mynt">${["ISK", ...MYNTIR].map(m => `<option${m === s.mynt ? " selected" : ""}>${m}</option>`).join("")}</select>
+          <button type="button" class="ikchip${s.utan ? " on" : ""}" data-ik="utan:${si}" aria-pressed="${!!s.utan}">Utan Evrópu${s.utan ? " +" + E(fx(C.utanP, 1)) + " %" : ""}</button>
+          <span class="sp"></span><span class="iksf">${sm.sala ? `<b class="${fr >= 0 ? "pos" : "neg"}">${E(kr(fr))}</b> framlegð · ${E(fx(sm.sala ? fr / sm.sala * 100 : 0, 1))} %` : ""}</span>${ink.s.length > 1 ? `<button type="button" class="ikib" data-ik="ds:${si}" title="Fjarlægja sendingu">×</button>` : ""}</div>
+        <div class="ikrow ikcost"><button type="button" class="iklink" data-ik="op:${E(s.id)}" aria-expanded="${op}">${chips} <span aria-hidden="true">${op ? "▴" : "▾"}</span></button></div>
+        ${op ? `<div class="ikrow ikopt"><label class="ikin">Flutningur<input data-f="s:${si}:flutn" inputmode="decimal" value="${V(s, "flutn")}" placeholder="0"></label><label class="ikin">Vátrygging<input data-f="s:${si}:vatr" inputmode="decimal" value="${V(s, "vatr")}" placeholder="0"></label>
+          <label class="ikin">Í mynt<select data-f="s:${si}:flutnM"><option value="ISK"${s.flutnM === "ISK" ? " selected" : ""}>ISK</option>${s.mynt !== "ISK" ? `<option value="${E(s.mynt)}"${s.flutnM !== "ISK" ? " selected" : ""}>${E(s.mynt)}</option>` : ""}</select></label>
+          <label class="ikin">Tollskýrslugerð<input data-f="s:${si}:tollsk" inputmode="decimal" value="${V(s, "tollsk")}" placeholder="${E(String(C.tollsk))}"></label>
+          <label class="ikin">Álagning %<input data-f="s:${si}:alag" inputmode="decimal" value="${V(s, "alag")}" placeholder="${E(fx(alagB(b), 1))}"></label>
+          <label class="ikin wide">Hópur á tilboði<input data-f="s:${si}:hopur" list="ikhl" value="${E(s.hopur || "")}" placeholder="Vörur"></label>
+          <label class="ikin wide">Á tilboði<select data-f="s:${si}:syn"><option value="linur"${s.syn !== "ein" ? " selected" : ""}>Hver vara sér lína</option><option value="ein"${s.syn === "ein" ? " selected" : ""}>Ein lína (samtala)</option></select></label>
+          ${s.syn === "ein" ? `<label class="ikin wide">Heiti línunnar<input data-f="s:${si}:lysing" value="${E(s.lysing || "")}" placeholder="${E("Vörur frá " + (s.birgir || "birgi"))}"></label>` : ""}</div>
+          <p class="ikhint" style="margin:0">${r.kgAll ? "Gjaldskyld þyngd " + E(fx(r.kgAll, 1)) + " kg – flutningi dreift " + (r.allKg ? "eftir þyngd" : "eftir verði (vantar þyngd á sumar línur)") : "Flutningi dreift eftir verði – skráðu kg eða mál á línur (▾) til að dreifa eftir þyngd."}</p>` : ""}
+        <div class="iktw"><table><thead><tr><th>Vara</th><th class="n">Magn</th><th class="n">Verð/stk ${E(s.mynt)}</th><th class="n">Kostn./stk</th><th class="n">Álagn. %</th><th class="n">Söluverð/stk</th><th class="n">Samtals</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+        <div class="ikrow"><button type="button" class="iklink" data-ik="al:${si}">+ Lína</button><button type="button" class="iklink" data-ik="paste:${si}">Líma úr Excel</button>${s.mynt !== "ISK" && !r.g ? `<span class="ikman">Vantar tollgengi ${E(s.mynt)}</span>` : ""}<span class="sp"></span><span class="ikhint">Kostnaður ${E(kr(sm.kostn))} · sala ${E(kr(sm.sala))}</span></div></section>`; }).join("");
     const T = R.T;
-    el.querySelector(".ikc").innerHTML = gengiH + sH + `<div class="ikrow"><button type="button" class="btn" data-ik="as">+ Sending frá öðrum birgi</button></div>
-      <section class="iks"><b style="font-weight:500">Samtals</b><div class="iksum"><div><span>Tollverð (CIF)</span><b>${E(kr(T.tollverd))}</b></div><div><span>Aukagjöld og gjöld</span><b>${E(kr(T.agj + T.utan + T.tollsk))}</b></div><div class="hi"><span>Kostnaðarverð</span><b>${E(kr(T.kostn))}</b></div><div class="hi"><span>Söluverð án VSK</span><b>${E(kr(T.sala))}</b></div><div class="hi"><span>Framlegð</span><b class="${T.fram >= 0 ? "pos" : "neg"}">${E(kr(T.fram))} · ${E(fx(T.framP, 1))} %</b></div><div><span>VSK við komu (útlagt, innskattur)</span><b>${E(kr(T.vsk))}</b></div></div>
-      <p class="ikhint" style="margin:0">Aukagjöld eru áætluð (% af tollverði) – raunupphæðin fer eftir tollskrárnúmeri og kemur úr tollskýrslunni. VSK við komu er ekki kostnaður: hann fæst til baka sem innskattur.</p></section>
+    const hopar = [...new Set(ink.s.flatMap(s => [s.hopur, ...s.linur.map(l => l.hopur)]).concat(VR().map(v => v.flokkur)).filter(Boolean))];
+    el.querySelector(".ikc").innerHTML = gengiH + sH + `<div class="ikrow"><button type="button" class="iklink" data-ik="as">+ Sending frá öðrum birgi</button><span class="sp"></span><span class="ikhint">VSK við komu ${E(kr(T.vsk))} (útlagt – fæst til baka sem innskattur)</span></div>
       <datalist id="ikvl">${VR().filter(v => !["pakki", "vinna"].includes(v.tegund)).slice(0, 400).map(v => `<option value="${E(v.heiti)}">${E([v.nr, v.fnr].filter(Boolean).join(" · "))}</option>`).join("")}</datalist>
-      <datalist id="ikbl">${CFG().birgjar.map(b => `<option value="${E(b.nafn)}">${E([b.mynt, b.utan ? "utan Evrópu" : ""].filter(Boolean).join(" · "))}</option>`).join("")}</datalist>`;
+      <datalist id="ikbl">${CFG().birgjar.map(b => `<option value="${E(b.nafn)}">${E([b.mynt, b.utan ? "utan Evrópu" : ""].filter(Boolean).join(" · "))}</option>`).join("")}</datalist>
+      <datalist id="ikhl">${hopar.map(h => `<option value="${E(h)}"></option>`).join("")}</datalist>`;
     const lin = R.send.reduce((a, r) => a + r.lines.length, 0);
-    el.querySelector(".ikf").innerHTML = `<span class="ikhint">${lin} ${lin === 1 ? "lína" : "línur"} · viðskiptavinurinn sér aðeins söluverðið</span><span class="sp"></span><button type="button" class="btn" data-ik="x">Hætta við</button>${ed() ? `<button type="button" class="btn primary" data-ik="save"${lin ? "" : " disabled"}>Setja í tilboð</button>` : ""}`;
+    el.querySelector(".ikf").innerHTML = `<div class="iktot"><span>Kostnaður <b>${E(kr(T.kostn))}</b></span><span>Söluverð <b>${E(kr(T.sala))}</b></span><span>Framlegð <b class="${T.fram >= 0 ? "pos" : "neg"}">${E(kr(T.fram))} · ${E(fx(T.framP, 1))} %</b></span></div><span class="sp"></span><button type="button" class="btn" data-ik="x">Hætta við</button>${ed() ? `<button type="button" class="btn primary" data-ik="save"${lin ? "" : " disabled"}>Setja í tilboð</button>` : ""}`;
     if (fk) { const n = el.querySelector(`[data-f="${CSS.escape(fk)}"]`); if (n) { n.focus(); try { if (fp != null && n.setSelectionRange && n.type !== "number") n.setSelectionRange(fp, fp); } catch (e) {} } }
   }
   let tmo = null;
@@ -211,9 +254,11 @@
     if (p[0] === "g") { ink.gengi = ink.gengi || { k: {} }; ink.gengi.k = ink.gengi.k || {}; ink.gengi.k[p[1]] = num(val); ink.gengi.src = "slegið inn"; }
     else if (p[0] === "s") { const s = ink.s[+p[1]]; if (!s) return;
       if (["flutn", "vatr", "tollsk", "alag"].includes(p[2])) s[p[2]] = val === "" ? "" : num(val); else s[p[2]] = val;
+      if (["hopur", "lysing"].includes(p[2])) return;   // texti – ekki teikna aftur
       if (p[2] === "birgir" && e.type === "change") { const b = birgir(val); if (b) { s.mynt = b.mynt || s.mynt; s.utan = !!b.utan; } }
       if (p[2] === "mynt" && s.flutnM !== "ISK") s.flutnM = val; }
     else if (p[0] === "l") { const l = ink.s[+p[1]]?.linur[+p[2]]; if (!l) return; const k = p[3];
+      if (k === "hopur") { l.hopur = val; return; }
       if (k === "heiti" || k === "bnr") { l[k] = val; if (k === "heiti" && e.type === "change") { const v = VR().find(x => x.heiti === val); l.v = v ? v.id : null; if (v) { if (!l.bnr && v.fnr) l.bnr = v.fnr; if (!l.kg && v.kg) l.kg = v.kg; if (l.agj === "" && v.agj != null) l.agj = v.agj; } } }
       else l[k] = val === "" ? "" : num(val); }
     // teikna aftur (tölur) – ekki meðan skrifað er í textareit sem endurteiknast ekki
@@ -222,7 +267,11 @@
   async function klikk(e) {
     if (!W) return; const b = e.target.closest("[data-ik]"); if (!b) return; const [k, a, c] = b.dataset.ik.split(":"), ink = W.ink;
     if (k === "x") return loka();
-    if (k === "gengi") { b.disabled = true; b.textContent = "Sæki…"; const g = await gengiNu(true); if (g) { ink.gengi = { k: { ...g.k }, dags: g.dags || "", src: g.src || "" }; toast?.("Tollgengi sótt" + (g.dags ? " (" + String(g.dags).slice(0, 10).split("-").reverse().join(".") + ")" : "")); } else toast?.("Náði ekki í tollgengið – sláðu það inn (Skatturinn › Tollafgreiðslugengi)"); return draw(); }
+    if (k === "gengi") { b.disabled = true; b.textContent = "Sæki…"; const g = await gengiNu(true); if (g) { ink.gengi = { k: { ...g.k }, dags: isoD(g.dags) || "", src: g.src || "" }; toast?.("Tollgengi sótt" + (g.dags ? " (gildir frá " + dIS(g.dags) + ")" : "")); } else toast?.("Náði ekki í tollgengið – sláðu það inn (Skatturinn › Tollafgreiðslugengi)"); return draw(); }
+    if (k === "tg") { W.ui.gengi = !W.ui.gengi; return draw(); }
+    if (k === "op") { W.ui.opin[a] = !W.ui.opin[a]; return draw(); }
+    if (k === "lx") { W.ui.lx[a] = !W.ui.lx[a]; return draw(); }
+    if (k === "utan") { ink.s[+a].utan = !ink.s[+a].utan; return draw(); }
     if (k === "al") { ink.s[+a].linur.push(nyLina()); return draw(); }
     if (k === "dl") { ink.s[+a].linur.splice(+c, 1); if (!ink.s[+a].linur.length) ink.s[+a].linur.push(nyLina()); return draw(); }
     if (k === "as") { ink.s.push(nySending()); return draw(); }
@@ -250,8 +299,11 @@
     const { id, ink } = W, R = reikna(ink), T = DOC(id); if (!T) return;
     ink.dags = new Date().toISOString();
     ink.s.forEach(s => { s.linur = s.linur.filter(l => l.heiti || +l.verd); });
-    const nyjar = []; R.send.forEach(r => r.lines.forEach(x => { const v = x.l.v ? findV(x.l.v) : null;
-      nyjar.push({ id: uid(), v: v ? v.id : null, heiti: x.l.heiti || "Vara frá " + (r.s.birgir || "birgi"), teg: "sala", hl: v?.flokkur || "Vörur", magn: x.m, ein: v?.eining || "stk.", verd: Math.round(x.sv), dagar: null, afsl: 0, ik: { k: x.l.k, s: r.s.id, kostn: Math.round(x.kstk) } }); }));
+    // Sundurliðun á tilboðinu: hver vara sér lína (hópur = hópur línu › hópur sendingar › vöruflokkur › „Vörur“), eða ein lína fyrir sendinguna
+    const nyjar = []; R.send.forEach(r => { const s = r.s;
+      if (s.syn === "ein") { if (!r.lines.length) return; nyjar.push({ id: uid(), v: null, heiti: (s.lysing || "").trim() || "Vörur frá " + (s.birgir || "birgi"), teg: "sala", hl: (s.hopur || "").trim() || "Vörur", magn: 1, ein: "stk.", verd: Math.round(r.sum.sala), dagar: null, afsl: 0, ik: { k: "S" + s.id, s: s.id, kostn: Math.round(r.sum.kostn) } }); return; }
+      r.lines.forEach(x => { const v = x.l.v ? findV(x.l.v) : null;
+        nyjar.push({ id: uid(), v: v ? v.id : null, heiti: x.l.heiti || "Vara frá " + (s.birgir || "birgi"), teg: "sala", hl: (x.l.hopur || "").trim() || (s.hopur || "").trim() || v?.flokkur || "Vörur", magn: x.m, ein: v?.eining || "stk.", verd: Math.round(x.sv), dagar: null, afsl: 0, ik: { k: x.l.k, s: s.id, kostn: Math.round(x.kstk) } }); }); });
     // nýir birgjar fara í birgjalistann (nafn, mynt, utan Evrópu)
     const nyirB = ink.s.filter(s => s.birgir && !birgir(s.birgir)).map(s => ({ id: uid(), nafn: s.birgir.trim(), mynt: s.mynt, utan: !!s.utan, alag: "" }));
     try {
@@ -405,14 +457,14 @@
     const kap = VR().find(v => /Hátalarakapall/.test(v.heiti || "")), vsk = (s0.vidskiptavinir || [])[0];
     const ink = { dags: new Date().toISOString(), gengi: { k: { ...DEMO_GENGI }, dags: iso(-1), src: "sýnigengi" }, s: [
       { id: "dS1", birgir: "Klangwerk GmbH", mynt: "EUR", utan: false, flutn: 38000, flutnM: "ISK", vatr: 4500, tollsk: "", alag: "", linur: [
-        nyLina({ k: "dL1", heiti: "Loftahátalari 8\" (hvítur)", bnr: "KW-C8W", magn: 12, verd: 112, kg: 3.2, agj: 0.8 }),
-        nyLina({ k: "dL2", heiti: "Magnari 4 × 120 W", bnr: "KW-A4120", magn: 2, verd: 640, kg: 9.5, l: 46, b: 44, h: 12, agj: 0.8 }),
-        nyLina({ k: "dL3", heiti: "Veggstjórnborð með hljóðstyrk", bnr: "KW-WP2", magn: 2, verd: 85, kg: 0.4, agj: 0.8 }) ] },
+        nyLina({ k: "dL1", heiti: "Loftahátalari 8\" (hvítur)", bnr: "KW-C8W", magn: 12, verd: 112, kg: 3.2, agj: 0.8, hopur: "Hátalarar" }),
+        nyLina({ k: "dL2", heiti: "Magnari 4 × 120 W", bnr: "KW-A4120", magn: 2, verd: 640, kg: 9.5, l: 46, b: 44, h: 12, agj: 0.8, hopur: "Magnarar og stýring" }),
+        nyLina({ k: "dL3", heiti: "Veggstjórnborð með hljóðstyrk", bnr: "KW-WP2", magn: 2, verd: 85, kg: 0.4, agj: 0.8, hopur: "Magnarar og stýring" }) ] },
       { id: "dS2", birgir: "Pro AV Supply Inc.", mynt: "USD", utan: true, flutn: 420, flutnM: "USD", vatr: 30, tollsk: "", alag: 35, linur: [
-        nyLina({ k: "dL4", heiti: "Þráðlaust hljóðnemakerfi (2 rása)", bnr: "PAV-WM2", magn: 2, verd: 1150, kg: 4.2, agj: 0.8 }) ] } ] };
+        nyLina({ k: "dL4", heiti: "Þráðlaust hljóðnemakerfi (2 rása)", bnr: "PAV-WM2", magn: 2, verd: 1150, kg: 4.2, agj: 0.8, hopur: "Hljóðnemar" }) ] } ] };
     const R = reikna(ink), lin = [];
-    R.send.forEach(r => r.lines.forEach(x => lin.push({ id: uid(), v: null, heiti: x.l.heiti, teg: "sala", hl: "Hljóðkerfi", magn: x.m, ein: "stk.", verd: Math.round(x.sv), dagar: null, afsl: 0, ik: { k: x.l.k, s: r.s.id, kostn: Math.round(x.kstk) } })));
-    if (kap) lin.push({ id: uid(), v: kap.id, heiti: kap.heiti, teg: "sala", hl: kap.flokkur || "Uppsetningarefni", magn: 120, ein: kap.eining || "m", verd: +kap.soluverd || 690, dagar: null, afsl: 0 });
+    R.send.forEach(r => r.lines.forEach(x => lin.push({ id: uid(), v: null, heiti: x.l.heiti, teg: "sala", hl: x.l.hopur || "Vörur", magn: x.m, ein: "stk.", verd: Math.round(x.sv), dagar: null, afsl: 0, ik: { k: x.l.k, s: r.s.id, kostn: Math.round(x.kstk) } })));
+    if (kap) lin.push({ id: uid(), v: kap.id, heiti: kap.heiti, teg: "sala", hl: "Uppsetningarefni", magn: 120, ein: kap.eining || "m", verd: +kap.soluverd || 690, dagar: null, afsl: 0 });
     const base = { deild: "sala", vskId: vsk?.id || null, vidskiptavinur: "Hótel Hekla", tengilidur: "Anna Guðmundsdóttir", netfang: "anna@hotelhekla.example", stadsetning: "Hótel Hekla, fundarsalur", afsl: 0, athugasemd: "Sýnidæmi: verð frá tveimur erlendum birgjum reiknuð í Innflutningi", prufa: true };
     const T = { ...base, id: "ikdemoT", nr: "S-0950", heiti: "Hljóðkerfi í fundarsal", dags: iso(-6), fra: iso(12), stada: "Samþykkt", sent: iso(-5), utgafa: 1, eldri: [], linur: lin, ink: structuredClone(ink) };
     const ink2 = structuredClone(ink), e1 = R.send[0].sum;
