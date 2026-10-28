@@ -26,8 +26,13 @@ import sys, json
 r = json.loads(sys.argv[1]); add = [x for x in sys.argv[2:] if x not in r]
 print(",".join(r + add) if add else "")' "$REFS" "${NY[@]}")
     if [ -z "$NEW" ]; then echo "   lykill $DN: lénið var þegar leyft"; continue; fi
-    if OUT=$(gcloud services api-keys update "$NAME" --allowed-referrers="$NEW" --quiet 2>&1); then echo "   lykill $DN: $LEN bætt við"
-    else echo "   lykill $DN: VILLA – $OUT"; fi
+    # Aðeins er BÆTT við leyfðar slóðir (ekkert þrengt), svo notkunarprófun Google (checkExistingUsage) má sleppa –
+    # annars neitar Google ef lykillinn hefur verið notaður af þjónustu sem styður ekki vefslóðatakmörkun (t.d. Geocoding)
+    BODY=$(python3 -c 'import sys,json; print(json.dumps({"restrictions":{"browserKeyRestrictions":{"allowedReferrers":sys.argv[1].split(",")}}}))' "$NEW")
+    OUT=$(curl -s -X PATCH -H "Authorization: Bearer $T" -H "X-Goog-User-Project: $P" -H "Content-Type: application/json" \
+      "https://apikeys.googleapis.com/v2/$NAME?updateMask=restrictions.browserKeyRestrictions&checkExistingUsage=SKIP" -d "$BODY")
+    if echo "$OUT" | grep -q '"error"'; then echo "   lykill $DN: VILLA – $(echo "$OUT" | python3 -c 'import sys,json; print(json.load(sys.stdin)["error"].get("message",""))')"
+    else echo "   lykill $DN: $LEN bætt við"; fi
   done
   # 2) Authorized domains í Firebase Authentication
   H=(-H "Authorization: Bearer $T" -H "X-Goog-User-Project: $P" -H "Content-Type: application/json")
