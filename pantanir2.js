@@ -541,7 +541,7 @@
       tengilidur: P.tengilidur || null, vidskiptavinur: P.vidskiptavinur || null,
       netfangM: (e => e && e.includes("@") ? e[0] + "•••" + e.slice(e.indexOf("@") - 1 > 0 ? e.indexOf("@") - 1 : e.indexOf("@")) : null)(P.netfang || tr(() => findVsk(P.vskId)?.netfang, "")),
       linur: (P.linur || []).map(l => ({ heiti: l.heiti || "", magn: +l.magn || 0, ein: l.ein || "", teg: l.teg || "", dagar: l.teg === "leiga" ? (+l.dagar || null) : null, upph: Math.round(tr(() => window.salaAPI.lSum(l, P), 0)) })),
-      samtals: tt ? { net: tt.net, vsk: tt.vsk, tot: tt.tot, afsl: tt.afsl } : null, skilmalar: C.skilmalarL || null,
+      samtals: tt ? { net: tt.net, vsk: tt.vsk, tot: tt.tot, afsl: tt.afsl } : null, skilmalar: [C.skilmalarL, window.innflFyrirvari?.(P)].filter(Boolean).join(" ") || null,
       fyrirtaeki: { nafn: co.nafn || tr(() => ORG.nafn, ""), simi: co.simi || "", netfang: co.netfang || "", vefur: co.vefur || "", merki: tr(() => ORG.docLogo, "") || "icons/doc-logo.png" } };
   }
   const lsKey = t => "atrium-opinber:" + t;

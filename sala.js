@@ -634,7 +634,7 @@
     row("Samtals án VSK", krs(t.net)); row("VSK " + fx(vskP()) + "%", krs(t.vsk)); y -= 5;
     P.rect(tx - 8, y, X1 - tx + 8, 30, C.nott); P.text("Samtals með VSK", tx, y + 19.5, { w: "medium", size: 10.5, color: C.hvitt }); P.text(krs(t.tot), X1 - 8, y + 19.5, { w: "medium", size: 11.5, color: C.hvitt, align: "right" }); y += 48;
     const txt = (title, s) => { if (!s) return; need(40); P.text(title, M, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 14; P.wrap(s, X1 - M, 9).forEach(z => { need(13); P.text(z, M, y, { size: 9 }); y += 12.5; }); y += 10; };
-    txt("ATHUGASEMD", T.athugasemd); txt("SKILMÁLAR", (L ? CF().skilmalarL : CF().skilmalarS) + (!PN0 && T.gildir ? " Tilboðið gildir til " + dIS(T.gildir) + "." : ""));
+    txt("ATHUGASEMD", T.athugasemd); txt("SKILMÁLAR", (L ? CF().skilmalarL : CF().skilmalarS) + (!PN0 && T.gildir ? " Tilboðið gildir til " + dIS(T.gildir) + "." : "") + (window.innflFyrirvari?.(T) ? " " + innflFyrirvari(T) : ""));   // 2.112.0: fyrirvari um gengi og flutning
     return P.finish(label);
   }
   const fileBase = T => `${isP(T) ? "Pöntun" : "Tilboð"} ${T.nr}${!isP(T) && +T.utgafa > 1 ? " v" + T.utgafa : ""} ${T.vidskiptavinur || ""} ${T.heiti || ""}`.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
@@ -964,7 +964,7 @@
       tengilidur: T.tengilidur || null, vidskiptavinur: T.vidskiptavinur || null, stadsetning: T.stadsetning || null, athugasemd: T.athugasemd || null,
       netfangM: em && em.includes("@") ? em[0] + "•••" + em.slice(Math.max(1, em.indexOf("@") - 1)) : null,
       linur: (T.linur || []).map(l => ({ heiti: l.heiti || "", magn: +l.magn || 0, ein: l.ein || "", teg: l.teg || "", dagar: l.teg === "leiga" ? (+l.dagar || tbDagar(T) || null) : null, upph: Math.round(lSum(l, T) || 0) })),
-      samtals: { net: tt.net, vsk: tt.vsk, tot: tt.tot, afsl: tt.afsl || 0 }, skilmalar: (hefurVorur(T) ? (C.skilmalarL || C.skilmalarS) : null) || null,
+      samtals: { net: tt.net, vsk: tt.vsk, tot: tt.tot, afsl: tt.afsl || 0 }, skilmalar: ([hefurVorur(T) ? (C.skilmalarL || C.skilmalarS) : null, window.innflFyrirvari?.(T)].filter(Boolean).join(" ")) || null,
       fyrirtaeki: { nafn: co.nafn || trq(() => ORG.nafn, ""), simi: co.simi || "", netfang: co.netfang || "", vefur: co.vefur || "", merki: trq(() => ORG.docLogo, "") || "icons/doc-logo.png" } };
   }
   const PUBT = {};
