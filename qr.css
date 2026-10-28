@@ -123,3 +123,7 @@ body.qropen{overflow:hidden}
 /* 2.105.0: Talning og vörumóttaka úr frjálsa skannanum */
 .qrmodes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .qrmodes .btn{justify-content:center;min-height:42px}
+/* 2.106.0: óþekkt strikamerki → Stofna vöru */
+.qrunk{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#1d2024;border:1px solid #2e3237;border-radius:14px;padding:10px 12px}
+.qrunk span{display:flex;flex-direction:column;min-width:0}.qrunk small{color:#9aa3ab;font-size:12px}.qrunk b{font-size:15px;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis}
+.qrunk .btn{flex:none;min-height:40px}

@@ -108,7 +108,7 @@
   const vantarPontun = T => !isP(T) && T.stada === "Samþykkt" && PNON() && !vinnaEin(T) && !PN().some(P => P.tilbodId === T.id);
   const seld = () => [...TB().filter(T => T.stada === "Samþykkt" && !PN().some(P => P.tilbodId === T.id) && (!PNON() || vinnaEin(T))), ...PN().filter(P => PSELD.includes(P.stada))];
   const netLine = (l, T) => Math.round(lSum(l, T) * (1 - (+T.afsl || 0) / 100));
-  window.salaAPI = { pdf: T => tbPdf(T), fileBase: T => fileBase(T), stTxt: T => stTxt(T), TB, VR, PN, lSum, totals, seld, vinnaEin, vantarPontun, netLine, netOf: T => totals(T).net, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; }, arekstrar: T => arekstrar(T), findV: id => findV(id), CF: () => (S?.stillingar?.tilbod || {}) };
+  window.salaAPI = { pdf: T => tbPdf(T), fileBase: T => fileBase(T), stTxt: T => stTxt(T), TB, VR, PN, lSum, totals, seld, vinnaEin, vantarPontun, netLine, netOf: T => totals(T).net, bokanir, upptekid, vDeild, studull: d => studull(d), lineFrom: (v, T) => lineFrom(v, T), saveT: (id, fn) => saveT(id, fn), tbForm: (D, pre) => tbForm(D, pre), pnForm: pre => pnForm(pre), tbLina: f => { TL.f = f || ""; }, arekstrar: T => arekstrar(T), findV: id => findV(id), varaForm: (D, id, pre) => varaForm(D, id, pre), CF: () => (S?.stillingar?.tilbod || {}) };
   window.pnOpnar = () => PNON() ? PN().filter(P => !["Skilað", "Lokið"].includes(P.stada)) : [];
   // Laust á tímabili skjals (fyrir valglugga): pakki = hve margir heilir pakkar
   const lausFyrir = (v, T) => { if (!T?.fra || vDeild(v) !== "leiga" || v.tegund === "vinna") return null; const til = tilOf(T), mine = tharfir(T);
@@ -229,9 +229,10 @@
   window.vnrMissingHTML = D => { if (!MCP || !ADM()) return ""; const n = VR().filter(v => vDeild(v) === D && v.tegund !== "pakki" && !String(v.nr || "").trim()).length;
     return n ? `<div class="vnrmiss"><span>${n} ${n === 1 ? "vara er" : "vörur eru"} án vörunúmers</span><button type="button" class="btn sm" data-act="vrnrall:${D}">Gefa vörunúmer</button></div>` : ""; };
 
-  function varaForm(D, id) {
+  // pre (2.106.0): { strikamerki, onSaved(id) } – ný vara úr skannanum (óþekkt strikamerki)
+  function varaForm(D, id, pre) {
     const v = id ? findV(id) : null; D = v ? vDeild(v) : D;
-    const T0 = DL[D].tegs, x = v ? { ...v, tegund: v.tegund === "baedi" ? "leiga" : v.tegund } : { tegund: VF[D] && T0.includes(VF[D]) ? VF[D] : T0[0], flokkur: VK[D] || FLOKKAR(D)[0], eining: "stk.", innihald: [] };
+    const T0 = DL[D].tegs, x = v ? { ...v, tegund: v.tegund === "baedi" ? "leiga" : v.tegund } : { tegund: VF[D] && T0.includes(VF[D]) ? VF[D] : T0[0], flokkur: VK[D] || FLOKKAR(D)[0], eining: "stk.", innihald: [], strikamerki: pre?.strikamerki || "" };
     let inn = (x.innihald || []).map(i => ({ ...i }));
     const opts = (arr, cur) => arr.map(([k, l]) => `<option value="${esc(k)}"${k === cur ? " selected" : ""}>${esc(l)}</option>`).join("");
     const draw = () => {
@@ -266,7 +267,7 @@
     nrEl.addEventListener("input", () => { delete nrEl.dataset.auto; });
     document.getElementById("vr-fln").addEventListener("input", sugg);
     document.getElementById("vr-fl").onchange = e => { document.getElementById("vr-flnl").style.display = e.target.value === "__nyr__" ? "" : "none"; sugg(); };
-    document.getElementById("vr-cancel").onclick = closeSheet;
+    document.getElementById("vr-cancel").onclick = () => { closeSheet(); pre?.onCancel?.(); };
     // 2.105.0: strikamerki lesið með myndavélinni (skanninn opnast ofan á formið og fyllir reitinn)
     const smB = document.getElementById("vr-smscan"); if (smB) smB.onclick = () => window.qrScanCode(c => { const el = document.getElementById("vr-sm"); if (!el) return; const a = el.value.split(/[\s,;]+/).filter(Boolean); if (!a.includes(c)) a.push(c); el.value = a.join(", "); });
     document.getElementById("vrf").onsubmit = async e => { e.preventDefault(); readPk();
@@ -284,7 +285,7 @@
       const nid = id || gid(), fk = D === "sala" ? "flokkarS" : "flokkarL";
       try { await saveSnapshot(s => { s.vorur = s.vorur || []; const q = s.vorur.find(y => y.id === id); if (q) Object.assign(q, o); else s.vorur.push({ id: nid, ...o });
           if (fl && !(CF()[fk] || []).includes(fl)) { s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [fk]: [...(CF()[fk] || []), fl] }; } });
-        toast(heiti + " vistað"); closeSheet(); if (!id) openDetail("vara:" + nid); } catch (err) { msg(esc(errText(err)), "err"); } };
+        toast(heiti + " vistað"); closeSheet(); if (pre?.onSaved) { pre.onSaved(nid); return; } if (!id) openDetail("vara:" + nid); } catch (err) { msg(esc(errText(err)), "err"); } };
   }
 
   /* ---------- Tilboð: listi (hvor deild sín) ---------- */

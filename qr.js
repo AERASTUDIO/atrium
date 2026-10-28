@@ -81,7 +81,7 @@
       <div class="qrpanel">${opts.panel ? opts.panel() : ""}<form class="qrman" data-q="man"><label class="sr" for="qrin">Númer eintaks</label><input id="qrin" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="${E(opts.ph || (salaOn() ? "…eða sláðu inn númer eða strikamerki" : "…eða sláðu inn númer, t.d. HL-101-07"))}"><button type="submit" class="btn">${opts.panel ? "Skrá" : "Opna"}</button></form></div>`;
     document.body.append(w); document.body.classList.add("qropen");
     const vid = w.querySelector("video"), msg = w.querySelector(".qrmsg");
-    SC = { w, opts, on: true, stream: null, last: "", lastT: 0, paused: false };
+    SC = { w, opts, on: true, stream: null, last: opts.last || "", lastT: opts.last ? Date.now() + 1500 : 0, paused: false };   // opts.last: kóði sem er þegar talinn (ekki telja aftur meðan hann er í mynd)
     const sc = SC;
     w.addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (!b) return; const q = b.dataset.q;
       if (q === "close") return closeScanner();
@@ -122,14 +122,21 @@
 
   /* ---------- Frjáls skönnun → eintaksspjald ---------- */
   const lagerOn = () => salaOn() && can() && VR().some(v => isSalaV(v) && !["pakki", "vinna"].includes(v.tegund));
+  // 2.106.0: óþekkt strikamerki → „Stofna vöru“ (vöruformið opnast með strikamerkið útfyllt; heiti, flokkur og verð slegin inn)
+  const canNew = () => salaOn() && can() && !!api()?.varaForm;
+  const isBar = c => /^\d{8,14}$/.test(String(c || ""));
+  const unkHTML = c => c ? `<div class="qrunk"><span><small>Óþekkt strikamerki</small><b>${E(c)}</b></span><button type="button" class="btn primary" data-q="new">Stofna vöru</button></div>` : "";
+  const newVara = (code, onSaved, onCancel) => api().varaForm("sala", null, { strikamerki: code, onSaved, onCancel });
   function scanFree() {
-    const sl = salaOn();
+    const sl = salaOn(); let unk = "";
     openScanner({ title: sl ? "Skanna" : "Skanna eintak", sup: sl ? "QR og strikamerki" : "QR-skanni",
-      panel: lagerOn() ? () => `<div class="qrmodes"><button type="button" class="btn" data-q="m:tal">Talning á lager</button><button type="button" class="btn" data-q="m:mot">Vörumóttaka</button></div>` : null,
-      onPanel: q => { if (q === "m:tal" || q === "m:mot") { closeScanner(); setTimeout(() => scanLager(q.slice(2)), 60); } },
+      panel: lagerOn() || canNew() ? () => unkHTML(unk) + (lagerOn() ? `<div class="qrmodes"><button type="button" class="btn" data-q="m:tal">Talning á lager</button><button type="button" class="btn" data-q="m:mot">Vörumóttaka</button></div>` : "") : null,
+      onPanel: q => { if (q === "m:tal" || q === "m:mot") { closeScanner(); setTimeout(() => scanLager(q.slice(2)), 60); }
+        if (q === "new" && unk) { const c = unk; closeScanner(); newVara(c, id => { const v = VR().find(x => String(x.id) === String(id)); if (v) openVara(v); }, () => scanFree()); } },
       onCode: nr => { const f = findE(nr); if (f) { closeScanner(); openCard(nr); return { ok: true }; }
         const v = findV(nr); if (v) { closeScanner(); openVara(v); return { ok: true, msg: v.heiti }; }
-        return { ok: false, msg: (sl ? "Óþekkt númer " : "Fann ekki eintakið ") + nr + (sl && /^\d{8,14}$/.test(nr) ? " – skráðu strikamerkið á vöruna" : "") }; } });
+        if (canNew() && isBar(nr)) { unk = nr; refreshPanel(); return { ok: false, msg: "Óþekkt strikamerki " + nr }; }
+        return { ok: false, msg: (sl ? "Óþekkt númer " : "Fann ekki eintakið ") + nr }; } });
   }
   window.qrScan = scanFree;
   function openVara(v) { try { tab = isSalaV(v) ? "svorur" : "lvorur"; DETAIL = null; } catch (x) {} render(); openDetail("vara:" + v.id); }
@@ -138,22 +145,25 @@
 
   /* ---------- Talning og vörumóttaka með skanna (söluvörur, 2.105.0) ---------- */
   // Hver skönnun hækkar talið magn vörunnar um 1; magnið má leiðrétta. „Vista“ skráir lagerhreyfingu á hverja vöru (Talning / Móttekið).
-  function scanLager(mode) {
-    const tal = mode === "tal", C = new Map(), order = [];
+  function scanLager(mode, keep) {
+    const tal = mode === "tal", C = keep?.C || new Map(), order = keep?.order || []; let unk = "";
     const set = (id, n) => { if (!C.has(id)) order.unshift(id); C.set(id, Math.max(0, n)); };
     const panel = () => { const rows = order.map(id => ({ v: VR().find(x => String(x.id) === id), n: C.get(id) })).filter(r => r.v);
-      return `<div class="qrprog"><div><b>${rows.length} ${rows.length === 1 ? "vara" : "vörur"}</b> · ${rows.reduce((a, r) => a + r.n, 0)} ${tal ? "talið" : "móttekið"}</div></div>
+      return unkHTML(unk) + `<div class="qrprog"><div><b>${rows.length} ${rows.length === 1 ? "vara" : "vörur"}</b> · ${rows.reduce((a, r) => a + r.n, 0)} ${tal ? "talið" : "móttekið"}</div></div>
         <div class="qrlist">${rows.length ? rows.map(({ v, n }) => { const ink = (v.innkaup || []).find(x => x.stada === "Pantað");
           return `<div class="qrli full"><span class="qrnm"><b>${E(v.heiti)}</b><small>${E(v.nr || "")} · ${tal ? "skráð á lager " + (+v.fjoldi || 0) + (n !== (+v.fjoldi || 0) ? ` · <span class="${n < (+v.fjoldi || 0) ? "t-amb" : ""}">${n - (+v.fjoldi || 0) > 0 ? "+" : "−"}${Math.abs(n - (+v.fjoldi || 0))}</span>` : " · passar") : "á lager " + (+v.fjoldi || 0) + " → " + ((+v.fjoldi || 0) + n) + (ink ? " · " + E(ink.nr) + ": " + ink.magn + " pantað" : "")}</small></span>
             <span class="qrcnt"><button type="button" data-q="h:${E(v.id)}:-1" aria-label="Færri ${E(v.heiti)}">−</button><span class="qrn">${n}</span><button type="button" data-q="h:${E(v.id)}:1" aria-label="Fleiri ${E(v.heiti)}">+</button></span></div>`; }).join("")
           : `<div class="qrli"><span class="qrnm"><small>${tal ? "Skannaðu hverja vöru eins oft og stykkin eru, eða skannaðu einu sinni og stilltu fjöldann með + og −. Aðeins vörur sem eru skannaðar breytast." : "Skannaðu vörurnar sem komu. Lagerinn hækkar og opin innkaupapöntun vörunnar merkist móttekin þegar allt er komið."}</small></span></div>`}</div>
         ${rows.length ? `<button type="button" class="btn primary qrdone" data-q="save">${tal ? "Vista talningu" : "Skrá móttöku"} (${rows.length} ${rows.length === 1 ? "vara" : "vörur"})</button>` : ""}`; };
-    openScanner({ title: tal ? "Talning á lager" : "Vörumóttaka", sup: "Söluvörur", ph: "…eða sláðu inn vörunúmer eða strikamerki", panel,
-      onCode: c => { const v = findV(c); if (!v) return { ok: false, msg: "Óþekkt " + c + (/^\d{8,14}$/.test(c) ? " – skráðu strikamerkið á vöruna" : "") };
+    openScanner({ title: tal ? "Talning á lager" : "Vörumóttaka", sup: "Söluvörur", last: keep?.last, ph: "…eða sláðu inn vörunúmer eða strikamerki", panel,
+      onCode: c => { const v = findV(c); if (!v) { if (canNew() && isBar(c)) { unk = c; refreshPanel(); return { ok: false, msg: "Óþekkt strikamerki " + c }; } return { ok: false, msg: "Óþekkt " + c }; }
+        if (unk) unk = "";
         if (!isSalaV(v)) return { ok: false, msg: v.heiti + " er leigubúnaður" };
         set(String(v.id), (C.get(String(v.id)) || 0) + 1); refreshPanel(); return { ok: true, msg: v.heiti + " · " + C.get(String(v.id)) }; },
       onPanel: async q => {
         if (q.startsWith("h:")) { const [, id, d] = q.split(":"); set(id, (C.get(id) || 0) + +d); refreshPanel(); return; }
+        // Ný vara: talningin/móttakan heldur áfram eftir að varan er vistuð – nýja varan komin á listann með 1 stk.
+        if (q === "new" && unk) { const c = unk; closeScanner(); newVara(c, id => { set(String(id), (C.get(String(id)) || 0) + 1); scanLager(mode, { C, order, last: c }); }, () => scanLager(mode, { C, order })); return; }
         if (q !== "save" || !C.size) return;
         const dags = nowIso(), who = me(), done = [];
         await saveSnapshot(s => { (s.vorur || []).forEach(x => { const id = String(x.id); if (!C.has(id)) return; const n = C.get(id), f0 = +x.fjoldi || 0; x.hreyfingar = x.hreyfingar || [];
