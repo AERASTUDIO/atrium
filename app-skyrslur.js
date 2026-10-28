@@ -19,12 +19,15 @@ function splitDY(e){const t=+e.timar||0, day=String(e.date||"").slice(0,10); if(
 const sumDY=es=>es.reduce((o,e)=>{const x=splitDY(e); o.d+=x.d; o.y+=x.y; return o;},{d:0,y:0});
 function buildReport(pred,meta){
   const es=faerslur().filter(e=>!e.live&&pred(e)), ks=kostn().filter(pred).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-  // Flokkað eftir verkefnum, eða eftir undirverkum innan verkefna (meta.flokka)
-  const groups=new Map(); es.forEach(e=>{const p=findProj(e.verkefniId)||projByNr(e.nr), u=meta.flokka&&e.undirverkId?findSub(e.undirverkId)?.u:null; const k=(p?p.id:"_")+(meta.flokka?"|"+(u?u.id:""):"");
-    if(!groups.has(k)) groups.set(k,{p,u,flokka:!!meta.flokka,es:[],label:(p?p.nafn:"Án verkefnis")+(meta.flokka?" › "+(u?u.nr+" "+subName(u):"Án undirverks"):""),st:meta.flokka?(u?u.nr:(p?.nr||"")+" – án undirverks"):(p?.nr||"")}); groups.get(k).es.push(e);});
-  const gs=[...groups.values()].sort((a,b)=>String(a.p?.nr||"zz").localeCompare(String(b.p?.nr||"zz"))||String(a.u?.nr||"zz").localeCompare(String(b.u?.nr||"zz")));
+  const multi=new Set(es.concat(ks).map(e=>e.starfsmadur||ME())).size>1;
+  // Flokkað eftir verkefnum, eða eftir undirverkum innan verkefna (meta.flokka); 2.114.5: ef fleiri en einn vann tímana
+  // er hver hópur líka flokkaður eftir nafni starfsmanns (Verkefni › Nafn), raðað í stafrófsröð innan verkefnis
+  const nfn=sk=>(typeof starfName==="function"?starfName(sk):sk)||sk||"";
+  const groups=new Map(); es.forEach(e=>{const p=findProj(e.verkefniId)||projByNr(e.nr), u=meta.flokka&&e.undirverkId?findSub(e.undirverkId)?.u:null, w=multi?nfn(e.starfsmadur||ME()):""; const k=(p?p.id:"_")+(meta.flokka?"|"+(u?u.id:""):"")+(multi?"|"+w:"");
+    if(!groups.has(k)) groups.set(k,{p,u,w,flokka:!!meta.flokka,es:[],label:(p?p.nafn:"Án verkefnis")+(meta.flokka?" › "+(u?u.nr+" "+subName(u):"Án undirverks"):"")+(multi?" › "+w:""),st:(meta.flokka?(u?u.nr:(p?.nr||"")+" – án undirverks"):(p?.nr||""))+(multi?" · "+w:"")}); groups.get(k).es.push(e);});
+  const gs=[...groups.values()].sort((a,b)=>String(a.p?.nr||"zz").localeCompare(String(b.p?.nr||"zz"))||String(a.u?.nr||"zz").localeCompare(String(b.u?.nr||"zz"))||String(a.w).localeCompare(String(b.w),"is"));
   gs.forEach(g=>g.es.sort((a,b)=>String(a.date+(a.fra||"")).localeCompare(String(b.date+(b.fra||"")))));
-  return {meta,gs,tot:sumT(es),dy:sumDY(es),n:es.length,ks,ktot:sumK(ks),multi:new Set(es.concat(ks).map(e=>e.starfsmadur||ME())).size>1};
+  return {meta,gs,tot:sumT(es),dy:sumDY(es),n:es.length,ks,ktot:sumK(ks),multi};
 }
 let REPARGS=null; const openReportAgain=()=>REPARGS&&openReport(...REPARGS);
 function openReport(pred,meta){
@@ -42,7 +45,7 @@ function openReport(pred,meta){
     ${R.ks.length?`<div class="viewtitle">Útlagður kostnaður</div><div class="tw"><table><thead><tr><th>Dagsetning</th><th>Verkefni</th><th>Lýsing</th>${R.multi?"<th>Starfsm.</th>":""}<th class="r">Upphæð</th></tr></thead><tbody>
       ${R.ks.map(k=>{const p=findProj(k.verkefniId); return `<tr><td>${esc(dIS(String(k.date).slice(0,10)))}</td><td>${esc(p?.nr||"")}</td><td>${esc(k.lysing||"")}${k.kvittun?` <a class="plink" href="${esc(k.kvittun)}" target="_blank" rel="noopener">🧾</a>`:""}</td>${R.multi?`<td>${esc(k.starfsmadur||ME())}</td>`:""}<td class="r">${esc(kr(k.upphaed))}</td></tr>`;}).join("")}
       <tr class="gt"><td colspan="${R.multi?4:3}">Samtals</td><td class="r">${esc(kr(R.ktot))}</td></tr></tbody></table></div>`:""}
-    ${R.gs.length>1?`<div class="viewtitle">Samantekt eftir ${R.meta.flokka?"undirverkum":"verkefnum"}</div><div class="tw sum"><table style="min-width:0"><thead><tr><th></th><th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>${R.gs.map(g=>`<tr><td>${esc(g.label)}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}<tr class="gt"><td>Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>`:""}
+    ${R.gs.length>1?`<div class="viewtitle">Samantekt eftir ${R.meta.flokka?"undirverkum":"verkefnum"}${R.multi?" og starfsmönnum":""}</div><div class="tw sum"><table style="min-width:0"><thead><tr><th></th><th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>${R.gs.map(g=>`<tr><td>${esc(g.label)}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}<tr class="gt"><td>Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>`:""}
     ${window.ORG?.utlit==="I"?"":window.MS&&MS.on()?`<p class="hint" style="margin:14px 0 0">PDF og Excel vistast í <b>Mín skjöl › Tímaskýrslur</b> í OneDrive.</p><label class="chk" style="flex-direction:row;align-items:center;gap:8px;margin-top:6px;color:var(--ink)"><input type="checkbox" id="rep-dl" style="width:auto;min-height:0"> Sækja á tækið í staðinn</label>`:""}
     <div class="actions" style="margin-top:12px;flex-wrap:wrap"><button type="button" class="btn" id="rep-close">Loka</button><button type="button" class="btn" id="rep-prev">Forskoða</button><button type="button" class="btn" id="rep-xlsx">Excel</button><button type="button" class="btn primary" id="rep-pdf">PDF</button></div></div>`;
   sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden=false;
@@ -63,7 +66,7 @@ async function downloadXlsx(R){ const logo=window.DOK?await DOK.logo().catch(()=
     rows.push([S_("Samtals "+g.st,8),...Array(m?6:5).fill(S_("",8)),...DY(g.es,9),S_(Math.round(sumT(g.es)*100)/100,9)]); rows.push([]);});
   const allEs=R.gs.flatMap(g=>g.es);
   rows.push([S_("Samtals",10),...Array(m?6:5).fill(S_("",10)),...DY(allEs,11),S_(Math.round(R.tot*100)/100,11)]);
-  if(R.gs.length>1){rows.push([],[S_("Samantekt eftir "+(R.meta.flokka?"undirverkum":"verkefnum"),3),...Array(m?6:5).fill(S_("",3)),S_("Dagv.",13),S_("Yfirv.",13),S_("Klst.",13)]);
+  if(R.gs.length>1){rows.push([],[S_("Samantekt eftir "+(R.meta.flokka?"undirverkum":"verkefnum")+(R.multi?" og starfsmönnum":""),3),...Array(m?6:5).fill(S_("",3)),S_("Dagv.",13),S_("Yfirv.",13),S_("Klst.",13)]);
     R.gs.forEach(g=>rows.push([S_(g.label,4),...Array(m?6:5).fill(S_("",4)),...DY(g.es,6),S_(Math.round(sumT(g.es)*100)/100,6)]));
     rows.push([S_("Samtals",10),...Array(m?6:5).fill(S_("",10)),...DY(allEs,11),S_(Math.round(R.tot*100)/100,11)]);}
   if(R.ks.length){rows.push([],[S_("Útlagður kostnaður",7),...Array(m?8:7).fill(S_("",7)),S_("",14)]);
