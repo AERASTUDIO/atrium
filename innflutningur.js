@@ -153,14 +153,14 @@
       else { flutn = kaup * (U.flutnP || 0) / 100; flSrc = `${fx(U.flutnP, 1)} % af kaupverði (${U.flutnPSrc})${mt === "kg" ? " – vantar " + (kg ? "reynslu í kr./kg" : "þyngd") : ""}`; }
       const flutnV = flutn + vatr;   // dreift á línur saman (V2: vátrygging sér í samtölum)
       const tollverd = kaup + flutnV;
-      const urv = kg ? kg * U.urvKg : tollverd * (U.urvP != null ? U.urvP : 0.1) / 100, urvSrc = kg ? `${fx(U.urvKg, 1)} kr./kg (${U.urvSrc})` : "áætlað (vantar þyngd)";
-      const utan = s.utan ? tollverd * (+C.utanP || 0) / 100 : 0, vsk = (tollverd + urv) * 0.24;
+      const urv = V2() ? kgL * U.urvKg : kg ? kg * U.urvKg : tollverd * (U.urvP != null ? U.urvP : 0.1) / 100, urvSrc = V2() ? (kgL ? `${fx(U.urvKg, 1)} kr./kg × ${fx(kgL, 1)} kg á vörum` : "engin þyngd skráð á vörur") : kg ? `${fx(U.urvKg, 1)} kr./kg (${U.urvSrc})` : "áætlað (vantar þyngd)";
+      const utan = s.utan && !V2() ? tollverd * (+C.utanP || 0) / 100 : 0, vsk = (tollverd + urv) * 0.24;
       const tl = new Set(rows.map(r => (r.l.v && findV(r.l.v)?.tollnr) || r.l.tollnr || r.l.k)).size, F = faOf(faDef(s));
-      const midlun = !kaupM ? 0 : !tom(s.tollsk) ? +s.tollsk : U.midlun != null ? U.midlun : midlunGjaldskra(F, tl, kg, s.m3, vsk + urv);
-      const midlunSrc = !tom(s.tollsk) ? "slegið inn" : U.midlun != null ? U.midlunSrc : (F ? F.nafn + ", gjaldskrá" : "");
+      const midlun = !kaupM ? 0 : V2() ? (+s.tollsk || 0) : !tom(s.tollsk) ? +s.tollsk : U.midlun != null ? U.midlun : midlunGjaldskra(F, tl, kg, s.m3, vsk + urv);
+      const midlunSrc = V2() ? (tom(s.tollsk) ? "vantar upphæð" : "slegið inn") : !tom(s.tollsk) ? "slegið inn" : U.midlun != null ? U.midlunSrc : (F ? F.nafn + ", gjaldskrá" : "");
       const ov = tollverd * (+U.ovP || 0) / 100;
       const fast = urv + utan + midlun + ov;   // dreift á línur
-      const share = r => allKg ? r.kgL / kgL : kaupM ? r.kaupM / kaupM : 1 / rows.length;
+      const share = r => allKg && !V2() ? r.kgL / kgL : kaupM ? r.kaupM / kaupM : 1 / rows.length;
       const S1 = { kaup: 0, flutn: 0, tollverd: 0, urv: 0, utan: 0, midlun: 0, ov: 0, kostn: 0, sala: 0, vsk: 0 };
       const lines = rows.map(r => { const sh = share(r), k = r.kaupM * g, f = flutnV * sh, tv = k + f, kostn = tv + fast * sh, kstk = r.m ? kostn / r.m : 0;
         const alag = !tom(r.l.alag) ? +r.l.alag : alag0, nm = Math.max(1, +C.namun || 1);
@@ -183,10 +183,12 @@
     const vH = s.vatrH || (+s.vatr > 0 ? "upph" : "pct"), vSel = vH === "upph" ? "upph" : String(+(s.vatrP ?? 1) || 1);
     return `<div class="ikrow ikflm" role="group" aria-label="Flutningur">${[["birgir", "Flutningur frá birgja"], ["fa", "Tilboð frá flutningsaðila"]].map(([k, l]) => `<button type="button" class="ikchip${mt === k ? " on" : ""}" data-ik="flu:${si}:${k}" aria-pressed="${mt === k}">${l}</button>`).join("")}
       ${true ? `<label class="ikin">Flutningsgjald<input data-f="s:${si}:flutn" inputmode="decimal" value="${V(s, "flutn")}" placeholder="0"></label><label class="ikin">Mynt${myS("flutnM", s.flutnM || s.mynt)}</label>` : ""}
+      ${mt === "fa" ? `<label class="ikin">Flutningsaðili<select data-f="s:${si}:fa">${CFG().fa.map(f => `<option value="${E(f.id)}"${f.id === faDef(s) ? " selected" : ""}>${E(f.nafn)}</option>`).join("")}</select></label>` : ""}
       ${mt === "fa" ? `<label class="ikin">Tilboð nr.<input data-f="s:${si}:flutnNr" value="${E(s.flutnNr || "")}" placeholder="Valfrjálst"></label>` : ""}
       <label class="ikin">Vátrygging<select data-f="s:${si}:vatrSel">${VATR_P.map(([v, l]) => `<option value="${v}"${vSel === String(v) ? " selected" : ""}>${l}</option>`).join("")}<option value="upph"${vSel === "upph" ? " selected" : ""}>Raunupphæð…</option></select></label>
       ${vH === "upph" ? `<label class="ikin">Upphæð<input data-f="s:${si}:vatr" inputmode="decimal" value="${V(s, "vatr")}" placeholder="0"></label><label class="ikin">Mynt${myS("vatrM", s.vatrM || s.mynt)}</label>` : ""}
-      <span class="ikhint">Tollverð ${E(kr(r.sum.tollverd))} = kaupverð ${E(kr(r.sum.kaup))} + flutningur ${E(kr(r.sum.flutnA))} + vátrygging ${E(kr(r.vatr))}</span></div>`;
+      <label class="ikin">Tollmiðlun (kr.)<input data-f="s:${si}:tollsk" inputmode="decimal" value="${V(s, "tollsk")}" placeholder="0" title="Gjöld flutningsaðila/tollmiðlara fyrir sendinguna – sér liður, ekki í tollverði"></label>
+      <span class="ikhint" style="flex-basis:100%">Tollverð ${E(kr(r.sum.tollverd))} = kaupverð ${E(kr(r.sum.kaup))} + flutningur ${E(kr(r.sum.flutnA))} + vátrygging ${E(kr(r.vatr))}</span></div>`;
   }
 
   /* ---------- Reiknir (gluggi) ---------- */
@@ -322,9 +324,9 @@
       const chips = [V2() ? `Flutningur ${E(kr(sm.flutnA))} – ${E(r.flSrc)} · vátrygging ${E(kr(r.vatr))} (${E(r.vatrSrc)})` : `Flutningur ${E(kr(sm.flutn))} – ${E(r.flSrc)}`, `úrvinnslugjöld ${E(kr(sm.urv))}`, `miðlun ${E(kr(sm.midlun))} (${E(r.midlunSrc)})`, sm.ov ? `óvissuálag ${E(kr(sm.ov))} (${E(r.U.ovSrc)})` : "", `álagning ${E(fx(alagS(s), 1))} %`, s.syn === "ein" ? "ein lína á tilboði" : ""].filter(Boolean).join(" · ");
       return `<section class="iks"><div class="ikrow ikshead"><input class="ikbn" data-f="s:${si}:birgir" list="ikbl" value="${E(s.birgir)}" placeholder="Birgir" aria-label="Birgir">
           <select class="ikmy" data-f="s:${si}:mynt" aria-label="Mynt">${["ISK", ...MYNTIR].map(m => `<option${m === s.mynt ? " selected" : ""}>${m}</option>`).join("")}</select>
-          <label class="ikkg"><input data-f="s:${si}:kg" inputmode="decimal" value="${V(s, "kg")}" placeholder="${kgS(s) && tom(s.kg) ? E(fx(kgS(s), 1)) : "kg"}" aria-label="Heildarþyngd sendingar (kg)"> kg</label>
-          <select class="ikmy" data-f="s:${si}:fa" aria-label="Flutningsaðili">${FAs.map(f => `<option value="${E(f.id)}"${f.id === faDef(s) ? " selected" : ""}>${E(f.nafn)}</option>`).join("")}</select>
-          <button type="button" class="ikchip${s.utan ? " on" : ""}" data-ik="utan:${si}" aria-pressed="${!!s.utan}">Utan Evrópu${s.utan ? " +" + E(fx(C.utanP, 1)) + " %" : ""}</button>
+          ${V2() ? "" : `<label class="ikkg"><input data-f="s:${si}:kg" inputmode="decimal" value="${V(s, "kg")}" placeholder="${kgS(s) && tom(s.kg) ? E(fx(kgS(s), 1)) : "kg"}" aria-label="Heildarþyngd sendingar (kg)"> kg</label>`}
+          ${V2() ? "" : `<select class="ikmy" data-f="s:${si}:fa" aria-label="Flutningsaðili">${FAs.map(f => `<option value="${E(f.id)}"${f.id === faDef(s) ? " selected" : ""}>${E(f.nafn)}</option>`).join("")}</select>
+          <button type="button" class="ikchip${s.utan ? " on" : ""}" data-ik="utan:${si}" aria-pressed="${!!s.utan}">Utan Evrópu${s.utan ? " +" + E(fx(C.utanP, 1)) + " %" : ""}</button>`}
           <span class="sp"></span><span class="iksf">${sm.sala ? `<b class="${fr >= 0 ? "pos" : "neg"}">${E(kr(fr))}</b> framlegð · ${E(fx(sm.sala ? fr / sm.sala * 100 : 0, 1))} %` : ""}</span>${ink.s.length > 1 ? `<button type="button" class="ikib" data-ik="ds:${si}" title="Fjarlægja sendingu">×</button>` : ""}</div>
         ${V2() ? flV2(s, si, r) : ""}<div class="ikrow ikflm" role="group" aria-label="Flutningur"${V2() ? " hidden" : ""}>${[["inni", "Birgir sér um flutning"], ["upph", "Flutningur í tilboði"], ["kg", "Áætla eftir kg"], ["pct", "% af kaupverði"]].map(([k, l]) => `<button type="button" class="ikchip${r.mt === k ? " on" : ""}" data-ik="flm:${si}:${k}" aria-pressed="${r.mt === k}">${l}</button>`).join("")}
           ${r.mt === "upph" ? `<label class="ikin">Flutningur<input data-f="s:${si}:flutn" inputmode="decimal" value="${V(s, "flutn")}" placeholder="0"></label><label class="ikin">Vátrygging<input data-f="s:${si}:vatr" inputmode="decimal" value="${V(s, "vatr")}" placeholder="0"></label><label class="ikin">Í mynt<select data-f="s:${si}:flutnM"><option value="ISK"${s.flutnM === "ISK" ? " selected" : ""}>ISK</option>${s.mynt !== "ISK" ? `<option value="${E(s.mynt)}"${s.flutnM !== "ISK" ? " selected" : ""}>${E(s.mynt)}</option>` : ""}</select></label>` : ""}
@@ -332,8 +334,8 @@
           ${r.mt === "pct" ? `<label class="ikin">Flutningur %<input data-f="s:${si}:flutnP" inputmode="decimal" value="${V(s, "flutnP")}" placeholder="${E(fx(r.U.flutnP, 1))}" title="Autt = ${E(r.U.flutnPSrc)}"></label>` : ""}</div>
         <div class="ikrow ikcost"><button type="button" class="iklink" data-ik="op:${E(s.id)}" aria-expanded="${op}">${chips} <span aria-hidden="true">${op ? "▴" : "▾"}</span></button></div>
         ${op ? `<div class="ikrow ikopt">
-          <label class="ikin">Miðlun (kr.)<input data-f="s:${si}:tollsk" inputmode="decimal" value="${V(s, "tollsk")}" placeholder="${E(String(Math.round(sm.midlun)))}" title="Gjöld flutningsaðila/tollmiðlara á sendingu. Autt = ${E(r.midlunSrc)}"></label>
-          ${r.F && (+r.F.uppskM3 || +r.F.uppskT) ? `<label class="ikin">Rúmmál (m³)<input data-f="s:${si}:m3" inputmode="decimal" value="${V(s, "m3")}" placeholder="0"></label>` : ""}
+          ${V2() ? "" : `<label class="ikin">Miðlun (kr.)<input data-f="s:${si}:tollsk" inputmode="decimal" value="${V(s, "tollsk")}" placeholder="${E(String(Math.round(sm.midlun)))}" title="Gjöld flutningsaðila/tollmiðlara á sendingu. Autt = ${E(r.midlunSrc)}"></label>`}
+          ${!V2() && r.F && (+r.F.uppskM3 || +r.F.uppskT) ? `<label class="ikin">Rúmmál (m³)<input data-f="s:${si}:m3" inputmode="decimal" value="${V(s, "m3")}" placeholder="0"></label>` : ""}
           <label class="ikin">Álagning %<input data-f="s:${si}:alag" inputmode="decimal" value="${V(s, "alag")}" placeholder="${E(fx(alagB(b), 1))}"></label>
           <label class="ikin wide">Hópur á tilboði<input data-f="s:${si}:hopur" list="ikhl" value="${E(s.hopur || "")}" placeholder="Vörur"></label>
           <label class="ikin wide">Á tilboði<select data-f="s:${si}:syn"><option value="linur"${s.syn !== "ein" ? " selected" : ""}>Hver vara sér lína</option><option value="ein"${s.syn === "ein" ? " selected" : ""}>Ein lína (samtala)</option></select></label>
