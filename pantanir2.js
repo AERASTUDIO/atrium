@@ -48,7 +48,7 @@
 
   /* ---------- 3. Tínslulisti ---------- */
   function pickState(P) {
-    const N = tr(() => Q().need(P), []), list = [...new Set([...(P.tinsla || []), ...((P.skann || {}).ut || [])])], H = { ...((P.skann || {}).utH || {}), ...(P.tinslaH || {}) };
+    const N = tr(() => Q().need(P, "ut"), []), list = [...new Set([...(P.tinsla || []), ...((P.skann || {}).ut || [])])], H = { ...((P.skann || {}).utH || {}), ...(P.tinslaH || {}) };
     const rows = N.map(x => { const nrs = x.eint ? list.filter(nr => (x.v?.eintok || []).some(e => e.nr === nr)) : []; const got = x.eint ? nrs.length : (+H[x.id] || 0);
       const hillur = [...new Set((x.v?.eintok || []).map(e => e.hilla).filter(Boolean))]; return { ...x, nrs, got: Math.min(got, x.magn), hillur }; });
     const tot = rows.reduce((a, r) => a + r.magn, 0), done = rows.reduce((a, r) => a + r.got, 0);
@@ -66,11 +66,11 @@
     const P0 = findP(pid); if (!P0 || !Q()) return;
     const panel = () => { const P = findP(pid) || P0, s = pickState(P);
       return `<div class="qrprog"><div><b>${s.done} af ${s.tot}</b> pakkað</div><div class="qrbar"><i style="width:${s.tot ? Math.round(s.done / s.tot * 100) : 0}%"></i></div></div>
-        <div class="qrlist">${s.rows.map(r => `<div class="qrli${r.got >= r.magn ? " full" : ""}"><span class="qrck" aria-hidden="true">${r.got >= r.magn ? "✓" : ""}</span><span class="qrnm"><b>${E(r.heiti)}</b><small>${E(r.nr)}${r.eint ? "" : " · engin eintök – talið"}</small></span>${r.eint ? `<span class="qrn">${r.got} / ${r.magn}</span>` : `<span class="qrcnt"><button type="button" data-q="h:${E(r.id)}:-1" aria-label="Fækka">−</button><span class="qrn">${r.got} / ${r.magn}</span><button type="button" data-q="h:${E(r.id)}:1" aria-label="Fjölga">+</button></span>`}</div>`).join("")}</div>
+        <div class="qrlist">${s.rows.map(r => `<div class="qrli${r.got >= r.magn ? " full" : ""}"><span class="qrck" aria-hidden="true">${r.got >= r.magn ? "✓" : ""}</span><span class="qrnm"><b>${E(r.heiti)}</b><small>${E(r.nr)}${r.eint ? "" : r.sala ? " · söluvara – skannaðu eða teldu" : " · engin eintök – talið"}</small></span>${r.eint ? `<span class="qrn">${r.got} / ${r.magn}</span>` : `<span class="qrcnt"><button type="button" data-q="h:${E(r.id)}:-1" aria-label="Fækka">−</button><span class="qrn">${r.got} / ${r.magn}</span><button type="button" data-q="h:${E(r.id)}:1" aria-label="Fjölga">+</button></span>`}</div>`).join("")}</div>
         <div class="qrdual"><button type="button" class="btn qrdone" data-q="finish">${s.done >= s.tot ? "Allt pakkað – loka" : "Loka"}</button>${ed() && ["Ný", "Staðfest"].includes(P.stada) ? `<button type="button" class="btn primary qrdone" data-q="afh">Afhenda${s.done < s.tot ? ` (${s.tot - s.done} vantar)` : ""}</button>` : ""}</div>`; }; // 2.88.1: afhenda beint úr pökkun
     Q().openScanner({ title: "Pökkun · " + (P0.nr || ""), sup: "Pökkunarlisti", panel,
       onCode: nr => { const P = findP(pid); if (!P) return { ok: false, msg: "Pöntunin fannst ekki" };
-        const f = Q().findE(nr); if (!f) return { ok: false, msg: "Óþekkt eintak " + nr };
+        const f = Q().findE(nr); if (!f) { const v = Q().findV?.(nr); if (v) return Q().scanQty(P, v, pickState(P).rows, "tinslaH", fn => savePN(pid, fn).then(() => Q().refreshPanel()).catch(() => {})); return { ok: false, msg: "Óþekkt " + nr }; }   // 2.105.0: söluvörur eftir strikamerki
         const s = pickState(P), r = s.rows.find(x => x.id === String(f.v.id)); if (!r) return { ok: false, msg: f.v.heiti + " er ekki á pöntuninni" };
         if (r.nrs.includes(nr)) return { ok: false, msg: nr + " er þegar pakkað" }; if (r.got >= r.magn) return { ok: false, msg: "Komin nóg af " + f.v.heiti };
         if (f.e.uti && String(f.e.uti.p) !== String(P.id)) return { ok: false, msg: nr + " er úti á " + (f.e.uti.nr || "annarri pöntun") };
@@ -103,7 +103,7 @@
   /* Eitt afhendingarferli (2.58.0): „Afhenda“ / „Taka á móti“ → skanna (ef QR og leigubúnaður með eintökum) → kvittun → staða. */
   function flow(pid, dir) {
     const P = findP(pid); if (!P) return; const out = dir === "ut";
-    const N = tr(() => Q().need(P), []), qr = tr(() => qrIsOn(), false) && N.some(r => r.eint);
+    const N = tr(() => Q().need(P, dir), []), qr = tr(() => qrIsOn(), false) && N.some(r => r.eint || r.kodi);   // 2.105.0: söluvörur með strikamerki líka
     const sig = () => kvittun(pid, dir, { step: qr ? (out ? "Skref 2 af 2 · kvittun" : "Skref 2 af 2 · kvittun") : "" });
     if (qr) { const st = tr(() => Q().orderState(P, dir), null); if (st && st.done >= st.tot) return sig(); return window.qrScanOrder(pid, dir, () => setTimeout(sig, 150)); }
     sig();
@@ -153,7 +153,7 @@
       D.text(P.heiti || "", M, y, { w: "medium", size: 12 }); y += 22;
       D.text("Búnaður", M, y, { w: "medium", size: 8.5, color: C.stal }); D.text("Magn", X1 - 160, y, { w: "medium", size: 8.5, color: C.stal, align: "right" }); D.text("Eintök", X1 - 150, y, { w: "medium", size: 8.5, color: C.stal }); y += 6; D.line(M, y, X1, y); y += 14;
       const scanned = [...new Set([...((P.skann || {})[dir] || []), ...(out ? P.tinsla || [] : [])])];
-      tr(() => Q().need(P), []).forEach(r => { const nrs = scanned.filter(nr => (r.v?.eintok || []).some(e => e.nr === nr)); const lines = D.wrap(nrs.join(", ") || "–", 150, 8.5);
+      tr(() => Q().need(P, dir), []).forEach(r => { const nrs = scanned.filter(nr => (r.v?.eintok || []).some(e => e.nr === nr)); const lines = D.wrap(nrs.join(", ") || "–", 150, 8.5);
         D.text(r.heiti, M, y); D.text(String(r.magn), X1 - 160, y, { align: "right" }); lines.forEach((l, i) => D.text(l, X1 - 150, y + i * 11, { size: 8.5, color: C.grafit })); y += Math.max(16, lines.length * 11 + 5); if (y > 700) { doc.addPage(); y = D.contHead(label); } });
       y += 8; D.line(M, y, X1, y); y += 20;
       if (x.mynd) { try { const ip = doc.getImageProperties(x.mynd), h = Math.min(220, 240 * ip.height / ip.width), w0 = h * ip.width / ip.height; if (y + h > 700) { doc.addPage(); y = D.contHead(label); } doc.addImage(x.mynd, "JPEG", M, y, w0, h); y += h + 18; } catch (e) {} }

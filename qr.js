@@ -9,7 +9,11 @@
    Gögn (engin ný söfn – reitir á skjölum sem til eru, vistað með saveSnapshot):
      vorur[].eintok[].uti  = { p: <pöntunar-id>, nr: "P-0901", dags } meðan eintakið er úti; fjarlægt þegar það er skannað inn
      pantanir[].skann      = { ut: [eintaksnr], inn: [eintaksnr], utH: {vöruId: fjöldi}, innH: {…}, utDags, innDags, af }
-   QR-innihald: slóð appsins + ?e=<eintak> (venjuleg myndavél opnar appið), skanninn les líka bert númer. */
+   QR-innihald: slóð appsins + ?e=<eintak> (venjuleg myndavél opnar appið), skanninn les líka bert númer.
+   Söluvörur (2.105.0): skanninn les líka strikamerki (EAN-13/8, UPC, Code 128/39) – BarcodeDetector þar sem hann er til, annars
+     ZXing (lib/zxing.js, Apache 2.0, sótt aðeins þegar þarf, t.d. á iPhone). Vara finnst eftir vorur[].strikamerki (eitt eða fleiri,
+     aðskilin með bili/kommu), vörunúmeri eða QR-merki vörunnar (?v=<vörunr>). Söluvörur eru taldar (magn), ekki eintök:
+     skönnun á pöntun hækkar talningu línunnar um 1 (skann.utH / tinslaH). Lagerskönnun: Talning og Vörumóttaka úr skannanum. */
 (function () {
   const on = () => typeof ON === "function" && ON("qr");
   const st = () => { try { return typeof S !== "undefined" ? S : null; } catch (e) { return null; } };
@@ -26,25 +30,42 @@
   const VR = () => api()?.VR() || st()?.vorur || [];
   const PN = () => api()?.PN?.() || st()?.pantanir || [];
   const findE = nr => { for (const v of VR()) { const i = (v.eintok || []).findIndex(e => e.nr === nr); if (i >= 0) return { v, e: v.eintok[i], i }; } return null; };
-  const parse = txt => { const t = String(txt || "").trim(); const m = t.match(/[?&]e=([^&#]+)/); if (m) return decodeURIComponent(m[1]); const a = t.match(/^ATR:E:(.+)$/i); return a ? a[1] : t; };
+  const parse = txt => { const t = String(txt || "").trim(); const m = t.match(/[?&][ev]=([^&#]+)/); if (m) return decodeURIComponent(m[1]); const a = t.match(/^ATR:[EV]:(.+)$/i); return a ? a[1] : t; };
+  // Söluvara eftir strikamerki, vörunúmeri eða QR-merki vörunnar (2.105.0). EAN-13 með 0 fremst = UPC-A.
+  const normC = x => String(x || "").trim().toUpperCase().replace(/\s+/g, "");
+  const codesOf = v => [v.nr, ...String(v.strikamerki || "").split(/[\s,;]+/)].map(normC).filter(Boolean);
+  const varC = c => /^\d{12}$/.test(c) ? [c, "0" + c] : /^0\d{12}$/.test(c) ? [c, c.slice(1)] : [c];
+  const findV = code => { const cs = varC(normC(code)); if (!cs[0]) return null; return VR().find(v => !["pakki", "vinna"].includes(v.tegund) && codesOf(v).some(x => cs.includes(x))) || null; };
+  const salaOn = () => { try { return typeof ON === "function" && ON("sala"); } catch (e) { return false; } };
+  const isSalaV = v => { try { return (api()?.vDeild ? api().vDeild(v) : v.deild) === "sala"; } catch (e) { return v.deild === "sala"; } };
   const saveV = (id, fn) => saveSnapshot(s => { const q = (s.vorur || []).find(x => String(x.id) === String(id)); if (q) fn(q, s); });
   const appBase = () => (window.ORG?.appUrl && location.href.startsWith(ORG.appUrl) ? ORG.appUrl : location.origin + location.pathname).split("?")[0];
-  // Leigulínur pöntunar → [{ v, heiti, magn }] með pökkum leystum upp
-  function need(P) {
-    const m = new Map(), add = (id, n) => { const v = VR().find(x => String(x.id) === String(id)); if (!v) return; if (v.tegund === "pakki") { (v.innihald || []).forEach(i => add(i.v, n * (+i.m || 1))); return; } m.set(String(v.id), (m.get(String(v.id)) || 0) + n); };
-    (P.linur || []).filter(l => l.teg === "leiga" && l.v != null).forEach(l => add(l.v, +l.magn || 0));
-    return [...m].map(([id, n]) => { const v = VR().find(x => String(x.id) === id); return { v, id, heiti: v?.heiti || "", nr: v?.nr || "", magn: n, eint: (v?.eintok || []).length > 0 }; }).filter(x => x.magn > 0);
+  // Leigulínur pöntunar → [{ v, heiti, magn }] með pökkum leystum upp. Út (dir ≠ "inn"): líka sölulínur (2.105.0) – þær koma ekki til baka.
+  function need(P, dir) {
+    const m = new Map(), add = (id, n) => { const v = VR().find(x => String(x.id) === String(id)); if (!v || v.tegund === "vinna") return; if (v.tegund === "pakki") { (v.innihald || []).forEach(i => add(i.v, n * (+i.m || 1))); return; } m.set(String(v.id), (m.get(String(v.id)) || 0) + n); };
+    (P.linur || []).filter(l => l.v != null && (l.teg === "leiga" || (dir !== "inn" && l.teg === "sala"))).forEach(l => add(l.v, +l.magn || 0));
+    return [...m].map(([id, n]) => { const v = VR().find(x => String(x.id) === id); return { v, id, heiti: v?.heiti || "", nr: v?.nr || "", magn: n, eint: (v?.eintok || []).length > 0, sala: !!v && isSalaV(v), kodi: !!v?.strikamerki }; }).filter(x => x.magn > 0);
   }
-  const hasLeiga = P => !!P?.pontun && need(P).length > 0;
+  const hasLeiga = P => !!P?.pontun && need(P, "inn").length > 0;
 
   /* ---------- Afkóðun ---------- */
   let jsqrP = null;
   const loadJsQR = () => jsqrP || (jsqrP = window.jsQR ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = "lib/jsqr.js"; sc.onload = ok; sc.onerror = () => { jsqrP = null; no(); }; document.head.append(sc); }));
+  let zxP = null;
+  const loadZX = () => zxP || (zxP = window.ZXing ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = "lib/zxing.js"; sc.onload = ok; sc.onerror = () => { zxP = null; no(); }; document.head.append(sc); }));
+  const BC1D = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"];
+  // 2.105.0: strikamerki söluvara líka (þegar Sala er virk). BarcodeDetector ef hann les þau, annars jsQR (QR) + ZXing (strikamerki).
   async function detector() {
-    try { if ("BarcodeDetector" in window && (await BarcodeDetector.getSupportedFormats()).includes("qr_code")) { const d = new BarcodeDetector({ formats: ["qr_code"] }); return async vid => (await d.detect(vid))[0]?.rawValue || null; } } catch (e) {}
+    const bars = salaOn();
+    try { if ("BarcodeDetector" in window) { const sup = await BarcodeDetector.getSupportedFormats(), f1 = BC1D.filter(f => sup.includes(f));
+        if (sup.includes("qr_code") && (!bars || f1.length)) { const d = new BarcodeDetector({ formats: ["qr_code", ...(bars ? f1 : [])] }); return async vid => (await d.detect(vid))[0]?.rawValue || null; } } } catch (e) {}
     await loadJsQR();
+    let zx = null;
+    if (bars) { try { await loadZX(); const Z = window.ZXing, B = Z.BarcodeFormat, hints = new Map(); hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [B.EAN_13, B.EAN_8, B.UPC_A, B.UPC_E, B.CODE_128, B.CODE_39]); hints.set(Z.DecodeHintType.TRY_HARDER, true);
+        const rd = new Z.MultiFormatOneDReader(hints); zx = c => { try { return rd.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c))), hints).getText(); } catch (e) { return null; } }; } catch (e) {} }
     const cv = document.createElement("canvas"), cx = cv.getContext("2d", { willReadFrequently: true });
-    return async vid => { const w = vid.videoWidth, h = vid.videoHeight; if (!w || !h) return null; const k = Math.min(1, 640 / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k); cx.drawImage(vid, 0, 0, cv.width, cv.height); const im = cx.getImageData(0, 0, cv.width, cv.height); return window.jsQR(im.data, im.width, im.height, { inversionAttempts: "dontInvert" })?.data || null; };
+    return async vid => { const w = vid.videoWidth, h = vid.videoHeight; if (!w || !h) return null; const k = Math.min(1, (zx ? 960 : 640) / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k); cx.drawImage(vid, 0, 0, cv.width, cv.height); const im = cx.getImageData(0, 0, cv.width, cv.height);
+      return window.jsQR(im.data, im.width, im.height, { inversionAttempts: "dontInvert" })?.data || (zx ? zx(cv) : null) || null; };
   }
 
   /* ---------- Skanni (fullur skjár) ---------- */
@@ -57,7 +78,7 @@
       <div class="qrcam"><video playsinline muted autoplay></video><div class="qrframe" aria-hidden="true"><i></i><i></i><i></i><i></i><span></span></div><div class="qrmsg" role="status" aria-live="polite"></div>
         <button type="button" class="qrtorch" data-q="torch" hidden aria-label="Kveikja á ljósi"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8l-1 6H9zM9 9h6v4l-1.5 8h-3L9 13z"/></svg></button>
         <div class="qrnocam" hidden>Myndavélin opnaðist ekki. Leyfðu aðgang að myndavél í stillingum vafrans, eða sláðu inn númerið hér fyrir neðan.</div></div>
-      <div class="qrpanel">${opts.panel ? opts.panel() : ""}<form class="qrman" data-q="man"><label class="sr" for="qrin">Númer eintaks</label><input id="qrin" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="…eða sláðu inn númer, t.d. HL-101-07"><button type="submit" class="btn">${opts.panel ? "Skrá" : "Opna"}</button></form></div>`;
+      <div class="qrpanel">${opts.panel ? opts.panel() : ""}<form class="qrman" data-q="man"><label class="sr" for="qrin">Númer eintaks</label><input id="qrin" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="${E(opts.ph || (salaOn() ? "…eða sláðu inn númer eða strikamerki" : "…eða sláðu inn númer, t.d. HL-101-07"))}"><button type="submit" class="btn">${opts.panel ? "Skrá" : "Opna"}</button></form></div>`;
     document.body.append(w); document.body.classList.add("qropen");
     const vid = w.querySelector("video"), msg = w.querySelector(".qrmsg");
     SC = { w, opts, on: true, stream: null, last: "", lastT: 0, paused: false };
@@ -80,7 +101,8 @@
     } catch (e) { w.querySelector(".qrcam").classList.add("off"); w.querySelector(".qrnocam").hidden = false; vid.remove(); }
     function hit(sc, raw) {
       const nr = parse(raw), t = Date.now(); if (!nr) return;
-      if (nr === sc.last && t - sc.lastT < 2200) return; sc.last = nr; sc.lastT = t;
+      // Sami kóði meðan hann er enn í mynd telst ekki aftur (2.105.0: tíminn endurnýjast við hverja greiningu – skipta þarf um vöru eða líta frá)
+      if (nr === sc.last && t - sc.lastT < 1500) { sc.lastT = t; return; } sc.last = nr; sc.lastT = t;
       const r = opts.onCode(nr) || {};
       flash(sc, r.ok !== false, r.msg || nr);
     }
@@ -99,11 +121,49 @@
   const refreshPanel = () => { if (!SC?.opts.panel) return; const p = SC.w.querySelector(".qrpanel"), man = p.querySelector(".qrman"); p.innerHTML = SC.opts.panel(); p.append(man); };
 
   /* ---------- Frjáls skönnun → eintaksspjald ---------- */
+  const lagerOn = () => salaOn() && can() && VR().some(v => isSalaV(v) && !["pakki", "vinna"].includes(v.tegund));
   function scanFree() {
-    openScanner({ title: "Skanna eintak", sup: "QR-skanni",
-      onCode: nr => { const f = findE(nr); if (!f) return { ok: false, msg: "Fann ekki eintakið " + nr }; closeScanner(); openCard(nr); return { ok: true }; } });
+    const sl = salaOn();
+    openScanner({ title: sl ? "Skanna" : "Skanna eintak", sup: sl ? "QR og strikamerki" : "QR-skanni",
+      panel: lagerOn() ? () => `<div class="qrmodes"><button type="button" class="btn" data-q="m:tal">Talning á lager</button><button type="button" class="btn" data-q="m:mot">Vörumóttaka</button></div>` : null,
+      onPanel: q => { if (q === "m:tal" || q === "m:mot") { closeScanner(); setTimeout(() => scanLager(q.slice(2)), 60); } },
+      onCode: nr => { const f = findE(nr); if (f) { closeScanner(); openCard(nr); return { ok: true }; }
+        const v = findV(nr); if (v) { closeScanner(); openVara(v); return { ok: true, msg: v.heiti }; }
+        return { ok: false, msg: (sl ? "Óþekkt númer " : "Fann ekki eintakið ") + nr + (sl && /^\d{8,14}$/.test(nr) ? " – skráðu strikamerkið á vöruna" : "") }; } });
   }
   window.qrScan = scanFree;
+  function openVara(v) { try { tab = isSalaV(v) ? "svorur" : "lvorur"; DETAIL = null; } catch (x) {} render(); openDetail("vara:" + v.id); }
+  // Skanni sem skilar einum kóða (t.d. til að fylla strikamerki á vöruformi)
+  window.qrScanCode = (cb, title) => openScanner({ title: title || "Skanna strikamerki", sup: "Strikamerki", ph: "…eða sláðu inn strikamerkið", onCode: c => { closeScanner(); cb(String(c).trim()); return { ok: true }; } });
+
+  /* ---------- Talning og vörumóttaka með skanna (söluvörur, 2.105.0) ---------- */
+  // Hver skönnun hækkar talið magn vörunnar um 1; magnið má leiðrétta. „Vista“ skráir lagerhreyfingu á hverja vöru (Talning / Móttekið).
+  function scanLager(mode) {
+    const tal = mode === "tal", C = new Map(), order = [];
+    const set = (id, n) => { if (!C.has(id)) order.unshift(id); C.set(id, Math.max(0, n)); };
+    const panel = () => { const rows = order.map(id => ({ v: VR().find(x => String(x.id) === id), n: C.get(id) })).filter(r => r.v);
+      return `<div class="qrprog"><div><b>${rows.length} ${rows.length === 1 ? "vara" : "vörur"}</b> · ${rows.reduce((a, r) => a + r.n, 0)} ${tal ? "talið" : "móttekið"}</div></div>
+        <div class="qrlist">${rows.length ? rows.map(({ v, n }) => { const ink = (v.innkaup || []).find(x => x.stada === "Pantað");
+          return `<div class="qrli full"><span class="qrnm"><b>${E(v.heiti)}</b><small>${E(v.nr || "")} · ${tal ? "skráð á lager " + (+v.fjoldi || 0) + (n !== (+v.fjoldi || 0) ? ` · <span class="${n < (+v.fjoldi || 0) ? "t-amb" : ""}">${n - (+v.fjoldi || 0) > 0 ? "+" : "−"}${Math.abs(n - (+v.fjoldi || 0))}</span>` : " · passar") : "á lager " + (+v.fjoldi || 0) + " → " + ((+v.fjoldi || 0) + n) + (ink ? " · " + E(ink.nr) + ": " + ink.magn + " pantað" : "")}</small></span>
+            <span class="qrcnt"><button type="button" data-q="h:${E(v.id)}:-1" aria-label="Færri ${E(v.heiti)}">−</button><span class="qrn">${n}</span><button type="button" data-q="h:${E(v.id)}:1" aria-label="Fleiri ${E(v.heiti)}">+</button></span></div>`; }).join("")
+          : `<div class="qrli"><span class="qrnm"><small>${tal ? "Skannaðu hverja vöru eins oft og stykkin eru, eða skannaðu einu sinni og stilltu fjöldann með + og −. Aðeins vörur sem eru skannaðar breytast." : "Skannaðu vörurnar sem komu. Lagerinn hækkar og opin innkaupapöntun vörunnar merkist móttekin þegar allt er komið."}</small></span></div>`}</div>
+        ${rows.length ? `<button type="button" class="btn primary qrdone" data-q="save">${tal ? "Vista talningu" : "Skrá móttöku"} (${rows.length} ${rows.length === 1 ? "vara" : "vörur"})</button>` : ""}`; };
+    openScanner({ title: tal ? "Talning á lager" : "Vörumóttaka", sup: "Söluvörur", ph: "…eða sláðu inn vörunúmer eða strikamerki", panel,
+      onCode: c => { const v = findV(c); if (!v) return { ok: false, msg: "Óþekkt " + c + (/^\d{8,14}$/.test(c) ? " – skráðu strikamerkið á vöruna" : "") };
+        if (!isSalaV(v)) return { ok: false, msg: v.heiti + " er leigubúnaður" };
+        set(String(v.id), (C.get(String(v.id)) || 0) + 1); refreshPanel(); return { ok: true, msg: v.heiti + " · " + C.get(String(v.id)) }; },
+      onPanel: async q => {
+        if (q.startsWith("h:")) { const [, id, d] = q.split(":"); set(id, (C.get(id) || 0) + +d); refreshPanel(); return; }
+        if (q !== "save" || !C.size) return;
+        const dags = nowIso(), who = me(), done = [];
+        await saveSnapshot(s => { (s.vorur || []).forEach(x => { const id = String(x.id); if (!C.has(id)) return; const n = C.get(id), f0 = +x.fjoldi || 0; x.hreyfingar = x.hreyfingar || [];
+          if (tal) { x.fjoldi = n; x.hreyfingar.push({ dags, teg: "Talning", magn: n - f0, stada: n, af: who, ref: "Skönnun" }); done.push(x.heiti); return; }
+          if (!n) return; x.fjoldi = f0 + n; const ink = (x.innkaup || []).filter(y => y.stada === "Pantað").sort((a, b) => String(a.dags).localeCompare(String(b.dags)))[0];
+          if (ink && n >= (+ink.magn || 0)) { ink.stada = "Móttekið"; ink.mott = dags; }
+          x.hreyfingar.push({ dags, teg: "Móttekið", ref: ink ? ink.nr + (ink.birgir ? " " + ink.birgir : "") : "Skönnun", magn: n, stada: x.fjoldi, af: who }); done.push(x.heiti); }); }).catch(e => { toast?.("Vistaðist ekki: " + (e?.message || e)); throw e; });
+        closeScanner(); toast?.((tal ? "Talning vistuð: " : "Móttekið á lager: ") + done.length + (done.length === 1 ? " vara" : " vörur")); render(); } });
+  }
+  window.qrScanLager = scanLager;
 
   /* ---------- Eintaksspjald ---------- */
   let CARD = null;
@@ -180,7 +240,7 @@
   async function applyScan(pid, dir, nr) {
     const out = dir === "ut", P = PN().find(x => String(x.id) === String(pid)); if (!P) return { ok: false, msg: "Pöntunin fannst ekki" };
     const f = findE(nr); if (!f) return { ok: false, msg: "Óþekkt eintak " + nr };
-    const row = need(P).find(x => x.id === String(f.v.id)); if (!row) return { ok: false, msg: f.v.heiti + " er ekki á pöntuninni" };
+    const row = need(P, dir).find(x => x.id === String(f.v.id)); if (!row) return { ok: false, msg: f.v.heiti + " er ekki á pöntuninni" };
     const s0 = orderState(P, dir); if (s0.list.includes(nr)) return { ok: false, msg: nr + " er þegar skannað" };
     const r0 = s0.rows.find(x => x.id === row.id); if (r0 && r0.got >= r0.magn) return { ok: false, msg: "Komin nóg af " + f.v.heiti + " (" + r0.magn + ")" };
     if (out && f.e.uti && String(f.e.uti.p) !== String(P.id)) return { ok: false, msg: nr + " er úti á " + (f.e.uti.nr || "annarri pöntun") };
@@ -194,23 +254,33 @@
     return { ok: true, msg: nr + (out ? " afhent á " : " skilað inn á ") + (P.nr || "pöntun") + (s2 ? " · " + s2.done + " af " + s2.tot : "") };
   }
   function orderState(P, dir) {
-    const N = need(P), sk = P.skann || {}, list = sk[dir] || [], H = sk[dir + "H"] || {};
-    const rows = N.map(x => { const got = x.eint ? list.filter(nr => (x.v?.eintok || []).some(e => e.nr === nr)).length : (+H[x.id] || 0); return { ...x, got: Math.min(got, x.magn), over: Math.max(0, got - x.magn) }; });
+    const N = need(P, dir), sk = P.skann || {}, list = sk[dir] || [], H = sk[dir + "H"] || {}, T = dir === "ut" ? P.tinslaH || {} : {};   // 2.105.0: það sem var pakkað telst skannað út
+    const rows = N.map(x => { const got = x.eint ? list.filter(nr => (x.v?.eintok || []).some(e => e.nr === nr)).length : Math.max(+H[x.id] || 0, +T[x.id] || 0); return { ...x, got: Math.min(got, x.magn), over: Math.max(0, got - x.magn) }; });
     const tot = rows.reduce((a, r) => a + r.magn, 0), done = rows.reduce((a, r) => a + r.got, 0);
     return { rows, tot, done, list };
+  }
+  // Söluvara (eða vara án eintaka) skönnuð á pöntun: talning línunnar hækkar um 1 (2.105.0). fld: "utH" | "innH" | "tinslaH"
+  function scanQty(P, v, rows, fld, save) {
+    const r = rows.find(x => x.id === String(v.id));
+    if (!r) return { ok: false, msg: v.heiti + " er ekki á pöntuninni" };
+    if (r.eint) return { ok: false, msg: v.heiti + ": skannaðu merki eintaksins" };
+    if (r.got >= r.magn) return { ok: false, msg: "Komin nóg af " + v.heiti + " (" + r.magn + ")" };
+    const n = r.got + 1;
+    if (can()) save(Q => { if (fld === "tinslaH") Q.tinslaH = { ...(Q.tinslaH || {}), [r.id]: n }; else { Q.skann = Q.skann || {}; Q.skann[fld] = { ...(Q.skann[fld] || {}), [r.id]: n }; Q.skann[fld.slice(0, -1) + "Dags"] = nowIso(); Q.skann.af = me(); } });
+    return { ok: true, msg: v.heiti + " · " + n + " af " + r.magn };
   }
   function scanOrder(pid, dir, onDone) {  // onDone (2.58.0): afhendingarferli – kallað í stað þess að breyta stöðu
     const P0 = PN().find(x => String(x.id) === String(pid)); if (!P0) return;
     const out = dir === "ut", ed = can();
     const panel = () => { const P = PN().find(x => String(x.id) === String(pid)) || P0, s = orderState(P, dir);
       return `<div class="qrprog"><div><b>${s.done} af ${s.tot}</b> ${out ? "skannað út" : "skannað inn"}</div><div class="qrbar"><i style="width:${s.tot ? Math.round(s.done / s.tot * 100) : 0}%"></i></div></div>
-        <div class="qrlist">${s.rows.map(r => `<div class="qrli${r.got >= r.magn ? " full" : ""}"><span class="qrck" aria-hidden="true">${r.got >= r.magn ? "✓" : ""}</span><span class="qrnm"><b>${E(r.heiti)}</b><small>${E(r.nr)}${r.eint ? " · skannað" : " · engin eintök – talið"}</small></span>${r.eint ? `<span class="qrn">${r.got} / ${r.magn}</span>` : `<span class="qrcnt"><button type="button" data-q="h:${E(r.id)}:-1" aria-label="Færri ${E(r.heiti)}"${ed ? "" : " disabled"}>−</button><span class="qrn">${r.got} / ${r.magn}</span><button type="button" data-q="h:${E(r.id)}:1" aria-label="Fleiri ${E(r.heiti)}"${ed ? "" : " disabled"}>+</button></span>`}</div>`).join("")}</div>
+        <div class="qrlist">${s.rows.map(r => `<div class="qrli${r.got >= r.magn ? " full" : ""}"><span class="qrck" aria-hidden="true">${r.got >= r.magn ? "✓" : ""}</span><span class="qrnm"><b>${E(r.heiti)}</b><small>${E(r.nr)}${r.eint ? " · skannað" : r.sala ? " · söluvara – skannaðu eða teldu" : " · engin eintök – talið"}</small></span>${r.eint ? `<span class="qrn">${r.got} / ${r.magn}</span>` : `<span class="qrcnt"><button type="button" data-q="h:${E(r.id)}:-1" aria-label="Færri ${E(r.heiti)}"${ed ? "" : " disabled"}>−</button><span class="qrn">${r.got} / ${r.magn}</span><button type="button" data-q="h:${E(r.id)}:1" aria-label="Fleiri ${E(r.heiti)}"${ed ? "" : " disabled"}>+</button></span>`}</div>`).join("")}</div>
         ${ed ? `<button type="button" class="btn primary qrdone" data-q="finish">${onDone ? (s.done >= s.tot ? (out ? "Afhenda – áfram í kvittun" : "Taka á móti – áfram í kvittun") : (out ? "Afhenda samt" : "Taka á móti samt") + ` (${s.tot - s.done} vantar)`) : s.done >= s.tot ? (out ? "Ljúka og merkja afhent" : "Ljúka og merkja skilað") : "Ljúka"}</button>` : ""}`; }; // 2.88.1: skýrara að hægt er að afhenda þótt ekki sé allt skannað
     openScanner({ title: (out ? "Skanna út · " : "Skanna inn · ") + (P0.nr || ""), sup: P0.tengilidur || P0.vidskiptavinur || "Pöntun", panel,
       onCode: nr => {
         const P = PN().find(x => String(x.id) === String(pid)); if (!P) return { ok: false, msg: "Pöntunin fannst ekki" };
-        const f = findE(nr); if (!f) return { ok: false, msg: "Óþekkt eintak " + nr };
-        const N = need(P), row = N.find(x => x.id === String(f.v.id));
+        const f = findE(nr); if (!f) { const v = findV(nr); if (v) return scanQty(P, v, orderState(P, dir).rows, dir + "H", fn => saveSnapshot(S0 => { const Q = (S0.pantanir || []).find(x => String(x.id) === String(P.id)); if (Q) fn(Q); }).then(refreshPanel).catch(() => {})); return { ok: false, msg: "Óþekkt " + nr }; }
+        const N = need(P, dir), row = N.find(x => x.id === String(f.v.id));
         if (!row) return { ok: false, msg: f.v.heiti + " er ekki á pöntuninni" };
         const s = orderState(P, dir); if (s.list.includes(nr)) return { ok: false, msg: nr + " er þegar skannað" };
         const r = s.rows.find(x => x.id === row.id); if (r && r.got >= r.magn) return { ok: false, msg: "Komin nóg af " + f.v.heiti + " (" + r.magn + ")" };
@@ -246,7 +316,7 @@
     });
   }
   // Notað af pantanir2.js (2.55.0): tínslulisti og kvittanir
-  window.qrAPI = { need, openScanner, closeScanner, findE, refreshPanel: () => refreshPanel(), orderState };
+  window.qrAPI = { need, openScanner, closeScanner, findE, findV, scanQty, refreshPanel: () => refreshPanel(), orderState };
 
   // Kassi á pöntunarspjaldi: staða skönnunar + hnappar (sími og tölva)
   function orderBox(P) {
@@ -310,5 +380,14 @@
   // ?e=<eintak> í slóð (skannað með myndavél símans): spjaldið opnast þegar gögnin eru komin; slóðin hreinsuð
   (function () { const m = location.search.match(/[?&]e=([^&#]+)/); if (!m) return; const nr = decodeURIComponent(m[1]); let n = 0;
     const t = setInterval(() => { const s = st(); if (s && s.vorur) { clearInterval(t); if (!on()) return; if (window.qrOpenEintak(nr)) { try { const u = new URL(location.href); u.searchParams.delete("e"); history.replaceState(history.state, "", u.pathname + u.search + u.hash); } catch (e) {} } else toast?.("Fann ekki eintakið " + nr); } else if (++n > 80) clearInterval(t); }, 400); })();
+  // ?v=<vörunr> (QR-merki söluvöru, 2.105.0): vöruspjaldið opnast
+  (function () { const m = location.search.match(/[?&]v=([^&#]+)/); if (!m) return; const nr = decodeURIComponent(m[1]); let n = 0;
+    const t = setInterval(() => { const s = st(); if (s && s.vorur) { clearInterval(t); if (!on()) return; const v = findV(nr); if (v) { openVara(v); try { const u = new URL(location.href); u.searchParams.delete("v"); history.replaceState(history.state, "", u.pathname + u.search + u.hash); } catch (e) {} } else toast?.("Fann ekki vöruna " + nr); } else if (++n > 80) clearInterval(t); }, 400); })();
+  // QR-merki á söluvöru (fyrir vörur án strikamerkis): slóð appsins + ?v=<vörunúmer>
+  window.qrPrintVara = (v, n) => { const w = window.open("", "_blank"); if (!w) { toast?.("Leyfðu sprettiglugga til að prenta merki"); return; }
+    qrLib().then(() => { const q = qrcode(0, "M"); q.addData(appBase() + "?v=" + encodeURIComponent(v.nr || v.id)); q.make(); const svg = q.createSvgTag({ cellSize: 3, margin: 0, scalable: true });
+      const one = `<div class="l"><div class="q">${svg}</div><div><b>${E(v.nr || "")}</b><small>${E(v.heiti || "")}<br>${E(ORG.nafn || "")}</small></div></div>`;
+      w.document.write(`<!doctype html><meta charset="utf-8"><title>QR-merki ${E(v.nr || "")}</title><style>body{font-family:Poppins,Arial,sans-serif;margin:12mm}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}.l{border:1px solid #ccc;border-radius:3mm;padding:3mm;display:flex;gap:3mm;align-items:center;break-inside:avoid}.l b{display:block;font-size:12pt}.l small{font-size:9pt;color:#555}.q{width:22mm;height:22mm;flex:none}.q svg{width:100%;height:100%;display:block}.bar{display:flex;gap:10px;align-items:center;margin-bottom:8mm}@media print{.bar{display:none}}</style><div class="bar"><label>Fjöldi merkja <input id="n" type="number" min="1" max="300" value="${Math.max(1, Math.min(300, +n || 3))}" style="width:70px"></label><button onclick="print()">Prenta</button></div><div class="g" id="g"></div><script>const T=${JSON.stringify(one)};const d=()=>{document.getElementById("g").innerHTML=T.repeat(Math.max(1,Math.min(300,+document.getElementById("n").value||1)))};document.getElementById("n").oninput=d;d();<\/script>`);
+      w.document.close(); }).catch(() => { w.close(); toast?.("Gat ekki búið til QR-merki"); }); };
   window.qrIsOn = on;
 })();

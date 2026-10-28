@@ -164,7 +164,8 @@
     if (ph) { const kp = sl.querySelector(":scope > .ukps"); if (kp) { kp.classList.add("ulkps"); ph.append(kp); } const lb = sl.querySelector(":scope > .ulbar"); if (lb) ph.append(lb); } // 2.70.0: lykiltölur efst í haus listans
     // Svið sem flögur efst í listanum (2.69.1): Allir · Leiga · Sala · Þjónusta í stað sér flipa í stikunni
     { const s = secOf(tab), sv = s.tabs.filter(t => t[2] === 2 && (!window.tabOn || tabOn(t[0])));
-      if (ph && sv.length && s.tabs.some(t => t[0] === tab && (t[2] === 2 || ALLSV[t[0]]))) { const all = s.tabs.find(t => ALLSV[t[0]]);
+      const all = s.tabs.find(t => ALLSV[t[0]]);   // 2.105.0: getur vantað (t.d. Sonik án Þjónustu) – þá engar sviðsflögur
+      if (ph && sv.length && all && s.tabs.some(t => t[0] === tab && (t[2] === 2 || ALLSV[t[0]]))) {
         const bs = [[all[0], ALLSV[all[0]]], ...sv.map(t => [t[0], window.svidHeiti ? svidHeiti(t[1]) : t[1]])];
         ph.insertAdjacentHTML("beforeend", `<div class="ulbar usvbar" role="tablist" aria-label="Svið">${bs.map(([k, l]) => `<button type="button" role="tab" class="uchip${k === tab ? " on" : ""}" aria-selected="${k === tab}" data-act="tab:${k}">${esc(l)}</button>`).join("")}</div>`); } }
     if (!sl.querySelector(".spfoot")) sl.insertAdjacentHTML("beforeend", `<div class="spfoot" role="toolbar" aria-label="Flýtilyklar"><button type="button" data-kb="/"><kbd>/</kbd> Leita</button><button type="button" data-kb="ArrowUp"><kbd>↑</kbd></button><button type="button" data-kb="ArrowDown"><kbd>↓</kbd> Fletta</button><button type="button" data-kb="Enter"><kbd>Enter</kbd> Opna</button><button type="button" data-kb="n"><kbd>N</kbd> Nýtt</button></div>`);

@@ -33,7 +33,8 @@
     // Frá 2.20.0 (aðeins með pakkavali): pantanir og erindi án verkefnis – sami ritill og tilboð, frátekning leigubúnaðar
     ...(window.ORG?.pakkaval ? { pantanir: ["Pantanir", "Pantanir og erindi án verkefnis: viðskiptavinur, línur úr vörulista, afhending og skil, uppruni (sími, tölvupóstur, Shopify …)", null, 1] } : {}),
     // Frá 2.45.0 (fyrst í dev/): QR-merki á eintök leigubúnaðar, skanni í öllum tækjum (líka iPhone), skönnun út og inn á pöntunum (qr.js). Sjálfgefið óvirk.
-    qr:             ["QR-merki og skanni", "QR-merki á hvert eintak, skanni í síma og tölvu, eintaksspjald og skönnun út og inn á pöntunum", "leiga", 1],
+    // 2.105.0: líka strikamerki söluvara (tiltekt, afhending, talning og vörumóttaka) – krefst ekki lengur Leigu, nóg að Leiga eða Sala sé virk.
+    qr:             ["QR-merki og skanni", "Skanni í síma og tölvu: QR-merki á eintök leigubúnaðar og strikamerki (EAN) söluvara – pökkun, afhending og skil á pöntunum, talning á lager og vörumóttaka", null, 1],
     // Frá 2.55.0 (fyrst í dev/): Pöntunarferli – sent/sótt, afhending og móttaka með kvittun, tínslulisti, skilauppgjör, staðgengill, pöntun úr pósti, sniðmát, ferð dagsins (pantanir2.js). Sjálfgefið óvirk.
     pferli:         ["Pöntunarferli", "Sent eða sótt, afhending og móttaka með undirskrift og mynd, pökkunarlisti með skanna, skilauppgjör, staðgengill við árekstur, pöntun úr pósti, sniðmát og ferð dagsins", "pantanir", 1],
     // Frá 2.53.0 (fyrst í dev/): Snjall-Heim – Loka deginum, viðvaranir, hver er hvar, skipanalína og rekstrarpúls á Heim (snjall.js). Sjálfgefið óvirk.

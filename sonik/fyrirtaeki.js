@@ -34,9 +34,9 @@ window.ORG = {
   utlit: "I",                          // tölvuútlit I (frá 2.43.0, eins og Dev og party.is); síminn óbreyttur
   // Stöður verkefna með litum (eins og í Dev, 2.93.0) – gildir nema admin hafi vistað aðrar í Stillingum
   stodur: [{ n: "Fyrirspurn", c: "slate" }, { n: "Í vinnslu", c: "blue" }, { n: "Í bið", c: "amber" }, { n: "Afhent", c: "teal" }, { n: "Lokið", c: "green", lokid: true, falin: true }],
-  // 2.96.2 (fundur 26.10.2026): Sonik byrjar á Mitt, Samskiptum og SÖLU – leiga og þjónusta bíða. Leiga, QR og deildir eru því ekki
+  // 2.96.2 (fundur 26.10.2026): Sonik byrjar á Mitt, Samskiptum og SÖLU – leiga og þjónusta bíða. Leiga og deildir eru því ekki
   // sjálfgefið virkar (admin kveikir í Stillingar › Einingar þegar leigan kemur inn) og sviðið Þjónusta er falið (Stillingar › Svið).
-  einingar: { sala: true, pantanir: true, pferli: true, snjall: true, vgreind: true, aukaverk: true },
+  einingar: { sala: true, pantanir: true, pferli: true, qr: true, snjall: true, vgreind: true, aukaverk: true },   // qr (2.105.0): skanni fyrir strikamerki söluvara
   svid: { "Þjónusta": { off: true } },
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
   kerfi: true,

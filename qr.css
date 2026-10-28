@@ -120,3 +120,6 @@ body.qropen{overflow:hidden}
 .qmiss .qma{display:flex;flex-direction:column;gap:8px;padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
 .qmiss .qma .btn{width:100%;min-height:48px;justify-content:center}
 @media (min-width:700px){.qmiss .qma{flex-direction:row-reverse}.qmiss .qma .btn{width:auto;flex:1}}
+/* 2.105.0: Talning og vörumóttaka úr frjálsa skannanum */
+.qrmodes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.qrmodes .btn{justify-content:center;min-height:42px}
