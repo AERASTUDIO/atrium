@@ -992,6 +992,12 @@
       api.TB().filter(mine).filter(T => T.stada === "Samþykkt" && daysTo(T.breytt_t || T.dags) >= -7 && daysTo(T.dags) >= -30).forEach(T => R.push({ k: "Tilboð", title: "Tilboð " + (T.nr || "") + " samþykkt", sub: [T.vidskiptavinur, T.heiti].filter(Boolean).join(" · "), date: T.breytt_t || T.dags, pill: "Samþykkt", open: "tb:" + T.id }));
       api.VR().forEach(v => (v.skemmdir || []).filter(x => x.stada === "opin" && daysTo(x.dags) >= -7).forEach(x => R.push({ k: "Lager", title: "Skemmd skráð · " + (x.eintak || v.nr || ""), sub: x.lysing || "", date: x.dags, pill: "Ástand", open: "vara:" + v.id })));
     }
+    // 2.114.0: ég var sett(ur) á verkefni, tilboð eða pöntun af öðrum (síðustu 14 daga)
+    { const me = typeof ME === "function" ? ME() : "", myE = String(window.USER?.email || "").toLowerCase(), nmU = e => (window.nuUsers ? nuUsers() : []).find(u => String(u.email || "").toLowerCase() === String(e || "").toLowerCase())?.nafn || String(e || "").split("@")[0];
+      const uth = (x, k, op) => { const u = me && x?.uthlutad?.[me]; if (!u || !(x.starfsmenn || []).includes(me) || String(u.af || "").toLowerCase() === myE || daysTo(String(u.t).slice(0, 10)) < -14) return;
+        R.push({ k, title: `Þú varst skráð(ur) á ${k === "Verkefni" ? "verkefni" : k === "Tilboð" ? "tilboð" : "pöntun"} ${x.nr || ""}`, sub: [x.stutt || (x.heiti && x.heiti !== "Pöntun" ? x.heiti : ""), x.vidskiptavinur || x.tengilidur, u.af ? "af " + nmU(u.af) : ""].filter(Boolean).join(" · "), date: u.t, pill: "Úthlutun", dark: 1, open: op }); };
+      (S?.verkefni || []).filter(p => !p.prufa).forEach(p => uth(p, "Verkefni", "verk:" + p.id));
+      if (api) { api.TB().forEach(T => uth(T, "Tilboð", "tb:" + T.id)); api.PN().forEach(P => uth(P, "Pantanir", "tb:" + P.id)); } }
     // 2.91.0: pantanir sem þurfa reikning – aðeins þeir sem sjá um reikninga (fjarmal)
     if (window.rkOrders && window.can && can("fjarmal")) rkOrders().forEach(P => { const sg = window.rkPnStadg && rkPnStadg(P), dt = sg ? P.greitt?.dags : (P.mottekid?.dags || P.afhent?.dags || P.til || P.fra);
       if (daysTo(dt) < -30) return;

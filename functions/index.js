@@ -16,6 +16,7 @@
    - Kl. 08:00 alla virka daga          → „Í dag: 2 afhendingar · 1 skil · 1 seint“        (val: morgun)
    - 2.72.0: skil, tinsla, tvibokun, vidsvar, klukka, uthlutun, aaetlun, eftirfylgni – sjá neðst í skránni
    - 2.85.0: tilkynningar um tilboð og pantanir (ný pöntun, staðfesting, svar, eftirfylgni) fara aðeins til þeirra sem eru skráðir á þau (mennOf)
+   - 2.114.0: uthlutunPontun og uthlutunTilbod – tilkynning þegar starfsmaður er settur á tilboð eða pöntun
 */
 const { onDocumentCreated, onDocumentUpdated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
@@ -265,7 +266,7 @@ exports.posturVal = onDocumentWritten({ document: "tilkynningar/{email}", secret
    - tvibokun    Þegar pöntun er stofnuð eða breytt: búnaður ekki laus á tímabilinu (sama regla og í appinu)
    - vidsvar     Viðskiptavinur hafnar tilboði eða sendir spurningu af tilboðssíðunni (sjá vidskStadfestir)
    - klukka      Kl. 19 og 22: stimpilklukka enn í gangi (aðeins til eiganda klukkunnar)
-   - uthlutun    Settur á verkefni (starfsmenn) eða minnst á þig með @nafni í spjalli
+   - uthlutun    Settur á verkefni, tilboð eða pöntun (starfsmenn) eða minnst á þig með @nafni í spjalli
    - aaetlun     Skráðir tímar á verkefni ná 90 % og 100 % af áætlun (aklst) – til starfsfólks verkefnisins
    - eftirfylgni Kl. 09 virka daga: tilboð sent fyrir 7+ dögum og ekkert svar – til þess sem stofnaði það
    Hver áminning er send einu sinni; skráð í kerfi/tilksent (lykill → tími).
@@ -358,6 +359,22 @@ exports.uthlutun = onDocumentWritten("verkefni/{id}", async ev => {
   const af = lc(b.breytt_af || b.stofnad_af || ""), to = (await skEmails(nyir)).filter(e => e !== af);
   await send(to, "uthlutun", { title: "Þú ert komin(n) á verkefni", body: [[b.nr, b.stutt || b.nafn].filter(Boolean).join(" "), b.vidskiptavinur].filter(Boolean).join(" · "), link: link("verk", "verk:" + (b.id || ev.params.id)), tag: "uth-" + ev.params.id });
 });
+
+/* ---------- 6b. Úthlutun á tilboð og pöntun (2.114.0) ----------
+   Starfsmaður sem er bætt á tilboð eða pöntun (starfsmenn) fær tilkynningu – nema sá sem gerði breytinguna.
+   Ný pöntun fær þegar tilkynningu í nyPontun, svo hér er aðeins brugðist við breytingum á pöntun. */
+async function uthTB(ev, col) {
+  const b = ev.data.after.exists ? ev.data.after.data() : null, a = ev.data.before.exists ? ev.data.before.data() : null; if (!b || b.prufa) return;
+  if (col === "pantanir" && !a) return;
+  const was = new Set(((a && a.starfsmenn) || []).map(lc)), nyir = (b.starfsmenn || []).filter(x => !was.has(lc(x))); if (!nyir.length) return;
+  const af = lc(b.breytt_af || b.stofnad_af || ""), to = (await skEmails(nyir)).filter(e => e !== af), id = b.id || ev.params.id, P = col === "pantanir";
+  const nafn = af ? ((await activeUsers()).find(u => u.email === af) || {}).nafn || "" : "";
+  await send(to, "uthlutun", { title: `Þú ert komin(n) á ${P ? "pöntun" : "tilboð"} ${b.nr || ""}`.trim(),
+    body: [nmP(b).replace(b.nr || "", "").trim(), who(b), P && b.fra ? dIS(b.fra) + (b.til && b.til !== b.fra ? "–" + dIS(b.til) : "") : "", nafn ? "skráð af " + nafn : ""].filter(Boolean).join(" · "),
+    link: link(P ? "pantanir" : "tilbod", "tb:" + id), tag: "uth-" + id });
+}
+exports.uthlutunPontun = onDocumentWritten("pantanir/{id}", ev => uthTB(ev, "pantanir"));
+exports.uthlutunTilbod = onDocumentWritten("tilbod/{id}", ev => uthTB(ev, "tilbod"));
 
 /* ---------- 7. Tímar á verkefni ná 90 % / 100 % af áætlun ---------- */
 exports.aaetlun = onDocumentWritten("timar/{id}", async ev => {

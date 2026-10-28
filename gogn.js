@@ -44,6 +44,7 @@
   }
 
   // ownerOf(item) -> netfang eiganda (fyrir tíma og kostnað)
+  const UTH = new Set(["verkefni", "tilbod", "pantanir"]);
   function stamp(prev, cur, email, ownerOf) {
     const t = now();
     for (const c of COLS) {
@@ -58,6 +59,9 @@
         // 2.100.0: tímar vettvangsnotanda bíða staðfestingar (vett-ui.js); breyting á hafnaðri færslu sendir hana aftur í staðfestingu
         if (c.k === "timar" && window.isVett && window.isVett() && (!o || J(o) !== J(x))) { x.vett = true; if (o) delete x.hafnad; }
         if (c.k === "pantanir" && window.pnMenn) { const m = window.pnMenn(x); if (m && J(m) !== J(x.menn || null)) x.menn = m; }
+        // 2.114.0: hver var settur á verkefni/tilboð/pöntun og hvenær (uthlutad[sk] = { t, af }) – fyrir tilkynningalistann í appinu
+        if (UTH.has(c.k) && Array.isArray(x.starfsmenn)) { const was = new Set((o?.starfsmenn || []).map(String)), mine = String(window.USER?.sk || "");
+          const ny = x.starfsmenn.map(String).filter(sk => !was.has(sk) && sk !== mine); if (ny.length) { x.uthlutad = { ...(x.uthlutad || {}) }; ny.forEach(sk => { x.uthlutad[sk] = { t, af: email }; }); } }
         if (!o) {
           if (x.stofnad_af == null) x.stofnad_af = email; if (x.stofnad_t == null) x.stofnad_t = t;
           x.breytt_af = email; x.breytt_t = t;
