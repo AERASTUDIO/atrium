@@ -35,8 +35,8 @@
     Promise.all([SHB ? MS.g(SHB + qs).then(j => (noteBox(j.value, SHB), j.value || [])).catch(() => []) : [], MS.g("/me" + qs).then(j => j.value || [])])
       .then(([a, b]) => { const key = m => (m.receivedDateTime || "") + "|" + (m.subject || "") + "|" + (m.from?.emailAddress?.address || "");
         const seen = new Set(a.map(key)), xs = a.concat(b.filter(m => !seen.has(key(m)))).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime)));
-        noteConv(xs); TC[conv] = { at: Date.now(), msgs: xs }; })
-      .catch(e => { TC[conv] = { at: Date.now(), msgs: c?.msgs || [], err: e.message }; }).finally(() => render());
+        noteConv(xs); const same = c?.msgs && c.msgs.map(m => m.id + (m.isRead ? 1 : 0)).join() === xs.map(m => m.id + (m.isRead ? 1 : 0)).join(); TC[conv] = { at: Date.now(), msgs: xs }; if (!same) rr(); })
+      .catch(e => { TC[conv] = { at: Date.now(), msgs: c?.msgs || [], err: e.message }; rr(); });
     return TC[conv];
   }
   const fromName = m => m.from?.emailAddress?.name || m.from?.emailAddress?.address || "";
@@ -88,9 +88,14 @@
   const unreadOf = k => FOLDERS?.wk?.[k]?.unreadItemCount || 0;
   const permErr = e => /403|denied|scope|Access is denied|ErrorAccessDenied/i.test(e?.message || "") || e?.status === 403;
   const needRW = () => toast("Appið þarf heimildina Mail.ReadWrite. Tengstu Microsoft aftur (Stillingar › Microsoft 365) og samþykktu.");
+  // 2.114.8: margar teikningar í röð (póstur, þráður, lesið) sameinaðar í eina – flakk milli pósta á að vera hratt
+  let rrq = 0; const rr = () => { if (rrq) return; rrq = requestAnimationFrame(() => { rrq = 0; render(); }); };
   const upd = (id, f) => { (list || []).forEach(m => { if (m.id === id) f(m); }); if (MSG[id]) f(MSG[id]); };
-  async function setRead(id, v, quiet) { const before = (list || []).find(m => m.id === id)?.isRead; upd(id, m => { m.isRead = v; }); render();
-    try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { isRead: v } }); if (FOLDERS?.wk?.[fold]) FOLDERS.wk[fold].unreadItemCount = Math.max(0, unreadOf(fold) + (v ? -1 : 1)); render(); }
+  async function setRead(id, v, quiet) { const before = (list || []).find(m => m.id === id)?.isRead; upd(id, m => { m.isRead = v; });
+    // 2.114.8: sjálfvirkt „lesið“ teiknar ekki allt aftur (það endurhlóð póstinn) – aðeins röðin í listanum uppfærist
+    const soft = () => document.querySelectorAll(`[data-open="post:${CSS.escape(id)}"]`).forEach(r => r.classList.toggle("unread", !v));
+    if (quiet) soft(); else render();
+    try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { isRead: v } }); if (FOLDERS?.wk?.[fold]) FOLDERS.wk[fold].unreadItemCount = Math.max(0, unreadOf(fold) + (v ? -1 : 1)); if (!quiet) render(); }
     catch (e) { upd(id, m => { m.isRead = before; }); render(); if (!quiet) permErr(e) ? needRW() : toast(e.message); } }
   async function setFlag(id, on) { upd(id, m => { m.flag = { flagStatus: on ? "flagged" : "notFlagged" }; }); render();
     try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { flag: { flagStatus: on ? "flagged" : "notFlagged" } } }); }
@@ -151,7 +156,9 @@
   };
 
   /* ---------- Einn póstur ---------- */
-  async function loadMsg(id) {
+  const LOADING = new Set();
+  async function loadMsg(id, silent) {
+    if (LOADING.has(id)) return; LOADING.add(id);
     try {
       const QS = `?$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,body,webLink,hasAttachments,bodyPreview,conversationId,isRead,flag,importance`;
       // Opnað úr tilkynningu (2.65.1): ef pósturinn finnst ekki í eigin pósthólfi er reynt í sameiginlega pósthólfinu
@@ -164,21 +171,27 @@
         const used = new Set();
         if (hasCid) {
           let body = html;
-          for (const a of all.filter(a => /^image\//i.test(a.contentType || "") && a.size < 8 * 1024 * 1024 && (a.isInline || all.length < 15))) {
-            try { const f = await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(a.id)}`);
-              const cid = String(f.contentId || "").replace(/^<|>$/g, "");
-              if (f.contentBytes && cid && body.includes("cid:" + cid)) { body = body.split("cid:" + cid).join(`data:${a.contentType};base64,${f.contentBytes}`); used.add(a.id); } } catch (e) {} }
+          // 2.114.8: myndir í texta sóttar samhliða (ekki ein í einu)
+          const imgs = all.filter(a => /^image\//i.test(a.contentType || "") && a.size < 8 * 1024 * 1024 && (a.isInline || all.length < 15));
+          const got = await Promise.all(imgs.map(a => MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(a.id)}`).then(f => [a, f]).catch(() => null)));
+          for (const x of got) { if (!x) continue; const [a, f] = x; const cid = String(f.contentId || "").replace(/^<|>$/g, "");
+            if (f.contentBytes && cid && body.includes("cid:" + cid)) { body = body.split("cid:" + cid).join(`data:${a.contentType};base64,${f.contentBytes}`); used.add(a.id); } }
           m.body = { ...m.body, content: body };
         }
         ATT[id] = all.filter(a => !used.has(a.id) && !a.isInline);
       }
-    } catch (e) { MSG[id] = { _err: e.message }; }
-    render();
+    } catch (e) { if (!silent) MSG[id] = { _err: e.message }; }
+    finally { LOADING.delete(id); }
+    if (!silent) rr();
   }
+  // 2.114.8: næstu póstar í listanum sóttir fyrirfram svo þeir opnast strax
+  const forsaekja = id => { const xs = list || [], i = xs.findIndex(m => m.id === id); if (i < 0) return;
+    [xs[i + 1], xs[i + 2], xs[i - 1]].filter(Boolean).forEach(m => { if (!MSG[m.id]) loadMsg(m.id, true); }); };
   const people = xs => (xs || []).map(r => r.emailAddress?.name || r.emailAddress?.address).filter(Boolean).join(", ");
   window.dPost = function (id) {
     if (!msOn()) return backBar() + `<h2 class="big">Póstur</h2><div class="empty">Tengdu Microsoft til að lesa póstinn í appinu.</div>`;
     const m = MSG[id]; if (!m) { loadMsg(id); return backBar() + `<div class="empty" style="margin-top:20px">Sæki póst…</div>`; }
+    setTimeout(() => forsaekja(id), 300);
     if (m._err) return backBar() + `<div class="msg err">${esc(m._err)}</div>`;
     if (window.ORG?.utlit === "I" && m.isRead === false && !m._auto && MCP) { m._auto = 1; setTimeout(() => setRead(id, true, true), 1200); }
     const L = linked(id), p = L && findProj(L.verkefniId), g = !L && window.msGuessProj ? findProj(msGuessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address)) : null, atts = ATT[id] || [];
