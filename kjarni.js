@@ -34,7 +34,7 @@
     ...(window.ORG?.pakkaval ? { pantanir: ["Pantanir", "Pantanir og erindi án verkefnis: viðskiptavinur, línur úr vörulista, afhending og skil, uppruni (sími, tölvupóstur, Shopify …)", null, 1] } : {}),
     // Frá 2.45.0 (fyrst í dev/): QR-merki á eintök leigubúnaðar, skanni í öllum tækjum (líka iPhone), skönnun út og inn á pöntunum (qr.js). Sjálfgefið óvirk.
     // 2.105.0: líka strikamerki söluvara (tiltekt, afhending, talning og vörumóttaka) – krefst ekki lengur Leigu, nóg að Leiga eða Sala sé virk.
-    qr:             ["QR-merki og skanni", "Skanni í síma og tölvu: QR-merki á eintök leigubúnaðar og strikamerki (EAN) söluvara – pökkun, afhending og skil á pöntunum, talning á lager og vörumóttaka", null, 1],
+    qr:             ["Búnaðar- og lageryfirlit", "Skanni í síma og tölvu: QR-merki á eintök leigubúnaðar og strikamerki (EAN) söluvara – pökkun, afhending og skil á pöntunum, talning á lager og vörumóttaka", null, 1],
     // Frá 2.55.0 (fyrst í dev/): Pöntunarferli – sent/sótt, afhending og móttaka með kvittun, tínslulisti, skilauppgjör, staðgengill, pöntun úr pósti, sniðmát, ferð dagsins (pantanir2.js). Sjálfgefið óvirk.
     pferli:         ["Pöntunarferli", "Sent eða sótt, afhending og móttaka með undirskrift og mynd, pökkunarlisti með skanna, skilauppgjör, staðgengill við árekstur, pöntun úr pósti, sniðmát og ferð dagsins", "pantanir", 1],
     // Frá 2.53.0 (fyrst í dev/): Snjall-Heim – Loka deginum, viðvaranir, hver er hvar, skipanalína og rekstrarpúls á Heim (snjall.js). Sjálfgefið óvirk.
@@ -59,15 +59,16 @@
   const PAKKAR = {
     leigasala: ["Leiga og sala", "Vörulisti, leiga, sala, lager, pantanir, QR-merki og innflutningur", ["leiga", "sala", "pantanir", "qr", "innflutningur", "deildir"]],
     afhending: ["Afhending", "Pöntunarferli: staðfesting, greiðsla, pökkun, undirskrift og skil", ["pferli"]],
-    yfirsyn:   ["Yfirsýn", "Verkefnagreining, aukaverk, Snjall-Heim og rekstrarlínur", ["vgreind", "aukaverk", "snjall", "rlinur"]]
+    yfirsyn:   ["Yfirsýn", "Verkefnagreining, Snjall-Heim og rekstrarlínur", ["vgreind", "snjall", "rlinur"]]
   };
   const LEIDIR = {
     core:     { heiti: "Core",     d: "Kjarninn – verkefni, tímar, tilboð og reikningsdrög", pakkar: [] },
     pro:      { heiti: "Pro",      d: "Kjarninn + Leiga og sala og Afhending", pakkar: ["leigasala", "afhending"] },
-    complete: { heiti: "Complete", d: "Allt – líka Yfirsýn og nýjar einingar", pakkar: ["leigasala", "afhending", "yfirsyn"] }
+    complete: { heiti: "Complete", d: "Allt – líka Yfirsýn", pakkar: ["leigasala", "afhending", "yfirsyn"] }
   };
   // Einingar kjarnans sem admin getur slökkt á (verkefni og viðskiptavinir eru alltaf virk)
-  const KJARNI_EIN = ["undirverk", "dagatal", "fundir", "timar", "kostnadur", "tilbod", "verdskra", "reikningar"];
+  // 2.115.0: aukaverk fylgja öllum leiðum (áður í Yfirsýn)
+  const KJARNI_EIN = ["undirverk", "dagatal", "fundir", "timar", "kostnadur", "tilbod", "aukaverk", "verdskra", "reikningar"];
   // Eldri pakkar (2.14–2.96): ef admin slökkti á gömlum pakka teljast einingar hans óvirkar þar til kveikt er á þeim aftur
   const GAMLIR = { verkstjorn: ["undirverk", "dagatal", "fundir"], timar: ["timar", "kostnadur"], tilbod: ["tilbod", "verdskra"], bunadur: ["leiga", "sala", "qr"], fjarmal: ["reikningar"] };
   const TENGINGAR = {

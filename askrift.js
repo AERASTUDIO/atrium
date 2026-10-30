@@ -29,7 +29,7 @@
     const [b, u] = VERD[k] || VERD.complete;
     return `<div class="card" style="margin-top:14px"><div style="font-size:13px;color:var(--muted)">Leið</div>
       <div style="font-size:22px;font-weight:500">${E(L?.heiti || "Complete")}${auka ? ` <span style="font-size:14px;color:var(--muted)">+ ${E((L.auka || []).map(p => window.PAKKAR?.[p]?.[0] || p).join(", "))}</span>` : ""}</div>
-      <p class="hint" style="margin:6px 0 0">${f(b)} kr. grunngjald + ${f(u)} kr. á skrifstofunotanda + ${f(VETT)} kr. á vettvangsnotanda${auka ? ` + ${f(AUKA)} kr. á stakan pakka` : ""} á mánuði · lágmark ${f(LAGM)} kr. · án VSK</p></div>
+      <p class="hint" style="margin:6px 0 0">${f(b)} kr. grunngjald + ${f(u)} kr. á skrifstofunotanda + ${f(VETT)} kr. á vettvangsnotanda${auka ? ` + ${f(AUKA)} kr. á viðbót` : ""} á mánuði · lágmark ${f(LAGM)} kr. · án VSK</p></div>
       <div class="card" style="margin-top:12px;overflow-x:auto"><div class="viewtitle">Virkir notendur eftir mánuðum</div>
       ${rows ? `<table class="ptab" style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th style="text-align:left">Mánuður</th><th style="text-align:right">Skrifstofa</th><th style="text-align:right">Vettvangur</th><th style="text-align:right">Áætlað gjald</th></tr></thead><tbody>${rows}</tbody></table>` : `<p class="hint">Engin notkun skráð enn.</p>`}
       <p class="hint" style="margin-top:10px">Notandi telst virkur í mánuði ef hann opnar Atrium a.m.k. einu sinni. Hlutverkið Vettvangur er valið í Stillingar › Fólk.</p></div>`;
