@@ -64,7 +64,9 @@
   const LEIDIR = {
     core:     { heiti: "Core",     d: "Kjarninn – verkefni, tímar, tilboð og reikningsdrög", pakkar: [] },
     pro:      { heiti: "Pro",      d: "Kjarninn + Leiga og sala og Afhending", pakkar: ["leigasala", "afhending"] },
-    complete: { heiti: "Complete", d: "Allt – líka Yfirsýn", pakkar: ["leigasala", "afhending", "yfirsyn"] }
+    complete: { heiti: "Complete", d: "Allt – líka Yfirsýn", pakkar: ["leigasala", "afhending", "yfirsyn"] },
+    // 2.116.0: Enterprise – allt í Complete; verð samkvæmt samningi (askrift.js)
+    enterprise: { heiti: "Enterprise", d: "Allt í Complete, tengingar og forgangur – samkvæmt samningi", pakkar: ["leigasala", "afhending", "yfirsyn"] }
   };
   // Einingar kjarnans sem admin getur slökkt á (verkefni og viðskiptavinir eru alltaf virk)
   // 2.115.0: aukaverk fylgja öllum leiðum (áður í Yfirsýn)
