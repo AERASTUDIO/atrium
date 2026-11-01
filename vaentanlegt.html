@@ -6,7 +6,7 @@
 <script>/* App sem var sett upp áður en AERA flutti í aera/ (2.6.0) opnar rótina – senda það beint inn í AERA-appið */
 (function(){try{if((window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: window-controls-overlay)").matches||matchMedia("(display-mode: minimal-ui)").matches))||navigator.standalone===true)location.replace("aera/"+location.search+location.hash);}catch(e){}})();
 if (/[?&]demo\b/.test(location.search)) location.replace("demo/" + location.search + location.hash);</script>
-<title>Atrium væntanlegt</title>
+<title>Atrium</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Atrium by AERA Studio er í byggingu. Verkefni, tilboð, pantanir og tímar á einum stað – heimili rekstursins.">
 <meta property="og:type" content="website"><meta property="og:title" content="Atrium – væntanlegt"><meta property="og:description" content="Heimili rekstursins. Verkefni, tilboð, pantanir og tímar á einum stað.">
@@ -27,9 +27,18 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:not(.js) body{background:#1C2227}
 
 .word{position:fixed;left:0;right:0;top:20%;transform:translateY(-50%);text-align:center;z-index:5;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));pointer-events:none}
-.word h1{margin:0;color:var(--ink);font-weight:200;font-size:clamp(44px,11.5vw,190px);letter-spacing:.07em;line-height:1;text-transform:uppercase;animation:emerge 4s cubic-bezier(.2,.7,.2,1) .2s both}
+.word h1{margin:0;color:var(--ink);font-weight:200;font-size:clamp(52px,13.5vw,210px);letter-spacing:0;line-height:1;text-transform:uppercase;animation:emerge 4s cubic-bezier(.2,.7,.2,1) .2s both}
 .word p{margin:18px 0 0;color:var(--sub);font-size:clamp(12px,1.1vw,14px);letter-spacing:.42em;text-transform:uppercase;font-weight:400;animation:emerge 4s cubic-bezier(.2,.7,.2,1) 1.4s both}
 @keyframes emerge{from{letter-spacing:.16em;filter:blur(8px);opacity:0}to{filter:blur(0);opacity:1}}
+/* Fyrirsögnin teiknast inn í línum samtímis merkinu og fyllist svo */
+.word h1,.word p{animation:none}
+.word svg.draw{display:block;margin:0 auto;overflow:visible;height:1em;width:auto}
+.word svg.draw text{font-family:var(--f);text-transform:uppercase;fill:currentColor;fill-opacity:0;stroke:currentColor;stroke-linejoin:round;stroke-dasharray:720;stroke-dashoffset:720}   /* hver stafur teiknast samtímis frá 0 */
+.word svg.ttl text{font-size:100px;font-weight:200;letter-spacing:14px;stroke-width:.9;animation:drawIn 2.2s cubic-bezier(.45,.05,.3,1) .3s forwards,fillIn 1.1s ease 2.1s forwards}
+.word svg.sub{height:1.15em}.word svg.sub text{font-size:100px;font-weight:400;letter-spacing:42px;stroke-width:2.2;animation:drawIn 2s cubic-bezier(.45,.05,.3,1) .9s forwards,fillIn 1s ease 2.6s forwards}
+@keyframes drawIn{to{stroke-dashoffset:0}}
+@keyframes fillIn{to{fill-opacity:1;stroke-opacity:0}}
+@media (prefers-reduced-motion:reduce){.word svg.draw text{animation:none;stroke-dashoffset:0;fill-opacity:1;stroke-opacity:0}}
 .top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:calc(22px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) 0 max(24px,env(safe-area-inset-left,0px));z-index:6;color:var(--ink);font-size:12px;letter-spacing:.32em;text-transform:uppercase;font-weight:400}
 .top .wm{display:flex;align-items:center;gap:12px}.top svg{width:22px;height:22px}.top polygon:nth-child(3n+1){fill:var(--m1)}.top polygon:nth-child(3n+2){fill:var(--m2)}.top polygon:nth-child(3n){fill:var(--m3)}
 .bot{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 24px;padding:44px max(24px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));font-size:13px;color:var(--pale2);letter-spacing:.04em;background:linear-gradient(transparent,var(--fb,rgba(8,10,12,.5)))}
@@ -59,11 +68,17 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
 <img class="fallback" src="vefur/vaentanlegt-lok.jpg" alt="" aria-hidden="true"><canvas id="c" aria-hidden="true"></canvas>
 <div class="ui n">
 <header class="top"><span class="wm"><svg viewBox="-4 -4 108 108" aria-hidden="true"><polygon points="0.00,0.00 72.00,0.00 58.00,14.00 0.00,14.00"/><polygon points="0.00,14.00 58.00,14.00 72.00,28.00 0.00,28.00"/><polygon points="72.00,0.00 72.00,28.00 58.00,14.00"/><polygon points="100.00,0.00 100.00,72.00 86.00,58.00 86.00,0.00"/><polygon points="86.00,0.00 86.00,58.00 72.00,72.00 72.00,0.00"/><polygon points="100.00,72.00 72.00,72.00 86.00,58.00"/><polygon points="100.00,100.00 28.00,100.00 42.00,86.00 100.00,86.00"/><polygon points="100.00,86.00 42.00,86.00 28.00,72.00 100.00,72.00"/><polygon points="28.00,100.00 28.00,72.00 42.00,86.00"/><polygon points="0.00,100.00 0.00,28.00 14.00,42.00 14.00,100.00"/><polygon points="14.00,100.00 14.00,42.00 28.00,28.00 28.00,100.00"/><polygon points="0.00,28.00 28.00,28.00 14.00,42.00"/></svg>Atrium</span><span>by AERA Studio</span></header>
-<main class="word"><h1>Væntanlegt</h1><p>Heimili rekstursins</p></main>
+<main class="word"><h1 aria-label="Atrium"><svg class="draw ttl" aria-hidden="true"><text x="0" y="0">ATRIUM</text></svg></h1><p aria-label="Heimili rekstursins"><svg class="draw sub" aria-hidden="true"><text x="0" y="0">HEIMILI REKSTURSINS</text></svg></p></main>
 <footer class="bot"><span><b>ATRIUM</b> er í þróun</span><span><a href="mailto:aera@aerastudio.is">aera@aerastudio.is</a></span></footer>
 </div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.172.0/examples/jsm/"}}</script>
+<script>
+(() => { const fit = () => document.querySelectorAll(".word svg.draw").forEach(sv => { const tx = sv.querySelector("text"); try { const b = tx.getBBox(); if (!b.width) return;
+    sv.setAttribute("viewBox", `${b.x - 2} ${b.y - 2} ${b.width + 4} ${b.height + 4}`); sv.style.aspectRatio = (b.width + 4) / (b.height + 4);
+  } catch (e) {} });
+  fit(); (document.fonts ? document.fonts.ready : Promise.resolve()).then(fit); addEventListener("load", fit); })();
+</script>
 <script type="module">
 /* three.js r172 (ES-eining). Litastjórnun af svo litir og ljós haldist eins og áður (r128); eftirvinnsla: GTAO (mjúkir snertiskuggar) og bloom (ljós og púlsar glóa). */
 import * as THREE from "three";
