@@ -1,47 +1,457 @@
 <!doctype html>
-<!-- Vefsíða Atrium (frá 2.18.4): aðeins myndband í lykkju og „Væntanlegt“. Vefsíðan sjálf er index.html.
-     Rótin er EKKI app: ekkert manifest hér, svo app-umfang uppsetninganna (aera/, sonik/, party/) skarast ekki. -->
-<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Væntanlegt-síða Atrium á atrium.aerastudio.is (1.11.2026) á meðan appið er ekki komið í loftið.
+     Merkið teiknast, rís sem bygging (three.js r128 af cdnjs), sviðin sex birtast. Kyrrmynd (vefur/vaentanlegt-lok.jpg) ef WebGL vantar.
+     Fyrri vefsíðan er geymd óbreytt í vefsida.html og kemur aftur sem index.html þegar appið fer í loftið. EKKI app: ekkert manifest. -->
+<html lang="is"><head><meta charset="utf-8">
 <script>/* App sem var sett upp áður en AERA flutti í aera/ (2.6.0) opnar rótina – senda það beint inn í AERA-appið */
-(function(){try{if((window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: window-controls-overlay)").matches||matchMedia("(display-mode: minimal-ui)").matches))||navigator.standalone===true)location.replace("aera/"+location.search+location.hash);}catch(e){}})();</script>
-<title>Atrium – væntanlegt</title>
-<meta name="description" content="Atrium by AERA Studio – væntanlegt.">
-<meta property="og:title" content="Atrium by AERA Studio"><meta property="og:description" content="Væntanlegt."><meta property="og:image" content="https://atrium.aerastudio.is/vefur/atrium-vaentanlegt.jpg?v=7">
-<meta name="theme-color" content="#121416">
-<link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg"><link rel="icon" type="image/png" href="icons/atrium-icon-192.png">
+(function(){try{if((window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: window-controls-overlay)").matches||matchMedia("(display-mode: minimal-ui)").matches))||navigator.standalone===true)location.replace("aera/"+location.search+location.hash);}catch(e){}})();
+if (/[?&]demo\b/.test(location.search)) location.replace("demo/" + location.search + location.hash);</script>
+<title>Atrium væntanlegt</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Atrium by AERA Studio er í byggingu. Verkefni, tilboð, pantanir og tímar á einum stað – heimili rekstursins.">
+<meta property="og:type" content="website"><meta property="og:title" content="Atrium – væntanlegt"><meta property="og:description" content="Heimili rekstursins. Verkefni, tilboð, pantanir og tímar á einum stað.">
+<meta property="og:image" content="https://atrium.aerastudio.is/vefur/vaentanlegt-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#151A1F">
+<link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500&display=swap">
 <style>
-@font-face{font-family:P;src:url(fonts/Poppins-Light.ttf);font-weight:300;font-display:swap}
-html,body{margin:0;height:100%;background:#121416;overflow:hidden}
-video{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;background:#121416 url(vefur/atrium-vaentanlegt.jpg?v=7) center/cover}
-h1{position:fixed;left:0;right:0;top:calc(50vh - max(3.65vw,6.48vh) + max(20vw,35.5vh)); /* fylgir merkinu í myndbandinu (object-fit:cover, 1920×1080, merkið í y=470) */margin:0;text-align:center;font:300 clamp(30px,5vw,64px)/1 P,system-ui,sans-serif;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#7C8896;background:linear-gradient(100deg,#6B7682 0%,#6B7682 42%,#F6F7F8 50%,#6B7682 58%,#6B7682 100%);background-size:320% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both,sheen 7s ease-in-out 2s infinite}
-@keyframes sheen{0%{background-position:100% 0}45%,100%{background-position:0% 0}} /* ljósið kastast af letrinu (grátt, glampi rennur yfir) */
-/* Sími og aðrir háir skjáir: myndbandið minna og fjarar út upp og niður, svo merkið passi og VÆNTANLEGT sitji neðar */
-@media (max-aspect-ratio:4/5){
-  html,body{background:#0f1012}
-  video{top:50%;left:50%;width:auto;height:min(64vh,130vw);transform:translate(-50%,-55%);background:none;
-    -webkit-mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent)}
-  h1{top:calc(50vh + 0.435 * min(64vh,130vw));font-size:clamp(24px,7vw,40px)}
-  @supports (height:100dvh){ /* iPhone/Safari: miða við sýnilega skjáhæð svo letrið fylgi merkinu þótt vafrastikur birtist/hverfi */
-    video{height:min(64dvh,130vw)}
-    h1{top:calc(50dvh + 0.435 * min(64dvh,130vw))}
-  }
-}
-/* Sími á hlið (lágur og breiður skjár): allt myndbandið sést, merkið ekki klippt, VÆNTANLEGT neðst */
-@media (min-aspect-ratio:2/1) and (max-height:600px){
-  html,body{background:#0f1012}
-  video{object-fit:contain;background:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
-  h1{top:auto;bottom:max(18px,env(safe-area-inset-bottom));font-size:clamp(18px,4.2vh,30px)}
-}
-@keyframes inn{from{opacity:0;letter-spacing:.6em;text-indent:.6em}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){h1{animation:inn 1.6s cubic-bezier(.2,.7,.2,1) .3s both;background-position:50% 0}}
-video::-webkit-media-controls,video::-webkit-media-controls-start-playback-button,video::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none}
-</style></head><body>
-<video autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" poster="vefur/atrium-vaentanlegt.jpg?v=7" aria-hidden="true"><source src="vefur/atrium-vaentanlegt.mp4?v=7" type="video/mp4"></video>
-<h1>Væntanlegt</h1>
-<script>/* Myndbandið spilast alltaf sjálfkrafa (hljóðlaust). Ef vafrinn stöðvar sjálfvirka spilun (t.d. orkusparnaður í síma) er reynt aftur og við fyrstu snertingu. */
-(function(){const v=document.querySelector("video");v.muted=true;v.defaultMuted=true;v.playsInline=true;
-const go=()=>{const p=v.play();if(p&&p.catch)p.catch(()=>{});};
-go();v.addEventListener("loadeddata",go);v.addEventListener("pause",()=>{if(!document.hidden)setTimeout(go,300);});
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)go();});
-["pointerdown","touchstart","keydown","scroll"].forEach(e=>addEventListener(e,go,{once:true,passive:true}));})();</script>
+/* Væntanlegt: nótt → dögun. Merkið teiknast í ljósum línum á dökkri jörð, rís upp sem línubygging,
+   og svo birtir til þar til allt stendur ljóst með dökkum línum. Litir himins og texta stýrast úr skriftunni. */
+:root{--sky:#151A1F;--ink:#D3DCE4;--sub:rgba(211,220,228,.6);--pale:#D9DCDE;--pale2:#9AA0A5;--f:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--sky);color:var(--pale);font:300 16px/1.5 var(--f);overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.fallback{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 62%;display:none}
+html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:not(.js) body{background:#1C2227}
+
+.word{position:fixed;left:0;right:0;top:20%;transform:translateY(-50%);text-align:center;z-index:5;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+.word h1{margin:0;color:var(--ink);font-weight:200;font-size:clamp(44px,11.5vw,190px);letter-spacing:.07em;line-height:1;text-transform:uppercase;animation:emerge 4s cubic-bezier(.2,.7,.2,1) .2s both}
+.word p{margin:18px 0 0;color:var(--sub);font-size:clamp(12px,1.1vw,14px);letter-spacing:.42em;text-transform:uppercase;font-weight:400;animation:emerge 4s cubic-bezier(.2,.7,.2,1) 1.4s both}
+@keyframes emerge{from{letter-spacing:.16em;filter:blur(8px);opacity:0}to{filter:blur(0);opacity:1}}
+.top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:calc(22px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) 0 max(24px,env(safe-area-inset-left,0px));z-index:6;color:var(--ink);font-size:12px;letter-spacing:.32em;text-transform:uppercase;font-weight:400}
+.top .wm{display:flex;align-items:center;gap:12px}.top svg{width:22px;height:22px}.top polygon:nth-child(3n+1){fill:var(--m1)}.top polygon:nth-child(3n+2){fill:var(--m2)}.top polygon:nth-child(3n){fill:var(--m3)}
+.bot{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 24px;padding:44px max(24px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));font-size:13px;color:var(--pale2);letter-spacing:.04em;background:linear-gradient(transparent,var(--fb,rgba(8,10,12,.5)))}
+.bot b{color:var(--pale);font-weight:400}.bot a{color:var(--pale);text-decoration:none;border-bottom:1px solid currentColor}
+/* Textalög: næturlag og dagslag; dagslagið birtist í sama hring og birtan í myndinni */
+.ui{position:fixed;inset:0;pointer-events:none}.ui a{pointer-events:auto}
+.ui.n{--m1:#DFE5EA;--m2:#93A0AD;--m3:#4B5664;--ink:#D3DCE4;--sub:rgba(211,220,228,.6);--pale:#D9DCDE;--pale2:#9AA0A5;--fb:rgba(8,10,12,.5)}
+.ui.d{--m1:#C9D1D9;--m2:#7C8896;--m3:#2F3742;--ink:#121415;--sub:rgba(18,20,21,.62);--pale:#24292E;--pale2:#4A5158;--fb:rgba(255,255,255,.45);visibility:hidden}
+/* Sviðin sex: 3 hvoru megin við bygginguna, línur að toppi glerþaksins */
+.svid6{position:fixed;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}
+.svid6 path{fill:none;stroke:#AEB8C1;stroke-width:.9;stroke-linejoin:round;opacity:.75}
+.svid6 .apx{fill:#D3DCE4}.svid6 .ring{fill:none;stroke:#D3DCE4;stroke-width:.9}.svid6 .end{fill:#1C2227;stroke:#D3DCE4;stroke-width:1}
+.svid6 .t{fill:#E4E8EB;font:500 11.5px var(--f);letter-spacing:.26em;text-transform:uppercase}
+.svid6 .t tspan.nr{fill:#7F8A94;font-weight:400;letter-spacing:.12em}
+.svid6 .d{fill:#98A2AB;font:400 10.5px var(--f);letter-spacing:.08em}
+@media (max-width:700px){.svid6 .t{font-size:9px;letter-spacing:.14em}.svid6 .d,.svid6 .t tspan.nr{display:none}}
+.vv{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(10,12,14,.45);border:1px solid rgba(217,220,222,.16);pointer-events:auto}
+.vv button{font:400 12px var(--f);letter-spacing:.06em;color:var(--pale2);background:none;border:0;border-radius:999px;padding:7px 13px;cursor:pointer}
+.vv button[aria-pressed="true"]{background:rgba(217,220,222,.92);color:#121415}.vv button:focus-visible{outline:2px solid var(--pale);outline-offset:2px}
+@media (max-width:560px){.top{letter-spacing:.24em}.bot{justify-content:center;text-align:center}.word{top:18%}.word p{letter-spacing:.3em}}
+@media (prefers-reduced-motion:reduce){.word h1,.word p{animation:none}}
+</style>
+<link rel="icon" type="image/png" href="icons/atrium-icon-192.png"><link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">
+</head>
+<body>
+
+<img class="fallback" src="vefur/vaentanlegt-lok.jpg" alt="" aria-hidden="true"><canvas id="c" aria-hidden="true"></canvas>
+<div class="ui n">
+<header class="top"><span class="wm"><svg viewBox="-4 -4 108 108" aria-hidden="true"><polygon points="0.00,0.00 72.00,0.00 58.00,14.00 0.00,14.00"/><polygon points="0.00,14.00 58.00,14.00 72.00,28.00 0.00,28.00"/><polygon points="72.00,0.00 72.00,28.00 58.00,14.00"/><polygon points="100.00,0.00 100.00,72.00 86.00,58.00 86.00,0.00"/><polygon points="86.00,0.00 86.00,58.00 72.00,72.00 72.00,0.00"/><polygon points="100.00,72.00 72.00,72.00 86.00,58.00"/><polygon points="100.00,100.00 28.00,100.00 42.00,86.00 100.00,86.00"/><polygon points="100.00,86.00 42.00,86.00 28.00,72.00 100.00,72.00"/><polygon points="28.00,100.00 28.00,72.00 42.00,86.00"/><polygon points="0.00,100.00 0.00,28.00 14.00,42.00 14.00,100.00"/><polygon points="14.00,100.00 14.00,42.00 28.00,28.00 28.00,100.00"/><polygon points="0.00,28.00 28.00,28.00 14.00,42.00"/></svg>Atrium</span><span>by AERA Studio</span></header>
+<main class="word"><h1>Væntanlegt</h1><p>Heimili rekstursins</p></main>
+<footer class="bot"><span><b>ATRIUM</b> er í þróun</span><span><a href="mailto:aera@aerastudio.is">aera@aerastudio.is</a></span></footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+  const html = document.documentElement; html.classList.add("js"); const noGL = () => html.classList.add("nogl");
+  if (!window.THREE) { noGL(); return; }
+  const cv = document.getElementById("c"), root = document.documentElement.style;
+  let R; try { R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { noGL(); return; }
+  const PR = Math.min(Math.max(devicePixelRatio || 1, 2), 2.5); R.setPixelRatio(PR); R.setClearColor(0, 0);
+  R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.25;
+  const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x151A1F, .0026);
+  const cam = new THREE.PerspectiveCamera(30, 1, 5, 20000);
+  const tmp = new THREE.Color();
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const C = h => new THREE.Color(h), mix = (o, a, b, k) => o.copy(a).lerp(b, k);
+  const ease = t => t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3);
+  const smooth = u => u < 0 ? 0 : u > 1 ? 1 : u * u * (3 - 2 * u);
+  const smoother = u => u < 0 ? 0 : u > 1 ? 1 : u * u * u * (u * (u * 6 - 15) + 10);
+
+  // ---- Nótt → dagur: litirnir sem blandast á milli. TONE = litir merkisins (yfirlitið byrjar eins og merkið sjálft) ----
+  const N = { sky: C(0x1B1F23), ground: C(0x1B1F23), line: C(0xD3DCE4), cap: C(0x161D23), glass: C(0x26303A), rec: C(0x0E1317), hemi: C(0x5C6B7A), ink: C(0xD3DCE4) };
+  const D = { sky: C(0x1C1F23), ground: C(0x1C1F23), line: C(0x46505A), cap: C(0xD2D6DA), glass: C(0xCDD4DA), rec: C(0x9AA3AB), hemi: C(0xF3F5F7), ink: C(0x121415) };
+  const TONE = { 1: C(0xC9D1D9), 2: C(0x7C8896), 3: C(0x2F3742) };
+
+  // ---- Merkið: grunnmynd 100×100 ----
+  const SH = [
+    [[0,0,72,0,58,14,0,14],1],[[0,14,58,14,72,28,0,28],2],[[72,0,72,28,58,14],3],
+    [[100,0,100,72,86,58,86,0],1],[[86,0,86,58,72,72,72,0],2],[[100,72,72,72,86,58],3],
+    [[100,100,28,100,42,86,100,86],1],[[100,86,42,86,28,72,100,72],2],[[28,100,28,72,42,86],3],
+    [[0,100,0,28,14,42,14,100],1],[[14,100,14,42,28,28,28,100],2],[[0,28,28,28,14,42],3]
+  ];
+  const POLY = SH.map(([p]) => { const P = []; for (let j = 0; j < p.length; j += 2) P.push([p[j], p[j + 1]]); return P; });
+  const FL = 4.2, HP = FL * 5, PASS = [37, 49], RE = 1.6;      // hæð, gegnumgangur (2 hæðir), staðsetning hans, inndráttur jarðhæðar
+  const floors = k => k === 2 ? 6 : 7;                         // innra bandið einni hæð lægra, eins og tónarnir í merkinu
+  const toTop = ([x, y], n) => { for (let q = 0; q < n; q++) [x, y] = [y, 100 - x]; return [x, y]; };
+  const fromTop = ([x, y], n) => { for (let q = 0; q < n; q++) [x, y] = [100 - y, x]; return [x, y]; };
+  const clip = (P, f) => { const o = []; for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length], fa = f(a), fb = f(b);
+      if (fa >= 0) o.push(a); if ((fa >= 0) !== (fb >= 0)) { const u = fa / (fa - fb); o.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]); } } return o; };
+  const area = P => Math.abs(P.reduce((s, p, i) => { const q = P[(i + 1) % P.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
+  const inset = (P, d) => { const n = P.length, s = Math.sign(P.reduce((acc, p, i) => { const q = P[(i + 1) % n]; return acc + p[0] * q[1] - q[0] * p[1]; }, 0));
+    const L = P.map((a, i) => { const b = P[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy), nx = -dy / l * s, ny = dx / l * s; return { nx, ny, c: nx * a[0] + ny * a[1] + d[i] }; });
+    return P.map((_, i) => { const A = L[(i - 1 + n) % n], B = L[i], det = A.nx * B.ny - A.ny * B.nx; return [(A.c * B.ny - A.ny * B.c) / det, (A.nx * B.c - A.c * B.nx) / det]; }); };
+  const onSeg = ([px, py], [ax, ay], [bx, by]) => { const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy, u = ((px - ax) * dx + (py - ay) * dy) / L2;
+    return u > -.001 && u < 1.001 && Math.hypot(ax + dx * u - px, ay + dy * u - py) < .05; };
+  const shared = (e, self) => { const P = POLY[self], a = P[e], b = P[(e + 1) % P.length], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    return POLY.some((Q, j) => j !== self && Q.some((q, n) => onSeg(m, q, Q[(n + 1) % Q.length]))); };
+  const W = ([x, y]) => [x - 50, y - 50];
+  const shape = P => new THREE.Shape(P.map(p => { const [x, z] = W(p); return new THREE.Vector2(x, -z); }));
+  const ext = (P, h0, h1) => { const g = new THREE.ExtrudeGeometry(shape(P), { depth: h1 - h0, bevelEnabled: false }); g.rotateX(-Math.PI / 2); g.translate(0, h0, 0); return g; };
+  const flat = (P, y) => { const g = new THREE.ShapeGeometry(shape(P)); g.rotateX(-Math.PI / 2); g.translate(0, y, 0); return g; };
+  // allar línur brotnar í stutta búta svo þær teiknist inn eins og með penna (ekki heil strik í einu)
+  const fine = (src, step) => { const a = src.attributes.position.array, o = [];
+    for (let i = 0; i < a.length; i += 6) { const dx = a[i + 3] - a[i], dy = a[i + 4] - a[i + 1], dz = a[i + 5] - a[i + 2], n = Math.max(1, Math.ceil(Math.hypot(dx, dy, dz) / step));
+      for (let s = 0; s < n; s++) { const u0 = s / n, u1 = (s + 1) / n; o.push(a[i] + dx * u0, a[i + 1] + dy * u0, a[i + 2] + dz * u0, a[i] + dx * u1, a[i + 1] + dy * u1, a[i + 2] + dz * u1); } }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(o, 3)); return g; };
+  const segsOf = pts => { const g = new THREE.BufferGeometry(); g.setFromPoints(pts.flatMap((p, i) => i ? [pts[i - 1], p] : [])); return g; };
+  const cnv = (w, h, draw) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); return c; };
+
+  // ---- Efni ----
+  const PO = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
+  const glassMap = (() => { const t = new THREE.CanvasTexture(cnv(1024, 512, (g, w, h) => { g.fillStyle = "#CFD8DF"; g.fillRect(0, 0, w, h); }));
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 24, -1 / (FL * 4)); t.offset.set(0, 1 / (FL * 4)); return t; })();
+  const capK = { 1: new THREE.MeshPhysicalMaterial({ roughness: .95, ...PO }), 2: new THREE.MeshPhysicalMaterial({ roughness: .95, ...PO }), 3: new THREE.MeshPhysicalMaterial({ roughness: .95, ...PO }) };
+  const capB = new THREE.MeshPhysicalMaterial({ color: 0x161D23, roughness: .95, ...PO });
+  const sideM = new THREE.MeshPhysicalMaterial({ color: 0x26303A, map: glassMap, roughness: .35, metalness: .25, emissive: 0xFFE9CC, emissiveIntensity: 0, ...PO });
+  const recM = new THREE.MeshStandardMaterial({ color: 0x0E1317, roughness: .5, ...PO });
+  const pmrem = new THREE.PMREMGenerator(R);
+  // umhverfiskort teiknað á striga (equirectangular): dökkt gólf, grár himinn, mjúkir ljósflekar
+  const envTex = (() => { const c = cnv(2048, 1024, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, "#AEB5BB"); gr.addColorStop(.38, "#6C737A"); gr.addColorStop(.5, "#3A3F44"); gr.addColorStop(.56, "#1E2226"); gr.addColorStop(1, "#0E1012"); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      g.filter = "blur(14px)"; [[.04, .55], [.17, 1], [.29, .5], [.42, .9], [.55, .65], [.7, 1], [.84, .7]].forEach(([x, k]) => { g.fillStyle = `rgba(250,252,255,${k})`; g.fillRect(x * w, .22 * h, .05 * w, .26 * h); });
+      const hb = g.createLinearGradient(0, .3 * h, 0, .52 * h); hb.addColorStop(0, "rgba(220,228,236,0)"); hb.addColorStop(.6, "rgba(220,228,236,.55)"); hb.addColorStop(.85, "rgba(255,255,255,.95)"); hb.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = hb; g.fillRect(0, .3 * h, w, .22 * h); const lb = g.createLinearGradient(0, .5 * h, 0, .72 * h); lb.addColorStop(0, "rgba(150,160,170,.75)"); lb.addColorStop(1, "rgba(150,160,170,0)"); g.fillStyle = lb; g.fillRect(0, .5 * h, w, .22 * h); [[.1, .8], [.36, .6], [.61, .9], [.86, .55]].forEach(([x, k]) => { g.fillStyle = `rgba(235,240,245,${k})`; g.fillRect(x * w, .5 * h, .06 * w, .13 * h); }); g.fillStyle = "#FFFFFF"; g.fillRect(.08 * w, .05 * h, .34 * w, .07 * h); g.fillRect(.58 * w, .07 * h, .28 * w, .06 * h); g.filter = "none"; });
+    const tx = new THREE.CanvasTexture(c); tx.mapping = THREE.EquirectangularReflectionMapping; const t = pmrem.fromEquirectangular(tx).texture; pmrem.dispose(); return t; })();
+  const brushTex = (() => { const c = cnv(1024, 1024, (g, w, h) => { g.fillStyle = "#808080"; g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 9000; i++) { const y = rnd(0, h), v = Math.floor(rnd(96, 165)); g.strokeStyle = `rgba(${v},${v},${v},${rnd(.08, .3)})`; g.lineWidth = rnd(.5, 1.6); const x = rnd(-200, w); g.beginPath(); g.moveTo(x, y); g.lineTo(x + rnd(120, 520), y + rnd(-.6, .6)); g.stroke(); }
+      const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "rgba(255,255,255,.05)"); gr.addColorStop(.5, "rgba(0,0,0,.06)"); gr.addColorStop(1, "rgba(255,255,255,.04)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 14, 1 / 14); t.anisotropy = R.capabilities.getMaxAnisotropy(); return t; })();
+  // áferðir á byggingunni: valdar með hnöppunum neðst (eða #mat=nafn)
+  const MATS = { malmur: { metal: 1, rough: .3, env: 2.1, cap: 0x7A8189, side: 0x656C74, coat: 0, brush: 1 },
+    dokkt: { metal: .6, rough: .05, env: 1.25, cap: 0x15191D, side: 0x0B0D10, coat: 1, brush: 0 } };
+  let matKey = ((/mat=(\w+)/.exec(location.hash) || [])[1] || "dokkt"); if (!MATS[matKey]) matKey = "dokkt";
+  const setMat = key => { matKey = key; const M = MATS[key];
+    [capK[1], capK[2], capK[3], capB, sideM].forEach((m, j) => { m.metalness = M.metal; m.roughness = M.rough; m.envMap = envTex; m.envMapIntensity = M.env; m.map = null;
+      m.roughnessMap = M.brush ? brushTex : null; m.clearcoat = M.coat; m.clearcoatRoughness = .04; m.reflectivity = .6; m.needsUpdate = true; m.color.setHex(j === 4 ? M.side : M.cap); });
+    document.querySelectorAll(".vv button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === key))); };
+  let fillF = 0; const INK = new THREE.Color(0x0B0D0F);
+  const fillMats = () => [capK[1], capK[2], capK[3], capB, sideM, recM];
+  fillMats().forEach(m => { m.transparent = true; m.opacity = 0; m.depthWrite = true; });
+  const edgeM = new THREE.LineBasicMaterial({ color: 0xD3DCE4, transparent: true, opacity: .9 });
+  // gluggalínur með rafmagni: stuttir ljóspúlsar þjóta eftir hæðaskilum (lárétt) og póstum (lóðrétt) á handahófskenndum stöðum
+  const sparkU = { col: { value: new THREE.Color(0xD3DCE4) }, op: { value: .3 }, tm: { value: 0 }, pc: { value: new THREE.Color(0xCFE6FF) }, on: { value: 0 } };
+  const sparkM = vert => new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: sparkU,
+    vertexShader: "varying vec3 wp; void main(){ vec4 w=modelMatrix*vec4(position,1.); wp=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }",
+    fragmentShader: `uniform vec3 col, pc; uniform float op, tm, on; varying vec3 wp;
+      float h(float n){ return fract(sin(n*127.1)*43758.5453); }
+      void main(){ float g=0.;
+        ${vert ? "g=0.;" : "float row=floor(wp.y/4.2+.5), inner=step(length(wp.xz),40.); float P=6., T=tm+inner*3.; float slot=floor(T/P)*2.+inner; float ph=fract(T/P); float rs=1.+floor(h(slot+.37)*5.99); float act=1.-step(.5,abs(row-rs)); float an=atan(wp.z,wp.x); float pos=(h(slot*3.1)*2.-1.)*3.1416+ph*7.; float d=mod(an-pos+3.1416,6.2832)-3.1416; float L=length(wp.xz); d*=L; float fade=smoothstep(0.,.1,ph)*(1.-smoothstep(.8,1.,ph)); g=act*fade*(smoothstep(-55.,0.,d)*(1.-smoothstep(0.,.6,d))*1.4+1.3*exp(-d*d*1.2));"}
+        g*=on; gl_FragColor=vec4(mix(col,pc,min(g,1.)), min(1.,op+g)); }` });
+  const bEdgeM = new THREE.LineBasicMaterial({ color: 0xD3DCE4, transparent: true, opacity: .9, depthWrite: false });
+  const detH = sparkM(false), detV = sparkM(true), detM = { color: sparkU.col.value, set opacity(v) { sparkU.op.value = v; } };
+
+  // ---- Byggingin ----
+  const bld = new THREE.Group(); scene.add(bld);
+  const pieces = [], outlines = [], fills = [], facs = [], edgesL = []; let curT0 = 4.6;
+  // gluggar: allar hæðir jafnháar og allir póstar með sama bili (3 m) – mælt frá sama upphafspunkti á hverri hlið
+  const facadeLines = (Q, h0, h1) => { const pts = [], vps = [], QW = Q.map(W);
+    for (let e = 0; e < QW.length; e++) { const [ax, az] = QW[e], [bx, bz] = QW[(e + 1) % QW.length], L = Math.hypot(bx - ax, bz - az); if (L < .5) continue;
+      for (let h = Math.ceil(h0 / FL + .01) * FL; h < h1 - .01; h += FL) pts.push(ax, h, az, bx, h, bz);
+      const ux = (bx - ax) / L, uz = (bz - az) / L, o0 = ((ax * ux + az * uz) % 3 + 3) % 3;     // póstar á föstu 3 m neti eftir hliðinni
+      for (let s = 3 - o0; s < L - .3; s += 3) { const x = ax + ux * s, z = az + uz * s; vps.push(x, h0, z, x, h1, z); } }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3)); const gv = new THREE.BufferGeometry(); gv.setAttribute("position", new THREE.Float32BufferAttribute(vps, 3));
+    return [new THREE.LineSegments(fine(g, 1.2), detH), new THREE.LineSegments(fine(gv, 1.2), detV)]; };
+  const solid = (grp, Q, h0, h1, mat, lines = true) => { if (h1 - h0 < .1) return; const g = ext(Q, h0, h1), m = new THREE.Mesh(g, mat); m.renderOrder = 10;
+    m.castShadow = m.receiveShadow = true; const eg = new THREE.LineSegments(fine(new THREE.EdgesGeometry(g, 20), .8), bEdgeM); eg.geometry.setDrawRange(0, 0); edgesL.push({ g: eg.geometry, t0: curT0 }); m.add(eg); if (lines) facadeLines(Q, h0, h1).forEach(f => { f.geometry.setDrawRange(0, 0); facs.push(f); m.add(f); }); grp.add(m); };
+  // jarðhæðin: ein samfelld, örlítið inndregin hæð allan hringinn, aðeins rofin af gegnumgöngunum
+  const base = new THREE.Group(); bld.add(base);
+  for (let arm = 0; arm < 4; arm++) solid(base, [[PASS[1] + RE, RE], [100 - RE, RE], [100 - RE, PASS[0] - RE], [72 + RE, PASS[0] - RE], [72 + RE, 28 - RE], [PASS[1] + RE, 28 - RE]].map(q => fromTop(q, arm)), 0, FL, [capB, recM], false);
+  pieces.push({ m: base, i: -1 });
+  // álmurnar: hlutarnir liggja þétt saman, gegnumgangur (2 hæðir) í miðju hverrar álmu
+  SH.forEach(([, k], i) => {
+    curT0 = 3.2 + (i % 3) * .25 + Math.floor(i / 3) * .3;
+    const P = POLY[i], arm = Math.floor(i / 3), H = floors(k) * FL, mat = [capK[k], sideM], grp = new THREE.Group();
+    if (k === 3) solid(grp, P, FL, H, mat);
+    else { solid(grp, P, HP, H, mat); const T = P.map(q => toTop(q, arm));
+      [clip(T, q => PASS[0] - q[0]), clip(T, q => q[0] - PASS[1])].forEach(Q => { if (Q.length > 2 && area(Q) > .5) solid(grp, Q.map(q => fromTop(q, arm)), FL, HP, mat); }); }
+    // þakbrún = útlína merkisins: hún er þegar teiknuð og lyftist upp með hlutanum, svo merkið breytist beint í hús
+    grp.add(new THREE.LineSegments(fine(segsOf([...P, P[0]].map(q => { const [x, z] = W(q); return new THREE.Vector3(x, H + .03, z); })), .6), edgeM));
+    bld.add(grp); pieces.push({ m: grp, i, k, H });
+    // grunnmyndin: útlína sem teiknast og fylling í lit merkisins
+    const ln = new THREE.LineSegments(fine(segsOf([...P, P[0]].map(q => { const [x, z] = W(q); return new THREE.Vector3(x, .45, z); })), .6), new THREE.LineBasicMaterial({ color: 0xD3DCE4, transparent: true, opacity: .9 }));
+    ln.geometry.setDrawRange(0, 0); scene.add(ln); outlines.push(ln);
+    const f = new THREE.Mesh(flat(P, .25), new THREE.MeshBasicMaterial({ color: TONE[k], transparent: true, opacity: 0, depthWrite: false, fog: false })); scene.add(f); fills.push(f);
+  });
+  pieces.forEach(p => { p.m.scale.y = .001; p.m.visible = false; });
+
+  // ---- Þökin: handrið á lægra þakinu, gróður á efri þökum, líf ----
+  const life = new THREE.Group(); scene.add(life);
+  const rail = [];
+  SH.forEach(([, k], i) => { if (k !== 2) return; const H = floors(2) * FL, Q = inset(POLY[i], POLY[i].map(() => .35)).map(W);
+    POLY[i].forEach((_, e) => { if (shared(e, i)) return; const [ax, az] = Q[e], [bx, bz] = Q[(e + 1) % Q.length], L = Math.hypot(bx - ax, bz - az);
+      for (const y of [H + .55, H + 1.1]) rail.push(ax, y, az, bx, y, bz);
+      const n = Math.max(1, Math.round(L / 1.6)); for (let s = 0; s <= n; s++) { const u = s / n, x = ax + (bx - ax) * u, z = az + (bz - az) * u; rail.push(x, H, z, x, H + 1.1, z); } }); });
+  const railG = new THREE.BufferGeometry(); railG.setAttribute("position", new THREE.Float32BufferAttribute(rail, 3)); const railL = new THREE.LineSegments(fine(railG, .5), edgeM); railL.geometry.setDrawRange(0, 0); bld.add(railL);
+  const sedumCanvas = cnv(512, 512, (g, w, h) => { g.fillStyle = "#B4BFAC"; g.fillRect(0, 0, w, h);
+    for (let n = 0; n < 900; n++) { const x = rnd(0, w), y = rnd(0, h), r = rnd(3, 9); g.strokeStyle = `rgba(${Math.random() < .5 ? "78,94,72" : "122,140,114"},${rnd(.2, .5)})`; g.lineWidth = rnd(1, 2); g.beginPath(); g.arc(x, y, r, rnd(0, 6), rnd(2, 5)); g.stroke(); } });
+  const sedum = new THREE.CanvasTexture(sedumCanvas); sedum.wrapS = sedum.wrapT = THREE.RepeatWrapping; sedum.repeat.set(1 / 14, 1 / 14);
+  const greenE = [];
+  const greenM = new THREE.MeshStandardMaterial({ map: sedum, roughness: 1, transparent: true, opacity: 0 });
+  // eitt gróðurþak ofan á hverju efra þaki, vel innan við brúnirnar
+  SH.forEach(([, k], i) => { if (k !== 1) return; const H = floors(1) * FL, Q = inset(POLY[i], POLY[i].map(() => 2.6));
+    const pl = new THREE.Mesh(flat(Q, H + .08), greenM); pl.receiveShadow = true; life.add(pl); const e = new THREE.LineSegments(fine(new THREE.EdgesGeometry(flat(Q, H + .1)), .8), edgeM); e.geometry.setDrawRange(0, 0); greenE.push(e); life.add(e); });
+  // teiknuð tré, runnar og fólk (snúa að áhorfanda eins og í skissu)
+  const scrib = (g, cx, cy, rw, rh, fill) => { g.fillStyle = fill; for (let n = 0; n < 7; n++) { g.beginPath(); g.ellipse(cx + rnd(-rw, rw) * .45, cy + rnd(-rh, rh) * .4, rw * rnd(.45, .7), rh * rnd(.45, .7), 0, 0, 7); g.fill(); }
+    for (let n = 0; n < 22; n++) { const a = rnd(0, 6.28); g.strokeStyle = `rgba(36,42,46,${rnd(.35, .7)})`; g.lineWidth = rnd(1.4, 2.6); g.beginPath(); g.arc(cx + Math.cos(a) * rw * .55, cy + Math.sin(a) * rh * .5, rnd(8, 20), rnd(0, 6), rnd(2, 5)); g.stroke(); } };
+  const TREE = [0, 1, 2].map(v => new THREE.CanvasTexture(cnv(256, 320, g => { g.strokeStyle = "rgba(36,42,46,.85)"; g.lineWidth = 3; g.beginPath(); g.moveTo(128, 318); g.lineTo(127, 170); g.moveTo(132, 318); g.lineTo(131, 175); g.stroke();
+    scrib(g, 128, v === 1 ? 120 : 140, v === 1 ? 70 : 92, v === 1 ? 105 : 85, `rgba(${v === 1 ? "150,168,140" : v === 2 ? "162,178,150" : "170,184,158"},.42)`); })));
+  const BUSH = new THREE.CanvasTexture(cnv(256, 320, g => scrib(g, 128, 250, 110, 60, "rgba(160,176,148,.45)")));
+  const PERSON = ["#6E7E8C", "#9C8E78", "#7D8873"].map(col => new THREE.CanvasTexture(cnv(64, 160, g => { g.fillStyle = col; g.beginPath(); g.moveTo(21, 46); g.lineTo(43, 46); g.lineTo(44, 100); g.lineTo(20, 100); g.fill();
+      g.strokeStyle = "rgba(36,42,46,.9)"; g.lineWidth = 3; g.beginPath(); g.arc(32, 30, 9, 0, 7); g.stroke(); g.beginPath(); g.moveTo(21, 46); g.lineTo(20, 100); g.moveTo(43, 46); g.lineTo(44, 100); g.moveTo(26, 100); g.lineTo(24, 156); g.moveTo(38, 100); g.lineTo(41, 156); g.stroke(); })));
+  const sprites = [];
+  const addS = (map, x, y, z, w, h) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false, opacity: 0 })); sp.center.set(.5, 0); sp.position.set(x, y, z); sp.scale.set(w, h, 1); life.add(sp); sprites.push(sp); return sp; };
+  SH.forEach(([, k], i) => { if (k !== 2) return; const H = floors(2) * FL, [a, b, c, d] = inset(POLY[i], POLY[i].map(() => 2.4)).map(W), n = Math.floor(i / 3);
+    const at = (u, v) => [a[0] + (b[0] - a[0]) * u + (d[0] - a[0]) * v, a[1] + (b[1] - a[1]) * u + (d[1] - a[1]) * v];
+    
+    [[.28, .35], [.58, .3]].forEach(([u, v], j) => { const [x, z] = at(u, v); addS(PERSON[(n + j) % 3], x, H, z, .7, 1.75); }); });
+
+  // ---- Innigarðurinn: gras, stígar frá gegnumgöngunum að miðju, tré og fólk – og glerþak yfir ----
+  const CY = 22, HG = floors(2) * FL;
+  // garðurinn: gönguleið meðfram veggjum, stígar frá gegnumgöngunum að hringtorgi með stóru tré og hringbekk, gróðurbeð í hornunum
+  const gardenTex = new THREE.CanvasTexture(cnv(1024, 1024, (g, w) => { const s = w / 44, P = v => (v + 22) * s, L = "rgba(44,51,58,.5)";
+    g.drawImage(sedumCanvas, 0, 0, w, w); g.fillStyle = "rgba(186,198,176,.5)"; g.fillRect(0, 0, w, w);
+    const pave = (x0, z0, x1, z1) => { g.fillStyle = "#E6E7E4"; g.fillRect(P(x0), P(z0), (x1 - x0) * s, (z1 - z0) * s);
+      g.strokeStyle = "rgba(44,51,58,.12)"; g.lineWidth = 1.5; for (let x = x0; x <= x1; x += 1.2) { g.beginPath(); g.moveTo(P(x), P(z0)); g.lineTo(P(x), P(z1)); g.stroke(); }
+      for (let z = z0; z <= z1; z += 1.2) { g.beginPath(); g.moveTo(P(x0), P(z)); g.lineTo(P(x1), P(z)); g.stroke(); }
+      g.strokeStyle = L; g.lineWidth = 2.5; g.strokeRect(P(x0), P(z0), (x1 - x0) * s, (z1 - z0) * s); };
+    pave(-22, -22, 22, -19.5); pave(-22, 19.5, 22, 22); pave(-22, -19.5, -19.5, 19.5); pave(19.5, -19.5, 22, 19.5);          // gönguleið meðfram veggjum
+    pave(-11, -19.5, -3, -6); pave(6, -11, 19.5, -3); pave(3, 6, 11, 19.5); pave(-19.5, 3, -6, 11);                          // stígar frá gegnumgöngunum
+    g.fillStyle = "#E6E7E4"; g.beginPath(); g.arc(P(0), P(0), 8.5 * s, 0, 7); g.fill(); g.strokeStyle = L; g.lineWidth = 2.5; g.stroke();
+    g.strokeStyle = "rgba(44,51,58,.14)"; g.lineWidth = 1.5; for (let r = 5.5; r < 8.5; r += 1) { g.beginPath(); g.arc(P(0), P(0), r * s, 0, 7); g.stroke(); }
+    for (let a = 0; a < 48; a++) { const an = a / 48 * 6.283; g.beginPath(); g.moveTo(P(Math.cos(an) * 4.4), P(Math.sin(an) * 4.4)); g.lineTo(P(Math.cos(an) * 8.5), P(Math.sin(an) * 8.5)); g.stroke(); }
+    g.fillStyle = "rgba(150,170,140,.95)"; g.beginPath(); g.arc(P(0), P(0), 4.2 * s, 0, 7); g.fill(); g.strokeStyle = L; g.lineWidth = 2.5; g.stroke();
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sz]) => { const x = sx * 13, z = sz * 13; g.fillStyle = "rgba(128,150,120,.55)"; g.beginPath();
+      if (g.roundRect) g.roundRect(P(x) - 3.6 * s, P(z) - 3.6 * s, 7.2 * s, 7.2 * s, 2 * s); else g.rect(P(x) - 3.6 * s, P(z) - 3.6 * s, 7.2 * s, 7.2 * s); g.fill(); g.strokeStyle = L; g.lineWidth = 2; g.stroke(); }); }));
+  const gardenM = new THREE.MeshStandardMaterial({ map: gardenTex, roughness: 1, transparent: true, opacity: 0 });
+  const garden = new THREE.Mesh(new THREE.PlaneGeometry(44, 44), gardenM); garden.rotation.x = -Math.PI / 2; garden.position.y = .3; garden.receiveShadow = true; garden.visible = false;   // enginn garður í miðjunni scene.add(garden);
+  // tré: stórt tré í miðjunni, trjáþyrpingar í beðunum og röð meðfram gönguleiðinni
+  // hringbekkur um tréð, bekkir og ljósastaurar – teiknaðir með línum
+  const benchM = new THREE.MeshStandardMaterial({ color: 0xEDEEEC, roughness: .9 }), furn = [];
+  const furnish = (geo, x, y, z, ry = 0) => { const m = new THREE.Mesh(geo, benchM); m.position.set(x, y, z); m.rotation.y = ry; m.castShadow = m.receiveShadow = true;
+    const e = new THREE.LineSegments(fine(new THREE.EdgesGeometry(geo, 30), .4), edgeM); e.geometry.setDrawRange(0, 0); m.add(e); furn.push(e); m.visible = false; life.add(m); return m; };
+  // glerþak: lág pýramídi með sperrum, teiknast í lokin
+  const apex = new THREE.Vector3(0, HG + 7, 0), C4 = [[-CY, -CY], [CY, -CY], [CY, CY], [-CY, CY]].map(([x, z]) => new THREE.Vector3(x, HG + .1, z)), roofPts = [];
+  for (let f = 0; f < 4; f++) { const A = C4[f], B = C4[(f + 1) % 4];
+    for (let s = 0; s <= 6; s++) roofPts.push(A.clone().lerp(B, s / 6), apex);
+    for (let r = 1; r < 3; r++) roofPts.push(A.clone().lerp(apex, r / 3), B.clone().lerp(apex, r / 3)); roofPts.push(A, B); }
+  const glassRoofM = new THREE.LineBasicMaterial({ color: 0xD3DCE4, transparent: true, opacity: .9 });
+  const glassRoof = new THREE.LineSegments(fine(new THREE.BufferGeometry().setFromPoints(roofPts), 1), glassRoofM); glassRoof.geometry.setDrawRange(0, 0); scene.add(glassRoof);
+  const paneG = new THREE.BufferGeometry().setFromPoints([0, 1, 2, 3].flatMap(f => [C4[f], C4[(f + 1) % 4], apex])); paneG.computeVertexNormals();
+  const pane = new THREE.Mesh(paneG, new THREE.MeshStandardMaterial({ color: 0xDCE6EE, roughness: .1, metalness: .3, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false })); scene.add(pane);
+
+  // ---- Jörð og grunnmynd umhverfis: línur sem dofna út frá byggingunni ----
+  const groundM = new THREE.MeshBasicMaterial({ color: 0x151A1F, depthWrite: false });   // jörðin skrifar ekki dýpt, svo speglun og skuggar á henni z-flökta ekki
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(30000, 30000), groundM); ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  const shadowCatch = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.ShadowMaterial({ opacity: .55, depthTest: false, depthWrite: false })); shadowCatch.renderOrder = -1; shadowCatch.rotation.x = -Math.PI / 2; shadowCatch.position.y = .05; shadowCatch.receiveShadow = true; scene.add(shadowCatch);
+  const fadeLine = (r0, r1) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { col: { value: new THREE.Color(0xD3DCE4) }, a: { value: 0 } },
+    vertexShader: "varying vec2 p; void main(){ p=position.xz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
+    fragmentShader: `uniform vec3 col; uniform float a; varying vec2 p; void main(){ float d=length(p); gl_FragColor=vec4(col, a*(1.-smoothstep(${r0.toFixed(1)},${r1.toFixed(1)},d))); }` });
+  const planM = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { col: { value: new THREE.Color(0xD3DCE4) }, a: { value: 0 }, tm: { value: 0 }, on: { value: 0 } },
+    vertexShader: "varying vec2 p; void main(){ p=position.xz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
+    fragmentShader: `uniform vec3 col; uniform float a, tm, on; varying vec2 p;
+      float h(float n){ return fract(sin(n*127.1)*43758.5453); }
+      void main(){ float r=length(p), fade=1.-smoothstep(62.,120.,r), g=0.;
+        if (abs(r-82.)<.8) { float P=7., sl=floor(tm/P), ph=fract(tm/P); float an=atan(p.y,p.x), pos=(h(sl)*2.-1.)*3.1416+ph*5.; float d=(mod(an-pos+3.1416,6.2832)-3.1416)*82.;
+          g=smoothstep(0.,.1,ph)*(1.-smoothstep(.8,1.,ph))*(smoothstep(-45.,0.,d)*(1.-smoothstep(0.,.6,d))*1.3+1.2*exp(-d*d*1.2)); }
+        else { float arm=abs(p.x)>abs(p.y) ? (p.x>0.?1.:3.) : (p.y>0.?2.:0.); float P=3.5, T=tm+1.7, sl=floor(T/P), ph=fract(T/P); float sel=floor(h(sl+.5)*3.99);
+          float d=(130.-ph*80.)-r; d=-d; g=step(abs(arm-sel),.5)*(1.-smoothstep(.85,1.,ph))*(smoothstep(-30.,0.,-d)*(1.-smoothstep(0.,.6,-d))*1.3+1.2*exp(-d*d*1.2)); }
+        g*=on; float base=a*fade; gl_FragColor=vec4(mix(col,vec3(.92,.97,1.),min(g,1.)), max(base, min(1.,g)*fade)); }` });
+  const guideM = fadeLine(70, 112);
+  const plan = [], seg = (x1, z1, x2, z2) => plan.push(new THREE.Vector3(x1, .3, z1), new THREE.Vector3(x2, .3, z2));
+  [[[-13, -1], "z", -1], [[-13, -1], "x", 1], [[1, 13], "z", 1], [[1, 13], "x", -1]].forEach(([[a, b], ax, sg]) => { for (const c of [a, b]) ax === "z" ? seg(c, sg * 51, c, sg * 130) : seg(sg * 51, c, sg * 130, c); });
+  for (let a = 0; a < 128; a++) { const a0 = a / 128 * Math.PI * 2, a1 = (a + 1) / 128 * Math.PI * 2; seg(Math.cos(a0) * 82, Math.sin(a0) * 82, Math.cos(a1) * 82, Math.sin(a1) * 82); }
+  const planL = new THREE.LineSegments(fine(new THREE.BufferGeometry().setFromPoints(plan), 1.5), planM); planL.geometry.setDrawRange(0, 0); scene.add(planL);
+  const gd = []; for (let a = 0; a < 96; a++) { const a0 = a / 96 * Math.PI * 2, a1 = (a + 1) / 96 * Math.PI * 2; gd.push(new THREE.Vector3(Math.cos(a0) * 70.7, .35, Math.sin(a0) * 70.7), new THREE.Vector3(Math.cos(a1) * 70.7, .35, Math.sin(a1) * 70.7)); }
+  gd.push(new THREE.Vector3(-100, .35, 0), new THREE.Vector3(100, .35, 0), new THREE.Vector3(0, .35, -100), new THREE.Vector3(0, .35, 100));
+  const guideL = new THREE.LineSegments(fine(new THREE.BufferGeometry().setFromPoints(gd), 1), guideM); guideL.geometry.setDrawRange(0, 0); scene.add(guideL);   // hjálparlínur merkisins – aðeins á meðan teiknað er
+
+  // ---- Flæði: fínar línur eftir miðjum stígunum, inn um gegnumgangana; stutt strik streyma hægt inn að garðinum ----
+  const ARMD = [[0, -1], [1, 0], [0, 1], [-1, 0]], LANE = [[-7, 0], [0, -7], [7, 0], [0, 7]];
+  const flowM = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { col: { value: new THREE.Color(0xD3DCE4) }, a: { value: 0 }, prog: { value: 0 }, tm: { value: 0 } },
+    vertexShader: "attribute float u; varying float vu; varying vec2 p; void main(){ vu=u; p=position.xz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
+    fragmentShader: "uniform vec3 col; uniform float a, prog, tm; varying float vu; varying vec2 p; void main(){ if(vu>prog) discard; float f=fract(vu*22.-tm*.35); float dash=smoothstep(0.,.08,f)*(1.-smoothstep(.22,.32,f)); float fade=1.-smoothstep(95.,128.,length(p)); gl_FragColor=vec4(col,a*fade*(.12+.88*dash)); }" });
+  [0, 1, 2, 3].forEach(arm => { const pos = [], us = [], [dx, dz] = ARMD[arm], [ox, oz] = LANE[arm];
+    for (let n = 0; n <= 160; n++) { const u = n / 160, d = 128 - 120 * u; pos.push(dx * d + ox, .5, dz * d + oz); us.push(u); }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("u", new THREE.Float32BufferAttribute(us, 1)); scene.add(new THREE.Line(g, flowM)); });
+  // fólk á leið inn og út um gegnumgangana
+  const walkers = Array.from({ length: 12 }, (_, n) => ({ sp: addS(PERSON[n % 3], 0, 0, 0, .75, 1.85), arm: n % 4, lane: rnd(-4.5, 4.5), d: rnd(24, 120), v: rnd(1.1, 1.6) * (Math.random() < .55 ? -1 : 1) }));
+
+  // ---- Speglun í jörðinni (planar reflection): byggingin teiknuð frá speglaðri myndavél í sér mynd og varpað á gljáandi gólf ----
+  const refRT = new THREE.WebGLRenderTarget(4, 4), mirCam = new THREE.PerspectiveCamera(), texMat = new THREE.Matrix4(), mtg = new THREE.Vector3(), clr = new THREE.Color();
+  const mirM = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, toneMapped: false, uniforms: { tex: { value: refRT.texture }, tm: { value: texMat }, k: { value: 0 }, px: { value: new THREE.Vector2(1, 1) } },
+    vertexShader: "uniform mat4 tm; varying vec4 vu; varying vec2 p; void main(){ vec4 w=modelMatrix*vec4(position,1.); p=w.xz; vu=tm*w; gl_Position=projectionMatrix*viewMatrix*w; }",
+    fragmentShader: `uniform sampler2D tex; uniform float k; uniform vec2 px; varying vec4 vu; varying vec2 p;
+      void main(){ vec2 uv=vu.xy/vu.w; vec4 c=vec4(0.); float wsum=0.;
+        for(int i=-2;i<=2;i++) for(int j=-2;j<=2;j++){ float w=exp(-float(i*i+j*j)*.3); c+=texture2D(tex,uv+vec2(float(i),float(j))*px*1.6)*w; wsum+=w; }
+        c/=wsum; float r=length(p); float fade=1.-smoothstep(50.,95.,r); gl_FragColor=vec4(c.rgb, c.a*k*fade); }` });
+  const mirror = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), mirM); mirror.rotation.x = -Math.PI / 2; mirror.position.y = .03; mirror.renderOrder = -2; mirM.depthTest = false;   // teiknað fyrst, allt annað ofan á scene.add(mirror);
+  const renderReflection = () => { R.getDrawingBufferSize(dbs); const w = Math.max(4, Math.floor(dbs.x * .75)), h = Math.max(4, Math.floor(dbs.y * .75)); if (refRT.width !== w || refRT.height !== h) { refRT.setSize(w, h); mirM.uniforms.px.value.set(1 / w, 1 / h); }
+    mirCam.copy(cam); mirCam.position.set(cam.position.x, -cam.position.y, cam.position.z); mirCam.up.set(0, -1, 0); cam.getWorldDirection(mtg); mtg.y *= -1; mirCam.lookAt(mirCam.position.clone().add(mtg));
+    mirCam.updateMatrixWorld(); mirCam.updateProjectionMatrix();
+    texMat.set(.5, 0, 0, .5, 0, .5, 0, .5, 0, 0, .5, .5, 0, 0, 0, 1); texMat.multiply(mirCam.projectionMatrix); texMat.multiply(mirCam.matrixWorldInverse);
+    const vis = []; scene.children.forEach(o => { if (o !== bld && !o.isLight && o.visible) { vis.push(o); o.visible = false; } }); R.getClearColor(clr); const ba = R.getClearAlpha(), sm = R.shadowMap.autoUpdate;
+    R.setClearColor(0, 0); R.setRenderTarget(refRT); R.clear(); R.render(scene, mirCam); R.setRenderTarget(null); R.setClearColor(clr, ba); vis.forEach(o => o.visible = true); };
+  // ---- Ljós ----
+  // ---- Stemning ----
+  const glowTex = (inner, outer) => new THREE.CanvasTexture(cnv(256, 256, (g, w) => { const gr = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, inner); gr.addColorStop(1, outer); g.fillStyle = gr; g.fillRect(0, 0, w, w); }));
+  // snertiskuggi: mjúkur dökkur kragi við rætur byggingarinnar svo hún standi á jörðinni
+  const aoTex = new THREE.CanvasTexture(cnv(512, 512, (g, w) => { g.filter = "blur(22px)"; g.fillStyle = "rgba(0,0,0,.75)"; const p = w * .5 / 70 * 52; g.fillRect(w / 2 - p, w / 2 - p, p * 2, p * 2); g.globalCompositeOperation = "destination-out"; const q = w * .5 / 70 * 20; g.fillRect(w / 2 - q, w / 2 - q, q * 2, q * 2); }));
+  const ao = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), new THREE.MeshBasicMaterial({ map: aoTex, transparent: true, depthWrite: false, opacity: 0 })); ao.rotation.x = -Math.PI / 2; ao.position.y = .2; scene.add(ao);
+  // ljósbjarmi á jörðinni í kringum bygginguna
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(320, 320), new THREE.MeshBasicMaterial({ map: glowTex("rgba(150,165,180,.55)", "rgba(150,165,180,0)"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, fog: false }));
+  pool.rotation.x = -Math.PI / 2; pool.position.y = .15; scene.add(pool);
+  // mistur og bjarmi við sjóndeildarhringinn fyrir aftan bygginguna
+  const haze = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex("rgba(120,138,156,.7)", "rgba(120,138,156,0)"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, fog: false }));
+  haze.visible = false;
+  // baklýsing: köld birta aftan frá sem dregur fram brúnir og þök
+  const rim = new THREE.DirectionalLight(0xA9C2DA, 0); rim.position.set(120, 90, -160); scene.add(rim);
+  const hemi = new THREE.HemisphereLight(0x5C6B7A, 0x0E1216, .3); scene.add(hemi);
+  const key = new THREE.DirectionalLight(0xffffff, .15); key.position.set(-150, 140, 90); key.castShadow = true;
+  key.shadow.mapSize.set(4096, 4096); key.shadow.radius = 6; key.shadow.normalBias = .04; Object.assign(key.shadow.camera, { left: -130, right: 130, top: 130, bottom: -130, near: 10, far: 540 }); key.shadow.bias = -.0005; scene.add(key);
+
+  // ---- Birtuskiptin: nótt og dagur teiknuð hvort í sína mynd og blandað í hring sem breiðist út frá byggingunni ----
+  const RT = () => R.capabilities.isWebGL2 && THREE.WebGLMultisampleRenderTarget ? Object.assign(new THREE.WebGLMultisampleRenderTarget(4, 4), { samples: 4 }) : new THREE.WebGLRenderTarget(4, 4);
+  const rtN = RT(), rtD = RT();
+  const wipeM = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: { tN: { value: rtN.texture }, tD: { value: rtD.texture }, res: { value: new THREE.Vector2(1, 1) }, cen: { value: new THREE.Vector2() }, rad: { value: 0 }, fe: { value: 1 } },
+    vertexShader: "varying vec2 v; void main(){ v=uv; gl_Position=vec4(position.xy,0.,1.); }",
+    fragmentShader: "uniform sampler2D tN, tD; uniform vec2 res, cen; uniform float rad, fe; varying vec2 v; void main(){ float d=distance(v*res,cen); float m=smoothstep(rad-fe,rad+fe,d); gl_FragColor=vec4(mix(texture2D(tD,v).rgb,texture2D(tN,v).rgb,m),1.); }" });
+  const wipeS = new THREE.Scene(), wipeC = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); wipeS.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), wipeM));
+  const uiN = document.querySelector(".ui.n"), uiD = uiN.cloneNode(true); uiD.className = "ui d"; uiD.setAttribute("aria-hidden", "true"); uiN.after(uiD);
+  const sky = new THREE.Color(), dbs = new THREE.Vector2(), pv = new THREE.Vector3();
+  // allir litir sem ráðast af birtu (0 = nótt, 1 = dagur)
+  const light = d => {
+    mix(sky, N.sky, D.sky, d); scene.fog.color.copy(sky);
+    // fletir dökkgráir; línurnar fara úr ljósum (teikning) í svartar um leið og fletirnir fyllast
+    mix(groundM.color, N.ground, D.ground, d); recM.color.setHex(0x353A3F);
+    mix(edgeM.color, N.line, INK, fillF); detM.color.copy(edgeM.color); edgeM.opacity = .9; bEdgeM.color.copy(edgeM.color); bEdgeM.opacity = .9 * (1 - smoother((fillF - .45) / .55)); bEdgeM.visible = bEdgeM.opacity > .005; detM.opacity = .32 * (1 - smoother((fillF - .4) / .6));
+    outlines.forEach(o => o.material.color.copy(N.line)); planM.uniforms.col.value.copy(N.line).lerp(INK, fillF); guideM.uniforms.col.value.copy(N.line);
+    flowM.uniforms.col.value.copy(N.line); flowM.uniforms.a.value = .75 * (1 - d); glassRoofM.color.copy(edgeM.color); glassRoofM.opacity = .7;
+    hemi.color.copy(mix(tmp, N.hemi, D.hemi, d)); hemi.intensity = .3; key.intensity = .15; R.setClearColor(sky, 1); };
+  const size = () => { const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < 700 || w / h < 1 ? 46 : 30; cam.updateProjectionMatrix(); };
+  addEventListener("resize", () => { size(); R.shadowMap.needsUpdate = true; if (typeof SV !== "undefined") SV.forEach(o => o.fx = o.fxm = null); }); size();
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setMat(matKey);
+  document.querySelectorAll(".vv button").forEach(b => b.addEventListener("click", () => { setMat(b.dataset.m); try { history.replaceState(null, "", "#mat=" + b.dataset.m); } catch (e) {} }));
+  // tónakortlagning aðeins á fletum byggingarinnar; allt annað heldur litunum sínum óbreyttum
+  { const keep = new Set(fillMats()); scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; ms.forEach(m => { if (!keep.has(m)) m.toneMapped = false; }); }); }
+  // teikniröð: línur byggingarinnar fyrst (fletirnir dofna yfir þær), fletirnir svo, og loks það sem stendur á þökum, í garðinum og púlsarnir
+  life.traverse(o => o.renderOrder = 11); railL.renderOrder = 11; glassRoof.renderOrder = 11; pane.renderOrder = 11; garden.renderOrder = 11;
+  facs.forEach(f => { if (f.material === detH) f.renderOrder = 12; });
+  // upphitun: allir hlutir teiknaðir einu sinni fyrir fram svo engin hikst verði þegar þeir birtast (skyggingar, áferðir)
+  R.shadowMap.autoUpdate = false;
+  (() => { const hid = []; scene.traverse(o => { if (o.visible === false) { hid.push(o); o.visible = true; } }); pieces.forEach(p => p.m.scale.y = 1);
+    R.getDrawingBufferSize(dbs); rtN.setSize(dbs.x, dbs.y); rtD.setSize(dbs.x, dbs.y); cam.position.set(0, 400, 1); cam.lookAt(0, 0, 0);
+    try { R.compile(scene, cam); R.compile(wipeS, wipeC); light(0); R.shadowMap.needsUpdate = true; R.setRenderTarget(rtN); R.render(scene, cam); light(1); R.setRenderTarget(rtD); R.render(scene, cam); R.setRenderTarget(null); R.render(wipeS, wipeC); } catch (e) {}
+    hid.forEach(o => o.visible = false); pieces.forEach(p => p.m.scale.y = .001); fillMats().forEach(m => m.opacity = 0); light(0); R.shadowMap.needsUpdate = true; R.render(scene, cam); })();
+  // ---- Sviðin sex á vefnum: Verk, Viðskipti, Samskipti | Vörur, Pantanir, Yfirsýn – línur að toppi glerþaksins ----
+  const NS = "http://www.w3.org/2000/svg", s6 = document.createElementNS(NS, "svg"); s6.setAttribute("class", "svid6"); s6.setAttribute("aria-hidden", "true"); document.body.appendChild(s6);
+  const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const dot = el("circle", { r: 2.4, class: "apx" }), ring = el("circle", { r: 6, class: "ring" }); s6.append(ring, dot);
+  // sviðin sex og stikkorð
+  const SV = [["Verkefni", "Tímar · Efni · Aukaverk"], ["Tilboð", "Verð · Samþykki · Undirskrift"], ["Samskipti", "Póstur · Skjöl · Fundir"],
+    ["Búnaður", "Lager · Leiga · Sala"], ["Pantanir", "Pöntun · Afhending · Skil"], ["Yfirsýn", "Framlegð · Áætlun · Reikningar"]].map(([name, desc], n) => {
+    const p = el("path"), end = el("circle", { r: 2.6, class: "end" }), t = el("text", { class: "t" }), d = el("text", { class: "d" });
+    const nr = el("tspan", { class: "nr" }); nr.textContent = "0" + (n + 1) + "  "; t.append(nr, document.createTextNode(name)); d.textContent = desc;
+    s6.append(p, end, t, d); return { p, end, t, d, n, side: n < 3 ? -1 : 1, row: n % 3 }; });
+  const apexV = new THREE.Vector3(), cV = new THREE.Vector3();
+  // gæði: ef tækið nær ekki að teikna nógu hratt fyrstu sekúndurnar er upplausn lækkuð og skuggum sleppt
+  let low = !/hq/.test(location.hash) && (navigator.hardwareConcurrency || 8) <= 2, ft = [], lastNow = 0;
+  if (low) { R.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); size(); }
+  const T0 = performance.now(); let frameN = 0;
+  const frame = now => {
+    frameN++;
+    const FX = /t=([\d.]+)/.exec(location.hash), t = FX ? +FX[1] : still ? 40 : (now - T0) / 1000, mob = innerWidth < 700 || innerWidth / innerHeight < 1;
+    const day = smoother((t - 8.2) / 3.8), lifeK = smooth((day - .2) / .6);
+    // 1) yfirlitið: merkið teiknast í línum (wireframe)
+    outlines.forEach((ln, i) => { const n = ln.geometry.attributes.position.count; ln.geometry.setDrawRange(0, Math.floor(n * ease((t - .3 - i * .1) / 1.2) / 2) * 2); ln.visible = !pieces[i + 1].m.visible; });
+    guideM.uniforms.a.value = .35 * (1 - ease((t - 4.8) / 2.5));
+    // 2) byggingin rís (3–7 s); allar línur teiknast inn: framhliðar, stígar, handrið, beð
+    pieces.forEach(({ m, i }) => { const s = i < 0 ? ease((t - 4.3) / 1.6) : ease((t - 3.2 - (i % 3) * .25 - Math.floor(i / 3) * .3) / 2.2); m.visible = s > 0; m.scale.y = Math.max(.001, s); });
+    const draw = (g, u) => g.setDrawRange(0, Math.floor(g.attributes.position.count * ease(u) / 2) * 2);
+    draw(guideL.geometry, (t - .1) / 2); edgesL.forEach(({ g, t0 }) => draw(g, (t - t0 + .1) / 1.8));
+    facs.forEach((f, j) => draw(f.geometry, (t - 4.6 - (j % 12) * .08) / 2.2));
+    planM.uniforms.a.value = .5 + .3 * fillF; planM.uniforms.tm.value = t; planM.uniforms.on.value = ease((t - 9) / 2); draw(planL.geometry, (t - 3.6) / 3);
+    furn.forEach((e, j) => { draw(e.geometry, (t - 7 - (j % 9) * .12) / 1.2); e.parent.visible = t > 6.9; });
+    draw(railL.geometry, (t - 6.6) / 2); greenE.forEach((e, j) => draw(e.geometry, (t - 7.2 - j * .15) / 1.4));
+    // garður, gróður og líf birtast með deginum
+    gardenM.opacity = ease((t - 6) / 2.5); greenM.opacity = ease((t - 7.5) / 2.5); sprites.forEach((sp, j) => { if (!sp.userData.w) sp.material.opacity = smooth((lifeK - (j % 7) * .04) / .7); });
+    // flæðið inn um gegnumgangana
+    flowM.uniforms.prog.value = ease((t - 6.5) / 3); flowM.uniforms.tm.value = t;
+    walkers.forEach(w => { w.sp.userData.w = 1; if (!still) w.d += w.v * .016; if (w.d > 125) w.d = 24; if (w.d < 24) w.d = 125;
+      const [dx, dz] = ARMD[w.arm], [ox, oz] = LANE[w.arm], cr = w.arm % 2 ? [0, 1] : [1, 0];
+      w.sp.position.set(dx * w.d + ox + cr[0] * w.lane, 0, dz * w.d + oz + cr[1] * w.lane); w.sp.material.opacity = lifeK * Math.min(1, (125 - w.d) / 18, (w.d - 24) / 8); });
+    // glerþakið teiknast yfir garðinn
+    draw(glassRoof.geometry, (t - 10.5) / 3);
+    pane.material.opacity = .1 * ease((t - 12.5) / 2);
+    // myndavél: beint fyrir ofan (merkið rétt snúið) → lágt sjónarhorn á meðan byggingin rís
+    const rad = mob ? 315 : 270, ly = mob ? 20 : 22, h1 = (mob ? 132 : 112) - 14 * smoother(t / 10);
+    const D1 = Math.hypot(rad, h1 - ly), e1 = Math.atan2(h1 - ly, rad), D0 = mob ? 560 : 470, E0 = Math.PI / 2 - .002;
+    const k = smoother((t - 2.8) / 4.2), drift = .03 * t, a = Math.PI / 2 + (.95 + drift - Math.PI / 2) * k, Dd = D0 + (D1 - D0) * k, e = E0 + (e1 - E0) * k, look = ly * k;
+    scene.fog.density = .0005 + .0021 * k;   // lítil þoka í yfirlitinu svo merkið sést í réttum litum
+    cam.setViewOffset(innerWidth, innerHeight, 0, -innerHeight * (mob ? .1 : .14) * (1 - k), innerWidth, innerHeight);
+    cam.position.set(Math.cos(a) * Math.cos(e) * Dd, look + Math.sin(e) * Dd, Math.sin(a) * Math.cos(e) * Dd); cam.lookAt(0, look, 0);
+    if (!FX && !still) { if (lastNow) ft.push(now - lastNow); lastNow = now;
+      if (!low && t > 3 && ft.length > 40) { const avg = ft.slice(-40).reduce((a, b) => a + b, 0) / 40; if (avg > 40) low = true; } }
+    // sólin færist hægt þegar dagur er kominn, svo skuggarnir hreyfast og myndin stendur ekki kyrr
+    const sun = 2.6 + .022 * Math.max(0, t - 12); key.position.set(Math.cos(sun) * 180, 140, Math.sin(sun) * 180);
+    { const f = smoother((t - 3.6) / 4.8); fillF = f; fillMats().forEach(m => { m.opacity = f; m.depthWrite = true; }); }
+    sparkU.tm.value = t; sparkU.on.value = ease((t - 7) / 2); sparkU.pc.value.setRGB(.88, .95, 1);
+    if (!low && t > 2.8) R.shadowMap.needsUpdate = true;   // skuggar fylgja byggingunni á meðan hún rís
+    // stemning fylgir birtunni: snertiskuggi, bjarmi, mistur, baklýsing og daufur hlýr tónn í glerinu
+    ao.material.opacity = .55 * ease((t - 5) / 3); pool.material.opacity = .12 * day; rim.intensity = .12 * day;
+    { const ca = Math.atan2(cam.position.z, cam.position.x) + Math.PI; haze.position.set(Math.cos(ca) * 900, -40, Math.sin(ca) * 900); haze.material.opacity = .1 + .16 * day; }
+    // sviðin teiknast inn þegar glerþakið er komið: lína frá toppi glerþaksins út til hvers sviðs, svo nafn og lýsing
+    { const m2 = innerWidth < 1100 || innerWidth / innerHeight < 1.2; apexV.set(0, HG + 7, 0).project(cam); const ax = (apexV.x + 1) / 2 * innerWidth, ay = (1 - apexV.y) / 2 * innerHeight;
+      let L = innerWidth, Rr = 0; for (let q = 0; q < 24; q++) for (const y of [0, 30]) { const an = q / 24 * 6.2832; cV.set(Math.cos(an) * 72, y, Math.sin(an) * 72).project(cam); const X = (cV.x + 1) / 2 * innerWidth; L = Math.min(L, X); Rr = Math.max(Rr, X); }
+      const gap = m2 ? 24 : 44, y0 = ay - gap * (m2 ? .3 : .85), d0 = ease((t - 13.1) / .6);
+      dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); ring.setAttribute("cx", ax); ring.setAttribute("cy", ay); dot.style.opacity = d0; ring.style.opacity = d0 * .6; ring.setAttribute("r", 3 + 4 * d0);
+      // í síma er ekki pláss til hliðar: sviðin í tveimur dálkum undir byggingunni, án lína
+      let Bm = 0; if (m2) { for (let q = 0; q < 24; q++) { const an = q / 24 * 6.2832; cV.set(Math.cos(an) * 72, 0, Math.sin(an) * 72).project(cam); Bm = Math.max(Bm, (1 - cV.y) / 2 * innerHeight); } dot.style.opacity = ring.style.opacity = 0; }
+      SV.forEach(o => { const k00 = 13.3 + o.row * .2 + (o.side > 0 ? .1 : 0);
+        if (m2) { if (!o.fxm && t >= k00 && frameN > 3) o.fxm = Bm; const yb = (o.fxm || Bm) + 30 + o.row * 22, cx = innerWidth / 2, a1 = ease((t - k00) / .8);
+          o.p.style.opacity = 0; o.end.setAttribute("cx", cx + o.side * 10); o.end.setAttribute("cy", yb - 3.5); o.end.style.opacity = a1;
+          o.t.setAttribute("x", cx + o.side * 20); o.t.setAttribute("y", yb); o.t.setAttribute("text-anchor", o.side < 0 ? "end" : "start"); o.t.style.opacity = a1; o.d.style.opacity = 0; return; }
+        o.p.style.opacity = "";
+        if (!o.fx) { const y = y0 + o.row * gap, tw = Math.max(o.t.getComputedTextLength(), m2 ? 0 : o.d.getComputedTextLength()) || 80;
+          const xe = o.side < 0 ? Math.max(tw + 20, L - (m2 ? 6 : 48)) : Math.min(innerWidth - tw - 20, Rr + (m2 ? 6 : 48));
+          const xk = xe - o.side * Math.min(Math.abs(ax - xe) * .5, m2 ? 36 : 150); if (t >= k00 && frameN > 3) o.fx = { y, xe, xk }; else { o.tmp = { y, xe, xk }; } }
+        const { y, xe, xk } = o.fx || o.tmp;
+        const len = Math.abs(xe - xk) + Math.hypot(ax - xk, ay - y), k0 = 13.3 + o.row * .2 + (o.side > 0 ? .1 : 0), u = ease((t - k0) / 1.2);
+        o.p.setAttribute("d", `M${ax.toFixed(1)},${ay.toFixed(1)} L${xk.toFixed(1)},${y.toFixed(1)} H${xe.toFixed(1)}`); o.p.style.strokeDasharray = len; o.p.style.strokeDashoffset = len * (1 - u);
+        o.end.setAttribute("cx", xe); o.end.setAttribute("cy", y); o.end.style.opacity = ease((t - k0 - 1) / .3);
+        const tx = xe + o.side * 12, an = o.side < 0 ? "end" : "start", ty = m2 ? y + 3.5 : y - 2, a1 = ease((t - k0 - 1) / .7), a2 = ease((t - k0 - 1.35) / .8);
+        o.t.setAttribute("x", tx); o.t.setAttribute("y", ty); o.t.setAttribute("text-anchor", an); o.t.style.opacity = a1;
+        o.d.setAttribute("x", tx); o.d.setAttribute("y", y + 14); o.d.setAttribute("text-anchor", an); o.d.style.opacity = a2; }); }
+    // birtuskipti: allt lýsist jafnt; textinn skiptir mjúklega úr ljósum í dökkan
+    light(day); mirM.uniforms.k.value = .45 * fillF; if (!low && fillF > 0) renderReflection(); R.render(scene, cam);
+    const di = 0;   // bakgrunnurinn helst dökkur, svo textinn helst ljós uiD.style.visibility = di > 0 ? "visible" : "hidden"; uiD.style.opacity = di; uiN.style.visibility = di < 1 ? "visible" : "hidden"; uiN.style.opacity = 1 - di;
+    if ((!still || frameN < 6) && !document.hidden) requestAnimationFrame(frame);
+  };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !still) requestAnimationFrame(frame); });
+  requestAnimationFrame(frame);
+})();
+</script>
+
 </body></html>
