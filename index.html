@@ -84,7 +84,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
   // ---- Nótt → dagur: litirnir sem blandast á milli. TONE = litir merkisins (yfirlitið byrjar eins og merkið sjálft) ----
   const N = { sky: C(0x1B1F23), ground: C(0x1B1F23), line: C(0xD3DCE4), cap: C(0x161D23), glass: C(0x26303A), rec: C(0x0E1317), hemi: C(0x5C6B7A), ink: C(0xD3DCE4) };
   const FOGD = C(0x1C1F23), fogC = new THREE.Color();   // þokan á byggingunni heldur gamla litnum svo húsið breytist ekki
-  const D = { sky: C(0x2C3136), ground: C(0x2C3136), line: C(0x46505A), cap: C(0xD2D6DA), glass: C(0xCDD4DA), rec: C(0x9AA3AB), hemi: C(0xF3F5F7), ink: C(0x121415) };
+  const D = { sky: C(0x1C1F23), ground: C(0x1C1F23), line: C(0x46505A), cap: C(0xD2D6DA), glass: C(0xCDD4DA), rec: C(0x9AA3AB), hemi: C(0xF3F5F7), ink: C(0x121415) };
   const TONE = { 1: C(0xC9D1D9), 2: C(0x7C8896), 3: C(0x2F3742) };
 
   // ---- Merkið: grunnmynd 100×100 ----
@@ -417,7 +417,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
       if (!low && t > 3 && ft.length > 40) { const avg = ft.slice(-40).reduce((a, b) => a + b, 0) / 40; if (avg > 40) low = true; } }
     // sólin færist hægt þegar dagur er kominn, svo skuggarnir hreyfast og myndin stendur ekki kyrr
     const sun = 2.6 + .022 * Math.max(0, t - 12); key.position.set(Math.cos(sun) * 180, 140, Math.sin(sun) * 180);
-    { const f = smoother((t - 3.6) / 4.8); fillF = f; fillMats().forEach(m => { m.opacity = f; m.depthWrite = true; }); }
+    { const f = smoother((t - 3.6) / 4.8); fillF = f; fillMats().forEach(m => { m.opacity = f * (1 - .16 * f); m.depthWrite = true; }); }   // húsið endar örlítið gegnsætt
     sparkU.tm.value = t; sparkU.on.value = ease((t - 7) / 2); sparkU.pc.value.setRGB(.88, .95, 1);
     if (!low && t > 2.8) R.shadowMap.needsUpdate = true;   // skuggar fylgja byggingunni á meðan hún rís
     // stemning fylgir birtunni: snertiskuggi, bjarmi, mistur, baklýsing og daufur hlýr tónn í glerinu
@@ -432,15 +432,15 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
       let Bm = 0, Lm = innerWidth, Rm = 0, Tm = innerHeight; if (m2) { for (let q = 0; q < 24; q++) { const an = q / 24 * 6.2832; cV.set(Math.cos(an) * 72, 0, Math.sin(an) * 72).project(cam); Bm = Math.max(Bm, (1 - cV.y) / 2 * innerHeight); }
         for (const [bx, bz] of [[-50, -50], [50, -50], [50, 50], [-50, 50]]) for (const y of [0, 30]) { cV.set(bx, y, bz).project(cam); const X = (cV.x + 1) / 2 * innerWidth, Y = (1 - cV.y) / 2 * innerHeight; Lm = Math.min(Lm, X); Rm = Math.max(Rm, X); Tm = Math.min(Tm, Y); } ring.style.opacity = 0; }
       SV.forEach(o => { const k00 = 13.3 + o.row * .2 + (o.side > 0 ? .1 : 0);
-        if (m2) { // í síma: sviðin í tveimur dálkum fyrir ofan bygginguna; línur út fyrir textann og svo á ská niður að toppi glerþaksins
+        if (m2) { // í síma: sviðin í tveimur dálkum fyrir ofan bygginguna, vel til hliðanna
           const cx = innerWidth / 2, wb = document.querySelector(".ui.n .word p").getBoundingClientRect().bottom, yb = wb + 66 + o.row * 24, a1 = ease((t - k00) / .8), ey = yb - 3.5;
-          // línurnar byrja innan við textann (milli dálkanna) og liggja niður í gegnum miðjuna að toppi glerþaksins
-          const xs = cx + o.side * (7 + o.row * 4);
-          const pts = [[xs, ey], [ax, ay]], len = Math.hypot(ax - xs, ay - ey), u = ease((t - k00 - .2) / 1.4);
+          // ein lína beint upp í gegnum miðjuna frá toppi glerþaksins; frá henni greinist lárétt lína út í hvert svið
+          const gp = Math.min(118, cx * .42), xs = cx + o.side * (gp - 8), yj = Math.min(ay - 10, ay);
+          const pts = [[ax, ay], [cx, yj], [cx, ey], [xs, ey]], len = pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0), u = ease((t - 13.3 - o.row * .15) / 1.6);
           o.p.style.opacity = ""; o.p.setAttribute("d", "M" + pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L")); o.p.style.strokeDasharray = len; o.p.style.strokeDashoffset = len * (1 - u);
           dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); dot.style.opacity = ease((t - 14.4) / .5);
           o.end.setAttribute("cx", xs); o.end.setAttribute("cy", ey); o.end.style.opacity = a1;
-          o.t.setAttribute("x", cx + o.side * 26); o.t.setAttribute("y", yb); o.t.setAttribute("text-anchor", o.side < 0 ? "end" : "start"); o.t.style.opacity = a1; o.d.style.opacity = 0; return; }
+          o.t.setAttribute("x", cx + o.side * (gp + 2)); o.t.setAttribute("y", yb); o.t.setAttribute("text-anchor", o.side < 0 ? "end" : "start"); o.t.style.opacity = a1; o.d.style.opacity = 0; return; }
         o.p.style.opacity = "";
         if (!o.fx) { const y = y0 + o.row * gap, tw = Math.max(o.t.getComputedTextLength(), m2 ? 0 : o.d.getComputedTextLength()) || 80;
           const xe = o.side < 0 ? Math.max(tw + 20, L - (m2 ? 6 : 48)) : Math.min(innerWidth - tw - 20, Rr + (m2 ? 6 : 48));
