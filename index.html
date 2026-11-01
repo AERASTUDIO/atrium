@@ -217,10 +217,12 @@ THREE.ColorManagement.enabled = false;
   pieces.forEach(p => { p.m.scale.y = .001; p.m.visible = false; });
   // ---- Innviðir í línum: hæðaskil, milliveggir og rými sem sjást í gegnum glerið ----
   const spanAt = (P, c) => { const ys = []; for (let i = 0; i < P.length; i++) { const [ax, ay] = P[i], [bx, by] = P[(i + 1) % P.length]; if ((ax - c) * (bx - c) <= 0 && ax !== bx) ys.push(ay + (by - ay) * (c - ax) / (bx - ax)); } return ys.length < 2 ? null : [Math.min(...ys), Math.max(...ys)]; };
+  const flP = [], flUV = [], segF = (a, b, h) => { const [ax0, az0] = W(a), [bx0, bz0] = W(b), mx = (ax0 + bx0) / 2, mz = (az0 + bz0) / 2; let nx = -(bz0 - az0), nz = bx0 - ax0; const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; }
+    if ((nx * mx + nz * mz) / (Math.hypot(mx, mz) || 1) < .35) return; const o = .6, ax = ax0 + nx * o, az = az0 + nz * o, bx = bx0 + nx * o, bz = bz0 + nz * o, r = .5;   /* innviðirnir eru dregnir 0,45 inn – bjarminn liggur rétt utan á glerinu */ [[ax, h - r, az, 0], [bx, h - r, bz, 0], [bx, h + r, bz, 1], [ax, h - r, az, 0], [bx, h + r, bz, 1], [ax, h + r, az, 1]].forEach(([x, y, z, v]) => { flP.push(x, y, z); flUV.push(Math.hypot(x, z) * .02, v); }); };
   const inPts = [], segW = (a, b, y0, y1) => { const [ax, az] = W(a), [bx, bz] = W(b); inPts.push(ax, y0, az, bx, y1, bz); };
   SH.forEach(([, k], i) => { const arm = Math.floor(i / 3), H = floors(k) * FL, P = inset(POLY[i], POLY[i].map(() => .45));
     for (let f = 1; f < floors(k); f++) { const h = f * FL, parts = (k === 3 || h >= HP) ? [P] : (() => { const T = P.map(q => toTop(q, arm)); return [clip(T, q => PASS[0] - q[0]), clip(T, q => q[0] - PASS[1])].filter(Q => Q.length > 2).map(Q => Q.map(q => fromTop(q, arm))); })();
-      parts.forEach(Q => Q.forEach((q, j) => segW(q, Q[(j + 1) % Q.length], h, h))); }
+      parts.forEach(Q => Q.forEach((q, j) => { segW(q, Q[(j + 1) % Q.length], h, h); segF(q, Q[(j + 1) % Q.length], h); })); }
     if (k === 3) return;
     const T = P.map(q => toTop(q, arm)), xs = T.map(q => q[0]), x0 = Math.min(...xs) + 5, x1 = Math.max(...xs) - 5;
     for (let c = x0; c <= x1; c += 10) { if (c > PASS[0] - 2 && c < PASS[1] + 2) continue; const sp = spanAt(T, c); if (!sp) continue;
@@ -232,6 +234,12 @@ THREE.ColorManagement.enabled = false;
   const inG = new THREE.BufferGeometry(); inG.setAttribute("position", new THREE.Float32BufferAttribute(inPts, 3));
   const inM = new THREE.LineBasicMaterial({ color: 0xD3DCE4, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false });
   const inner = new THREE.LineSegments(fine(inG, 1.2), inM); inner.renderOrder = 12; inner.geometry.setDrawRange(0, 0); scene.add(inner);
+  // daufur hlýr bjarmi á hæðaskilunum: sést (eins og innviðirnir) aðeins í gegnum veggina sem snúa út
+  const flG = new THREE.BufferGeometry(); flG.setAttribute("position", new THREE.Float32BufferAttribute(flP, 3)); flG.setAttribute("uv", new THREE.Float32BufferAttribute(flUV, 2));
+  const flM = new THREE.ShaderMaterial({ transparent: true, depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { k: { value: 0 }, tm: { value: 0 } },
+    vertexShader: "varying vec2 vu; varying float vh; void main(){ vu=uv; vh=position.y; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
+    fragmentShader: "uniform float k, tm; varying vec2 vu; varying float vh; void main(){ float d=abs(vu.y-.5)*2.; float a=exp(-d*d*6.); float w=.82+.18*sin(vu.x*6.2832-tm*.35+vh*.6); gl_FragColor=vec4(vec3(1.,.8,.55)*a*w*.2*k,1.); }" });
+  const floorGlow = new THREE.Mesh(flG, flM); floorGlow.renderOrder = 15; scene.add(floorGlow);
 
 
   // ---- Þökin: handrið á lægra þakinu, gróður á efri þökum, líf ----
@@ -249,7 +257,7 @@ THREE.ColorManagement.enabled = false;
   const greenM = new THREE.MeshStandardMaterial({ map: sedum, roughness: 1, transparent: true, opacity: 0 });
   // eitt gróðurþak ofan á hverju efra þaki, vel innan við brúnirnar
   SH.forEach(([, k], i) => { if (k !== 1) return; const H = floors(1) * FL, Q = inset(POLY[i], POLY[i].map(() => 2.6));
-    const pl = new THREE.Mesh(flat(Q, H + .08), greenM); pl.receiveShadow = true; life.add(pl); const e = new THREE.LineSegments(fine(new THREE.EdgesGeometry(flat(Q, H + .1)), .8), edgeM); e.geometry.setDrawRange(0, 0); greenE.push(e); life.add(e); });
+    const pl = new THREE.Mesh(flat(Q, H + .3), greenM); pl.receiveShadow = true; life.add(pl); const e = new THREE.LineSegments(fine(new THREE.EdgesGeometry(flat(Q, H + .32)), .8), edgeM); e.geometry.setDrawRange(0, 0); greenE.push(e); life.add(e); });
   // teiknuð tré, runnar og fólk (snúa að áhorfanda eins og í skissu)
   const scrib = (g, cx, cy, rw, rh, fill) => { g.fillStyle = fill; for (let n = 0; n < 7; n++) { g.beginPath(); g.ellipse(cx + rnd(-rw, rw) * .45, cy + rnd(-rh, rh) * .4, rw * rnd(.45, .7), rh * rnd(.45, .7), 0, 0, 7); g.fill(); }
     for (let n = 0; n < 22; n++) { const a = rnd(0, 6.28); g.strokeStyle = `rgba(36,42,46,${rnd(.35, .7)})`; g.lineWidth = rnd(1.4, 2.6); g.beginPath(); g.arc(cx + Math.cos(a) * rw * .55, cy + Math.sin(a) * rh * .5, rnd(8, 20), rnd(0, 6), rnd(2, 5)); g.stroke(); } };
@@ -412,7 +420,7 @@ THREE.ColorManagement.enabled = false;
       m.customProgramCacheKey = () => "acesB"; m.needsUpdate = true; }); }
   { const keep = new Set([...fillMats(), roofM, wallInM]); scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; ms.forEach(m => { if (!keep.has(m)) m.toneMapped = false; }); }); }
   // teikniröð: línur byggingarinnar fyrst (fletirnir dofna yfir þær), fletirnir svo, og loks það sem stendur á þökum, í garðinum og púlsarnir
-  life.traverse(o => o.renderOrder = 11); railL.renderOrder = 11; glassRoof.renderOrder = 11; pane.renderOrder = 11; garden.renderOrder = 11;
+  life.traverse(o => o.renderOrder = 14); railL.renderOrder = 11; glassRoof.renderOrder = 11; pane.renderOrder = 11; garden.renderOrder = 11;
   facs.forEach(f => { if (f.material === detH) f.renderOrder = 12; });
   // upphitun: allir hlutir teiknaðir einu sinni fyrir fram svo engin hikst verði þegar þeir birtast (skyggingar, áferðir)
   R.shadowMap.autoUpdate = false;
@@ -447,7 +455,7 @@ THREE.ColorManagement.enabled = false;
     const draw = (g, u) => g.setDrawRange(0, Math.floor(g.attributes.position.count * ease(u) / 2) * 2);
     draw(guideL.geometry, (t - .1) / 2); edgesL.forEach(({ g, t0 }) => draw(g, (t - t0 + .1) / 1.8));
     facs.forEach((f, j) => draw(f.geometry, (t - 4.6 - (j % 12) * .08) / 2.2));
-    draw(inner.geometry, (t - 7.6) / 3.2); inM.opacity = .16 * ease((t - 7.4) / 1.5);
+    draw(inner.geometry, (t - 7.6) / 3.2); inM.opacity = .16 * ease((t - 7.4) / 1.5); flM.uniforms.k.value = ease((t - 9) / 2.5); flM.uniforms.tm.value = t;
     planM.uniforms.a.value = .5 + .3 * fillF; planM.uniforms.tm.value = t; planM.uniforms.on.value = ease((t - 9) / 2); draw(planL.geometry, (t - 3.6) / 3);
     furn.forEach((e, j) => { draw(e.geometry, (t - 7 - (j % 9) * .12) / 1.2); e.parent.visible = t > 6.9; });
     draw(railL.geometry, (t - 6.6) / 2); greenE.forEach((e, j) => draw(e.geometry, (t - 7.2 - j * .15) / 1.4));
