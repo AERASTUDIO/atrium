@@ -428,10 +428,19 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
       const gap = m2 ? 24 : 44, y0 = ay - gap * (m2 ? .3 : .85), d0 = ease((t - 13.1) / .6);
       dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); ring.setAttribute("cx", ax); ring.setAttribute("cy", ay); dot.style.opacity = d0; ring.style.opacity = d0 * .6; ring.setAttribute("r", 3 + 4 * d0);
       // í síma er ekki pláss til hliðar: sviðin í tveimur dálkum undir byggingunni, án lína
-      let Bm = 0; if (m2) { for (let q = 0; q < 24; q++) { const an = q / 24 * 6.2832; cV.set(Math.cos(an) * 72, 0, Math.sin(an) * 72).project(cam); Bm = Math.max(Bm, (1 - cV.y) / 2 * innerHeight); } dot.style.opacity = ring.style.opacity = 0; }
+      let Bm = 0, Lm = innerWidth, Rm = 0, Tm = innerHeight; if (m2) { for (let q = 0; q < 24; q++) { const an = q / 24 * 6.2832; cV.set(Math.cos(an) * 72, 0, Math.sin(an) * 72).project(cam); Bm = Math.max(Bm, (1 - cV.y) / 2 * innerHeight); }
+        for (const [bx, bz] of [[-50, -50], [50, -50], [50, 50], [-50, 50]]) for (const y of [0, 30]) { cV.set(bx, y, bz).project(cam); const X = (cV.x + 1) / 2 * innerWidth, Y = (1 - cV.y) / 2 * innerHeight; Lm = Math.min(Lm, X); Rm = Math.max(Rm, X); Tm = Math.min(Tm, Y); } ring.style.opacity = 0; }
       SV.forEach(o => { const k00 = 13.3 + o.row * .2 + (o.side > 0 ? .1 : 0);
         if (m2) { if (!o.fxm && t >= k00 && frameN > 3) o.fxm = Bm; const yb = (o.fxm || Bm) + 30 + o.row * 22, cx = innerWidth / 2, a1 = ease((t - k00) / .8);
-          o.p.style.opacity = 0; o.end.setAttribute("cx", cx + o.side * 10); o.end.setAttribute("cy", yb - 3.5); o.end.style.opacity = a1;
+          // í síma: lína frá hverju sviði út til hliðar, upp meðfram byggingunni og inn að toppi glerþaksins
+          // línurnar liggja hver innan í annarri (efsta sviðið innst) og byrja utan við textann, svo þær skerast hvorki né fara yfir letrið
+          const ex = cx + o.side * 10, ey = yb - 3.5, tw = o.t.getComputedTextLength() || 60, xs = cx + o.side * (36 + tw), r = o.row;
+          const xv = o.side < 0 ? Math.max(6 + r * 5, Math.min(xs - 10, Lm - 12 - r * 5)) : Math.min(innerWidth - 6 - r * 5, Math.max(xs + 10, Rm + 12 + r * 5));
+          const yt = Math.min(ay - 22 - r * 9, Tm - 16 - r * 9), xi = ax + o.side * (22 + r * 14);
+          const pts = [[xs - o.side * 1.4, ey], [xv, ey], [xv, yt], [xi, yt], [ax, ay]], len = pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0), u = ease((t - k00 - .2) / 1.6);
+          o.p.style.opacity = ""; o.p.setAttribute("d", "M" + pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L")); o.p.style.strokeDasharray = len; o.p.style.strokeDashoffset = len * (1 - u);
+          dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); dot.style.opacity = ease((t - 14.6) / .5);
+          o.end.setAttribute("cx", xs - o.side * 4); o.end.setAttribute("cy", ey); o.end.style.opacity = a1;
           o.t.setAttribute("x", cx + o.side * 20); o.t.setAttribute("y", yb); o.t.setAttribute("text-anchor", o.side < 0 ? "end" : "start"); o.t.style.opacity = a1; o.d.style.opacity = 0; return; }
         o.p.style.opacity = "";
         if (!o.fx) { const y = y0 + o.row * gap, tw = Math.max(o.t.getComputedTextLength(), m2 ? 0 : o.d.getComputedTextLength()) || 80;
