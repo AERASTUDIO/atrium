@@ -70,6 +70,93 @@ body{overflow-x:hidden;overflow-y:auto}
 .more span{font-size:16px;animation:nudge 2.4s ease-in-out infinite}
 @keyframes nudge{50%{transform:translateY(5px)}}
 @media (prefers-reduced-motion:reduce){.more span{animation:none}}
+
+/* Verð (1.11.2026): undir kynningarmyndinni, dökkt í stíl við síðuna */
+.pz{position:relative;z-index:8;background:#101317;color:#C9D1D9;font:400 16px/1.65 var(--f);padding-block:clamp(72px,9vw,128px);border-top:1px solid #1E242B;
+  --bg:#14181D;--su:#101317;--mu2:#1A1F25;--fg:#EEF2F5;--tx:#C9D1D9;--mu:#8592A0;--li:#232A32;--li2:#36404A;--ink:#E4E9EE;--inkfg:#101317;--inkmu:#4F5B67;--inkli:#C9D1D9;--r:16px;--ease:cubic-bezier(.2,.7,.2,1)}
+.pz .w{max-width:1200px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.pz h2,.pz h3{color:var(--fg);margin:0;font-weight:300;text-wrap:balance}
+.pz h2{font-size:clamp(32px,4.4vw,56px);line-height:1.1;letter-spacing:-.02em}
+.pz h3{font-size:20px;font-weight:400}
+.pz .eyb{display:block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);font-weight:500}
+.pz .mute{color:var(--mu)}
+.pz .sh{display:grid;gap:18px;margin-bottom:clamp(48px,6vw,80px)}.pz .sh.c{justify-items:center;text-align:center}
+.pz .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 24px;border-radius:999px;font:500 15px var(--f);text-decoration:none;border:0;cursor:pointer;background:var(--fg);color:var(--su);transition:transform .2s var(--ease)}
+.pz .btn:hover{transform:translateY(-1px)}.pz .btn.o{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--li2)}.pz .btn.sm{min-height:40px;padding:0 18px;font-size:14px}
+.pz .soon{display:inline-block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;padding:2px 7px;margin-left:6px;border-radius:999px;box-shadow:inset 0 0 0 1px currentColor;opacity:.6;vertical-align:2px}
+.pz :focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.pz [hidden]{display:none!important}
+.pz .ask{margin-top:clamp(48px,6vw,72px);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:14px 24px;color:var(--mu);font-size:15px}
+.pz .plans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.pz .plan{border-radius:var(--r);border:1px solid var(--li);background:var(--bg);padding:28px 24px 26px;display:grid;grid-template-rows:auto auto 1fr auto;gap:22px;min-width:0}
+.pz .plan.hi{background:var(--ink);border-color:var(--ink);color:var(--inkmu)}
+.pz .plan.hi h3,.pz .plan.hi .amt b,.pz .plan.hi li{color:var(--inkfg)}
+.pz .plan .for{font-size:14px;color:var(--mu);margin-top:6px;min-height:42px}
+.pz .plan.hi .for,.pz .plan.hi .amt span,.pz .plan.hi .foot{color:var(--inkmu)}
+.pz .tag{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;padding:3px 9px;border-radius:999px;background:var(--inkfg);color:var(--ink);margin-left:8px;vertical-align:5px}
+.pz .amt b{font-size:36px;font-weight:300;letter-spacing:-.03em;color:var(--fg);font-variant-numeric:tabular-nums}
+.pz .amt span{font-size:13.5px;color:var(--mu);margin-left:4px}
+.pz .amt small{display:block;font-size:13.5px;color:var(--mu);margin-top:2px}
+.pz .plan.hi .amt small{color:var(--inkmu)}
+.pz .plan ul{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:14.5px;align-content:start}
+.pz .plan li{display:grid;grid-template-columns:14px 1fr;gap:10px;color:var(--tx)}
+.pz .plan li::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;margin-top:9px;opacity:.55}
+.pz .plan li.all{color:var(--mu)}
+.pz .plan.hi li.all{color:var(--inkmu)}
+.pz .plan .foot{font-size:13px;color:var(--mu);border-top:1px solid var(--li);padding-top:14px}
+.pz .plan.hi .foot{border-color:var(--inkli)}
+.pz .svid{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:rgba(127,127,127,.18)}
+.pz .svid button{font:500 13px var(--f);border:0;background:transparent;color:inherit;padding:6px 14px;border-radius:999px;cursor:pointer}
+.pz .svid button[aria-pressed="true"]{background:var(--inkfg);color:var(--ink)}
+.pz .pnote{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px;color:var(--mu)}
+.pz .calc{margin-top:clamp(48px,6vw,72px);display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:center;padding:clamp(26px,3.4vw,44px);border-radius:var(--r);background:var(--bg);border:1px solid var(--li)}
+.pz .calc .ctl{display:grid;gap:22px}
+.pz .seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:4px;border-radius:999px;background:var(--su);box-shadow:inset 0 0 0 1px var(--li);justify-self:start}
+.pz .seg button{font:500 14px var(--f);border:0;background:transparent;color:var(--tx);padding:9px 16px;border-radius:999px;cursor:pointer}
+.pz .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.pz .cnts{display:flex;flex-wrap:wrap;gap:20px 40px}
+.pz .cnt{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:12px}
+.pz .cnt span{grid-column:1/-1;font-size:13.5px;color:var(--mu)}
+.pz .cnt button{width:40px;height:40px;border-radius:50%;border:0;background:var(--su);color:var(--fg);font:400 20px var(--f);cursor:pointer;box-shadow:inset 0 0 0 1px var(--li2)}
+.pz .cnt output{min-width:2.4ch;text-align:center;font-size:28px;font-weight:300;color:var(--fg);font-variant-numeric:tabular-nums}
+.pz .adds{display:grid;gap:10px}
+.pz .chk{display:flex;gap:10px;align-items:center;font-size:14.5px;cursor:pointer}
+.pz .chk input{width:18px;height:18px;accent-color:var(--fg)}
+.pz .adds a{font-size:13.5px;color:var(--mu)}
+.pz .tot{display:grid;gap:6px;justify-items:start}
+.pz .tot b{font-size:clamp(44px,5.4vw,68px);font-weight:300;color:var(--fg);letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.pz .tot small{color:var(--mu);font-size:13.5px;font-variant-numeric:tabular-nums}
+.pz .pmore{margin-top:clamp(48px,6vw,72px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(24px,4vw,56px);padding-top:clamp(40px,5vw,56px);border-top:1px solid var(--li)}
+.pz .pmore div{display:grid;gap:12px;align-content:start}
+.pz .pmore h3{font-size:22px}
+.pz .pmore p{font-size:15px;color:var(--mu)}
+.pz .kv{display:grid;font-size:14.5px}
+.pz .kv div{display:flex;justify-content:space-between;gap:16px;padding-block:9px;border-top:1px solid var(--li)}
+.pz .kv div span:last-child{color:var(--fg);text-align:right;font-variant-numeric:tabular-nums}
+.pz details.all{margin-top:clamp(40px,5vw,56px);border-top:1px solid var(--li)}
+.pz details.all summary{cursor:pointer;list-style:none;padding-block:22px;display:flex;justify-content:space-between;align-items:center;font-weight:500;color:var(--fg)}
+.pz details.all summary::-webkit-details-marker{display:none}
+.pz details.all summary::after{content:"+";font-weight:300;font-size:24px;color:var(--mu)}
+.pz details.all[open] summary::after{content:"–"}
+.pz .tbl{overflow-x:auto}
+.pz table{border-collapse:collapse;width:100%;min-width:680px;font-size:14.5px}
+.pz th,.pz td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--li);vertical-align:top}
+.pz thead th{font-weight:500;color:var(--fg);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.pz th:not(:first-child),.pz td:not(:first-child){text-align:center;width:14%}
+.pz tr.g td{padding-top:26px;font-weight:500;color:var(--fg);border-bottom-color:var(--li2)}
+.pz td small{display:block;color:var(--mu);font-size:12.5px}
+.pz .y::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--fg)}
+.pz .n{color:var(--li2)}
+.pz .s{font-size:12.5px;color:var(--mu)}
+@media (max-width:1020px){.pz .plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:820px){.pz .row,.pz .row:nth-child(even){grid-template-columns:1fr}
+.pz .row:nth-child(even) .rt{order:0}
+.pz .base,.pz .pmore,.pz .steps,.pz .calc,.pz .field .w,.pz .faq .w,.pz .talk .top{grid-template-columns:1fr}
+.pz .who .it{grid-template-columns:1fr;gap:10px}
+.pz .who .it a{justify-self:start}}
+@media (max-width:560px){.pz .plans{grid-template-columns:1fr}
+.pz .plan .for{min-height:0}
+.pz .phones img+img{margin-top:36px}}
 </style>
 <link rel="icon" type="image/png" href="icons/atrium-icon-192.png"><link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">
 </head>
@@ -84,6 +171,133 @@ body{overflow-x:hidden;overflow-y:auto}
 </div>
 <div class="spacer" aria-hidden="true"></div>
 <section class="vid" id="myndband"><video src="vefur/atrium-kynning.mp4" poster="vefur/atrium-kynning.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Kynningarmynd: hvernig Atrium virkar"></video></section>
+<section class="pz" id="verd" aria-label="Verð"><div class="w">
+  <div class="sh c"><span class="eyb">Verð</span><h2>Einfalt verð.<br><span class="mute">Greitt fyrir þá sem nota kerfið.</span></h2></div>
+  <div class="plans">
+    <article class="plan" data-plan="core">
+      <div><h3>Core</h3><p class="for">Fyrir þá sem selja vinnu og þjónustu</p></div>
+      <div class="amt"><b>2.400 kr.</b><span>á notanda / mán.</span><small>+ 4.900 kr. grunngjald</small></div>
+      <ul><li>Verkefni, tímar og fundir</li><li>Tilboð og aukaverk með undirskrift</li><li>Reikningar úr tímum og kostnaði</li><li>Póstur og skjöl á hverju verki</li><li>3 vettvangsnotendur fylgja</li></ul>
+      <p class="foot">Bókhaldstenging 4.900 kr. / mán.</p>
+    </article>
+    <article class="plan hi" data-plan="pro">
+      <div><h3>Pro<span class="tag">Vinsælast</span></h3><p class="for">Fyrir þá sem leigja eða selja vörur</p></div>
+      <div class="amt"><b>3.900 kr.</b><span>á notanda / mán.</span><small>+ 7.900 kr. grunngjald</small></div>
+      <div style="display:grid;gap:16px;align-content:start"><div class="svid" role="group" aria-label="Veldu svið"><button type="button" id="sv-leiga" data-s="leiga" aria-pressed="true">Leiga</button><button type="button" id="sv-sala" data-s="sala" aria-pressed="false">Sala</button></div><ul id="pro-list"></ul></div>
+      <p class="foot">Hitt sviðið 4.900 kr. / mán.</p>
+    </article>
+    <article class="plan" data-plan="complete">
+      <div><h3>Complete</h3><p class="for">Fyrir þá sem vilja vita hvað hvert verk skilar</p></div>
+      <div class="amt"><b>4.900 kr.</b><span>á notanda / mán.</span><small>+ 9.900 kr. grunngjald</small></div>
+      <ul><li class="all">Allt í Pro, bæði leiga og sala</li><li>Framlegð hvers verks, jafnóðum</li><li>Viðvörun áður en verk fer fram úr áætlun</li><li>Velta eftir rekstrarlínum</li><li><span>Vefverslun beint inn<span class="soon">Væntanlegt</span></span></li><li>10 vettvangsnotendur fylgja</li></ul>
+      <p class="foot">Allar viðbætur innifaldar.</p>
+    </article>
+    <article class="plan" data-plan="enterprise">
+      <div><h3>Enterprise</h3><p class="for">Fyrir stærri fyrirtæki og keðjur</p></div>
+      <div class="amt"><span style="margin:0">frá </span><b>95.000 kr.</b><span>/ mán.</span><small>Sniðið að fjölda notenda og ykkar kerfum</small></div>
+      <ul><li class="all">Allt í Complete</li><li>Ótakmarkaðir vettvangsnotendur</li><li>Tengingar við ykkar kerfi</li><li>Forgangur í þjónustu og ráðgjöf</li><li>Ykkar óskir í forgang í þróun</li></ul>
+      <p class="foot">Samkvæmt samningi.</p>
+    </article>
+  </div>
+  <div class="pnote"><span>Öll verð án VSK</span><span>Aðeins virkir notendur rukkaðir</span><span>Magnafsláttur frá 11. notanda</span><span>Uppsetning og innleiðing samkvæmt tilboði</span></div>
+
+  <div class="calc">
+    <div class="ctl">
+      <div class="seg" role="group" aria-label="Leið"><button type="button" id="c-core" data-p="core" aria-pressed="false">Core</button><button type="button" id="c-pro" data-p="pro" aria-pressed="true">Pro</button><button type="button" id="c-complete" data-p="complete" aria-pressed="false">Complete</button><button type="button" id="c-ent" data-p="enterprise" aria-pressed="false">Enterprise</button></div>
+      <div class="cnts" id="cnts">
+        <div class="cnt"><button type="button" id="o-m" data-k="o" data-d="-1" aria-label="Fækka notendum">−</button><output id="no" aria-live="polite">4</output><button type="button" id="o-p" data-k="o" data-d="1" aria-label="Fjölga notendum">+</button><span>notendur</span></div>
+        <div class="cnt"><button type="button" id="v-m" data-k="v" data-d="-1" aria-label="Fækka vettvangsnotendum">−</button><output id="nv" aria-live="polite">2</output><button type="button" id="v-p" data-k="v" data-d="1" aria-label="Fjölga vettvangsnotendum">+</button><span>vettvangsnotendur</span></div>
+      </div>
+      <div class="adds" id="adds">
+        <label class="chk" id="a-svid-w"><input type="checkbox" id="a-svid"> Hitt sviðið (4.900 kr.)</label>
+        <label class="chk"><input type="checkbox" id="a-yfir"> Yfirsýn (4.900 kr.) <a href="#t-yfir">Hvað er það?</a></label>
+        <label class="chk" id="a-bok-w"><input type="checkbox" id="a-bok"> Bókhaldstenging (4.900 kr.)</label>
+        <button type="button" id="upp" class="btn o sm" hidden style="justify-self:start"></button>
+      </div>
+    </div>
+    <div class="tot"><span class="eyb" id="tot-l">Á mánuði, án VSK</span><b id="tot">23.500 kr.</b><small id="sub"></small><a class="btn" id="ent-btn" href="mailto:aera@aerastudio.is?subject=Atrium%20Enterprise" hidden style="margin-top:12px">Hafa samband</a></div>
+  </div>
+
+  <div class="pmore">
+    <div><h3>Notendur</h3><p>Notandi hefur aðgang að öllu sem leiðin opnar. Vettvangsnotandi sér aðeins sín verk, og nokkrir fylgja hverri leið.</p>
+      <div class="kv"><div><span>Vettvangsnotendur sem fylgja</span><span>3 · 5 · 10 · ótakm.</span></div><div><span>Hver umfram það</span><span>990 kr.</span></div></div></div>
+    <div><h3>Magnafsláttur</h3><p>Verð á notanda lækkar umfram hvert þrep.</p>
+      <div class="kv"><div><span>1–10</span><span>2.400 · 3.900 · 4.900</span></div><div><span>11–25</span><span>1.900 · 3.100 · 3.900</span></div><div><span>26+</span><span>1.400 · 2.300 · 2.900</span></div></div></div>
+    <div><h3>Utan áskriftar</h3><p>Uppsetning og innleiðing eftir umfangi, og það sem er smíðað sérstaklega fyrir ykkur.</p>
+      <div class="kv"><div><span>Uppsetning og innleiðing</span><span>Tilboð</span></div><div><span>Sérþróun</span><span>12.000 kr./klst.</span></div><div><span>Hraðþróun</span><span>Tilboð</span></div></div></div>
+  </div>
+
+  <details class="all"><summary>Sjá allan samanburð</summary>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Core</th><th>Pro</th><th>Complete</th><th>Enterprise</th></tr></thead>
+      <tbody>
+        <tr class="g"><td colspan="5">Verk og viðskipti</td></tr>
+        <tr><td>Verkefni, tímar, kostnaður og fundir</td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Tilboð og aukaverk með undirskrift</td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Reikningar og verðskrá</td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Verkefnapóstur, skjöl og spjall</td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+        <tr class="g"><td colspan="5">Vörur og pantanir</td></tr>
+        <tr><td>Leiga<small>Búnaðaryfirlit, frátekning og skil</small></td><td class="n">–</td><td class="s">Leiga eða sala</td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Sala<small>Lageryfirlit og innflutningsreiknir</small></td><td class="n">–</td><td class="s">Leiga eða sala</td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Pantanir, verkdagatal og afhending</td><td class="n">–</td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+        <tr class="g" id="t-yfir"><td colspan="5">Yfirsýn</td></tr>
+        <tr><td>Afkoma og spá<small>Framlegð hvers verks og viðvörun um áætlun</small></td><td class="s">4.900 kr.</td><td class="s">4.900 kr.</td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Rekstrarlínur<small>Velta eftir því sem þið seljið</small></td><td class="s">Með Yfirsýn</td><td class="s">Með Yfirsýn</td><td class="y"></td><td class="y"></td></tr>
+        <tr class="g"><td colspan="5">Tengingar</td></tr>
+        <tr><td>Bókhald<small>DK. Payday væntanlegt</small></td><td class="s">4.900 kr.</td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Vefverslun<span class="soon">Væntanlegt</span></td><td class="n">–</td><td class="s">4.900 kr.</td><td class="y"></td><td class="y"></td></tr>
+        <tr><td>Önnur kerfi</td><td class="s">Tilboð</td><td class="s">Tilboð</td><td class="s">Tilboð</td><td class="y"></td></tr>
+      </tbody>
+    </table></div>
+  </details>
+  <div class="ask"><span>Viltu vita meira eða fá kynningu þegar Atrium opnar?</span><a class="btn" href="mailto:aera@aerastudio.is?subject=Atrium">Hafa samband</a></div>
+</div></section>
+<script>
+/* Verð: Pro leiga/sala og reiknivél (sama verðlíkan og í askrift.js, 30.10.2026) */
+(() => {
+  const $ = id => document.getElementById(id);
+  const GRUNN = { core: 4900, pro: 7900, complete: 9900 }, THREP = { core: [2400, 1900, 1400], pro: [3900, 3100, 2300], complete: [4900, 3900, 2900] };
+  const INNI = { core: 3, pro: 5, complete: 10 }, VETT = 990, AUKA = 4900, LAGM = 9900;
+  const f = v => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const notK = (k, o) => { const [a, b, c] = THREP[k]; return a * Math.min(o, 10) + b * Math.max(0, Math.min(o, 25) - 10) + c * Math.max(0, o - 25); };
+  const verd = (k, o, v, auka) => Math.max(LAGM, GRUNN[k] + notK(k, o) + VETT * Math.max(0, v - INNI[k]) + AUKA * auka);
+
+  // Pro: leiga eða sala
+  const PRO = {
+    leiga: ["Allt í Core", "Búnaðaryfirlit og frátekning", "Pantanir, afhending og skil", "Reikningar beint í bókhaldið", "5 vettvangsnotendur fylgja"],
+    sala: ["Allt í Core", "Lageryfirlit og innflutningsreiknir", "Pantanir og afhending", "Reikningar beint í bókhaldið", "5 vettvangsnotendur fylgja"]
+  };
+  const setSvid = s => { $("pro-list").innerHTML = PRO[s].map((t, i) => `<li${i ? "" : ' class="all"'}>${t}</li>`).join("");
+    document.querySelectorAll(".svid button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === s))); };
+  document.querySelectorAll(".svid button").forEach(b => b.addEventListener("click", () => setSvid(b.dataset.s)));
+  setSvid("leiga");
+
+  // Reiknivél
+  let p = "pro"; const n = { o: 4, v: 2 }, A = { svid: $("a-svid"), yfir: $("a-yfir"), bok: $("a-bok") };
+  const up = () => {
+    document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.p === p)));
+    const ent = p === "enterprise";
+    $("cnts").hidden = ent; $("adds").hidden = ent || p === "complete"; $("ent-btn").hidden = !ent;
+    $("tot-l").textContent = ent ? "Enterprise" : "Á mánuði, án VSK";
+    if (ent) { $("tot").textContent = "Frá 95.000 kr."; $("sub").textContent = "Sniðið að fjölda notenda og ykkar kerfum."; return; }
+    $("a-svid-w").hidden = p !== "pro"; $("a-bok-w").hidden = p !== "core";
+    if (p !== "pro") A.svid.checked = false; if (p !== "core") A.bok.checked = false; if (p === "complete") A.yfir.checked = false;
+    const auka = [A.svid, A.yfir, A.bok].filter(x => x.checked).length, t = verd(p, n.o, n.v, auka), vg = Math.max(0, n.v - INNI[p]);
+    $("no").textContent = n.o; $("nv").textContent = n.v; $("tot").textContent = f(t) + " kr.";
+    $("sub").textContent = `${f(GRUNN[p])} grunngjald + ${n.o} notendur ${f(notK(p, n.o))}${vg ? " + " + vg + " × " + f(VETT) : ""}${auka ? " + " + f(AUKA * auka) : ""}`;
+    const upp = $("upp"), c = verd("complete", n.o, n.v, 0);
+    upp.hidden = !(p === "pro" && A.svid.checked && A.yfir.checked);
+    if (!upp.hidden) upp.textContent = c <= t ? `Complete er ódýrara: ${f(c)} kr. →` : `Færa sig í Complete: ${f(c)} kr. →`;
+  };
+  document.querySelectorAll(".seg button").forEach(x => x.addEventListener("click", () => { p = x.dataset.p; up(); }));
+  document.querySelectorAll(".cnt button").forEach(x => x.addEventListener("click", () => { const k = x.dataset.k; n[k] = Math.max(k === "o" ? 1 : 0, Math.min(200, n[k] + +x.dataset.d)); up(); }));
+  Object.values(A).forEach(x => x.addEventListener("change", up));
+  $("upp").addEventListener("click", () => { p = "complete"; up(); });
+  $("a-yfir").closest("label").querySelector("a").addEventListener("click", () => { document.querySelector("details.all").open = true; });
+  up();
+
+})();
+</script>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.172.0/examples/jsm/"}}</script>
 <script>
