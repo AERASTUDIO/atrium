@@ -42,10 +42,10 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
 .svid6{position:fixed;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}
 .svid6 path{fill:none;stroke:#AEB8C1;stroke-width:.9;stroke-linejoin:round;opacity:.75}
 .svid6 .apx{fill:#D3DCE4}.svid6 .ring{fill:none;stroke:#D3DCE4;stroke-width:.9}.svid6 .end{fill:#1C2227;stroke:#D3DCE4;stroke-width:1}
-.svid6 .t{fill:#E4E8EB;font:500 11.5px var(--f);letter-spacing:.26em;text-transform:uppercase}
+.svid6 .t{fill:#E4E8EB;font:500 14px var(--f);letter-spacing:.26em;text-transform:uppercase}
 .svid6 .t tspan.nr{fill:#7F8A94;font-weight:400;letter-spacing:.12em}
-.svid6 .d{fill:#98A2AB;font:400 10.5px var(--f);letter-spacing:.08em}
-@media (max-width:700px){.svid6 .t{font-size:9px;letter-spacing:.14em}.svid6 .d,.svid6 .t tspan.nr{display:none}}
+.svid6 .d{fill:#98A2AB;font:400 12px var(--f);letter-spacing:.08em}
+@media (max-width:700px){.svid6 .t{font-size:11.5px;letter-spacing:.14em}.svid6 .d,.svid6 .t tspan.nr{display:none}}
 .vv{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(10,12,14,.45);border:1px solid rgba(217,220,222,.16);pointer-events:auto}
 .vv button{font:400 12px var(--f);letter-spacing:.06em;color:var(--pale2);background:none;border:0;border-radius:999px;padding:7px 13px;cursor:pointer}
 .vv button[aria-pressed="true"]{background:rgba(217,220,222,.92);color:#121415}.vv button:focus-visible{outline:2px solid var(--pale);outline-offset:2px}
@@ -143,9 +143,13 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
   const MATS = { malmur: { metal: 1, rough: .3, env: 2.1, cap: 0x7A8189, side: 0x656C74, coat: 0, brush: 1 },
     dokkt: { metal: .6, rough: .05, env: 1.25, cap: 0x15191D, side: 0x0B0D10, coat: 1, brush: 0 } };
   let matKey = ((/mat=(\w+)/.exec(location.hash) || [])[1] || "dokkt"); if (!MATS[matKey]) matKey = "dokkt";
+  // þakfletir: þéttir (ekki gegnsæir) og teiknaðir síðast, svo innviðirnir sjást ekki í gegnum þökin
+  const roofM = new THREE.MeshPhysicalMaterial({ transparent: true, opacity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  // veggir sem snúa inn að miðjunni: þéttir og teiknaðir síðast, svo innviðirnir sjást aðeins í gegnum veggina sem snúa út
+  const wallInM = new THREE.MeshPhysicalMaterial({ transparent: true, opacity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   const setMat = key => { matKey = key; const M = MATS[key];
-    [capK[1], capK[2], capK[3], capB, sideM].forEach((m, j) => { m.metalness = M.metal; m.roughness = M.rough; m.envMap = envTex; m.envMapIntensity = M.env; m.map = null;
-      m.roughnessMap = M.brush ? brushTex : null; m.clearcoat = M.coat; m.clearcoatRoughness = .04; m.reflectivity = .6; m.needsUpdate = true; m.color.setHex(j === 4 ? M.side : M.cap); });
+    [capK[1], capK[2], capK[3], capB, sideM, roofM, wallInM].forEach((m, j) => { m.metalness = M.metal; m.roughness = M.rough; m.envMap = envTex; m.envMapIntensity = M.env; m.map = null;
+      m.roughnessMap = M.brush ? brushTex : null; m.clearcoat = M.coat; m.clearcoatRoughness = .04; m.reflectivity = .6; m.needsUpdate = true; m.color.setHex(j === 4 || j === 6 ? M.side : M.cap); if (j === 5) m.clearcoat = M.coat; });
     document.querySelectorAll(".vv button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === key))); };
   let fillF = 0; const INK = new THREE.Color(0x0B0D0F);
   const fillMats = () => [capK[1], capK[2], capK[3], capB, sideM, recM];
@@ -175,6 +179,13 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3)); const gv = new THREE.BufferGeometry(); gv.setAttribute("position", new THREE.Float32BufferAttribute(vps, 3));
     return [new THREE.LineSegments(fine(g, 1.2), detH), new THREE.LineSegments(fine(gv, 1.2), detV)]; };
   const solid = (grp, Q, h0, h1, mat, lines = true) => { if (h1 - h0 < .1) return; const g = ext(Q, h0, h1), m = new THREE.Mesh(g, mat); m.renderOrder = 10;
+    { const rt = new THREE.Mesh(flat(Q, h1), roofM); rt.renderOrder = 13; rt.receiveShadow = true; m.add(rt); }
+    if (lines) { const pa = g.attributes.position.array, na = g.attributes.normal.array, gr = g.groups[1] || { start: 0, count: pa.length / 3 }, ip = [], inn = [];
+      for (let v = gr.start; v < gr.start + gr.count; v += 3) { let cx = 0, cz = 0; for (let q = 0; q < 3; q++) { cx += pa[(v + q) * 3]; cz += pa[(v + q) * 3 + 2]; } cx /= 3; cz /= 3;
+        const nx = na[v * 3], nz = na[v * 3 + 2], L = Math.hypot(cx, cz) || 1; if ((nx * cx + nz * cz) / L > .35) continue;
+        for (let q = 0; q < 3; q++) { ip.push(pa[(v + q) * 3], pa[(v + q) * 3 + 1], pa[(v + q) * 3 + 2]); inn.push(na[(v + q) * 3], na[(v + q) * 3 + 1], na[(v + q) * 3 + 2]); } }
+      if (ip.length) { const wg = new THREE.BufferGeometry(); wg.setAttribute("position", new THREE.Float32BufferAttribute(ip, 3)); wg.setAttribute("normal", new THREE.Float32BufferAttribute(inn, 3));
+        const wi = new THREE.Mesh(wg, wallInM); wi.renderOrder = 13; wi.receiveShadow = true; m.add(wi); } }
     m.castShadow = m.receiveShadow = true; const eg = new THREE.LineSegments(fine(new THREE.EdgesGeometry(g, 20), .8), bEdgeM); eg.geometry.setDrawRange(0, 0); edgesL.push({ g: eg.geometry, t0: curT0 }); m.add(eg); if (lines) facadeLines(Q, h0, h1).forEach(f => { f.geometry.setDrawRange(0, 0); facs.push(f); m.add(f); }); grp.add(m); };
   // jarðhæðin: ein samfelld, örlítið inndregin hæð allan hringinn, aðeins rofin af gegnumgöngunum
   const base = new THREE.Group(); bld.add(base);
@@ -373,7 +384,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
     setMat(matKey);
   document.querySelectorAll(".vv button").forEach(b => b.addEventListener("click", () => { setMat(b.dataset.m); try { history.replaceState(null, "", "#mat=" + b.dataset.m); } catch (e) {} }));
   // tónakortlagning aðeins á fletum byggingarinnar; allt annað heldur litunum sínum óbreyttum
-  { const keep = new Set(fillMats()); scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; ms.forEach(m => { if (!keep.has(m)) m.toneMapped = false; }); }); }
+  { const keep = new Set([...fillMats(), roofM, wallInM]); scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; ms.forEach(m => { if (!keep.has(m)) m.toneMapped = false; }); }); }
   // teikniröð: línur byggingarinnar fyrst (fletirnir dofna yfir þær), fletirnir svo, og loks það sem stendur á þökum, í garðinum og púlsarnir
   life.traverse(o => o.renderOrder = 11); railL.renderOrder = 11; glassRoof.renderOrder = 11; pane.renderOrder = 11; garden.renderOrder = 11;
   facs.forEach(f => { if (f.material === detH) f.renderOrder = 12; });
@@ -422,8 +433,8 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
       const [dx, dz] = ARMD[w.arm], [ox, oz] = LANE[w.arm], cr = w.arm % 2 ? [0, 1] : [1, 0];
       w.sp.position.set(dx * w.d + ox + cr[0] * w.lane, 0, dz * w.d + oz + cr[1] * w.lane); w.sp.material.opacity = lifeK * Math.min(1, (125 - w.d) / 18, (w.d - 24) / 8); });
     // glerþakið teiknast yfir garðinn
-    draw(glassRoof.geometry, (t - 10.5) / 3);
-    pane.material.opacity = .1 * ease((t - 12.5) / 2);
+    draw(glassRoof.geometry, (t - 7.6) / 3);
+    pane.material.opacity = .1 * ease((t - 9.6) / 2);
     // myndavél: beint fyrir ofan (merkið rétt snúið) → lágt sjónarhorn á meðan byggingin rís
     const rad = mob ? 315 : 270, ly = mob ? 20 : 22, h1 = (mob ? 132 : 112) - 14 * smoother(t / 10);
     const D1 = Math.hypot(rad, h1 - ly), e1 = Math.atan2(h1 - ly, rad), D0 = mob ? 560 : 470, E0 = Math.PI / 2 - .002;
@@ -435,7 +446,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
       if (!low && t > 3 && ft.length > 40) { const avg = ft.slice(-40).reduce((a, b) => a + b, 0) / 40; if (avg > 40) low = true; } }
     // sólin færist hægt þegar dagur er kominn, svo skuggarnir hreyfast og myndin stendur ekki kyrr
     const sun = 2.6 + .022 * Math.max(0, t - 12); key.position.set(Math.cos(sun) * 180, 140, Math.sin(sun) * 180);
-    { const f = smoother((t - 3.6) / 4.8); fillF = f; fillMats().forEach(m => { m.opacity = f * (1 - .16 * f); m.depthWrite = true; }); }   // húsið endar örlítið gegnsætt
+    { const f = smoother((t - 3.6) / 4.8); fillF = f; fillMats().forEach(m => { m.opacity = f * (1 - .16 * f); m.depthWrite = true; }); roofM.opacity = f; wallInM.opacity = f; }   // húsið endar örlítið gegnsætt
     sparkU.tm.value = t; sparkU.on.value = ease((t - 7) / 2); sparkU.pc.value.setRGB(.88, .95, 1);
     if (!low && t > 2.8) R.shadowMap.needsUpdate = true;   // skuggar fylgja byggingunni á meðan hún rís
     // stemning fylgir birtunni: snertiskuggi, bjarmi, mistur, baklýsing og daufur hlýr tónn í glerinu
@@ -444,19 +455,19 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
     // sviðin teiknast inn þegar glerþakið er komið: lína frá toppi glerþaksins út til hvers sviðs, svo nafn og lýsing
     { const m2 = innerWidth < 1100 || innerWidth / innerHeight < 1.2; apexV.set(0, HG + 7, 0).project(cam); const ax = (apexV.x + 1) / 2 * innerWidth, ay = (1 - apexV.y) / 2 * innerHeight;
       let L = innerWidth, Rr = 0; for (let q = 0; q < 24; q++) for (const y of [0, 30]) { const an = q / 24 * 6.2832; cV.set(Math.cos(an) * 72, y, Math.sin(an) * 72).project(cam); const X = (cV.x + 1) / 2 * innerWidth; L = Math.min(L, X); Rr = Math.max(Rr, X); }
-      const gap = m2 ? 24 : 44, y0 = ay - gap * (m2 ? .3 : .85), d0 = ease((t - 13.1) / .6);
+      const gap = m2 ? 24 : 44, y0 = ay - gap * (m2 ? .3 : .85), d0 = ease((t - 9.1) / .6);
       dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); ring.setAttribute("cx", ax); ring.setAttribute("cy", ay); dot.style.opacity = d0; ring.style.opacity = d0 * .6; ring.setAttribute("r", 3 + 4 * d0);
       // í síma er ekki pláss til hliðar: sviðin í tveimur dálkum undir byggingunni, án lína
       let Bm = 0, Lm = innerWidth, Rm = 0, Tm = innerHeight; if (m2) { for (let q = 0; q < 24; q++) { const an = q / 24 * 6.2832; cV.set(Math.cos(an) * 72, 0, Math.sin(an) * 72).project(cam); Bm = Math.max(Bm, (1 - cV.y) / 2 * innerHeight); }
         for (const [bx, bz] of [[-50, -50], [50, -50], [50, 50], [-50, 50]]) for (const y of [0, 30]) { cV.set(bx, y, bz).project(cam); const X = (cV.x + 1) / 2 * innerWidth, Y = (1 - cV.y) / 2 * innerHeight; Lm = Math.min(Lm, X); Rm = Math.max(Rm, X); Tm = Math.min(Tm, Y); } ring.style.opacity = 0; }
-      SV.forEach(o => { const k00 = 13.3 + o.row * .2 + (o.side > 0 ? .1 : 0);
+      SV.forEach(o => { const k00 = 9.3 + o.row * .2 + (o.side > 0 ? .1 : 0);
         if (m2) { // í síma: sviðin í tveimur dálkum fyrir ofan bygginguna, vel til hliðanna
           const cx = innerWidth / 2, wb = document.querySelector(".ui.n .word p").getBoundingClientRect().bottom, yb = wb + 66 + o.row * 24, a1 = ease((t - k00) / .8), ey = yb - 3.5;
           // ein lína beint upp í gegnum miðjuna frá toppi glerþaksins; frá henni greinist lárétt lína út í hvert svið
           const gp = Math.min(118, cx * .42), xs = cx + o.side * (gp - 8), yj = Math.min(ay - 10, ay);
-          const pts = [[ax, ay], [cx, yj], [cx, ey], [xs, ey]], len = pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0), u = ease((t - 13.3 - o.row * .15) / 1.6);
+          const pts = [[ax, ay], [cx, yj], [cx, ey], [xs, ey]], len = pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0), u = ease((t - 9.3 - o.row * .15) / 1.6);
           o.p.style.opacity = ""; o.p.setAttribute("d", "M" + pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L")); o.p.style.strokeDasharray = len; o.p.style.strokeDashoffset = len * (1 - u);
-          dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); dot.style.opacity = ease((t - 14.4) / .5);
+          dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); dot.style.opacity = ease((t - 10.4) / .5);
           o.end.setAttribute("cx", xs); o.end.setAttribute("cy", ey); o.end.style.opacity = a1;
           o.t.setAttribute("x", cx + o.side * (gp + 2)); o.t.setAttribute("y", yb); o.t.setAttribute("text-anchor", o.side < 0 ? "end" : "start"); o.t.style.opacity = a1; o.d.style.opacity = 0; return; }
         o.p.style.opacity = "";
@@ -464,7 +475,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
           const xe = o.side < 0 ? Math.max(tw + 20, L - (m2 ? 6 : 48)) : Math.min(innerWidth - tw - 20, Rr + (m2 ? 6 : 48));
           const xk = xe - o.side * Math.min(Math.abs(ax - xe) * .5, m2 ? 36 : 150); if (t >= k00 && frameN > 3) o.fx = { y, xe, xk }; else { o.tmp = { y, xe, xk }; } }
         const { y, xe, xk } = o.fx || o.tmp;
-        const len = Math.abs(xe - xk) + Math.hypot(ax - xk, ay - y), k0 = 13.3 + o.row * .2 + (o.side > 0 ? .1 : 0), u = ease((t - k0) / 1.2);
+        const len = Math.abs(xe - xk) + Math.hypot(ax - xk, ay - y), k0 = 9.3 + o.row * .2 + (o.side > 0 ? .1 : 0), u = ease((t - k0) / 1.2);
         o.p.setAttribute("d", `M${ax.toFixed(1)},${ay.toFixed(1)} L${xk.toFixed(1)},${y.toFixed(1)} H${xe.toFixed(1)}`); o.p.style.strokeDasharray = len; o.p.style.strokeDashoffset = len * (1 - u);
         o.end.setAttribute("cx", xe); o.end.setAttribute("cy", y); o.end.style.opacity = ease((t - k0 - 1) / .3);
         const tx = xe + o.side * 12, an = o.side < 0 ? "end" : "start", ty = m2 ? y + 3.5 : y - 2, a1 = ease((t - k0 - 1) / .7), a2 = ease((t - k0 - 1.35) / .8);
