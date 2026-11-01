@@ -60,6 +60,16 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
 .vv button[aria-pressed="true"]{background:rgba(217,220,222,.92);color:#121415}.vv button:focus-visible{outline:2px solid var(--pale);outline-offset:2px}
 @media (max-width:560px){.top{letter-spacing:.24em}.bot{justify-content:center;text-align:center}.word{top:18%}.word p{letter-spacing:.3em}}
 @media (prefers-reduced-motion:reduce){.word h1,.word p{animation:none}}
+/* Kynningarmynd undir Væntanlegt (1.11.2026): síðan skrunast niður að myndinni – endalaus lykkja, hljóðlaus */
+body{overflow-x:hidden;overflow-y:auto}
+.spacer{height:100vh;height:100svh}
+.vid{position:relative;z-index:8;background:#0B0D0F;display:flex;flex-direction:column;align-items:center;gap:22px;padding-block:clamp(56px,8vw,104px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.vid h2{margin:0;color:#D3DCE4;font-weight:200;font-size:clamp(22px,3vw,36px);letter-spacing:.06em;text-align:center}
+.vid video{display:block;width:min(1200px,100%);aspect-ratio:16/9;border-radius:14px;background:#000;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.more{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--pale2);font-size:11px;letter-spacing:.32em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
+.more span{font-size:16px;animation:nudge 2.4s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(5px)}}
+@media (prefers-reduced-motion:reduce){.more span{animation:none}}
 </style>
 <link rel="icon" type="image/png" href="icons/atrium-icon-192.png"><link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">
 </head>
@@ -69,8 +79,11 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
 <div class="ui n">
 <header class="top"><span class="wm"><svg viewBox="-4 -4 108 108" aria-hidden="true"><polygon points="0.00,0.00 72.00,0.00 58.00,14.00 0.00,14.00"/><polygon points="0.00,14.00 58.00,14.00 72.00,28.00 0.00,28.00"/><polygon points="72.00,0.00 72.00,28.00 58.00,14.00"/><polygon points="100.00,0.00 100.00,72.00 86.00,58.00 86.00,0.00"/><polygon points="86.00,0.00 86.00,58.00 72.00,72.00 72.00,0.00"/><polygon points="100.00,72.00 72.00,72.00 86.00,58.00"/><polygon points="100.00,100.00 28.00,100.00 42.00,86.00 100.00,86.00"/><polygon points="100.00,86.00 42.00,86.00 28.00,72.00 100.00,72.00"/><polygon points="28.00,100.00 28.00,72.00 42.00,86.00"/><polygon points="0.00,100.00 0.00,28.00 14.00,42.00 14.00,100.00"/><polygon points="14.00,100.00 14.00,42.00 28.00,28.00 28.00,100.00"/><polygon points="0.00,28.00 28.00,28.00 14.00,42.00"/></svg>Atrium</span><span>by AERA Studio</span></header>
 <main class="word"><h1 aria-label="Atrium"><svg class="draw ttl" aria-hidden="true"><text x="0" y="0">ATRIUM</text></svg></h1><p aria-label="Heimili rekstursins"><svg class="draw sub" aria-hidden="true"><text x="0" y="0">HEIMILI REKSTURSINS</text></svg></p></main>
+<a class="more" href="#myndband">Sjáðu hvernig Atrium virkar<span aria-hidden="true">↓</span></a>
 <footer class="bot"><span><b>ATRIUM</b> er í þróun</span><span><a href="mailto:aera@aerastudio.is">aera@aerastudio.is</a></span></footer>
 </div>
+<div class="spacer" aria-hidden="true"></div>
+<section class="vid" id="myndband"><video src="vefur/atrium-kynning.mp4" poster="vefur/atrium-kynning.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Kynningarmynd: hvernig Atrium virkar"></video></section>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.172.0/examples/jsm/"}}</script>
 <script>
