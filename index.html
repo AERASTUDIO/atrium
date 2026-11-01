@@ -83,7 +83,8 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
 
   // ---- Nótt → dagur: litirnir sem blandast á milli. TONE = litir merkisins (yfirlitið byrjar eins og merkið sjálft) ----
   const N = { sky: C(0x1B1F23), ground: C(0x1B1F23), line: C(0xD3DCE4), cap: C(0x161D23), glass: C(0x26303A), rec: C(0x0E1317), hemi: C(0x5C6B7A), ink: C(0xD3DCE4) };
-  const D = { sky: C(0x1C1F23), ground: C(0x1C1F23), line: C(0x46505A), cap: C(0xD2D6DA), glass: C(0xCDD4DA), rec: C(0x9AA3AB), hemi: C(0xF3F5F7), ink: C(0x121415) };
+  const FOGD = C(0x1C1F23), fogC = new THREE.Color();   // þokan á byggingunni heldur gamla litnum svo húsið breytist ekki
+  const D = { sky: C(0x2C3136), ground: C(0x2C3136), line: C(0x46505A), cap: C(0xD2D6DA), glass: C(0xCDD4DA), rec: C(0x9AA3AB), hemi: C(0xF3F5F7), ink: C(0x121415) };
   const TONE = { 1: C(0xC9D1D9), 2: C(0x7C8896), 3: C(0x2F3742) };
 
   // ---- Merkið: grunnmynd 100×100 ----
@@ -262,7 +263,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
   const pane = new THREE.Mesh(paneG, new THREE.MeshStandardMaterial({ color: 0xDCE6EE, roughness: .1, metalness: .3, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false })); scene.add(pane);
 
   // ---- Jörð og grunnmynd umhverfis: línur sem dofna út frá byggingunni ----
-  const groundM = new THREE.MeshBasicMaterial({ color: 0x151A1F, depthWrite: false });   // jörðin skrifar ekki dýpt, svo speglun og skuggar á henni z-flökta ekki
+  const groundM = new THREE.MeshBasicMaterial({ color: 0x151A1F, depthWrite: false, fog: false });   // jörðin skrifar ekki dýpt, svo speglun og skuggar á henni z-flökta ekki
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(30000, 30000), groundM); ground.rotation.x = -Math.PI / 2; scene.add(ground);
   const shadowCatch = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.ShadowMaterial({ opacity: .55, depthTest: false, depthWrite: false })); shadowCatch.renderOrder = -1; shadowCatch.rotation.x = -Math.PI / 2; shadowCatch.position.y = .05; shadowCatch.receiveShadow = true; scene.add(shadowCatch);
   const fadeLine = (r0, r1) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { col: { value: new THREE.Color(0xD3DCE4) }, a: { value: 0 } },
@@ -342,7 +343,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
   const sky = new THREE.Color(), dbs = new THREE.Vector2(), pv = new THREE.Vector3();
   // allir litir sem ráðast af birtu (0 = nótt, 1 = dagur)
   const light = d => {
-    mix(sky, N.sky, D.sky, d); scene.fog.color.copy(sky);
+    mix(sky, N.sky, D.sky, d); scene.fog.color.copy(mix(fogC, N.sky, FOGD, d));
     // fletir dökkgráir; línurnar fara úr ljósum (teikning) í svartar um leið og fletirnir fyllast
     mix(groundM.color, N.ground, D.ground, d); recM.color.setHex(0x353A3F);
     mix(edgeM.color, N.line, INK, fillF); detM.color.copy(edgeM.color); edgeM.opacity = .9; bEdgeM.color.copy(edgeM.color); bEdgeM.opacity = .9 * (1 - smoother((fillF - .45) / .55)); bEdgeM.visible = bEdgeM.opacity > .005; detM.opacity = .32 * (1 - smoother((fillF - .4) / .6));
@@ -432,14 +433,14 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
         for (const [bx, bz] of [[-50, -50], [50, -50], [50, 50], [-50, 50]]) for (const y of [0, 30]) { cV.set(bx, y, bz).project(cam); const X = (cV.x + 1) / 2 * innerWidth, Y = (1 - cV.y) / 2 * innerHeight; Lm = Math.min(Lm, X); Rm = Math.max(Rm, X); Tm = Math.min(Tm, Y); } ring.style.opacity = 0; }
       SV.forEach(o => { const k00 = 13.3 + o.row * .2 + (o.side > 0 ? .1 : 0);
         if (m2) { // í síma: sviðin í tveimur dálkum fyrir ofan bygginguna; línur út fyrir textann og svo á ská niður að toppi glerþaksins
-          const cx = innerWidth / 2, wb = document.querySelector(".ui.n .word p").getBoundingClientRect().bottom, yb = wb + 40 + o.row * 22, a1 = ease((t - k00) / .8), ey = yb - 3.5;
-          const tw = o.t.getComputedTextLength() || 60, xs = cx + o.side * (36 + tw), wmax = Math.max(...SV.filter(q => q.side === o.side).map(q => q.t.getComputedTextLength() || 60));
-          const xk = cx + o.side * Math.min(cx - 10, 52 + wmax);
-          const pts = [[xs - o.side * 1.4, ey], [xk, ey], [ax, ay]], len = pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0), u = ease((t - k00 - .2) / 1.4);
+          const cx = innerWidth / 2, wb = document.querySelector(".ui.n .word p").getBoundingClientRect().bottom, yb = wb + 66 + o.row * 24, a1 = ease((t - k00) / .8), ey = yb - 3.5;
+          // línurnar byrja innan við textann (milli dálkanna) og liggja niður í gegnum miðjuna að toppi glerþaksins
+          const xs = cx + o.side * (7 + o.row * 4);
+          const pts = [[xs, ey], [ax, ay]], len = Math.hypot(ax - xs, ay - ey), u = ease((t - k00 - .2) / 1.4);
           o.p.style.opacity = ""; o.p.setAttribute("d", "M" + pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L")); o.p.style.strokeDasharray = len; o.p.style.strokeDashoffset = len * (1 - u);
           dot.setAttribute("cx", ax); dot.setAttribute("cy", ay); dot.style.opacity = ease((t - 14.4) / .5);
-          o.end.setAttribute("cx", xs - o.side * 4); o.end.setAttribute("cy", ey); o.end.style.opacity = a1;
-          o.t.setAttribute("x", cx + o.side * 20); o.t.setAttribute("y", yb); o.t.setAttribute("text-anchor", o.side < 0 ? "end" : "start"); o.t.style.opacity = a1; o.d.style.opacity = 0; return; }
+          o.end.setAttribute("cx", xs); o.end.setAttribute("cy", ey); o.end.style.opacity = a1;
+          o.t.setAttribute("x", cx + o.side * 26); o.t.setAttribute("y", yb); o.t.setAttribute("text-anchor", o.side < 0 ? "end" : "start"); o.t.style.opacity = a1; o.d.style.opacity = 0; return; }
         o.p.style.opacity = "";
         if (!o.fx) { const y = y0 + o.row * gap, tw = Math.max(o.t.getComputedTextLength(), m2 ? 0 : o.d.getComputedTextLength()) || 80;
           const xe = o.side < 0 ? Math.max(tw + 20, L - (m2 ? 6 : 48)) : Math.min(innerWidth - tw - 20, Rr + (m2 ? 6 : 48));
