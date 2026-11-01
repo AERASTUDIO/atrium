@@ -196,6 +196,23 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
     const f = new THREE.Mesh(flat(P, .25), new THREE.MeshBasicMaterial({ color: TONE[k], transparent: true, opacity: 0, depthWrite: false, fog: false })); scene.add(f); fills.push(f);
   });
   pieces.forEach(p => { p.m.scale.y = .001; p.m.visible = false; });
+  // ---- Innviðir í línum: hæðaskil, milliveggir og rými sem sjást í gegnum glerið ----
+  const spanAt = (P, c) => { const ys = []; for (let i = 0; i < P.length; i++) { const [ax, ay] = P[i], [bx, by] = P[(i + 1) % P.length]; if ((ax - c) * (bx - c) <= 0 && ax !== bx) ys.push(ay + (by - ay) * (c - ax) / (bx - ax)); } return ys.length < 2 ? null : [Math.min(...ys), Math.max(...ys)]; };
+  const inPts = [], segW = (a, b, y0, y1) => { const [ax, az] = W(a), [bx, bz] = W(b); inPts.push(ax, y0, az, bx, y1, bz); };
+  SH.forEach(([, k], i) => { const arm = Math.floor(i / 3), H = floors(k) * FL, P = inset(POLY[i], POLY[i].map(() => .45));
+    for (let f = 1; f < floors(k); f++) { const h = f * FL, parts = (k === 3 || h >= HP) ? [P] : (() => { const T = P.map(q => toTop(q, arm)); return [clip(T, q => PASS[0] - q[0]), clip(T, q => q[0] - PASS[1])].filter(Q => Q.length > 2).map(Q => Q.map(q => fromTop(q, arm))); })();
+      parts.forEach(Q => Q.forEach((q, j) => segW(q, Q[(j + 1) % Q.length], h, h))); }
+    if (k === 3) return;
+    const T = P.map(q => toTop(q, arm)), xs = T.map(q => q[0]), x0 = Math.min(...xs) + 5, x1 = Math.max(...xs) - 5;
+    for (let c = x0; c <= x1; c += 10) { if (c > PASS[0] - 2 && c < PASS[1] + 2) continue; const sp = spanAt(T, c); if (!sp) continue;
+      const a = fromTop([c, sp[0]], arm), b = fromTop([c, sp[1]], arm);
+      segW(a, a, FL, H); segW(b, b, FL, H); for (let f = 1; f <= floors(k); f++) { const h = f * FL - .02; segW(a, b, h - FL + .04, h - FL + .04); } }
+    // gangur eftir miðju álmunnar á hverri hæð
+    const mid = T.reduce((s, q) => s + q[1], 0) / T.length;
+    for (let f = 1; f < floors(k); f++) { const h = f * FL + .02; [[x0, Math.min(x1, PASS[0] - 1)], [Math.max(x0, PASS[1] + 1), x1]].forEach(([u, v]) => { if (v > u) segW(fromTop([u, mid], arm), fromTop([v, mid], arm), h, h); }); } });
+  const inG = new THREE.BufferGeometry(); inG.setAttribute("position", new THREE.Float32BufferAttribute(inPts, 3));
+  const inM = new THREE.LineBasicMaterial({ color: 0xD3DCE4, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false });
+  const inner = new THREE.LineSegments(fine(inG, 1.2), inM); inner.renderOrder = 12; inner.geometry.setDrawRange(0, 0); scene.add(inner);
 
   // ---- Þökin: handrið á lægra þakinu, gróður á efri þökum, líf ----
   const life = new THREE.Group(); scene.add(life);
@@ -393,6 +410,7 @@ html.nogl .fallback,html:not(.js) .fallback{display:block}html.nogl body,html:no
     const draw = (g, u) => g.setDrawRange(0, Math.floor(g.attributes.position.count * ease(u) / 2) * 2);
     draw(guideL.geometry, (t - .1) / 2); edgesL.forEach(({ g, t0 }) => draw(g, (t - t0 + .1) / 1.8));
     facs.forEach((f, j) => draw(f.geometry, (t - 4.6 - (j % 12) * .08) / 2.2));
+    draw(inner.geometry, (t - 7.6) / 3.2); inM.opacity = .16 * ease((t - 7.4) / 1.5);
     planM.uniforms.a.value = .5 + .3 * fillF; planM.uniforms.tm.value = t; planM.uniforms.on.value = ease((t - 9) / 2); draw(planL.geometry, (t - 3.6) / 3);
     furn.forEach((e, j) => { draw(e.geometry, (t - 7 - (j % 9) * .12) / 1.2); e.parent.visible = t > 6.9; });
     draw(railL.geometry, (t - 6.6) / 2); greenE.forEach((e, j) => draw(e.geometry, (t - 7.2 - j * .15) / 1.4));
