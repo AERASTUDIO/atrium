@@ -232,35 +232,7 @@ THREE.ColorManagement.enabled = false;
   const inG = new THREE.BufferGeometry(); inG.setAttribute("position", new THREE.Float32BufferAttribute(inPts, 3));
   const inM = new THREE.LineBasicMaterial({ color: 0xD3DCE4, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false });
   const inner = new THREE.LineSegments(fine(inG, 1.2), inM); inner.renderOrder = 12; inner.geometry.setDrawRange(0, 0); scene.add(inner);
-  // ---- Líf inni í byggingunni: kveikt ljós í sumum gluggum og fólk á ferli fyrir innan glerið (sést aðeins í gegnum veggi sem snúa út) ----
-  let seed = 7; const srnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;   // föst röð svo sömu gluggar lýsi alltaf
-  const litP = [], litUV = [], litC = [], litPh = [], folk = [];
-  SH.forEach(([, k], i) => { if (k === 2) return; const arm = Math.floor(i / 3), P = POLY[i], nf = floors(k);
-    P.forEach((a, e) => { if (shared(e, i)) return; const b = P[(e + 1) % P.length], mx = (a[0] + b[0]) / 2 - 50, mz = (a[1] + b[1]) / 2 - 50;
-      let nx = -(b[1] - a[1]), nz = b[0] - a[0]; const nl = Math.hypot(nx, nz); nx /= nl; nz /= nl; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; }
-      if ((nx * mx + nz * mz) / Math.hypot(mx, mz) < .35) return;                       // aðeins hliðar sem snúa út
-      const [ax, az] = W(a), [bx, bz] = W(b), L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, n = Math.floor(L / 3);
-      for (let f = 1; f < nf; f++) for (let s2 = 0; s2 < n; s2++) { const c = (s2 + .5) * L / n, x = ax + ux * c + nx * .18, z = az + uz * c + nz * .18,   // ljósin liggja á glerinu svo þau falli rétt á bak við aðra hluta
-           tp = toTop([x + 50, z + 50], arm);
-        if (f * FL < HP && tp[0] > PASS[0] - 1 && tp[0] < PASS[1] + 1) continue;
-        const r = srnd(); if (r > .2) continue; const w = L / n * .45, y0 = f * FL + .35, y1 = (f + 1) * FL - .35, warm = srnd() < .8, ph = srnd();
-        const q = [[x - ux * w, y0, z - uz * w], [x + ux * w, y0, z + uz * w], [x + ux * w, y1, z + uz * w], [x - ux * w, y1, z - uz * w]];
-        [0, 1, 2, 0, 2, 3].forEach(j => { litP.push(...q[j]); litUV.push(j === 1 || j === 2 ? 1 : 0, j >= 2 ? 1 : 0); litC.push(...(warm ? [1, .82, .58] : [.78, .88, 1])); litPh.push(ph); });
-        if (srnd() < .45) folk.push([x + nx * .04 + ux * (srnd() - .5) * w, f * FL + .35, z + nz * .04 + uz * (srnd() - .5) * w, ux, uz, w]); } }); });
-  const litG = new THREE.BufferGeometry(); litG.setAttribute("position", new THREE.Float32BufferAttribute(litP, 3)); litG.setAttribute("uv", new THREE.Float32BufferAttribute(litUV, 2));
-  litG.setAttribute("col", new THREE.Float32BufferAttribute(litC, 3)); litG.setAttribute("ph", new THREE.Float32BufferAttribute(litPh, 1));
-  const litM = new THREE.ShaderMaterial({ transparent: true, depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide, uniforms: { k: { value: 0 }, tm: { value: 0 } },
-    vertexShader: `uniform float tm; attribute vec3 col; attribute float ph; varying vec3 vc; varying vec2 vu; varying float von;
-      float h(float n){ return fract(sin(n*91.3)*43758.5); }
-      void main(){ vc=col; vu=uv; float T=tm/9.+ph*3., cyc=floor(T); von=mix(step(.18,h(ph*17.+cyc-1.)), step(.18,h(ph*17.+cyc)), smoothstep(0.,.12,fract(T)));
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
-    fragmentShader: `uniform float k; varying vec3 vc; varying vec2 vu; varying float von;
-      void main(){ float edge=smoothstep(0.,.18,vu.x)*smoothstep(1.,.82,vu.x)*smoothstep(0.,.1,vu.y)*smoothstep(1.,.85,vu.y);
-        float glow=(.55+.45*(1.-vu.y))*edge; gl_FragColor=vec4(vc*glow*.7*k*von,1.); }` });
-  const lit = new THREE.Mesh(litG, litM); lit.renderOrder = 14; scene.add(lit);
-  const folkTex = new THREE.CanvasTexture(cnv(64, 128, g => { g.fillStyle = "#07090B"; g.beginPath(); g.arc(32, 16, 10, 0, 7); g.fill(); g.beginPath(); g.moveTo(18, 30); g.lineTo(46, 30); g.lineTo(44, 80); g.lineTo(42, 126); g.lineTo(34, 126); g.lineTo(32, 84); g.lineTo(30, 126); g.lineTo(22, 126); g.lineTo(20, 80); g.fill(); }));
-  const folkS = folk.map(([x, y, z, ux, uz, w]) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: folkTex, transparent: true, depthTest: true, depthWrite: false, opacity: 0, toneMapped: false })); sp.center.set(.5, 0);
-    sp.position.set(x, y, z); sp.scale.set(.9, 2.1, 1); sp.renderOrder = 15; sp.userData = { x, z, ux, uz, w, a: Math.random() * 6.28, v: .15 + Math.random() * .25 }; scene.add(sp); return sp; });
+
 
   // ---- Þökin: handrið á lægra þakinu, gróður á efri þökum, líf ----
   const life = new THREE.Group(); scene.add(life);
@@ -501,7 +473,6 @@ THREE.ColorManagement.enabled = false;
     // sólin færist hægt þegar dagur er kominn, svo skuggarnir hreyfast og myndin stendur ekki kyrr
     const sun = 2.6 + .022 * Math.max(0, t - 12); key.position.set(Math.cos(sun) * 180, 140, Math.sin(sun) * 180);
     { const f = smoother((t - 3.6) / 4.8); fillF = f; fillMats().forEach(m => { m.opacity = f * (1 - .16 * f); m.depthWrite = true; }); roofM.opacity = smoother((f - .55) / .45); wallInM.opacity = smoother((f - .55) / .45); shadowCatch.material.opacity = .55 * f; }
-    { const L2 = ease((t - 8.4) / 2.4); litM.uniforms.k.value = L2; litM.uniforms.tm.value = t; folkS.forEach(sp => { const u = sp.userData; sp.material.opacity = .9 * L2; if (!still) { u.a += .016 * u.v; } const d = Math.sin(u.a) * u.w * .7; sp.position.x = u.x + u.ux * d; sp.position.z = u.z + u.uz * d; }); }   // húsið endar örlítið gegnsætt
     sparkU.tm.value = t; sparkU.on.value = ease((t - 7) / 2); sparkU.pc.value.setRGB(.88, .95, 1);
     if (!low && t > 2.8) R.shadowMap.needsUpdate = true;   // skuggar fylgja byggingunni á meðan hún rís
     // stemning fylgir birtunni: snertiskuggi, bjarmi, mistur, baklýsing og daufur hlýr tónn í glerinu
