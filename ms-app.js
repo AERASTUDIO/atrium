@@ -135,15 +135,87 @@
     if (!tr) { loadTree(k); return head(extra) + `<div class="empty">Sæki skrár…</div>`; }
     if (tr.st === "load") return head(extra) + `<div class="empty">Sæki skrár…</div>`;
     if (tr.st === "err") return head(extra) + `<div class="empty">Gat ekki sótt skrárnar: ${esc(tr.err)}</div>`;
+    const up = company();
     const rows = tr.items.map(d => {
       if (!d.folder) return fileRow(d);
       const has = d.size > 0 || (d.kids && d.kids.length);
-      return `<details class="fold"${has && /^0[478]/.test(d.name) ? " open" : ""}><summary class="lrow"><div class="lm"><div class="lt"${has ? "" : ' style="color:var(--muted)"'}>${esc(d.name)}</div><div class="ls">${esc(has ? kb(d.size) + (d.kids ? ` · ${d.kids.length} atriði` : "") : "Tóm mappa")}</div></div>
+      return `<details class="fold"${has && /^0[478]/.test(d.name) ? " open" : ""}><summary class="lrow"${up ? ` data-updir="${esc(d.name)}"` : ""}><div class="lm"><div class="lt"${has ? "" : ' style="color:var(--muted)"'}>${esc(d.name)}</div><div class="ls">${esc(has ? kb(d.size) + (d.kids ? ` · ${d.kids.length} atriði` : "") : "Tóm mappa")}</div></div>
         <a class="plink" ${odLink(d)} onclick="event.stopPropagation()">Opna</a></summary>
         ${d.kids && d.kids.length ? `<div class="fitems">${d.kids.map(fileRow).join("")}</div>` : ""}</details>`;
     }).join("");
-    return head(extra) + `<div class="llist">${rows || '<div class="empty">Mappan er tóm.</div>'}</div><p class="hint" style="margin-top:8px">Beint úr ${ODN()} · sótt kl. ${esc(new Date(tr.t).toTimeString().slice(0, 5))}. Ýttu á skrá til að forskoða hana.</p>`;
+    const body = head(extra) + (up ? upZone(k, tr.items.filter(d => d.folder).map(d => d.name)) : "") + `<div class="llist">${rows || '<div class="empty">Mappan er tóm.</div>'}</div><p class="hint" style="margin-top:8px">Beint úr ${ODN()} · sótt kl. ${esc(new Date(tr.t).toTimeString().slice(0, 5))}. Ýttu á skrá til að forskoða hana.${up ? " Slepptu skrá á möppu til að vista hana beint þar." : ""}</p>`;
+    return up ? `<div class="upwrap" data-upk="${esc(k)}">${body}</div>` : body;
   };
+
+  /* ---------- Hlaða upp skrám í möppu verkefnis (2.117.0): draga og sleppa eða velja skrár ---------- */
+  // Litlar skrár (≤ 4 MB) fara í einni beiðni; stærri í bútum um upphleðslulotu Graph (bútar margfeldi af 320 KiB).
+  const UP = {}, CHUNK = 327680 * 10;
+  let UPSUB = "";                                     // síðasta valda undirmappa (gildir á meðan appið er opið)
+  const kbs = n => n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1).replace(".", ",") + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+  function upList(k) {
+    const q = UP[k] || []; if (!q.length) return "";
+    return q.map(r => `<div class="upr${r.err ? " err" : ""}"><span class="upn">${esc(r.n)}</span><span class="ups">${r.err ? "Mistókst: " + esc(r.err) : r.p >= 1 ? "✓ " + esc(r.sub || "Mappa verkefnisins") : kbs(r.s) + " · " + Math.round(r.p * 100) + "%"}</span><span class="upbar"><i style="width:${Math.round((r.err ? 1 : r.p) * 100)}%"></i></span></div>`).join("");
+  }
+  function upZone(k, subs) {
+    if (subs.length && !["", ...subs].includes(UPSUB)) UPSUB = "";
+    return `<div class="updrop"><input type="file" id="up-file" multiple hidden>
+      <div class="updz"><span class="upic" aria-hidden="true">↑</span><div><b class="updesk">Dragðu skrár hingað eða <label for="up-file" class="plink">veldu skrár</label></b><b class="upmob"><label for="up-file" class="plink">Veldu skrár til að hlaða upp</label></b>
+      ${subs.length ? `<span class="upto">Vistast í <select id="up-dir" aria-label="Mappa">${["", ...subs].map(n => `<option value="${esc(n)}"${n === UPSUB ? " selected" : ""}>${n ? esc(n) : "Möppu verkefnisins"}</option>`).join("")}</select></span>` : `<span class="upto">Vistast í möppu verkefnisins</span>`}</div></div>
+      <div class="uplist" id="up-list">${upList(k)}</div></div>`;
+  }
+  function upPaint(k) { const el = document.getElementById("up-list"); if (el && el.closest("[data-upk]")?.dataset.upk === k) el.innerHTML = upList(k); }
+  async function upOne(path, file, onp) {
+    if (file.size <= 4194304) { const it = await upload(path, file, file.type); onp(1); return it; }
+    const s = await G(`/me/drive/root:/${encP(path)}:/createUploadSession`, { method: "POST", body: { item: { "@microsoft.graph.conflictBehavior": "rename" } } });
+    let pos = 0, it = null;
+    while (pos < file.size) {
+      const end = Math.min(pos + CHUNK, file.size);
+      const r = await fetch(s.uploadUrl, { method: "PUT", headers: { "Content-Range": `bytes ${pos}-${end - 1}/${file.size}` }, body: file.slice(pos, end) });
+      if (!r.ok) { fetch(s.uploadUrl, { method: "DELETE" }).catch(() => {}); throw new Error("upphleðsla stöðvaðist (" + r.status + ")"); }
+      if (r.status === 200 || r.status === 201) it = await r.json();
+      pos = end; onp(pos / file.size);
+    }
+    return it;
+  }
+  async function upFiles(k, sub, files) {
+    files = [...files].filter(Boolean); if (!files.length) return;
+    if (!VK || !VK[k]) { toast("Mappa verkefnisins fannst ekki"); return; }
+    const dir = ROOT + "/" + k + (sub ? "/" + sub : "");
+    UP[k] = (UP[k] || []).filter(r => !r.done || r.err);
+    const rows = files.map(f => ({ n: f.name, s: f.size, p: 0, sub })); UP[k].push(...rows); upPaint(k);
+    let ok = 0;
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i], r = rows[i], ext = (f.name.match(/\.[a-z0-9]{1,8}$/i) || [""])[0];
+      try { await upOne(dir + "/" + safe(f.name.slice(0, f.name.length - ext.length)) + ext, f, p => { r.p = p; upPaint(k); }); r.p = 1; ok++; }
+      catch (e) { r.err = e.message || String(e); }
+      r.done = Date.now(); upPaint(k);
+    }
+    const hvar = sub || "möppu verkefnisins";
+    toast(ok === files.length ? (ok === 1 ? `„${files[0].name}“ vistuð í ${hvar}` : `${ok} skrár vistaðar í ${hvar}`) : `${ok} af ${files.length} skrám vistaðar – sjá villur í listanum`);
+    delete TREE[k]; loadTree(k);
+  }
+  // Atburðir: valið úr skrám, val á möppu og draga og sleppa (á svæðið eða beint á möppu í listanum)
+  document.addEventListener("change", e => {
+    if (e.target.id === "up-dir") UPSUB = e.target.value;
+    if (e.target.id === "up-file") { const z = e.target.closest("[data-upk]"); if (z) upFiles(z.dataset.upk, UPSUB, e.target.files); e.target.value = ""; }
+  });
+  const hasFiles = e => [...(e.dataTransfer?.types || [])].includes("Files");
+  const upTarget = e => { const w = e.target.closest?.("[data-upk]"); if (!w) return null; const f = e.target.closest("[data-updir]"); return { w, el: f || w, sub: f ? f.dataset.updir : UPSUB }; };
+  const upClear = () => document.querySelectorAll(".upon").forEach(x => x.classList.remove("upon"));
+  ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => {
+    if (!hasFiles(e)) return; const T = upTarget(e); if (!T) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = "copy";
+    if (!T.el.classList.contains("upon")) { upClear(); T.el.classList.add("upon"); if (T.el !== T.w) T.w.classList.add("upon"); }
+  }));
+  document.addEventListener("dragleave", e => { const w = e.target.closest?.("[data-upk]"); if (w && !w.contains(e.relatedTarget)) upClear(); });
+  document.addEventListener("drop", e => {
+    if (!hasFiles(e)) return; const T = upTarget(e); if (!T) return;
+    e.preventDefault(); upClear();
+    const items = [...(e.dataTransfer.items || [])], dirs = items.filter(i => i.webkitGetAsEntry && i.webkitGetAsEntry()?.isDirectory).length;
+    const files = items.length ? items.filter(i => i.kind === "file" && !(i.webkitGetAsEntry && i.webkitGetAsEntry()?.isDirectory)).map(i => i.getAsFile()) : [...e.dataTransfer.files];
+    if (dirs) toast("Möppur eru ekki fluttar inn – aðeins stakar skrár");
+    upFiles(T.w.dataset.upk, T.sub, files);
+  });
 
   /* ---------- Forskoðun skráa ---------- */
   /* Forskoðun (1.9.2): tekur við auðkenni skráar á drifi fyrirtækisins/notandans, „d:<drif>~<auðkenni>“ (skrá á hvaða drifi sem er)

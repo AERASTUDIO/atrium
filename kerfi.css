@@ -1039,3 +1039,26 @@ html body #view .usvc.n1{grid-template-columns:minmax(0,1fr)}
 :where(body.kerfi #view) .uhch h3 .ucnt{background:var(--kacc,var(--hi));color:var(--on-kacc,#fff)}
 :where(body.kerfi) .side :is(.tab[aria-current="page"],.tab.on){box-shadow:inset 3px 0 0 var(--kacc,var(--hi))}
 @media (prefers-reduced-motion: no-preference){ :where(.ustart.ustdark){animation:ustInA .6s ease both} @keyframes ustInA{from{background:var(--bg)}to{background:#121416}} :where(.ustart.ustdark .ustpair){animation:aIn .6s ease .15s both} }
+
+/* Upphleðsla í Skrár verkefnis (2.117.0): svæði til að draga skrár á eða velja þær, framvinda hverrar skráar */
+.updrop{display:flex;flex-direction:column;gap:10px;border:1.5px dashed var(--line);border-radius:14px;padding:14px 16px;margin:0 0 12px;transition:border-color .15s,background .15s}
+.upwrap.upon .updrop{border-color:var(--ink);background:var(--accent-soft)}
+.updz{display:flex;align-items:center;gap:14px}
+.updz>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.updz b{font-weight:500}
+.updz .plink{display:inline;font-size:inherit;padding:0;margin:0}
+.upic{flex:none;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--ink);font-size:18px}
+.upto{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.upto select{width:auto;min-height:0;padding:4px 28px 4px 10px;font-size:13px}
+.upmob{display:none}
+@media (hover:none){.updesk{display:none}.upmob{display:inline}}
+.uplist:empty{display:none}
+.uplist{display:flex;flex-direction:column;gap:8px}
+.upr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;font-size:13px}
+.upn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ups{color:var(--muted);font-variant-numeric:tabular-nums}
+.upr.err .ups{color:var(--crit)}
+.upbar{grid-column:1/-1;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.upbar i{display:block;height:100%;background:var(--ink);transition:width .2s}
+.upr.err .upbar i{background:var(--crit)}
+summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10px;background:var(--accent-soft)}
