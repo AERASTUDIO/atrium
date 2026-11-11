@@ -577,10 +577,16 @@
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpn") { billOrders(id); return; }
     if (k === "rkdk") { const R = findR(id); if (!R) return; const v = vidbunadur(R); if (v.length) return toast("Vantar: " + v.join(", "));
-      const pdS = PDON() && R.bokhald?.pid, pd = PDC(), kerfi = BKN();
-      if (!pdS && !confirm(PDON() ? (pd.drog ? `Senda drög ${R.nr} (${kr(R.tot)}) í Payday sem drög?\n\nÞú ferð yfir reikninginn í Payday og sendir hann þaðan.` : `Gefa út reikning á ${R.kaupandi?.name || "greiðanda"} í Payday?\n\nUpphæð: ${kr(R.tot)}\n${pd.krafa !== false ? "• Krafa stofnast í netbanka greiðanda\n" : ""}${pd.post !== false ? "• Reikningurinn fer í tölvupósti til " + (R.kaupandi?.netfang || "greiðanda") + "\n" : ""}${pd.fylgiskjal !== false ? "• Sundurliðun tíma fylgir\n" : ""}• Gjalddagi í dag – má greiða strax\n• Eindagi ${dIS(pdPlus(+pd.eindagi || 0))} – dráttarvextir eftir það\n\nEftir útgáfu er aðeins hægt að leiðrétta með kreditreikningi í Payday.`)
-        : `Senda drög ${R.nr} (${kr(R.tot)}) í DK?\n\nDK gefur út reikninginn með sínu númeri${DKC().post ? " og sendir hann greiðanda í tölvupósti" : ""}.`)) return;
-      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) q.bokhald = { ...(pdS ? q.bokhald : {}), kerfi: BK(), stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" }; }).then(() => toast(pdS ? "Sæki stöðu úr Payday…" : "Sendist í " + kerfi + "…")); return; }
+      const pdS = PDON() && R.bokhald?.pid, pd = PDC(), kerfi = BKN(), nafn = R.kaupandi?.name || "greiðanda";
+      const spurn = PDON() ? (pd.drog
+          ? { yfir: "Payday", titill: `Senda drög ${R.nr} í Payday`, texti: `Reikningurinn verður til sem drög í Payday á ${nafn}. Þú ferð yfir hann og sendir hann þaðan.`, upphaed: kr(R.tot), upphaedL: "Upphæð með VSK", ja: "Senda drög" }
+          : { yfir: "Payday", titill: `Gefa út reikning á ${nafn}`, upphaed: kr(R.tot), upphaedL: "Upphæð með VSK", ja: "Gefa út reikning",
+              atridi: [pd.krafa !== false ? "Krafa stofnast í netbanka greiðanda" : null, pd.post !== false ? "Reikningurinn fer í tölvupósti" + (R.kaupandi?.netfang ? " til " + R.kaupandi.netfang : "") : null, pd.fylgiskjal !== false ? "Sundurliðun tíma fylgir sem viðhengi" : null,
+                { t: `Gjalddagi í dag – eindagi ${dIS(pdPlus(+pd.eindagi || 0))}`, tak: "info" }].filter(Boolean),
+              ath: "Eftir útgáfu er aðeins hægt að leiðrétta með kreditfærslu." })
+        : { yfir: "DK", titill: `Senda drög ${R.nr} í DK`, texti: `DK gefur út reikninginn með sínu númeri${DKC().post ? " og sendir hann greiðanda í tölvupósti" : ""}.`, upphaed: kr(R.tot), upphaedL: "Upphæð með VSK", ja: "Senda í DK" };
+      (async () => { if (!pdS && !(await atrSpurn(spurn))) return;
+      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) q.bokhald = { ...(pdS ? q.bokhald : {}), kerfi: BK(), stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" }; }).then(() => toast(pdS ? "Sæki stöðu úr Payday…" : "Sendist í " + kerfi + "…")); })(); return; }
     if (k === "rkcsv") { const R = findR(id); if (!R) return; const b = new Blob([csvOf(R)], { type: "text/csv;charset=utf-8" }), a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fileBase(R) + " – bókhald.csv"; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("CSV sótt"); return; }
     if (k === "rkvb") { const R = findR(id); if (!R) return; const v = vidbunadur(R); toast(v.length ? "Vantar: " + v.join(", ") : "Tilbúið fyrir bókhald"); return; }
     if (k === "rkpdf") { const R = findR(id); if (R) downloadPdf(R); return; }
@@ -600,11 +606,13 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
     if (k === "rkbok") { const R = findR(id); if (!R) return; const v = prompt(`Númer reikningsins í bókhaldskerfinu (fyrir drög ${R.nr}):`, R.bokhaldNr || ""); if (v === null) return;
       saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.bokhaldNr = v.trim() || null; q.bokhaldDags = v.trim() ? isoDay(new Date()) : null; } }).then(() => toast(v.trim() ? "Skráð í bókhald" : "Bókhaldsnúmer fjarlægt")); return; }
     if (k === "rkkredit") { const R = findR(id); if (!R || !R.bokhald?.pid) return;
-      if (!confirm(`Kreditfæra reikning nr. ${R.bokhald.nr || R.bokhaldNr} (${kr(R.tot)}) á ${R.kaupandi?.name || "greiðanda"}?\n\n• Krafan í netbanka fellur niður\n• Payday bakfærir reikninginn (kreditreikningur)\n• Drögin í Atrium verða ógild og tímarnir aftur óreikningsfærðir – þú getur gert nýjan reikning úr þeim\n\nÞetta er ekki hægt að afturkalla.`)) return;
-      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q && q.bokhald) q.bokhald = { ...q.bokhald, kredit: { stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" } }; }).then(() => toast("Kreditfæri í Payday…")); return; }
-    if (k === "rkogilda") { const R = findR(id); if (!R || !confirm(`Ógilda ${NRL(R).toLowerCase()}?\n\nDrögin haldast skráð (merkt ógild) en tímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.bokhaldNr ? "\n\nATH: reikningurinn er skráður í bókhaldi (" + R.bokhaldNr + ") – þar þarf að gefa út kreditreikning." : ""}`)) return;
+      (async () => { if (!(await atrSpurn({ yfir: "Payday", titill: `Kreditfæra reikning nr. ${R.bokhald.nr || R.bokhaldNr}`, texti: R.kaupandi?.name || "", upphaed: kr(R.tot), upphaedL: "Upphæð með VSK", ja: "Kreditfæra", haetta: true,
+        atridi: [{ t: "Krafan í netbanka fellur niður", tak: "info" }, { t: "Payday bakfærir reikninginn (kreditreikningur)", tak: "info" }, { t: "Drögin í Atrium verða ógild og tímarnir aftur óreikningsfærðir – þú getur gert nýjan reikning úr þeim", tak: "info" }],
+        ath: "Þetta er ekki hægt að afturkalla." }))) return;
+      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q && q.bokhald) q.bokhald = { ...q.bokhald, kredit: { stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" } }; }).then(() => toast("Kreditfæri í Payday…")); })(); return; }
+    if (k === "rkogilda") { const R = findR(id); if (!R) return; (async () => { if (!(await atrSpurn({ titill: `Ógilda ${NRL(R).toLowerCase()}`, texti: "Drögin haldast skráð (merkt ógild) en tímarnir og kostnaðurinn verða aftur óreikningsfærð.", ja: "Ógilda", haetta: true, ath: R.bokhaldNr ? "Reikningurinn er skráður í bókhaldi (" + R.bokhaldNr + ") – þar þarf að gefa út kreditreikning." : "" }))) return;
       saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = "Ógilt"; q.ogilt = isoDay(new Date()); } const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (e.reikningur === id) delete e.reikningur; }); (s.kostnadur || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); (s.pantanir || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); })
-        .then(() => toast("Ógilt – tímar, kostnaður og pantanir aftur óreikningsfærð")); return; }
+        .then(() => toast("Ógilt – tímar, kostnaður og pantanir aftur óreikningsfærð")); })(); return; }
     if (k === "rkdel" && window.can && !can("eyda")) return toast("Aðeins admin getur eytt reikningum.");
     if (k === "rkdel") { const R = findR(id); if (!R || !confirm(`Eyða reikningi nr. ${R.nr}?\n\nTímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.pdfUrl ? "\nPDF-skjalið í OneDrive eyðist ekki." : ""}`)) return;
       rkDelMany([id]).then(() => { toast("Reikningi eytt"); goBack(); }); return; }

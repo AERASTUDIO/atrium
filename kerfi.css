@@ -1067,3 +1067,25 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 .rkbktag.ok{color:#2f6b45;border-color:#b9d8c3;background:#eef7f1}
 .rkbktag.villa{color:#a33a2c;border-color:#e7beb7;background:#fbefed}
 [data-theme="dark"] .rkbktag,html.dark .rkbktag{background:transparent}
+/* 2.119.1: staðfestingargluggi (spurn.js) */
+.spurn-w{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,20,22,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .16s ease}
+.spurn-w.inn{opacity:1}.spurn-w.ut{opacity:0}
+.spurn{width:min(440px,100%);background:var(--surface,#fff);color:var(--ink,#121416);border:1px solid var(--line,#E3E7EB);border-radius:14px;box-shadow:0 24px 60px rgba(18,20,22,.28);padding:24px 24px 18px;font-family:Poppins,system-ui,sans-serif;transform:translateY(8px) scale(.985);transition:transform .18s ease;outline:none}
+.spurn-w.inn .spurn{transform:none}
+.spurn-yfir{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#7C8896);margin-bottom:6px}
+.spurn-t{font-size:19px;font-weight:400;line-height:1.3;margin:0 0 6px;color:var(--ink,#121416)}
+.spurn-x{font-size:13px;line-height:1.5;color:var(--muted,#7C8896);margin:0 0 14px}
+.spurn-u{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px;margin:0 0 14px;border-radius:10px;background:var(--field,#F6F7F8);font-size:13px;color:var(--muted,#7C8896)}
+.spurn-u b{font-size:18px;font-weight:500;color:var(--ink,#121416)}
+.spurn-l{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:9px}
+.spurn-l li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:var(--ink,#2F3742)}
+.spurn-l i{flex:0 0 20px;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(47,107,69,.1);color:#2f6b45;margin-top:1px}
+.spurn-l li.info i{background:var(--field,#EEF1F4);color:var(--muted,#7C8896)}
+.spurn-l li.hætta i{background:rgba(163,58,44,.1);color:#a33a2c}
+.spurn-l svg{width:14px;height:14px}
+.spurn-ath{font-size:12px;line-height:1.5;color:var(--muted,#7C8896);margin:0 0 16px;padding-top:12px;border-top:1px solid var(--line,#E3E7EB)}
+.spurn-b{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.spurn-b .btn{min-width:110px}
+.spurn-b .spurn-d{background:#a33a2c!important;border-color:#a33a2c!important;color:#fff!important}
+@media (max-width:520px){.spurn-w{align-items:flex-end;padding:0}.spurn{border-radius:16px 16px 0 0;padding:22px 18px calc(18px + env(safe-area-inset-bottom))}.spurn-b .btn{flex:1}}
+@media (prefers-reduced-motion:reduce){.spurn-w,.spurn{transition:none}}
