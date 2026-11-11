@@ -750,10 +750,12 @@
   };
   /* ---------- Reikningar (dálkalisti: óreikningsfært + reikningar) ---------- */
   U.trk = function () {
+    // 2.118.2: tímabil óreikningsfærðra tíma (fyrsti–síðasti dagur) í Dags.-dálki; klst. í Verkefni-dálki
+    const tbil = es => { const ds = (es || []).map(e => String(e.date || "").slice(0, 10)).filter(Boolean).sort(); return { d0: ds[0] || "", d1: ds[ds.length - 1] || "" }; };
     const f = st.vf.trk || "allt", R = (S?.reikningar || []).filter(r => r.stada !== "Ógilt"), RO = (S?.reikningar || []).filter(r => r.stada === "Ógilt"); // ógiltir (2.66.1): eigin sía, svo sjáist hvaðan tímarnir komu
-    const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
+    const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id), ...tbil(u.es) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
     // 2.66.2: tímar og kostnaður án verkefnis (t.d. af ógiltum reikningi) – annars sáust þeir hvergi
-    if (window.rkUnbilledKr) { const u0 = rkUnbilled(null), x0 = { p: null, h: sumT(u0.es), kr: rkUnbilledKr(null) }; if (x0.h >= 0.5 || x0.kr > 0) ub.push(x0); }
+    if (window.rkUnbilledKr) { const u0 = rkUnbilled(null), x0 = { p: null, h: sumT(u0.es), kr: rkUnbilledKr(null), ...tbil(u0.es) }; if (x0.h >= 0.5 || x0.kr > 0) ub.push(x0); }
     const tapU = x => x.p ? tapAttr("verk", x.p.id) : 'data-act="rknew:_" role="button" tabindex="0" title="Gera reikning úr tímum án verkefnis"';
     const og = R.filter(r => r.stada !== "Greitt"), gr = R.filter(r => r.stada === "Greitt");
     // 2.89.0: afhentar pantanir í reikningi sem eiga eftir að fá reikning
@@ -766,7 +768,7 @@
       return `<div class="urow uf5" ${tapAttr("reikn", r.id)}><span class="m">${E(String(r.nr).padStart(3, "0"))}</span><span class="t">${E(r.kaupandi?.name || "")}${late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""}</span><span class="m">${E(p?.nr || "")}</span><span class="m">${E(String(r.dags || "").slice(5).split("-").reverse().join("."))}</span><span class="r">${E(kr(r.tot))}</span></div>`; };
     const top = lhead("", "Reikningar", nbtn("Reikningur").replace(/data-act="fabnew[^"]*"/, 'data-act="rknew:"')) + `<div class="ulbar">${chips([["allt", "Óinnheimt · " + mkr(tot)], ["oreikn", "Óreikningsfært · " + ub.length], ...(PO.length ? [["pnr", "Pantanir án reiknings · " + PO.length]] : []), ["ogr", "Ógreitt · " + og.length], ["gr", "Greitt · " + gr.length], ...(RO.length ? [["ogilt", "Ógilt · " + RO.length]] : [])], f, "u1vf:trk")}</div>`;
     if (WIDE()) { const dI = x => x ? dateIS(d(x)) : "";
-      const wU = x => wrow(tapU(x), [wc("Óreikn."), wc(E(x.p?.vidskiptavinur || ""), "t"), wc(x.p ? E(x.p.nr + " " + (x.p.stutt || "")) : "Án verkefnis"), wc(E(H(x.h) + " klst.")), wc(""), wc(pill("Óreikningsfært")), wc(E(kr(x.kr)), "r")]);
+      const wU = x => wrow(tapU(x), [wc("Óreikn."), wc(E(x.p?.vidskiptavinur || ""), "t"), wc((x.p ? E(x.p.nr + " " + (x.p.stutt || "")) : "Án verkefnis") + (x.h ? ` <span style="color:var(--muted,#7C8896)">· ${E(H(x.h))} klst.</span>` : "")), wc(E(x.d0 ? (x.d1 && x.d1 !== x.d0 ? dI(x.d0) + " – " + dI(x.d1) : dI(x.d0)) : "")), wc(""), wc(pill("Óreikningsfært")), wc(E(kr(x.kr)), "r")]);
       const wP = P => wrow(tapP(P), [wc(E(P.nr)), wc(E(P.vidskiptavinur || ""), "t"), wc(E(P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun")), wc(E(dI(P.til || P.fra))), wc(""), wc(pill("Án reiknings", true)), wc(E(kr(pnN(P))), "r")]);
       const wR = r => { const p = findProj(r.verkefniId || (r.verkefniIds || [])[0]), late = !["Greitt", "Ógilt"].includes(r.stada) && daysTo(r.gjalddagi) < 0;
         return wrow(tapAttr("reikn", r.id), [wc(E(String(r.nr).padStart(3, "0"))), wc(E(r.kaupandi?.name || "") + (late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : ""), "t"), wc(E(p ? p.nr + " " + (p.stutt || "") : "")), wc(E(dI(r.dags))), wc(`<span class="${late ? "red" : ""}">${E(dI(r.gjalddagi))}</span>`), wc(pill(late && r.stada !== "Ógilt" ? "Fram yfir" : r.stada || "", late && r.stada !== "Ógilt")), wc(E(kr(r.tot)), "r")]); };
