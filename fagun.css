@@ -9,7 +9,7 @@ body.kerfi{
   --e1:0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,.05); --e2:0 0 0 1px var(--line2), 0 8px 20px -8px rgba(0,0,0,.25); --hl:none;
 }
 html:not(:has(link[href$="/utlit.css"]))[data-theme="light"] body.kerfi{
-  --bg:#F2F4F6; --surface:#FFFFFF; --ink:#0F1720; --ink2:#3A4553; --muted:#6B7684; --line:#E3E7EB; --line2:#D2D8DE;
+  --bg:#F2F4F6; --surface:#FFFFFF; --ink:#0F1720; --ink2:#3A4553; --muted:#5E6976; /* 2.122.6: dekkra svo smátexti nái WCAG AA (4,5:1) á grunninum */ --line:#E3E7EB; --line2:#D2D8DE;
   --kacc:#24578A; --on-kacc:#FFFFFF; --acc-soft:#EAF0F6; --field:#F8F9FA; --hover:#F6F8FA;
   --t-red:#B13E36; --t-amb:#9C6410; --t-grn:#2C7A57; --t-blu:#24578A;
   --e1:0 0 0 1px var(--line), 0 1px 2px rgba(15,23,32,.04);

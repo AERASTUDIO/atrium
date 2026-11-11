@@ -1121,3 +1121,5 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 #syncfl{display:none}
 @media (min-width:1024px){#syncfl:not([hidden]){display:block;position:fixed;right:24px;bottom:24px;z-index:10090;padding:8px 14px;border-radius:999px;font:500 12.5px Poppins,system-ui,sans-serif;background:var(--surface,#fff);color:var(--muted,#5B6774);border:1px solid var(--line,#E3E7EB);box-shadow:0 6px 20px rgba(0,0,0,.08)}
   #syncfl.off:not([hidden]){background:#3a3f45;color:#fff;border-color:#3a3f45}}
+/* 2.122.6: óvaldir flipar í flipastiku (.seg) á gráum grunni náðu ekki 4,5:1 – blandað við letralitinn */
+body.kerfi :is(.seg,.hdtabs) button:not([aria-selected="true"]){color:color-mix(in srgb,var(--muted) 65%,var(--ink))}

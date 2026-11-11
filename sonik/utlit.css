@@ -9,7 +9,7 @@
   --late:#E39BB8; --late-soft:#3B2230; --crit:#E39BB8;
 }
 :root[data-theme="light"], :root[data-theme="light"][data-variant]{
-  --bg:#E4EEF1; --surface:#FFFFFF; --ink:#0C2127; --muted:#4D7584; --line:#D2E2E7;  /* 2.94.0: ljós útgáfa af dökka lit upphafsskjásins (#0C2127) */
+  --bg:#E4EEF1; --surface:#FFFFFF; --ink:#0C2127; --muted:#436A79; --line:#D2E2E7;  /* 2.94.0: ljós útgáfa af dökka lit upphafsskjásins (#0C2127) */
   --accent:#2A7289; --accent-soft:#D4F7FF; --on-accent:#FFFFFF; --hi:#2A7289; --on-hi:#FFFFFF;
   --b0:#E6F6FA; --b1:#D4F0F7; --b2:#9FD0DE; --b3:#2A7289; --b4:#0C2127;
   --t0:#2A7289; --t1:#2A7289; --t2:#0C2127; --t3:#FFFFFF; --t4:#FFFFFF;
