@@ -124,7 +124,10 @@ document.addEventListener("input",e=>{if(e.target.id!=="leitq") return; leitQ=e.
 /* ---------- Vistunarstaða ---------- */
 let PENDING=false;
 function drawSync(){const el=document.getElementById("syncstat"); if(!el) return; const off=!navigator.onLine;
-  el.hidden=!(off||PENDING); el.textContent=off?(PENDING?"Ekkert net · vistast síðar":"Ekkert net"):"Vistar…"; el.classList.toggle("off",off);}
+  el.hidden=!(off||PENDING); el.textContent=off?(PENDING?"Ekkert net · vistast síðar":"Ekkert net"):"Vistar…"; el.classList.toggle("off",off);
+  /* 2.122.5: í tölvu er hausinn falinn (Útlit I) – sama staða sýnd neðst til hægri svo notandi viti að hann er ótengdur */
+  let fl=document.getElementById("syncfl"); if(!fl){fl=document.createElement("div"); fl.id="syncfl"; fl.setAttribute("role","status"); fl.setAttribute("aria-live","polite"); document.body.appendChild(fl);}
+  fl.hidden=!off&&!PENDING; fl.textContent=el.textContent; fl.classList.toggle("off",off);}
 window.addEventListener("online",drawSync); window.addEventListener("offline",drawSync);
 /* ---------- Valmynd að neðan ---------- */
 const menuwrap=document.getElementById("menuwrap"), mbtn=document.getElementById("mbtn");

@@ -398,9 +398,12 @@ function vUndir(){
   let h=`<label style="margin-top:18px">Sía eftir verkefni<select id="undirfilter"><option value="">Öll verkefni</option>${verkefni().slice().sort((a,b)=>(isDone(a)-isDone(b))||b.nr.localeCompare(a.nr)).map(p=>`<option value="${esc(p.id)}"${p.id===undirFilter?" selected":""}>${esc(p.nafn)}</option>`).join("")}</select></label>`;
   if(!open.length) h+=`<div class="viewtitle">Opin undirverk</div><div class="empty">Engin opin undirverk.</div>`;
   groups.forEach(([s,l])=>{const g=open.filter(r=>(SO[r.u.stada]??2)===SO[s]).sort(byDue); if(g.length) h+=`<div class="viewtitle">${l} · ${g.length}</div>${llist(g.map(card))}`;});
-  if(done.length) h+=`<div class="viewtitle">Lokið · ${done.length}</div>${llist(done.map(card))}`;
+  /* 2.122.5: lokin undirverk safnast upp með árunum – sýnd 60 nýjustu nema beðið sé um öll (áður hundruð lína sem hægðu á skjánum) */
+  const DN=window.UNDIR_ALL||undirFilter?done:done.slice(0,60);
+  if(done.length) h+=`<div class="viewtitle">Lokið · ${done.length}</div>${llist(DN.map(card))}${DN.length<done.length?`<div class="links" style="margin:10px 0"><button type="button" class="btn" data-act="undirall:1">Sýna öll lokin undirverk (${done.length})</button></div>`:""}`;
   return h;
 }
+Object.assign(window.ACT_EXT=window.ACT_EXT||{},{undirall:()=>{window.UNDIR_ALL=true; render();}});
 let undirFilter="", skjalFilter="";
 function vSkjol(){
   const xs=skjol().filter(x=>!skjalFilter||x.projectId===skjalFilter).slice().sort((a,b)=>String(b.breytt||b.stofnad||"").localeCompare(String(a.breytt||a.stofnad||"")));

@@ -341,8 +341,9 @@ const toMin=t=>{const [h,m]=String(t).split(":").map(Number); return h*60+m;};
    nýjar eða breyttar færslur bornar saman við aðrar færslur sama aðila sama dag. */
 function skorunVillu(prev,cur){const old=new Map(((prev?.timar?.faerslur)||[]).map(e=>[e.id,JSON.stringify(e)])), L=(cur?.timar?.faerslur)||[];
   const mn=e=>{const a=toMin(e.fra), b0=toMin(e.til); return [a,b0<=a?b0+1440:b0];};
+  let G=null; const grp=()=>{if(G) return G; G=new Map(); for(const e of L){ if(!e||e.live||!e.fra||!e.til) continue; const k=String(e.date||"").slice(0,10)+"|"+(e.starfsmadur||ME()); (G.get(k)||G.set(k,[]).get(k)).push(e);} return G;}; /* 2.122.5: flokkað eftir degi og starfsmanni – áður borið saman við allar færslur (hægt með þúsundir tíma) */
   for(const x of L){ if(!x||x.live||!x.fra||!x.til||old.get(x.id)===JSON.stringify(x)) continue; const [a,b]=mn(x), who=x.starfsmadur||ME(), dag=String(x.date||"").slice(0,10);
-    const y=L.find(e=>e&&e!==x&&e.id!==x.id&&!e.live&&e.fra&&e.til&&String(e.date||"").slice(0,10)===dag&&(e.starfsmadur||ME())===who&&(()=>{const [c,dd]=mn(e); return a<dd&&c<b;})());
+    const y=(grp().get(dag+"|"+who)||[]).find(e=>e!==x&&e.id!==x.id&&(()=>{const [c,dd]=mn(e); return a<dd&&c<b;})());
     if(y) return `Tíminn ${x.fra}–${x.til} ${dIS(dag)} skarast við „${cleanLys(y.lysing)}“ kl. ${y.fra}–${y.til}${who!==ME()?" ("+starfName(who)+")":""}. Tvær tímaskráningar mega ekki skarast – breyttu tímanum.`; }
   return null;}
 function overlaps(dt,fr,to,sk,exceptId){const a=toMin(fr), b0=toMin(to), b=b0<=a?b0+1440:b0;

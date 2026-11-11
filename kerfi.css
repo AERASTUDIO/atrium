@@ -1117,3 +1117,7 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 @media (min-width:1024px){body .toast,body.simi1 .toast,body.pv .toast,body.simi1.pv .toast{left:calc(248px + 24px)!important;transform:none!important;bottom:24px!important;max-width:min(520px,calc(100vw - 296px))}}
 .fsk-x{flex:0 0 auto;white-space:nowrap}
 @media (max-width:600px){.fsk{padding:14px 14px 6px;margin:12px 0 16px}.fsk-t{font-size:15.5px}.fsk-m small{display:none}.fsk-l button{min-height:46px}}
+/* 2.122.5: staða tengingar í tölvu (app-stillingar.js drawSync) */
+#syncfl{display:none}
+@media (min-width:1024px){#syncfl:not([hidden]){display:block;position:fixed;right:24px;bottom:24px;z-index:10090;padding:8px 14px;border-radius:999px;font:500 12.5px Poppins,system-ui,sans-serif;background:var(--surface,#fff);color:var(--muted,#5B6774);border:1px solid var(--line,#E3E7EB);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+  #syncfl.off:not([hidden]){background:#3a3f45;color:#fff;border-color:#3a3f45}}

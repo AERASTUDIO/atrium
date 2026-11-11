@@ -604,7 +604,7 @@
       const spurn = PDON() ? (pd.drog
           ? { yfir: "Payday", titill: `Senda drög ${R.nr} í Payday`, texti: `Reikningurinn verður til sem drög í Payday á ${nafn}. Þú ferð yfir hann og sendir hann þaðan.`, upphaed: kr(R.tot), upphaedL: "Upphæð með VSK", ja: "Senda drög" }
           : { yfir: "Payday", titill: `Gefa út reikning á ${nafn}`, upphaed: kr(R.tot), upphaedL: "Upphæð með VSK", ja: "Gefa út reikning",
-              atridi: [pd.krafa !== false ? "Krafa stofnast í netbanka greiðanda" : null, pd.post !== false ? "Reikningurinn fer í tölvupósti" + (R.kaupandi?.netfang ? " til " + R.kaupandi.netfang : "") : null, pd.fylgiskjal !== false ? "Sundurliðun tíma fylgir sem viðhengi" : null,
+              atridi: [pd.krafa !== false ? "Krafa stofnast í netbanka greiðanda" : null, pd.post !== false ? (R.kaupandi?.netfang ? "Reikningurinn fer í tölvupósti til " + R.kaupandi.netfang : { t: "Ekkert netfang á greiðanda – reikningurinn fer í tölvupósti aðeins ef netfang er skráð hjá viðskiptavininum í Payday", tak: "hætta" }) : null, pd.fylgiskjal !== false ? "Sundurliðun tíma fylgir sem viðhengi" : null,
                 { t: `Gjalddagi í dag – eindagi ${dIS(pdPlus(+pd.eindagi || 0))}`, tak: "info" }].filter(Boolean),
               ath: "Eftir útgáfu er aðeins hægt að leiðrétta með kreditfærslu." })
         : { yfir: "DK", titill: `Senda drög ${R.nr} í DK`, texti: `DK gefur út reikninginn með sínu númeri${DKC().post ? " og sendir hann greiðanda í tölvupósti" : ""}.`, upphaed: kr(R.tot), upphaedL: "Upphæð með VSK", ja: "Senda í DK" };
