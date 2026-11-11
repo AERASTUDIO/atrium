@@ -1092,3 +1092,7 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 .spurn-i{display:flex;flex-direction:column;gap:6px;margin:0 0 14px;font-size:12px;color:var(--muted,#7C8896)}
 .spurn-i input{font:inherit;font-size:14px;color:var(--ink,#121416);background:var(--field,#F6F7F8);border:1px solid var(--line,#E3E7EB);border-radius:10px;padding:10px 12px;min-height:42px}
 .spurn-i input:focus{outline:2px solid var(--accent,#2F3742);outline-offset:1px}
+/* 2.120.2: Tölva – Vista/Hætta við í aðalforminu alltaf sýnilegt neðst í glugganum (áður þurfti að skruna niður að hnöppunum) */
+@media (min-width:1024px){
+  #sheetwrap .sheet #addf>.actions{position:sticky;bottom:calc(-1 * var(--shpb,24px));z-index:3;background:var(--sheet,var(--surface));margin:14px calc(-1 * var(--shpx,26px)) calc(-1 * var(--shpb,24px))!important;padding:12px var(--shpx,26px) 16px!important;border-top:1px solid var(--line)}
+}

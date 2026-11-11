@@ -46,3 +46,14 @@
     return atrSpurn({ titill: t, texti: rest, ja: "Í lagi", ein: true });
   };
 })();
+/* 2.120.2: Tvísmellur á aðalhnapp (vista, senda, stofna, staðfesta) keyrir aðgerðina aðeins einu sinni. Seinni smellur á sama hnapp
+   innan 0,7 sek. er hunsaður – líka þótt skjárinn hafi teiknast upp á nýtt á milli (hnappurinn þekktur á aðgerð, id eða texta). */
+(function () {
+  let last = { k: "", t: 0 };
+  document.addEventListener("click", e => {
+    const b = e.target.closest?.("button.primary, .btn.primary, [data-einu]"); if (!b || b.disabled) return;
+    const k = (b.dataset.act || b.dataset.pf || b.dataset.s || b.id || "") + "|" + (b.textContent || "").trim().slice(0, 40), t = performance.now();
+    if (k === last.k && t - last.t < 700) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+    last = { k, t };
+  }, true);
+})();
