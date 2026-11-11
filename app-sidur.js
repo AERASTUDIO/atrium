@@ -268,6 +268,19 @@ function pageHead(){if(tab==="yfirlit"||tab==="leit") return "";
   const back=hid?`<a class="pback" data-act="tab:${sec.tabs[0][0]}" role="button" tabindex="0" aria-label="Til baka – ${esc(sec.tabs[0][1])}" title="Til baka – ${esc(sec.tabs[0][1])}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span class="sr">${esc(sec.tabs[0][1])}</span></a>`:"";
   const seg=!hid&&vis.length>1?`<div class="seg" role="tablist" aria-label="${esc(sec.l)}">${vis.map(([k,l])=>`<button type="button" role="tab" data-act="tab:${k}" aria-selected="${k===tab}">${esc(l)}</button>`).join("")}</div>`:"";
   return `<div class="phead">${back}<div class="phrow"><h2 class="ptitle">${esc(hid?cur[1]:sec.l)}</h2>${nb?`<button type="button" class="btn primary pnew" data-act="fabnew" aria-label="Nýtt: ${esc(nb)}" title="Nýtt: ${esc(nb)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>`:""}</div>${seg}</div>`;}
+/* 2.120.3: Skrunstaða lista helst þegar skjárinn teiknast upp á nýtt (gögn berast, sjálfvirk drög, vistun, klukkan) – áður fór
+   listinn í tölvu (.splist) alltaf efst. Fylgst er með hvaða hlutar innan #view hafa verið skrunaðir; á sama skjá er staðan sett aftur,
+   og listinn (.splist) heldur stöðunni líka þegar spjald er opnað við hliðina eða lokað. */
+const SCROLLED=new Set(); let scPend=null;
+document.addEventListener("scroll",e=>{const t=e.target; if(t&&t.nodeType===1&&t.closest?.("#view")) SCROLLED.add(t);},true);
+const scKey=(v,el)=>{if(el.id) return "#"+el.id; const sel=el.tagName.toLowerCase()+[...el.classList].filter(c=>!/^(on|anim|slide|in-[lr])$/.test(c)).map(c=>"."+CSS.escape(c)).join(""); return sel+"@"+[...v.querySelectorAll(sel)].indexOf(el);};
+function scSnap(v){if(!v||!render._k) return null; const out=[];
+  SCROLLED.forEach(el=>{if(!el.isConnected||!v.contains(el)){SCROLLED.delete(el); return;} if(el.scrollTop||el.scrollLeft) out.push([scKey(v,el),el.scrollTop,el.scrollLeft,el.classList.contains("splist")]);});
+  return out.length?{prev:render._k,out}:null;}
+function scRestore(v,ss){if(!ss) return; const [pt,,ps]=ss.prev.split("|"), now=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""), same=now===ss.prev, sameTab=pt===tab&&ps===(window.STSUB||"");
+  if(!same&&!sameTab) return;
+  ss.out.forEach(([key,t,l,isList])=>{if(!same&&!isList) return; let el=null; if(key[0]==="#") el=document.getElementById(key.slice(1)); else {const i=key.lastIndexOf("@"); el=v.querySelectorAll(key.slice(0,i))[+key.slice(i+1)]||null;}
+    if(el){el.scrollTop=t; el.scrollLeft=l; SCROLLED.add(el);}});}
 function render(){
   applyEin(); if(!TABS.includes(tab)&&tab!=="leit") tab="yfirlit"; // leit er ekki flipi í valmynd (lagað 2.18.2 – leitin opnaðist ekki frá 2.0.0)
   drawMenu(); window.deildHdr?.(); clearTimeout(render._n); render._n=setTimeout(scheduleNotifs,500);
@@ -276,6 +289,7 @@ function render(){
   const det=DETAIL?detailHTML():null; if(DETAIL&&!det) DETAIL=null;
   document.body.classList.toggle("haspnew",!det&&!!NEWBTN[tab]&&!!MCP);
   document.body.classList.toggle("onchat",!det&&tab==="spjall");
+  if(!scPend){scPend=scSnap(v)||{}; queueMicrotask(()=>{const ss=scPend; scPend=null; if(ss.prev) scRestore(document.getElementById("view"),ss);});} /* eftir allar umbúðir (Útlit I o.fl.) */
   v.innerHTML=(window.viewAsBanner?viewAsBanner():"")+(det||pageHead()+(window.deildMob?deildMob(tab):"")+({yfirlit:()=>(window.ORG?.pakkaval&&window.vHeim2?vHeim2():vYfirlit("heim")),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolFyr?vSkjolFyr():(window.vSkjolNy?vSkjolNy():""),skjolmin:()=>window.vSkjolMin?vSkjolMin():"",skjolnyl:()=>window.vSkjolNyl?vSkjolNyl():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||window.VIEWS_EXT?.[tab]||(()=>vYfirlit("heim")))()); drawSync();
   // Hreyfing aðeins þegar skipt er um síðu – ekki þegar gögn uppfærast
   const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==render._k){const dv=!!DETAIL&&!String(render._k||"").includes("|"+DETAIL+"|"); render._k=key; v.classList.remove("anim","slide"); void v.offsetWidth; v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide"); clearTimeout(render._a); render._a=setTimeout(()=>v.classList.remove("anim","slide"),900);}
@@ -294,13 +308,13 @@ function renderDataNow(){const v=document.getElementById("view"), a=document.act
   if(same) [...v.querySelectorAll(fq)].forEach((el,i)=>{const k=fk(el,i); if(el.type==="checkbox"||el.type==="radio"){if(el.checked!==el.defaultChecked) keep.push([k,"c",el.checked]);}
     else if(el.tagName==="SELECT"){const d=[...el.options].find(o=>o.defaultSelected); if(d&&el.value!==d.value) keep.push([k,"s",el.value]);}
     else if(el.value!==el.defaultValue) keep.push([k,"v",el.value,el.defaultValue]);});
-  const sc=same?[...v.querySelectorAll("[id]")].filter(e=>e.scrollTop>0||e.scrollLeft>0).map(e=>[e.id,e.scrollTop,e.scrollLeft]):[], y=window.scrollY;
+  const y=window.scrollY;
   render();
   if(!same) return;
   if(Math.abs(window.scrollY-y)>1) window.scrollTo(0,y);
   if(keep.length){const els=[...v.querySelectorAll(fq)]; keep.forEach(([k,t,x,d])=>{const el=els.find((e,i)=>fk(e,i)===k); if(!el) return;
     if(t==="c") el.checked=x; else if(t==="s") el.value=x; else if(el.defaultValue===d) el.value=x;});}
-  sc.forEach(([id,t,l])=>{const e=document.getElementById(id); if(e){e.scrollTop=t; e.scrollLeft=l;}});}
+}
 function setDtab(k,dir){if(k===DTAB) return; DTAB=k; try{history.replaceState({aera:DETAIL,dtab:DTAB},"");}catch(e){}
   const y=window.scrollY, nav=document.querySelector(".dtabs"), top=nav?nav.getBoundingClientRect().top+y-70:0; render();
   window.scrollTo({top:Math.min(y,Math.max(0,top))}); document.querySelector('.dtabs [aria-selected="true"]')?.scrollIntoView({block:"nearest",inline:"center"});

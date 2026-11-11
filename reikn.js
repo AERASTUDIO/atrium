@@ -154,7 +154,7 @@
     if (autoBusy || typeof S === "undefined" || !S || !window.salaAPI) return;
     try { if (!FJ() || !autoOn()) return; } catch (e) { return; }
     const rk = RK(), Ps = PNs(), Rs = reikningar();
-    if (!rk.sjalfFra) { autoBusy = true; try { await saveSnapshot(st => { st.stillingar = st.stillingar || {}; st.stillingar.reikn = { ...(st.stillingar.reikn || {}), sjalfFra: isoDay(new Date()) }; }); } catch (e) {} autoBusy = false; return; }
+    if (!rk.sjalfFra) { autoBusy = true; try { await (window.saveHljodlaust || saveSnapshot)(st => { st.stillingar = st.stillingar || {}; st.stillingar.reikn = { ...(st.stillingar.reikn || {}), sjalfFra: isoDay(new Date()) }; }); } catch (e) {} autoBusy = false; return; }
     const sig = JSON.stringify([Ps.map(p => [p.id, p.stada, p.reikningur, p.greitt?.dags, p.linur, p.afsl, p.vskId, p.greidsluhattur]), Rs.map(r => [r.id, r.lifandi, !!r.bokhald, r.stada]), rk.sjalfFra, rk.dkSjalf, rk.bokhald]);
     if (sig === autoSig) return;
     const nyjar = Ps.filter(P => !P.reikningur && autoWant(P, rk.sjalfFra)), upd = [];
@@ -164,7 +164,7 @@
     if (!nyjar.length && !upd.length) { autoSig = sig; return; }
     autoBusy = true; const made = [];
     try {
-      await saveSnapshot(st => { st.reikningar = st.reikningar || []; st.stillingar = st.stillingar || {}; const r0 = { ...RK(), ...(st.stillingar.reikn || {}) }; let nr = +r0.nastaNr || 1001;
+      await (window.saveHljodlaust || saveSnapshot)(st => { st.reikningar = st.reikningar || []; st.stillingar = st.stillingar || {}; const r0 = { ...RK(), ...(st.stillingar.reikn || {}) }; let nr = +r0.nastaNr || 1001;
         nyjar.forEach(P0 => { const q = (st.pantanir || []).find(x => x.id === P0.id); if (!q || q.reikningur) return;
           const ex = st.reikningar.find(r => r.id === "pn" + q.id); if (ex) { q.reikningur = ex.id; return; }
           while (st.reikningar.some(r => r.nr === nr)) nr++;

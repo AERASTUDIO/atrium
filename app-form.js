@@ -292,12 +292,15 @@ function fsClean(v){if(Array.isArray(v)) return v.map(x=>x===undefined?null:fsCl
 // Eigandi tíma/kostnaðar: starfsmaðurinn sem færslan er á (ef notandinn má skrá á aðra), annars notandinn sjálfur.
 const skEmail=sk=>sk?(window.nuUsers?nuUsers():[]).find(u=>u.sk===sk)?.email||null:null;
 const ownerOf=x=>(window.can&&can("fjarmal")?skEmail(x.starfsmadur||x.sk):null)||USER?.email||"";
+/* 2.120.3: Vistun í bakgrunni (t.d. sjálfvirk reikningsdrög) teiknar skjáinn eins og gögn sem berast – truflar ekki notanda sem er að skrifa */
+let HLJOD=0; function saveHljodlaust(mut){HLJOD++; try{return saveSnapshot(mut);}finally{HLJOD--;}}
+const rendS=()=>(HLJOD&&window.renderData?renderData:render)();
 async function saveSnapshot(mut){
   if(!DB) throw {message:"Ekki tengt gagnagrunni."};
   if(window.VIEWAS){toast("Skoðunarhamur – ekkert er vistað. Ýttu á Hætta efst til að vista aftur."); throw {code:"form",message:"Skoðunarhamur: vistun er óvirk."};}
   if(window.SPLIT) return saveSplit(mut);
   const prev=S, cur=structuredClone(S||{}); const ids=[]; ID_REC=ids; try{ mut(cur); } finally { ID_REC=null; } cur.uppfaert=new Date().toISOString();
-  const clean=fsClean(cur); S=clean; render();
+  const clean=fsClean(cur); S=clean; rendS();
   // Firestore tekur ekki við „undefined“; hreinsað hér að ofan. Ef vistun mistekst samt er skjárinn færður til baka svo ekkert sýnist vistað sem er það ekki.
   const fail=e=>{saveErr=e; if(S===clean){S=prev; render();} toast("Vistun mistókst – breytingin fór ekki upp. ("+(e?.code||e?.message||"villa")+")");};
   const viaSet=()=>DB.set("app/state",clean).catch(fail);
@@ -315,7 +318,7 @@ function saveSplit(mut){
   const prev=S, cur=structuredClone(S||{}); const ids=[]; ID_REC=ids; try{ mut(cur); } finally { ID_REC=null; }
   const skv=skorunVillu(prev,cur); if(skv){toast(skv); throw {code:"form",message:skv};}
   const me=USER?.email||""; GOGN.stamp(prev,cur,me,ownerOf);
-  const clean=fsClean(cur); S=clean; render();
+  const clean=fsClean(cur); S=clean; rendS();
   const fail=e=>{saveErr=e; if(S===clean){S=prev; render();} toast("Vistun mistókst – breytingin fór ekki upp. ("+(e?.code||e?.message||"villa")+")");};
   const ops=GOGN.ops(prev,clean,me);
   if(ops.length) DB.commit(ops).catch(fail);
