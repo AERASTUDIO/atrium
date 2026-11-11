@@ -40,7 +40,10 @@ function vStillingarAll(){
   ${window.poSigSettingsHTML?poSigSettingsHTML():""}
   ${adm&&window.rkStillingarHTML?rkStillingarHTML():""}
   ${adm?`<div class="viewtitle">Vinnuvika</div>
-  <div class="two" style="align-items:end"><label>Markmið klst. á viku<input id="cfg-vikumark" type="text" inputmode="decimal" value="${esc(num(CFG().vikumark||40))}"></label><button type="button" class="btn" data-act="cfg:vikumark:0" style="min-height:46px">Vista</button></div>`:""}
+  <div class="two" style="align-items:end"><label>Markmið klst. á viku<input id="cfg-vikumark" type="text" inputmode="decimal" value="${esc(num(CFG().vikumark||40))}"></label><span></span></div>
+  <div class="two" style="align-items:end;margin-top:8px"><label>Dagvinna frá<input id="cfg-dvfra" type="time" step="900" value="${esc((CFG().dagvinna||window.ORG?.dagvinna||{}).fra||"08:00")}"></label><label>Dagvinna til<input id="cfg-dvtil" type="time" step="900" value="${esc((CFG().dagvinna||window.ORG?.dagvinna||{}).til||"16:00")}"></label></div>
+  <p class="hint" style="margin:6px 0 8px">Tímar utan dagvinnu á virkum dögum, um helgar og á almennum frídögum teljast yfirvinna í tímaskýrslum.</p>
+  <div class="links"><button type="button" class="btn" data-act="cfg:vikumark:0">Vista vinnuviku</button></div>`:""}
   <div class="viewtitle">Áminningar</div>
   <p class="hint" style="margin:0 0 8px">Áreiðanlegast er að setja fundi og skil í dagatal símans, sem lætur þig vita. Tilkynningar appsins virka á meðan það er opið eða nýlega opnað.</p>
   <div class="links"><button type="button" class="btn primary" data-act="ics:all">Setja fundi og skil í dagatalið mitt (.ics)</button><button type="button" class="btn" data-act="notif:on">${("Notification" in window)&&Notification.permission==="granted"?"✓ Tilkynningar virkar":"Virkja tilkynningar"}</button></div>
@@ -78,7 +81,9 @@ async function cfgAct(a,i){if(!can("stillingar")) return toast("Aðeins admin ge
   if(a==="sfren"){const o=STARFS()[i]; const n=await ask("Nafn:",o.nafn); if(n) cfgSave(c=>{c.starfsmenn[i].nafn=n;});}
   if(a==="sfdel"){const o=STARFS()[i], u=faerslur().filter(e=>(e.starfsmadur||ME())===o.sk).length; if(o.sk===ME()) return atrSegja("Ekki er hægt að eyða sjálfum þér."); if(window.nuUsers&&nuUsers().some(u=>u.sk===o.sk&&u.virkur)) return atrSegja(`${o.nafn} er virkur notandi. Gerðu notandann óvirkan undir Notendur fyrst.`); if(u) return atrSegja(`${o.nafn} er með ${u} tímaskráningar og verður ekki eytt.`); atrJa(`Eyða ${o.nafn}?`).then(j=>{if(j) cfgSave(c=>c.starfsmenn.splice(i,1));});}
   if(a==="sfeg") cfgSave(c=>c.starfsmenn.forEach((x,k)=>x.eg=k===i));
-  if(a==="vikumark"){const v=parseFloat(String(document.getElementById("cfg-vikumark").value).replace(",",".")); if(v>0&&v<120) cfgSave(c=>{c.vikumark=v;}).then(()=>toast("Vikumarkmið vistað"));}
+  if(a==="vikumark"){const v=parseFloat(String(document.getElementById("cfg-vikumark").value).replace(",",".")), f=document.getElementById("cfg-dvfra")?.value||"", t=document.getElementById("cfg-dvtil")?.value||"";
+    if(!(v>0&&v<120)) return toast("Markmið þarf að vera á bilinu 1–119 klst."); if(f&&t&&t<=f) return toast("Dagvinna þarf að enda eftir að hún hefst.");
+    cfgSave(c=>{c.vikumark=v; if(f&&t) c.dagvinna={fra:f,til:t};}).then(()=>toast("Vinnuvika vistuð"));}
   if(a==="snid"){const t=THJ()[i], lines=document.getElementById("snid-"+i).value.split("\n").map(x=>x.trim()).filter(Boolean); cfgSave(c=>{c.snidmat=c.snidmat||structuredClone(SNID()); c.snidmat[t]=lines;}).then(()=>toast("Sniðmát vistað"));}
 }
 document.addEventListener("change",e=>{const i=e.target.dataset?.cfgcolor; if(i!=null&&can("stillingar")) cfgSave(c=>{c.stodur[+i].c=e.target.value;});});

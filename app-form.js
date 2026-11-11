@@ -6,7 +6,7 @@ let kind="tima";
 const sheetwrap=document.getElementById("sheetwrap"), sheet=document.getElementById("sheet");
 function toast(t,undo){const el=document.getElementById("toast");el.textContent=t;
   if(undo){const b=document.createElement("button"); b.type="button"; b.className="undo"; b.textContent="Afturkalla"; b.onclick=()=>{el.hidden=true; undo();}; el.append(" ",b);}
-  el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,undo?7000:3200);}
+  el.hidden=false;clearTimeout(toast.t); /* 2.120.5: lengri skilaboð (t.d. villur) standa lengur; músin yfir heldur þeim */ const ms=undo?7000:Math.min(9000,Math.max(3200,String(t||"").length*65)); const hide=()=>{toast.t=setTimeout(()=>el.hidden=true,ms);}; el.onmouseenter=()=>clearTimeout(toast.t); el.onmouseleave=()=>{clearTimeout(toast.t); hide();}; hide();}
 /* ---------- Eyða ---------- */
 async function deleteItem(type,id){
   const T=s=>s.timar=s.timar||{}, entries=s=>[...new Set([...(s.timar?.faerslur||[]),...(s.timar?.nyjast||[])])];

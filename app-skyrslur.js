@@ -3,14 +3,17 @@
    sömu víðværu breytum og hlaðast í þeirri röð sem index.html telur þær upp. */
 /* Dagvinna / yfirvinna: dagvinna kl. 08–16 virka daga (mán–fös, ekki almennir frídagar á Íslandi). Annað er yfirvinna.
    Aðfangadagur og gamlársdagur: dagvinna aðeins 08–13. Færsla án frá–til telst dagvinna á virkum degi, annars yfirvinna. */
-const DV_FRA=8*60, DV_TIL=16*60, HOL={};
+/* 2.120.5: dagvinnutíminn er stilling (Stillingar › Tímaskráning › Vinnuvika) – sjálfgefið 08:00–16:00 eins og áður; uppsetning má setja ORG.dagvinna */
+const HOL={}, hm2m=(t,dflt)=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||"")); return m?(+m[1])*60+(+m[2]):dflt;};
+const DVS=()=>{const x=(typeof CFG==="function"&&CFG().dagvinna)||window.ORG?.dagvinna||{}; const f=hm2m(x.fra,480), t=hm2m(x.til,960); return t>f?[f,t]:[480,960];};
+const dvTxt=()=>{const [f,t]=DVS(), z=m=>String(Math.floor(m/60)).padStart(2,"0")+(m%60?":"+String(m%60).padStart(2,"0"):""); return z(f)+"–"+z(t);};
 function holidaysIS(y){if(HOL[y]) return HOL[y]; const a=y%19,b=Math.floor(y/100),c=y%100,dd=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-dd-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
   const E=new Date(y,mo-1,da), off=n=>{const x=new Date(E); x.setDate(E.getDate()+n); return isoDay(x);};
   let sum=new Date(y,3,19); while(sum.getDay()!==4) sum.setDate(sum.getDate()+1);
   let ver=new Date(y,7,1); while(ver.getDay()!==1) ver.setDate(ver.getDate()+1);
   return HOL[y]=new Set([`${y}-01-01`,off(-3),off(-2),off(0),off(1),isoDay(sum),`${y}-05-01`,off(39),off(49),off(50),`${y}-06-17`,isoDay(ver),`${y}-12-25`,`${y}-12-26`]);}
 function dvWindow(iso){const x=d(iso); if(!x) return null; const wd=x.getDay(); if(wd===0||wd===6||holidaysIS(x.getFullYear()).has(iso)) return null;
-  return /-12-(24|31)$/.test(iso)?[DV_FRA,13*60]:[DV_FRA,DV_TIL];}
+  const [F,T]=DVS(); return /-12-(24|31)$/.test(iso)?[F,Math.min(T,13*60)]:[F,T];}
 function splitDY(e){const t=+e.timar||0, day=String(e.date||"").slice(0,10); if(!t) return {d:0,y:0};
   if(!(e.fra&&e.til)) return dvWindow(day)?{d:t,y:0}:{d:0,y:t};
   const a=toMin(e.fra), b0=toMin(e.til), b=b0<=a?b0+1440:b0; let dv=0;
@@ -41,7 +44,7 @@ function openReport(pred,meta){
     ${R.n?`<div class="tw"><table><thead><tr><th>Dagsetning</th><th>Undirverk</th><th>Lýsing</th><th>Frá</th><th>Til</th>${R.multi?"<th>Starfsm.</th>":""}<th class="r">Dagv.</th><th class="r">Yfirv.</th><th class="r">Klst.</th></tr></thead><tbody>
     ${R.gs.map(g=>`<tr class="pg"><td colspan="${cols}">${esc(g.label)}</td></tr>${g.es.map(row).join("")}<tr class="st"><td colspan="${cols-3}">Samtals ${esc(g.st)}</td>${dyG(g.es)}<td class="r">${fmtH(sumT(g.es))}</td></tr>`).join("")}
     <tr class="gt"><td colspan="${cols-3}">Samtals</td>${dyG(R.gs.flatMap(g=>g.es))}<td class="r">${fmtH(R.tot)}</td></tr></tbody></table></div>
-    <p class="hint" style="margin-top:6px">Dagvinna er kl. 08–16 virka daga (aðfangadag og gamlársdag 08–13). Kvöld, helgar og almennir frídagar teljast yfirvinna.</p>`:""}
+    <p class="hint" style="margin-top:6px">Dagvinna er kl. ${dvTxt()} virka daga (aðfangadag og gamlársdag 08–13). Kvöld, helgar og almennir frídagar teljast yfirvinna.</p>`:""}
     ${R.ks.length?`<div class="viewtitle">Útlagður kostnaður</div><div class="tw"><table><thead><tr><th>Dagsetning</th><th>Verkefni</th><th>Lýsing</th>${R.multi?"<th>Starfsm.</th>":""}<th class="r">Upphæð</th></tr></thead><tbody>
       ${R.ks.map(k=>{const p=findProj(k.verkefniId); return `<tr><td>${esc(dIS(String(k.date).slice(0,10)))}</td><td>${esc(p?.nr||"")}</td><td>${esc(k.lysing||"")}${k.kvittun?` <a class="plink" href="${esc(k.kvittun)}" target="_blank" rel="noopener">🧾</a>`:""}</td>${R.multi?`<td>${esc(k.starfsmadur||ME())}</td>`:""}<td class="r">${esc(kr(k.upphaed))}</td></tr>`;}).join("")}
       <tr class="gt"><td colspan="${R.multi?4:3}">Samtals</td><td class="r">${esc(kr(R.ktot))}</td></tr></tbody></table></div>`:""}
@@ -56,7 +59,7 @@ async function downloadXlsx(R){ const logo=window.DOK?await DOK.logo().catch(()=
   rows.push([S_("Tímaskýrsla",1)]); merges.push(`A1:${last}1`);
   rows.push([S_(ORG.nafn,2)]);
   rows.push([S_("Tímabil: "+R.meta.bil+(R.meta.verkefni?"   ·   Verkefni: "+R.meta.verkefni:"")+(R.meta.starf?"   ·   Starfsmaður: "+R.meta.starf:""),2)]);
-  rows.push([S_("Útbúið "+dIS(isoDay(new Date()))+"   ·   "+R.n+" færslur   ·   Dagvinna "+num(R.dy.d)+" klst.   ·   Yfirvinna "+num(R.dy.y)+" klst.   (dagvinna kl. 08–16 virka daga)",2)]);
+  rows.push([S_("Útbúið "+dIS(isoDay(new Date()))+"   ·   "+R.n+" færslur   ·   Dagvinna "+num(R.dy.d)+" klst.   ·   Yfirvinna "+num(R.dy.y)+" klst.   (dagvinna kl. "+dvTxt()+" virka daga)",2)]);
   rows.push([]);
   const head=["Dagsetning","Verknúmer","Undirverk","Lýsing","Frá","Til"].concat(m?["Starfsm."]:[]).map(h=>S_(h,3)); head.push(S_("Dagv.",13),S_("Yfirv.",13),S_("Klst.",13)); rows.push(head);
   const hdrRow=rows.length;
@@ -142,7 +145,7 @@ async function reportPdf(R,onlyBytes){
   if(R.ks.length){need(60); P.text("Útlagður kostnaður",M,y,{w:"light",size:14,color:C.grafit}); y+=12; P.rect(M,y,X1-M,20,C.grafit); [["Dags.",X.d],["Verkefni",X.u],["Lýsing",X.l],["Upphæð",X.k,"right"]].forEach(([t,x,a])=>P.text(t,x,y+13.5,{w:"medium",size:8,color:C.hvitt,align:a})); y+=20;
     R.ks.forEach(k=>{need(18); P.text(dIS(String(k.date).slice(0,10)),X.d,y+12,{size:8}); P.text(findProj(k.verkefniId)?.nr||"",X.u,y+12,{size:8}); P.text(k.lysing||"",X.l,y+12,{size:8}); P.text(kr(k.upphaed),X.k,y+12,{size:8,align:"right"}); y+=17; P.line(M,y,X1,y);});
     need(20); y+=14; P.text("Samtals",X.d,y,{w:"medium",size:9}); P.text(kr(R.ktot),X.k,y,{w:"medium",size:9,align:"right"}); y+=18;}
-  need(30); P.wrap("Dagvinna er kl. 08–16 virka daga (aðfangadag og gamlársdag 08–13). Kvöld, helgar og almennir frídagar teljast yfirvinna.",X1-M,7.5).forEach(t=>{P.text(t,M,y,{size:7.5,color:C.stal}); y+=10;});
+  need(30); P.wrap("Dagvinna er kl. "+dvTxt()+" virka daga (aðfangadag og gamlársdag 08–13). Kvöld, helgar og almennir frídagar teljast yfirvinna.",X1-M,7.5).forEach(t=>{P.text(t,M,y,{size:7.5,color:C.stal}); y+=10;});
   if(onlyBytes) return P.finish(label);
   return deliverDoc(P.finish(label),repName(R)+".pdf","application/pdf","Tímaskýrslur/"+repYear(R));
 }
