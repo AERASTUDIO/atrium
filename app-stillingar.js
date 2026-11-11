@@ -6,7 +6,7 @@ window.STSUB=null;
 const STPAGES={utlit:{l:"Útlit",d:"Ljóst, dökkt eða sjálfvirkt",s:["Útlit"]},ms:{l:"Microsoft 365",d:"Outlook, Teams og SharePoint",s:["Microsoft 365"]},sig:{l:"Undirskrift í pósti",d:"Neðst í tölvupósti úr appinu",s:["Undirskrift í pósti"]},amin:{l:"Áminningar",d:"Áminningar um tímaskráningu",s:["Áminningar"]},
   folk:{l:"Fólk",d:"Notendur, hlutverk og starfsmenn",s:["Notendur","Starfsmenn"],adm:1},fyrir:{l:"Reikningar og fyrirtæki",d:"Seljandi, tímagjald, VSK og vinnuvika",s:["Reikningar","Vinnuvika"],adm:1},
   adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
-  einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()},
+  einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()+(window.fskSynaHTML?fskSynaHTML():"")},
   tilbod:{l:"Leiga og sala",d:"Flokkar, dagstuðlar, VSK, tilboðsnúmer og skilmálar",s:[],adm:1,fn:()=>window.tbStillingar?tbStillingar():""},
   vstill:{l:"Verkefnastillingar",d:window.ORG?.utlit==="I"?"Stöður, verkflokkar og sniðmát undirverka":"Stöður, þjónusta og sniðmát undirverka",s:["Staða verkefna",window.ORG?.utlit==="I"?"Verkflokkar":"Þjónusta","Sniðmát undirverka"],adm:1},
   prufa:{l:"Prufugögn",d:"Hlaða inn eða eyða uppspunnum gögnum til prófunar",s:[],adm:1,fn:()=>window.vPrufugogn?vPrufugogn():""}};

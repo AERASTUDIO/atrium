@@ -89,7 +89,7 @@
     if (b && o.startsWith("post:") && window.poBox) window.poBox([{ id: o.slice(5) }], "/users/" + encodeURIComponent(b.toLowerCase()));
     if (typeof S === "undefined" || !S || typeof render !== "function") return false;
     tab = t; DETAIL = o || null; window.STSUB = null; render(); return true; };
-  (() => { let n = 0; const iv = setInterval(() => { if (fromNote() || ++n > 40) clearInterval(iv); }, 250); })();
+  (() => { const h0 = location.hash; if (!/^#t=/.test(h0)) return; let n = 0; /* 2.121.0: aðeins slóðin sem appið var opnað með – ekki slóð sem appið sjálft setur (Útlit I), annars týndist undirsíða Stillinga */ const iv = setInterval(() => { if (location.hash !== h0 || fromNote() || ++n > 40) clearInterval(iv); }, 250); })();
   window.addEventListener("hashchange", fromNote);
 
   // Talan á tákni appsins hreinsast þegar appið er opnað

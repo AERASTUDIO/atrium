@@ -1096,3 +1096,24 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 @media (min-width:1024px){
   #sheetwrap .sheet #addf>.actions{position:sticky;bottom:calc(-1 * var(--shpb,24px));z-index:3;background:var(--sheet,var(--surface));margin:14px calc(-1 * var(--shpx,26px)) calc(-1 * var(--shpb,24px))!important;padding:12px var(--shpx,26px) 16px!important;border-top:1px solid var(--line)}
 }
+/* 2.121.0: Fyrstu skref (fyrstuskref.js) */
+.fsk{margin:16px 0 18px;padding:18px 20px 10px;border:1px solid var(--line);border-radius:var(--rad,12px);background:var(--surface);font-family:Poppins,system-ui,sans-serif}
+.fsk-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.fsk-y{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fsk-t{font-size:17px;font-weight:400;margin:4px 0 0;color:var(--ink);line-height:1.3}
+.fsk-bar{height:4px;border-radius:2px;background:var(--line);margin:14px 0 6px;overflow:hidden}.fsk-bar i{display:block;height:100%;background:var(--kacc,#4A6A8A);border-radius:2px}
+.fsk-l{list-style:none;margin:0;padding:0}
+.fsk-l li+li{border-top:1px solid var(--line)}
+.fsk-l button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 2px;cursor:pointer;color:var(--ink)}
+.fsk-l button:focus-visible{outline:2px solid var(--kacc,#4A6A8A);outline-offset:2px;border-radius:6px}
+.fsk-c{flex:0 0 22px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:inline-flex;align-items:center;justify-content:center;color:var(--kacc,#4A6A8A)}
+.fsk-c svg{width:14px;height:14px}
+.fsk-l li.ok .fsk-c{border-color:var(--kacc,#4A6A8A);background:color-mix(in srgb,var(--kacc,#4A6A8A) 12%,transparent)}
+.fsk-l li.ok b{color:var(--muted);font-weight:400}
+.fsk-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.fsk-m b{font-weight:500;font-size:14px}.fsk-m small{font-size:12.5px;color:var(--muted);line-height:1.4}
+.fsk-a{color:var(--muted);font-size:18px}
+.ustart .fsk.fsk-dokk{width:min(520px,calc(100% - 32px));margin:36px auto 0;text-align:left;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12);--ink:#E8ECF0;--muted:#9AA6B2;--line:rgba(255,255,255,.12);--surface:transparent}
+/* 2.121.0: Tilkynning (toast) neðst til vinstri í aðalsvæðinu í tölvu – hylur ekki aðgerðahnappa neðst í spjaldi eða formi */
+@media (min-width:1024px){body .toast,body.simi1 .toast,body.pv .toast,body.simi1.pv .toast{left:calc(248px + 24px)!important;transform:none!important;bottom:24px!important;max-width:min(520px,calc(100vw - 296px))}}
+.fsk-x{flex:0 0 auto;white-space:nowrap}
+@media (max-width:600px){.fsk{padding:14px 14px 6px;margin:12px 0 16px}.fsk-t{font-size:15.5px}.fsk-m small{display:none}.fsk-l button{min-height:46px}}
