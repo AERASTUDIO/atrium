@@ -659,7 +659,7 @@ if (process.env.BOKHALD === "payday") {
       const drog = P.hamur === "drog";
       // 2.118.7: almennar reglur – krafa aðeins ef fyrirtækið er með virka bankatengingu í Payday (company.hasClaimCollection);
       // rafrænn reikningur (XML) fylgir stillingu viðskiptavinarins í Payday (createElectronicInvoice ekki sent)
-      let krafaOK = false; if (!drog && P.krafa !== false) { const c = await pd("GET", "/company"); krafaOK = !c.ok || c.data?.hasClaimCollection !== false; if (!krafaOK) logger.info("bokhaldPayday: engin kröfutenging í Payday – reikningur án kröfu"); } // 2.118.6: sjálfgefið gefinn út strax (SENT) með kröfu; „drog“ = drög í Payday
+      let krafaOK = false; if (!drog) { /* 2.118.9: útgefinn reikningur fær alltaf kröfu ef tenging leyfir (eldra krafa:false hunsað) */ const c = await pd("GET", "/company"); krafaOK = !c.ok || c.data?.hasClaimCollection !== false; if (!krafaOK) logger.info("bokhaldPayday: engin kröfutenging í Payday – reikningur án kröfu"); } // 2.118.6: sjálfgefið gefinn út strax (SENT) með kröfu; „drog“ = drög í Payday
       const body = { customer: { id: custId }, description: txt(R.lysing || "", 1000) || undefined, invoiceDate: inv, dueDate: due, finalDueDate: fin, currencyCode: "ISK",
         reference: txt("ATR-" + R.nr, 100), status: drog ? "DRAFT" : "SENT", lines,
         ...(!drog ? { sendEmail: P.post !== false, createClaim: krafaOK } : {}),
@@ -673,7 +673,7 @@ if (process.env.BOKHALD === "payday") {
       }
       if (!p) p = await pd("POST", "/invoices", body);
       if (!p.ok || !p.data?.id) throw new Error("Payday hafnaði reikningnum (" + p.status + "): " + pdErr(p));
-      const out = result(p.data); out.bokhald.fylgiskjal = fylgi; out.bokhald.gjalddagi = due; out.bokhald.eindagi = fin; out.bokhald.krafa = krafaOK; out.bokhald.engKrafa = !drog && P.krafa !== false && !krafaOK; out.bokhald.post = !drog && P.post !== false;
+      const out = result(p.data); out.bokhald.fylgiskjal = fylgi; out.bokhald.gjalddagi = due; out.bokhald.eindagi = fin; out.bokhald.krafa = krafaOK; out.bokhald.engKrafa = !drog && !krafaOK; out.bokhald.post = !drog && P.post !== false;
       if (out.bokhald.stada === "sent") out.gjalddagi = fin; // yfirlit Atrium miðar við eindaga
       await ref.update(out);
       logger.info("bokhaldPayday stofnað", { id: ev.params.id, pid: p.data.id, status: p.data.status, nr: p.data.number });

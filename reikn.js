@@ -309,7 +309,7 @@
   const BK = () => RK().bokhald || "", DKON = () => BK() === "dk", DKC = () => ({ solumadur: "", lykill: "", mati: "", skilmali: "", stadgKt: "", stadgMati: "", stadgSkilmali: "", grId: "", grNafn: "", post: false, ...(RK().dk || {}) });
   // 2.118.0: Payday – sama ferli og DK (fallið bokhaldPayday); drög í Payday (stada "drog") fá númer þegar þau eru send úr Payday
   const PDON = () => BK() === "payday", TENGT = () => DKON() || PDON(), BKN = () => PDON() ? "Payday" : "DK";
-  const PDC = () => { const d = { hamur: "utgefa", post: true, krafa: true, fylgiskjal: true, eindagi: 20, stadgKt: "", grId: "", ...(RK().payday || {}) }; if (d.hamur !== "drog") d.hamur = "utgefa"; d.drog = d.hamur === "drog"; return d; };
+  const PDC = () => { const d = { hamur: "utgefa", post: true, krafa: true, fylgiskjal: true, eindagi: 20, stadgKt: "", grId: "", ...(RK().payday || {}) }; if (d.hamur !== "drog") d.hamur = "utgefa"; d.drog = d.hamur === "drog"; d.krafa = !d.drog; return d; };
   const pdPlus = n => { const x = new Date(); x.setDate(x.getDate() + n); return isoDay(x); };
   const TT = () => DROG() ? "Reikningsdrög" : "Reikningur";
   const NRL = R => (DROG() ? "Drög nr. " : "Reikningur nr. ") + R.nr;
