@@ -3,7 +3,7 @@
    Gögn: S.reikningar[], S.stillingar.reikn{}, verkefni.timagjald, færsla.reikningur / kostnaður.reikningur = id reiknings. */
 (function () {
   const NONE = "_"; // lykill fyrir tíma/kostnað án verkefnis
-  const RK = () => ({ nafn: ORG.nafn, kt: "", heimilisfang: "", vsknr: "", banki: "", netfang: "", simi: "", vsk: window.VERD && !VERD().vskSkra ? 0 : 24, frestur: 14, nastaNr: 1001, timagjald: 0, ...(CFG().reikn || {}) });
+  const RK = () => ({ nafn: ORG.nafn, kt: "", heimilisfang: "", vsknr: "", banki: "", netfang: "", simi: "", vsk: window.VERD && !VERD().vskSkra ? 0 : 24, frestur: 14, nastaNr: 1001, timagjald: 0, ...(CFG().reikn || {}), ...(CFG().reikn?.bokhald === "payday" ? { frestur: (() => { const e = CFG().reikn?.payday?.eindagi; return e === "" || e == null ? 20 : +e || 0; })() } : {}) }); // 2.118.8: með Payday ræður eindaginn greiðslufresti draga
   const reikningar = () => S?.reikningar || [];
   /* Bókhaldsflokkar (2.90.0): hver lína á reikningi fær flokk, VSK % og tekjulykil – sameiginlegur grunnur fyrir tengingu við Payday eða DK.
      Stillingar: S.stillingar.reikn.flokkar = { leiga|sala|vinna|kostn|auka: { vsk, lykill } }; vsk vantar = VSK fyrirtækisins. */
@@ -537,7 +537,7 @@
       <div class="two">${f("netfang", "Netfang", 'type="email"')}${f("simi", "Sími", 'inputmode="tel"')}</div>
       ${f("banki", "Bankareikningur", 'placeholder="0000-26-000000"')}
       <div class="two">${f("timagjald", "Sjálfgefið tímagjald (kr./klst.)", 'inputmode="numeric"')}${f("vsk", "VSK %", 'inputmode="decimal"')}</div>
-      <div class="two">${f("frestur", "Greiðslufrestur (dagar)", 'inputmode="numeric"')}${f("nastaNr", DROG() ? "Næsta númer draga" : "Næsta reikningsnúmer", 'inputmode="numeric"')}</div>
+      <div class="two">${r.bokhald === "payday" ? `<label>Greiðslufrestur<input value="Eindagi Payday – ${esc(String(r.frestur))} dagar" disabled title="Með Payday ræður eindaginn í Payday-stillingunum hér fyrir neðan"></label>` : f("frestur", "Greiðslufrestur (dagar)", 'inputmode="numeric"')}${f("nastaNr", DROG() ? "Næsta númer draga" : "Næsta reikningsnúmer", 'inputmode="numeric"')}</div>
       ${window.ON && ON("pantanir") ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);margin-top:6px"><input type="checkbox" id="rk-sjalfvirkt"${r.sjalfvirkt !== false ? " checked" : ""} style="width:auto"> Reikningsdrög myndast sjálfkrafa úr pöntunum</label>
       <p class="hint" style="margin:0 0 8px">Viðskiptavinur í reikningi: drög verða til þegar pöntun er staðfest, uppfærast með henni og eru tilbúin við skil. Staðgreitt: greiddur reikningur (kvittun) þegar greiðsla er skráð. Gildir um pantanir frá ${esc(r.sjalfFra ? dIS(r.sjalfFra) : "deginum í dag")}.</p>
       ${r.bokhald === "dk" || r.bokhald === "payday" ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="rk-dkSjalf"${r.dkSjalf ? " checked" : ""} style="width:auto"> Senda tilbúin drög sjálfkrafa í ${r.bokhald === "dk" ? "DK" : "Payday"} (ef ekkert vantar)</label>` : ""}` : ""}
@@ -603,7 +603,7 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
     if (k === "rkdel") { const R = findR(id); if (!R || !confirm(`Eyða reikningi nr. ${R.nr}?\n\nTímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.pdfUrl ? "\nPDF-skjalið í OneDrive eyðist ekki." : ""}`)) return;
       rkDelMany([id]).then(() => { toast("Reikningi eytt"); goBack(); }); return; }
     if (k === "rkcfg") { const g = x => (document.getElementById("rk-" + x)?.value || "").trim(), n = x => parseFloat(g(x).replace(",", ".")) || 0;
-      const o = { nafn: g("nafn"), kt: g("kt"), vsknr: g("vsknr"), heimilisfang: g("heimilisfang"), netfang: g("netfang"), simi: g("simi"), banki: g("banki"), timagjald: parseKr(g("timagjald")), vsk: n("vsk"), frestur: Math.round(n("frestur")) || 14, nastaNr: Math.round(n("nastaNr")) || 1001, bokhald: g("bokhald") || null,
+      const o = { nafn: g("nafn"), kt: g("kt"), vsknr: g("vsknr"), heimilisfang: g("heimilisfang"), netfang: g("netfang"), simi: g("simi"), banki: g("banki"), timagjald: parseKr(g("timagjald")), vsk: n("vsk"), frestur: document.getElementById("rk-frestur") ? Math.round(n("frestur")) || 14 : (CFG().reikn?.frestur ?? 14), nastaNr: Math.round(n("nastaNr")) || 1001, bokhald: g("bokhald") || null,
         flokkar: Object.fromEntries(FLOKKAR.map(([k]) => [k, { vsk: g("f-" + k + "-vsk"), lykill: g("f-" + k + "-lykill") }])) };
       ["sjalfvirkt", "dkSjalf"].forEach(x => { const el = document.getElementById("rk-" + x); if (el) o[x] = el.checked; });
       if (document.querySelector('input[name="rk-pd-hamur"]')) o.payday = { hamur: document.querySelector('input[name="rk-pd-hamur"]:checked')?.value || "utgefa", post: !!document.getElementById("rk-pd-post")?.checked, krafa: true, fylgiskjal: !!document.getElementById("rk-pd-fylgiskjal")?.checked, gjSamd: true, eindagi: g("pd-eindagi") === "" ? 20 : Math.max(0, Math.round(n("pd-eindagi"))), stadgKt: g("pd-stadgKt"), grId: g("pd-grId") };
