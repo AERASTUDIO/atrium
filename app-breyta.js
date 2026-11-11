@@ -184,13 +184,14 @@ window.aeraStart=function(db){
   DB=db; MCP={local:true}; window.USER=db.user||null;
   db.watch("app/notendur",s=>{const nd=s.exists?s.data():null; if(window.nuSet) nuSet(nd);
     const me=nd?.notendur?.[USER?.email]; if(me&&USER&&!USER.varaleid){ if(me.virkur===false){toast("Aðgangur þinn hefur verið gerður óvirkur."); setTimeout(()=>aeraSignOut(),1500); return;} Object.assign(USER,{nafn:me.nafn||USER.nafn,sk:me.sk||USER.sk,hlutverk:me.hlutverk||USER.hlutverk}); }
-    if(S) render();},()=>{}); document.getElementById("syncbtn").hidden=false; document.getElementById("logoutbtn").hidden=false; document.getElementById("fab").hidden=false;
-  db.watch("app/skrar",s=>{SK=s.exists?s.data():null; if(S) render();},()=>{});
+    const nj=JSON.stringify(nd); if(nj===window.__ndJ) return; window.__ndJ=nj; /* 2.120.0: aðeins teiknað ef notendaskráin breyttist */
+    if(S) renderData();},()=>{}); document.getElementById("syncbtn").hidden=false; document.getElementById("logoutbtn").hidden=false; document.getElementById("fab").hidden=false;
+  db.watch("app/skrar",s=>{const sj=JSON.stringify(s.exists?s.data():null); if(sj===window.__skJ) return; window.__skJ=sj; SK=s.exists?s.data():null; if(S) renderData();},()=>{});
   // Gögnin: app/state + söfn. Gamla sniðið (allt í app/state) er lesið eins og áður þar til admin hefur flutt gögnin.
   const P={state:null,cols:{},klukka:null,ready:new Set(),pend:{}}; let mode=null, migrating=false;
   const showErr=e=>{document.getElementById("view").innerHTML=`<h2 class="big">Gögn ekki aðgengileg</h2><div class="empty">${esc(e?.code==="permission-denied"?"Þessi aðgangur hefur ekki leyfi til að lesa gögnin.":(e?.message||"Óþekkt villa"))}</div>`;};
   const rebuild=()=>{ if(P.ready.size<GOGN.COLS.length+2) return; const nd=GOGN.join(P); PENDING=Object.values(P.pend).some(Boolean);
-    if(JSON.stringify(nd)!==JSON.stringify(S)){S=nd; render(); openFromHash();} else drawSync(); };
+    if(JSON.stringify(nd)!==JSON.stringify(S)){const fyrst=!S; S=nd; fyrst?render():renderData(); openFromHash();} else drawSync(); };
   const startSplit=()=>{ if(mode==="split") return; mode="split"; window.SPLIT=true; window.__DB=db; /* 2.56.0: pöntunarsíða (pantanir2.js) */ const fj=window.can&&can("fjarmal"); if(window.spStart) spStart(db); if(window.heimStart) heimStart(db);
     for(const c of GOGN.COLS){ if(c.k==="reikningar"&&!fj&&!window.AERA_DEMO){P.cols[c.k]=[]; P.ready.add(c.k); continue;} // 2.94.2: reikningar aðeins fyrir fjármál (admin, bókari)
     const vt=c.k==="pantanir"&&USER?.hlutverk==="vettvangur"&&!window.AERA_DEMO; // 2.98.0: vettvangur les aðeins sínar pantanir
@@ -213,7 +214,7 @@ window.aeraStart=function(db){
     if(GOGN.isSplit(d)){ P.state=d; P.pend.state=!!s.pending; P.ready.add("state"); startSplit(); rebuild(); return; }
     if(mode==="split") return; // eldra snið birtist ekki aftur eftir flutning
     mode="legacy"; window.SPLIT=false; PENDING=!!s.pending;
-    if(JSON.stringify(d)!==JSON.stringify(S)){S=d; render(); openFromHash();} else drawSync();
+    if(JSON.stringify(d)!==JSON.stringify(S)){const fyrst=!S; S=d; fyrst?render():renderData(); openFromHash();} else drawSync();
     if(!s.fromCache&&!migrating&&!s.pending&&window.can&&can("notendur")&&Array.isArray(d.verkefni)) migrateNow(d);
     if(!s.fromCache&&window.msTick) msTick();
   }, stErr);

@@ -234,7 +234,7 @@
   const startWatch = () => {
     if (watching || VT() || fj() || window.AERA_DEMO || !window.__DB?.watchCol || !window.USER) return;
     watching = true;
-    window.__DB.watchCol("timar", ["vett", true], r => { VETT_TIMAR = r.docs; try { render(); } catch (e) {} }, e => console.warn("Vettvangstímar", e));
+    window.__DB.watchCol("timar", ["vett", true], r => { VETT_TIMAR = r.docs; try { (window.renderData || render)(); } catch (e) {} }, e => console.warn("Vettvangstímar", e));
   };
   setInterval(startWatch, 3000);
   const vettEm = () => new Set(tr(() => nuUsers(), []).filter(u => u.hlutverk === "vettvangur").map(u => lc(u.email)));

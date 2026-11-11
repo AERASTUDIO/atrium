@@ -281,6 +281,26 @@ function render(){
   const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==render._k){const dv=!!DETAIL&&!String(render._k||"").includes("|"+DETAIL+"|"); render._k=key; v.classList.remove("anim","slide"); void v.offsetWidth; v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide"); clearTimeout(render._a); render._a=setTimeout(()=>v.classList.remove("anim","slide"),900);}
   document.getElementById("foot").textContent=S.uppfaert?"Síðast breytt "+fmtDate(S.uppfaert)+(hhmm(S.uppfaert)?" kl. "+hhmm(S.uppfaert):""):"";
 }
+/* 2.120.0: Gögn sem berast (Firestore, aðrir notendur, sjálfvirk drög) teikna skjáinn aftur án þess að trufla notandann:
+   teikningar sameinaðar í eina (rAF); ekki teiknað meðan skrifað er í reit á skjánum (beðið þar til reiturinn missir fókus);
+   óvistaður texti í reitum og skrunstaða haldast. Staðbundnar aðgerðir nota áfram render(). */
+function renderData(){if(renderData._q) return; renderData._q=1; requestAnimationFrame(()=>{renderData._q=0; renderDataNow();});}
+function renderDataNow(){const v=document.getElementById("view"), a=document.activeElement;
+  const ed=a&&v&&v.contains(a)&&(a.isContentEditable||a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&!/^(button|submit|reset|checkbox|radio|range|color|file|image)$/i.test(a.type)));
+  if(ed){if(renderData._el!==a){renderData._el=a; a.addEventListener("blur",()=>{if(renderData._el===a) renderData._el=null; setTimeout(renderData,0);},{once:true});} try{drawSync();}catch(e){} return;}
+  renderData._el=null; if(!v){render(); return;}
+  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""), same=key===render._k, fq='input:not([type=hidden]):not([type=button]):not([type=submit]),textarea,select';
+  const fk=(el,i)=>el.id?"#"+el.id:el.name?"n:"+el.name:"i:"+i, keep=[];
+  if(same) [...v.querySelectorAll(fq)].forEach((el,i)=>{const k=fk(el,i); if(el.type==="checkbox"||el.type==="radio"){if(el.checked!==el.defaultChecked) keep.push([k,"c",el.checked]);}
+    else if(el.tagName==="SELECT"){const d=[...el.options].find(o=>o.defaultSelected); if(d&&el.value!==d.value) keep.push([k,"s",el.value]);}
+    else if(el.value!==el.defaultValue) keep.push([k,"v",el.value,el.defaultValue]);});
+  const sc=same?[...v.querySelectorAll("[id]")].filter(e=>e.scrollTop>0||e.scrollLeft>0).map(e=>[e.id,e.scrollTop,e.scrollLeft]):[], y=window.scrollY;
+  render();
+  if(!same) return;
+  if(Math.abs(window.scrollY-y)>1) window.scrollTo(0,y);
+  if(keep.length){const els=[...v.querySelectorAll(fq)]; keep.forEach(([k,t,x,d])=>{const el=els.find((e,i)=>fk(e,i)===k); if(!el) return;
+    if(t==="c") el.checked=x; else if(t==="s") el.value=x; else if(el.defaultValue===d) el.value=x;});}
+  sc.forEach(([id,t,l])=>{const e=document.getElementById(id); if(e){e.scrollTop=t; e.scrollLeft=l;}});}
 function setDtab(k,dir){if(k===DTAB) return; DTAB=k; try{history.replaceState({aera:DETAIL,dtab:DTAB},"");}catch(e){}
   const y=window.scrollY, nav=document.querySelector(".dtabs"), top=nav?nav.getBoundingClientRect().top+y-70:0; render();
   window.scrollTo({top:Math.min(y,Math.max(0,top))}); document.querySelector('.dtabs [aria-selected="true"]')?.scrollIntoView({block:"nearest",inline:"center"});

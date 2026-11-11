@@ -77,7 +77,7 @@
   window.heimSaveDoc = () => { if (!DBREF || !me()) return; const d = { breytt: new Date().toISOString() }; if (PREF) d.heim = PREF; const sj = window.__snjPref?.(); if (sj) d.snjall = sj;
     return DBREF.set("notandi/" + me(), d).catch(e => console.warn("Heim-stilling", e)); };
   window.heimStart = db => { DBREF = db; if (!me() || !db?.watch) return;
-    db.watch("notandi/" + me(), s => { try { window.snjFromDoc?.(s.exists ? s.data() : null); } catch (e) {} const h = s.exists ? s.data()?.heim : null; if (h && JSON.stringify(h) !== JSON.stringify(PREF)) { PREF = h; try { localStorage.setItem(LSK, JSON.stringify(h)); } catch (e) {} if (typeof tab !== "undefined" && tab === "yfirlit") render(); } }, () => {}); };
+    db.watch("notandi/" + me(), s => { try { window.snjFromDoc?.(s.exists ? s.data() : null); } catch (e) {} const h = s.exists ? s.data()?.heim : null; if (h && JSON.stringify(h) !== JSON.stringify(PREF)) { PREF = h; try { localStorage.setItem(LSK, JSON.stringify(h)); } catch (e) {} if (typeof tab !== "undefined" && tab === "yfirlit") (window.renderData || render)(); } }, () => {}); };
 
   function flyti() {
     const c = cur(), ic = k => (typeof EI !== "undefined" && EI[k]) || "";
