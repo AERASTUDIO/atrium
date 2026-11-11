@@ -621,6 +621,42 @@ if (process.env.BOKHALD === "payday") {
     let logo = null; if (process.env.DOC_LOGO) { try { const r = await fetch(process.env.DOC_LOGO); if (r.ok) logo = Buffer.from(await r.arrayBuffer()); } catch (e) {} }
     return fylgiskjalPdf({ R, T, K, P, nafn, logo });
   };
+  /* 2.119.2: netfang fyrir reikninga = netfang viðskiptavinarins í Atrium (nýjasta gildi), annars það sem er á reikningnum */
+  const pdNetfang = async R => { let n = ""; if (R.vskId) { const v = await db.doc("vidskiptavinir/" + R.vskId).get().catch(() => null); n = (v && v.exists && v.data().netfang) || ""; } return String(n || R.kaupandi?.netfang || "").trim(); };
+  const pdSetEmail = async (pd, custId, email) => { if (!custId || !email) return; const u = await pd("PUT", "/customers/" + encodeURIComponent(custId), { email }); if (!u.ok) logger.warn("pdSetEmail", u.status, pdErr(u)); return u.ok; };
+  /* 2.119.2: senda reikning aftur í tölvupósti – netfangið í Payday uppfært fyrst (bokhald.endursenda = { stada:"bidur", til? }) */
+  const pdEndursenda = async (ev, a) => {
+    const ref = ev.data.after.ref, B = a.bokhald, ES = B.endursenda || {}, now = () => new Date().toISOString();
+    try {
+      if (!B.pid) throw new Error("Reikningurinn finnst ekki í Payday.");
+      const pd = pdApi(await pdToken()), g = await pd("GET", "/invoices/" + encodeURIComponent(B.pid));
+      if (!g.ok) throw new Error("Payday svaraði " + g.status + " við leit að reikningnum: " + pdErr(g));
+      const til = String(ES.til || "").trim() || await pdNetfang(a);
+      if (!til) throw new Error("Ekkert netfang er skráð á viðskiptavininn.");
+      const cid = g.data?.customer?.id; if (cid) await pdSetEmail(pd, cid, til);
+      const u = await pd("PUT", "/invoices/" + encodeURIComponent(B.pid), { status: "SENT", sendEmail: true });
+      if (!u.ok) throw new Error("Payday sendi ekki póstinn (" + u.status + "): " + pdErr(u));
+      await ref.update({ bokhald: { ...B, post: true, endursenda: { ...ES, stada: "sent", til, dags: now() } } });
+      logger.info("bokhaldPayday endursent", { id: ev.params.id, til });
+    } catch (e) {
+      logger.error("pdEndursenda", e);
+      await ref.update({ bokhald: { ...B, endursenda: { ...ES, stada: "villa", villa: String(e.message || e).slice(0, 400), dags: now() } } });
+    }
+  };
+  /* 2.119.2: PDF reikningsins eins og hann er í Payday – appið sækir hann og vistar á SharePoint fyrirtækisins (aðeins fjármál) */
+  exports.paydayPdf = onRequest({ secrets: [PD_ID, PD_SECRET], cors: true, maxInstances: 3 }, async (req, res) => {
+    try {
+      const tok = String(req.get("Authorization") || "").replace(/^Bearer\s+/i, ""); if (!tok) return res.status(401).send("Innskráningu vantar");
+      const me = await admin.auth().verifyIdToken(tok), email = lc(me.email || "");
+      const nu = (await db.doc("app/notendur").get()).data()?.notendur || {}, u = nu[email] || Object.values(nu).find(x => lc(x?.netfang) === email);
+      if (!u || u.virkur === false || !["admin", "bokari"].includes(u.hlutverk)) return res.status(403).send("Aðeins fjármál");
+      const id = String(req.query.id || ""); if (!id) return res.status(400).send("id vantar");
+      const s = await db.doc("reikningar/" + id).get(); const pid = s.exists ? s.data().bokhald?.pid : null; if (!pid) return res.status(404).send("Ekki í Payday");
+      const r = await fetch(PD_URL + "/invoices/" + encodeURIComponent(pid) + "/pdf", { headers: { Authorization: "Bearer " + await pdToken(), "Api-Version": "alpha", Accept: "application/pdf" } });
+      if (!r.ok) return res.status(502).send("Payday " + r.status);
+      res.set("Content-Type", "application/pdf").set("Cache-Control", "no-store").send(Buffer.from(await r.arrayBuffer()));
+    } catch (e) { logger.error("paydayPdf", e); res.status(500).send(String(e.message || e).slice(0, 200)); }
+  });
   const pdKredit = async (ev, a) => {
     const ref = ev.data.after.ref, B = a.bokhald, now = () => new Date().toISOString(), today = now().slice(0, 10), rid = ev.params.id;
     try {
@@ -655,6 +691,8 @@ if (process.env.BOKHALD === "payday") {
        Payday gefur út kreditreikning); drögin verða ógild og tímar, kostnaður og pantanir aftur óreikningsfærð */
     const K = a.bokhald.kredit;
     if (K?.stada === "bidur" && !(b?.bokhald?.kredit?.stada === "bidur" && b.bokhald.kredit.beidni === K.beidni)) return pdKredit(ev, a);
+    const ES = a.bokhald.endursenda;
+    if (ES?.stada === "bidur" && !(b?.bokhald?.endursenda?.stada === "bidur" && b.bokhald.endursenda.beidni === ES.beidni)) return pdEndursenda(ev, a);
     if (a.bokhald?.stada !== "bidur" || (b?.bokhald?.stada === "bidur" && b.bokhald.beidni === a.bokhald.beidni)) return;
     const ref = ev.data.after.ref, R = a, B = a.bokhald, now = () => new Date().toISOString();
     const result = inv => { const nr = inv?.number != null ? String(inv.number) : null, st = String(inv?.status || "").toUpperCase();
@@ -677,7 +715,9 @@ if (process.env.BOKHALD === "payday") {
       const ktC = kt.length === 10 ? kt : (stadg ? kt10(P.stadgKt) : "");
       if (ktC.length !== 10) throw new Error("Kennitölu greiðanda vantar (og enginn staðgreiðsluviðskiptavinur er stilltur í Stillingar › Reikningar › Payday).");
       // 2) Viðskiptavinur
-      const custId = await pdCustomer(pd, ktC, ktC === kt ? kaup : { name: "Staðgreiðsla" });
+      const netf = await pdNetfang(R);
+      const custId = await pdCustomer(pd, ktC, ktC === kt ? { ...kaup, netfang: netf || kaup.netfang } : { name: "Staðgreiðsla" });
+      if (ktC === kt && netf) await pdSetEmail(pd, custId, netf); /* 2.119.2: netfang viðskiptavinar í Atrium gildir líka í Payday */
       // 3) Reikningur
       const dflt = +R.vskP || 0;
       const lines = (R.linur || []).filter(l => !l.haus && Math.round((+l.magn || 0) * (+l.verd || 0)) !== 0)

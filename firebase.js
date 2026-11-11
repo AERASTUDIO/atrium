@@ -140,6 +140,8 @@ onAuthStateChanged(auth, async user => {
     },
     // 2.94.4: endurnýja innskráningarlykil (notað ef fyrsta lestur fær permission-denied rétt eftir innskráningu)
     async refresh() { try { await auth.currentUser?.getIdToken(true); } catch (e) {} },
+    // 2.119.2: innskráningarlykill fyrir köll á Cloud Functions (t.d. reikningur úr Payday)
+    async idToken() { return auth.currentUser ? auth.currentUser.getIdToken() : null; },
     watch(path, cb, onErr) {
       return onSnapshot(ref(path), { includeMetadataChanges: true },
         s => cb({ exists: s.exists(), data: () => s.data(), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);

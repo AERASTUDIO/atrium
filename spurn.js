@@ -19,13 +19,15 @@
         ${o.texti ? `<p class="spurn-x">${o.textiHTML ? o.texti : E(o.texti)}</p>` : ""}
         ${o.upphaed ? `<div class="spurn-u"><span>${E(o.upphaedL || "Upphæð")}</span><b>${E(o.upphaed)}</b></div>` : ""}
         ${at.length ? `<ul class="spurn-l">${at.map(a => `<li class="${E(a.tak || "ok")}"><i>${IC[a.tak || "ok"] || IC.ok}</i><span>${E(a.t)}</span></li>`).join("")}</ul>` : ""}
+        ${o.inntak ? `<label class="spurn-i"><span>${E(o.inntak.label || "")}</span><input type="${E(o.inntak.type || "text")}" value="${E(o.inntak.value || "")}" placeholder="${E(o.inntak.ph || "")}"></label>` : ""}
         ${o.ath ? `<p class="spurn-ath">${E(o.ath)}</p>` : ""}
         <div class="spurn-b"><button type="button" class="btn" data-s="0">${E(o.nei || "Hætta við")}</button><button type="button" class="btn primary${o.haetta ? " spurn-d" : ""}" data-s="1">${E(o.ja || "Staðfesta")}</button></div></div>`;
+      const done0 = v => { if (v && o.inntak) { const x = w.querySelector(".spurn-i input").value.trim(); if (o.inntak.krafist && !x) { w.querySelector(".spurn-i input").focus(); return; } v = x || true; } done(v); };
       const done = v => { document.removeEventListener("keydown", key, true); w.classList.add("ut"); setTimeout(() => w.remove(), 160); try { prev && prev.focus && prev.focus(); } catch (e) {} res(v); };
-      const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } else if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); done(true); } };
-      w.addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (b) done(b.dataset.s === "1"); else if (e.target === w) done(false); });
+      const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } else if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); done0(true); } };
+      w.addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (b) done0(b.dataset.s === "1"); else if (e.target === w) done(false); });
       document.addEventListener("keydown", key, true); document.body.appendChild(w);
-      requestAnimationFrame(() => { w.classList.add("inn"); w.querySelector('[data-s="1"]').focus(); });
+      requestAnimationFrame(() => { w.classList.add("inn"); (w.querySelector(".spurn-i input") || w.querySelector('[data-s="1"]')).focus(); });
     });
   };
 })();
