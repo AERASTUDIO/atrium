@@ -57,3 +57,8 @@
     last = { k, t };
   }, true);
 })();
+/* 2.120.4: í stað prompt() – atrSpyrja("Fyrirsögn", "sjálfgefið", { label, texti, ph, ja, type }) → Promise<string|null> (null = hætt við) */
+window.atrSpyrja = async function (titill, gildi, o = {}) {
+  const v = await atrSpurn({ titill, texti: o.texti, ja: o.ja || "Vista", haetta: o.haetta, inntak: { label: o.label || "", value: gildi ?? "", ph: o.ph || "", type: o.type || "text", krafist: !!o.krafist } });
+  return v === false ? null : v === true ? "" : String(v);
+};

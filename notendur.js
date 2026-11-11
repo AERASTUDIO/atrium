@@ -181,8 +181,8 @@
       nuSave(n => { n[email].virkur = !u.virkur; n[email].breytt = new Date().toISOString(); });
     }
     if (k === "nuren") {
-      const nafn = prompt("Nafn:", u.nafn || ""); if (nafn == null) return;
-      const sk = (prompt("Skammstöfun:", u.sk || "") || "").trim().toUpperCase(); if (!sk) return;
+      const nafn = await atrSpyrja("Nafn notanda", u.nafn || "", { label: "Nafn" }); if (nafn == null) return;
+      const sk = ((await atrSpyrja("Skammstöfun", u.sk || "", { label: "Birtist í tímaskráningum" })) || "").trim().toUpperCase(); if (!sk) return;
       if (sk !== u.sk && nuUsers().some(x => x.sk === sk)) return atrSegja(`Skammstöfunin ${sk} er þegar í notkun.`);
       nuSave(n => { Object.assign(n[email], { nafn: nafn.trim(), sk, breytt: new Date().toISOString() }); })
         .then(() => { if (sk === u.sk) cfgSave(c => { const s = c.starfsmenn.find(x => x.sk === sk); if (s) s.nafn = nafn.trim(); }); else ensureStarf(sk, nafn.trim()); });

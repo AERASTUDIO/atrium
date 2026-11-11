@@ -624,7 +624,7 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
     if (k === "rkprint") { const R = findR(id); if (R) printInv(R); return; }
     if (k === "rkxlsx") { const R = findR(id); if (R) invXlsx(R); return; }
     if (k === "rkpaid") { saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = q.stada === "Greitt" ? "Ógreitt" : "Greitt"; q.greitt = q.stada === "Greitt" ? isoDay(new Date()) : null; } }).then(() => toast("Staða reiknings uppfærð")); return; }
-    if (k === "rkbok") { const R = findR(id); if (!R) return; const v = prompt(`Númer reikningsins í bókhaldskerfinu (fyrir drög ${R.nr}):`, R.bokhaldNr || ""); if (v === null) return;
+    if (k === "rkbok") { const R = findR(id); if (!R) return; const v = await atrSpyrja("Skrá í bókhald", R.bokhaldNr || "", { label: `Númer reikningsins í bókhaldskerfinu (drög ${R.nr})` }); if (v === null) return;
       saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.bokhaldNr = v.trim() || null; q.bokhaldDags = v.trim() ? isoDay(new Date()) : null; } }).then(() => toast(v.trim() ? "Skráð í bókhald" : "Bókhaldsnúmer fjarlægt")); return; }
     if (k === "rkresend") { const R = findR(id); if (!R || !R.bokhald?.pid) return; const c = R.vskId ? findVsk(R.vskId) : null, nu = (c?.netfang || R.kaupandi?.netfang || "").trim();
       (async () => { const v = await atrSpurn({ yfir: "Payday", titill: `Senda reikning nr. ${R.bokhald.nr || R.bokhaldNr} aftur`, texti: `Payday sendir reikninginn${R.bokhald.fylgiskjal ? " og sundurliðun tíma" : ""} í tölvupósti.`,

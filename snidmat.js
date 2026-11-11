@@ -151,7 +151,7 @@
   const upd = fn => saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.snidmat = s.stillingar.snidmat || []; s.stillingar.pantanir = s.stillingar.pantanir || {}; fn(s.stillingar); }).then(() => render());
   async function delTpl(id) { const s = LIST().find(x => String(x.id) === id); if (!s || !await atrJa(`Eyða sniðmátinu „${s.heiti}“?`)) return;
     upd(c => { c.snidmat = c.snidmat.filter(x => String(x.id) !== id); c.pantanir.snid = (c.pantanir.snid || []).filter(x => String(x.id) !== id); }).then(() => toast("Sniðmáti eytt")); }
-  function renTpl(id) { const s = LIST().find(x => String(x.id) === id); if (!s) return; const h = prompt("Heiti sniðmáts", s.heiti); if (!h || h === s.heiti) return;
+  async function renTpl(id) { const s = LIST().find(x => String(x.id) === id); if (!s) return; const h = await atrSpyrja("Endurnefna sniðmát", s.heiti, { label: "Heiti sniðmáts" }); if (!h || h === s.heiti) return;
     upd(c => { [...c.snidmat, ...(c.pantanir.snid || [])].forEach(x => { if (String(x.id) === id) x.heiti = h.trim(); }); }); }
   function tegTpl(id, v) { upd(c => { const x = c.snidmat.find(x => String(x.id) === id); if (x) x.teg = v; }); }
   function pageHTML() {

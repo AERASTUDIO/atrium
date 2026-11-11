@@ -64,18 +64,18 @@ function vStillingarAll(){
   <div class="viewtitle">Gögn</div><div class="links"><button type="button" class="btn" onclick="syncNow()">Sækja afrit af gögnum</button>${window.USER?"":'<button type="button" class="btn" onclick="aeraSignOut()">Skrá út</button>'}</div>`;
 }
 const cfgSave=mut=>saveSnapshot(s=>{s.stillingar=s.stillingar||{}; const c=s.stillingar; if(!c.stodur?.length) c.stodur=structuredClone(window.ORG?.stodur?.length?ORG.stodur:DEF_STODUR); if(!c.thjonusta?.length) c.thjonusta=THJ().slice(); if(!c.starfsmenn?.length) c.starfsmenn=structuredClone(DEF_STARF); mut(c,s);});
-function cfgAct(a,i){if(!can("stillingar")) return toast("Aðeins admin getur breytt stillingum fyrirtækisins."); i=+i; const ask=(q,d)=>{const v=prompt(q,d||""); return v==null?null:v.trim();};
-  if(a==="stadd"){const n=ask("Heiti nýrrar stöðu:"); if(n&&!STODUR().some(x=>x.n===n)) cfgSave(c=>c.stodur.splice(c.stodur.findIndex(x=>x.lokid)<0?c.stodur.length:c.stodur.findIndex(x=>x.lokid),0,{n,c:"blue"}));}
-  if(a==="stren"){const o=STODUR()[i]; const n=ask("Nýtt heiti á stöðunni „"+o.n+"“:",o.n); if(n&&n!==o.n&&!STODUR().some(x=>x.n===n)) cfgSave((c,s)=>{c.stodur[i].n=n; s.verkefni.forEach(p=>{if(p.stada===o.n) p.stada=n;});});}
+async function cfgAct(a,i){if(!can("stillingar")) return toast("Aðeins admin getur breytt stillingum fyrirtækisins."); i=+i; const ask=async(q,d)=>{const v=await atrSpyrja(q.replace(/:$/,""),d||""); return v==null?null:v.trim();};
+  if(a==="stadd"){const n=await ask("Heiti nýrrar stöðu:"); if(n&&!STODUR().some(x=>x.n===n)) cfgSave(c=>c.stodur.splice(c.stodur.findIndex(x=>x.lokid)<0?c.stodur.length:c.stodur.findIndex(x=>x.lokid),0,{n,c:"blue"}));}
+  if(a==="stren"){const o=STODUR()[i]; const n=await ask("Nýtt heiti á stöðunni „"+o.n+"“:",o.n); if(n&&n!==o.n&&!STODUR().some(x=>x.n===n)) cfgSave((c,s)=>{c.stodur[i].n=n; s.verkefni.forEach(p=>{if(p.stada===o.n) p.stada=n;});});}
   if(a==="stdel"){const o=STODUR()[i], u=verkefni().filter(p=>p.stada===o.n).length; if(u) return atrSegja(`${u} verkefni eru með stöðuna „${o.n}“. Færðu þau í aðra stöðu fyrst.`); if(STODUR().length<2) return; atrJa(`Eyða stöðunni „${o.n}“?`).then(j=>{if(j) cfgSave(c=>c.stodur.splice(i,1));});}
   if(a==="stup"&&i>0) cfgSave(c=>{const [x]=c.stodur.splice(i,1); c.stodur.splice(i-1,0,x);});
   if(a==="stlok") cfgSave(c=>{c.stodur[i].lokid=!c.stodur[i].lokid;});
-  if(a==="thadd"){const n=ask("Heiti nýrrar þjónustu:"); if(n&&!THJ().includes(n)) cfgSave(c=>c.thjonusta.push(n));}
-  if(a==="thren"){const o=THJ()[i]; const n=ask("Nýtt heiti á „"+o+"“:",o); if(n&&n!==o&&!THJ().includes(n)) cfgSave((c,s)=>{c.thjonusta[i]=n; s.verkefni.forEach(p=>{if(p.thjonusta) p.thjonusta=p.thjonusta.map(t=>t===o?n:t);});});}
+  if(a==="thadd"){const n=await ask("Heiti nýrrar þjónustu:"); if(n&&!THJ().includes(n)) cfgSave(c=>c.thjonusta.push(n));}
+  if(a==="thren"){const o=THJ()[i]; const n=await ask("Nýtt heiti á „"+o+"“:",o); if(n&&n!==o&&!THJ().includes(n)) cfgSave((c,s)=>{c.thjonusta[i]=n; s.verkefni.forEach(p=>{if(p.thjonusta) p.thjonusta=p.thjonusta.map(t=>t===o?n:t);});});}
   if(a==="thdel"){const o=THJ()[i], u=verkefni().filter(p=>(p.thjonusta||[]).includes(o)).length; atrJa(`Eyða þjónustunni „${o}“?`+(u?`\n\nHún verður tekin af ${u} verkefnum.`:"")).then(j=>{if(j) cfgSave((c,s)=>{c.thjonusta.splice(i,1); s.verkefni.forEach(p=>{if(p.thjonusta) p.thjonusta=p.thjonusta.filter(t=>t!==o);});});});}
   if(a==="thup"&&i>0) cfgSave(c=>{const [x]=c.thjonusta.splice(i,1); c.thjonusta.splice(i-1,0,x);});
-  if(a==="sfadd"){const n=ask("Nafn starfsmanns:"); if(!n) return; const sk0=n.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,3); const sk=ask("Skammstöfun (birtist í tímaskráningum):",sk0); if(sk&&!STARFS().some(x=>x.sk===sk)) cfgSave(c=>c.starfsmenn.push({sk,nafn:n}));}
-  if(a==="sfren"){const o=STARFS()[i]; const n=ask("Nafn:",o.nafn); if(n) cfgSave(c=>{c.starfsmenn[i].nafn=n;});}
+  if(a==="sfadd"){const n=await ask("Nafn starfsmanns:"); if(!n) return; const sk0=n.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,3); const sk=await ask("Skammstöfun (birtist í tímaskráningum):",sk0); if(sk&&!STARFS().some(x=>x.sk===sk)) cfgSave(c=>c.starfsmenn.push({sk,nafn:n}));}
+  if(a==="sfren"){const o=STARFS()[i]; const n=await ask("Nafn:",o.nafn); if(n) cfgSave(c=>{c.starfsmenn[i].nafn=n;});}
   if(a==="sfdel"){const o=STARFS()[i], u=faerslur().filter(e=>(e.starfsmadur||ME())===o.sk).length; if(o.sk===ME()) return atrSegja("Ekki er hægt að eyða sjálfum þér."); if(window.nuUsers&&nuUsers().some(u=>u.sk===o.sk&&u.virkur)) return atrSegja(`${o.nafn} er virkur notandi. Gerðu notandann óvirkan undir Notendur fyrst.`); if(u) return atrSegja(`${o.nafn} er með ${u} tímaskráningar og verður ekki eytt.`); atrJa(`Eyða ${o.nafn}?`).then(j=>{if(j) cfgSave(c=>c.starfsmenn.splice(i,1));});}
   if(a==="sfeg") cfgSave(c=>c.starfsmenn.forEach((x,k)=>x.eg=k===i));
   if(a==="vikumark"){const v=parseFloat(String(document.getElementById("cfg-vikumark").value).replace(",",".")); if(v>0&&v<120) cfgSave(c=>{c.vikumark=v;}).then(()=>toast("Vikumarkmið vistað"));}

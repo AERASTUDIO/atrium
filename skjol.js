@@ -137,10 +137,10 @@
     if (k === "sknew") { openNew(id || null); return; }
     if (k === "skflokka") { openMove(id); return; }
     if (k === "skren") { const x = findD(id); if (!x) return;
-      if (!OFFICE(x.snid)) { const n = prompt("Heiti", x.name); if (n == null) return; const u = prompt("Slóð (https://…)", x.url || ""); if (u == null) return;
+      if (!OFFICE(x.snid)) { const n = await atrSpyrja("Breyta tengli", x.name, { label: "Heiti" }); if (n == null) return; const u = await atrSpyrja("Breyta tengli", x.url || "", { label: "Slóð (https://…)", type: "url" }); if (u == null) return;
         if (u && !/^https:\/\//i.test(u)) return toast("Slóðin þarf að byrja á https://");
         saveSnapshot(s => { const q = (s.skjol || []).find(y => y.id === id); if (q) Object.assign(q, { name: n.trim() || q.name, url: u.trim() || null, breytt: new Date().toISOString() }); }); return; }
-      const n = prompt("Nýtt heiti", x.name); if (!n || n.trim() === x.name) return;
+      const n = await atrSpyrja("Endurnefna", x.name, { label: "Nýtt heiti" }); if (!n || n.trim() === x.name) return;
       if (!msOn()) return toast("Tengdu Microsoft til að endurnefna skrána.");
       msMove(x.odId, null, n.trim() + "." + SN[x.snid].ext).then(it => saveSnapshot(s => { const q = (s.skjol || []).find(y => y.id === id); if (q) Object.assign(q, { name: it.name.replace(/\.[^.]+$/, ""), url: it.webUrl || q.url, breytt: new Date().toISOString() }); }))
         .then(() => toast("Endurnefnt")).catch(e => toast(e.message)); return; }

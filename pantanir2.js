@@ -308,7 +308,7 @@
   }
   async function saveTemplate(pid) {
     if (window.snSave) return window.snSave(pid);   // 2.78.0: sameiginleg sniðmát (snidmat.js)
-    const P = findP(pid); if (!P) return; const heiti = prompt("Heiti sniðmáts", (P.heiti || "Pöntun") + (P.vidskiptavinur ? " · " + P.vidskiptavinur : "")); if (!heiti) return;
+    const P = findP(pid); if (!P) return; const heiti = await atrSpyrja("Vista sem sniðmát", (P.heiti || "Pöntun") + (P.vidskiptavinur ? " · " + P.vidskiptavinur : ""), { label: "Heiti sniðmáts" }); if (!heiti) return;
     await saveCfg(c => { c.snid = c.snid || []; c.snid.push({ id: tr(() => gid(), String(Date.now())), heiti, vskId: P.vskId || null, vidskiptavinur: P.vidskiptavinur || null, tengilidur: P.tengilidur || null, simi: P.simi || null, netfang: P.netfang || null, heitiP: P.heiti || "", afhending: P.afhending || null, afhStadur: P.afhStadur || null, linur: (P.linur || []).filter(l => !l.aukagjald) }); });
     toast("Sniðmát „" + heiti + "“ vistað");
   }
