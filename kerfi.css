@@ -1074,7 +1074,7 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 .spurn-w.inn .spurn{transform:none}
 .spurn-yfir{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#7C8896);margin-bottom:6px}
 .spurn-t{font-size:19px;font-weight:400;line-height:1.3;margin:0 0 6px;color:var(--ink,#121416)}
-.spurn-x{font-size:13px;line-height:1.5;color:var(--muted,#7C8896);margin:0 0 14px}
+.spurn-x{font-size:13.5px;line-height:1.55;color:var(--muted,#7C8896);margin:0 0 14px;white-space:pre-line;overflow-wrap:anywhere}
 .spurn-u{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px;margin:0 0 14px;border-radius:10px;background:var(--field,#F6F7F8);font-size:13px;color:var(--muted,#7C8896)}
 .spurn-u b{font-size:18px;font-weight:500;color:var(--ink,#121416)}
 .spurn-l{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:9px}

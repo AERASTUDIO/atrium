@@ -237,7 +237,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="notif"){enableNotifs(); return;}
   if(k==="cmadd"){const t=document.getElementById("cm-new")?.value.trim(); if(!t) return toast("Skrifaðu athugasemd fyrst."); const pid=r[0];
     saveSnapshot(s=>{const p=sFindP(s,pid); if(p)(p.athugasemdir=p.athugasemdir||[]).push({id:newId(),t,d:new Date().toISOString(),sk:ME()});}).then(()=>toast("Athugasemd vistuð")); return;}
-  if(k==="cmdel"){const [pid,cid]=r; if(confirm("Eyða athugasemdinni?")) saveSnapshot(s=>{const p=sFindP(s,pid); if(p) p.athugasemdir=(p.athugasemdir||[]).filter(c=>c.id!==cid);}); return;}
+  if(k==="cmdel"){const [pid,cid]=r; atrJa("Eyða athugasemdinni?").then(j=>{if(j) saveSnapshot(s=>{const p=sFindP(s,pid); if(p) p.athugasemdir=(p.athugasemdir||[]).filter(c=>c.id!==cid);});}); return;}
   if(k==="cfg"){cfgAct(r[0],r[1]); return;}
   if(k==="tstarf"){timStarf=r[0]||""; wDay=null; render(); return;}
   if(k==="prep"){const p=findProj(r[0]); if(p) openReport(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr),{bil:"Allt tímabil verkefnis",verkefni:p.nafn,starf:"",flokka:(p.undirverk||[]).length>0}); return;}
@@ -254,7 +254,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="kstart"){kind="tima"; PREFILL={pid:r[0],timer:true}; openSheet(); return;}
   if(k==="kstop"){stopKlukka(); return;}
   if(k==="kedit"){if(klukka()) openEdit("klukka",""); return;}
-  if(k==="kcancel"){if(confirm("Hætta við klukkuna án þess að skrá tímann?")) saveSnapshot(s=>{s.klukka=null;}).then(()=>toast("Hætt við klukku – enginn tími skráður")); return;}
+  if(k==="kcancel"){atrJa("Hætta við klukkuna án þess að skrá tímann?").then(j=>{if(j) saveSnapshot(s=>{s.klukka=null;}).then(()=>toast("Hætt við klukku – enginn tími skráður"));}); return;}
   if(k==="fundtime"){const f=findFund(r.join(":")); if(!f) return; const p=fundProj(f), st=hhmm(f.date)||"", en=hhmm(f.dateEnd)||(st?pad((+st.slice(0,2)+1)%24)+st.slice(2):"");
     kind="tima"; PREFILL={pid:p?.id,date:String(f.date).slice(0,10),fra:st,til:en,desc:f.name}; openSheet(); return;}
   if(k==="tab"){tab=TABS.includes(r[0])?r[0]:"yfirlit"; DETAIL=null; window.STSUB=null; try{localStorage.setItem("aera-tab",tab)}catch(e){} render(); window.scrollTo({top:0}); return;}
@@ -342,5 +342,5 @@ function scheduleNotifs(){notifT.forEach(clearTimeout); notifT=[]; if(!("Notific
   const now=Date.now(), show=(title,body)=>navigator.serviceWorker?.ready.then(r=>r.showNotification(title,{body,icon:"icons/atrium-icon-192.png",tag:title+body})).catch(()=>{try{new Notification(title,{body});}catch(e){}});
   calItems().forEach(l=>l.filter(i=>!i.span&&!i.done).forEach(i=>{const at=hhmm(i.when)?new Date(i.when).getTime()-15*6e4:new Date(String(i.when).slice(0,10)+"T09:00").getTime(); const ms=at-now;
     if(ms>0&&ms<24*36e5) notifT.push(setTimeout(()=>show(i.kind+(hhmm(i.when)?" kl. "+hhmm(i.when):" í dag"),i.title+(i.nr?" · "+i.nr:"")),ms));}));}
-async function enableNotifs(){if(!("Notification" in window)) return alert("Þetta tæki styður ekki tilkynningar úr vafra. Notaðu „Setja í dagatalið mitt“ í staðinn.");
+async function enableNotifs(){if(!("Notification" in window)) return atrSegja("Þetta tæki styður ekki tilkynningar úr vafra. Notaðu „Setja í dagatalið mitt“ í staðinn.");
   const p=await Notification.requestPermission(); if(p==="granted"){toast("Tilkynningar virkar"); scheduleNotifs();} else toast("Tilkynningar voru ekki leyfðar"); render();}

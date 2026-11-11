@@ -162,7 +162,7 @@
     if (op === "edit") { TAB = "einingar"; openEditor(); return; }
     if (op === "done") { const sh = document.getElementById("sheet"); sh?.closest(".sheet")?.classList.remove("hedsheet"); if (typeof closeSheet === "function") closeSheet(); return; }
     if (op === "tab") { TAB = a; openEditor(); return; }
-    if (op === "reset") { if (confirm("Setja Heim aftur í sjálfgefið útlit?")) save({ w: DEF.map(id => ({ id })), sc: SC_DEF.slice(), pin: [], tl: TL_DEF() }); return; }
+    if (op === "reset") { atrJa("Setja Heim aftur í sjálfgefið útlit?").then(j => { if (j) save({ w: DEF.map(id => ({ id })), sc: SC_DEF.slice(), pin: [], tl: TL_DEF() }); }); return; }
     if (op === "sz") { const [, , k] = r; w[i].s = k; }
     if (op === "up" && i > 0) [w[i - 1], w[i]] = [w[i], w[i - 1]];
     if (op === "down" && i < w.length - 1) [w[i + 1], w[i]] = [w[i], w[i + 1]];

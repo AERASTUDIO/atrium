@@ -444,7 +444,7 @@
   window.msAct = function (k, r) {
     if (k === "odmode") { LS("aera-od-opna", r[0]); render(); return; }
     if (k === "mslogin") { MS.lastError = null; MS.login().then(() => { toast("Tengt við Microsoft"); render(); msTick(); }).catch(e => { MS.lastError = e.message; toast(e.message); render(); }); return; }
-    if (k === "mslogout") { if (confirm("Aftengja Microsoft á þessu tæki?")) { MS.logout(); render(); } return; }
+    if (k === "mslogout") { atrJa("Aftengja Microsoft á þessu tæki?").then(j => { if (j) { MS.logout(); render(); } }); return; }
     if (!isOn()) { toast("Tengdu Microsoft fyrst (Stillingar)."); return; }
     if (k === "msprev") { preview(r.join(":")); return; }
     if (k === "msref") { const key = r.join(":"); VKerr = null; if (key && TREE[key]) delete TREE[key]; else VK = null; render(); return; }

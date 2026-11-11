@@ -1006,7 +1006,7 @@
   }
   window.tbWatch = tbWatch;
 
-  window.salaAct = function (k, r) {
+  window.salaAct = async function (k, r) {
     const a = r.join(":");
     if (k === "vrf") { VF[r[0]] = r.slice(1).join(":"); VK[r[0]] = ""; render(); return; }
     if (k === "vrk") { VK[r[0]] = r.slice(1).join(":"); render(); return; }
@@ -1015,23 +1015,23 @@
       const xs = VR().filter(v => vDeild(v) === D && v.tegund !== "pakki" && !String(v.nr || "").trim()).sort((a, b) => String(a.flokkur || "").localeCompare(String(b.flokkur || ""), "is") || String(a.heiti).localeCompare(String(b.heiti), "is"));
       if (!xs.length) return; const taken = [], plan = xs.map(v => { const n = vnrNext(vnrPre(v.flokkur || "", D, v.id), taken); taken.push(n); return [v.id, n]; });
       const ex = plan.slice(0, 4).map(([i, n]) => n + " " + (findV(i)?.heiti || "")).join("\n");
-      if (!confirm(`Gefa ${xs.length} ${xs.length === 1 ? "vöru" : "vörum"} vörunúmer eftir flokki?\n\n${ex}${xs.length > 4 ? "\n…" : ""}\n\nNúmerin má breyta á hverri vöru.`)) return;
+      if (!await atrJa(`Gefa ${xs.length} ${xs.length === 1 ? "vöru" : "vörum"} vörunúmer eftir flokki?\n\n${ex}${xs.length > 4 ? "\n…" : ""}\n\nNúmerin má breyta á hverri vöru.`)) return;
       const M = new Map(plan); saveSnapshot(s => { (s.vorur || []).forEach(v => { if (M.has(v.id) && !String(v.nr || "").trim()) v.nr = M.get(v.id); }); })
         .then(() => toast(`${xs.length} vörunúmer gefin`)).catch(e => toast(errText(e))); return; }
     if (k === "vrdel") { const v = findV(a); if (!v) return; const n = TB().filter(t => (t.linur || []).some(l => l.v === a)).length;
-      if (!confirm(`Eyða „${v.heiti}“?${n ? `\n\nHún er á ${n} tilboðum – línurnar þar haldast óbreyttar.` : ""}`)) return;
+      if (!await atrJa(`Eyða „${v.heiti}“?${n ? `\n\nHún er á ${n} tilboðum – línurnar þar haldast óbreyttar.` : ""}`)) return;
       saveSnapshot(s => { s.vorur = (s.vorur || []).filter(x => x.id !== a); }).then(() => { toast("Eytt"); goBack(); }).catch(e => toast(errText(e))); return; }
     if (k === "vrlisti") { if (!ADM()) return toast("Aðeins admin.");
       if (a === "inn") { const p = listi(); if (!p.vorur.length) return toast("Búnaðarlistinn er þegar inni");
         saveSnapshot(s => { s.vorur = [...(s.vorur || []), ...p.vorur]; s.stillingar = s.stillingar || {}; const t = { ...CF(), ...(s.stillingar.tilbod || {}) }; t.flokkarL = [...new Set([...p.flokkar, ...(t.flokkarL || [])])]; s.stillingar.tilbod = t; })
           .then(() => toast(`${p.vorur.length} línum bætt í búnaðarlistann`)).catch(e => toast(errText(e))); return; }
       const n = VR().filter(v => v.listi).length;
-      if (!confirm(`Eyða ${n} línum úr staðlaða búnaðarlistanum?\n\nLínur sem þú bættir við sjálf(ur) haldast. Tilboð sem nota línurnar halda sínum upphæðum.`)) return;
+      if (!await atrJa(`Eyða ${n} línum úr staðlaða búnaðarlistanum?\n\nLínur sem þú bættir við sjálf(ur) haldast. Tilboð sem nota línurnar halda sínum upphæðum.`)) return;
       saveSnapshot(s => { s.vorur = (s.vorur || []).filter(v => !v.listi); }).then(() => toast("Búnaðarlista eytt")).catch(e => toast(errText(e))); return; }
     if (k === "vrprufa") { if (!ADM()) return toast("Aðeins admin.");
       if (a === "inn") { const p = prufa(); saveSnapshot(s => { s.vorur = [...(s.vorur || []), ...p.vorur]; s.tilbod = [...(s.tilbod || []), ...p.tilbod]; if (p.pantanir.length) s.pantanir = [...(s.pantanir || []), ...p.pantanir]; }).then(() => toast(`${p.vorur.length} prufuvörum og ${p.tilbod.length} prufutilboðum bætt við (leiga og sala)`)).catch(e => toast(errText(e))); return; }
       const nv = VR().filter(v => v.prufa).length, nt = TB().filter(t => t.prufa).length;
-      if (!confirm(`Eyða öllum prufugögnum í leigu og sölu: ${nv} vörum og ${nt} tilboðum merktum „prufa“?\n\nAnnað helst óbreytt.`)) return;
+      if (!await atrJa(`Eyða öllum prufugögnum í leigu og sölu: ${nv} vörum og ${nt} tilboðum merktum „prufa“?\n\nAnnað helst óbreytt.`)) return;
       saveSnapshot(s => { s.vorur = (s.vorur || []).filter(v => !v.prufa); s.tilbod = (s.tilbod || []).filter(t => !t.prufa); if ((s.pantanir || []).some(t => t.prufa)) s.pantanir = s.pantanir.filter(t => !t.prufa); }).then(() => toast("Prufugögnum eytt")).catch(e => toast(errText(e))); return; }
     // Pantanir og útleiga (2.20.0)
     if (k === "pnnew") { pnForm(r[0] ? { verkefniId: a } : null); return; }
@@ -1042,7 +1042,7 @@
     if (k === "pnutv") { UT.fl = a; UT.fra = null; UT.allt = false; doAct("tab:vutl"); return; }
     // Eldri samþykkt tilboð án pöntunar (2.41.0): skráð sem pantanir með stöðuna Lokið – svo salan teljist með – án þess að breyta lager (talning hefur þegar tekið það með)
     if (k === "pntbAll") { const ti = isoDay(new Date()), xs = TB().filter(T => vantarPontun(T) && String(T.til || T.fra || T.dags || "").slice(0, 10) < ti); if (!xs.length) return;
-      if (!confirm(`Skrá ${xs.length} eldri samþykkt ${xs.length === 1 ? "tilboð" : "tilboð"} sem pantanir?\n\nÞær fá stöðuna „Lokið“ og teljast þá með í sölutölum. Lager breytist ekki, því salan er liðin.`)) return;
+      if (!await atrJa(`Skrá ${xs.length} eldri samþykkt ${xs.length === 1 ? "tilboð" : "tilboð"} sem pantanir?\n\nÞær fá stöðuna „Lokið“ og teljast þá með í sölutölum. Lager breytist ekki, því salan er liðin.`)) return;
       let n0 = +CF().nastaNrP || 1001; const Ps = xs.map((T, i) => ({ id: gid(), pontun: true, nr: "P-" + (n0 + i), deild: "blandad", heiti: T.heiti || "Pöntun", vskId: T.vskId || null, vidskiptavinur: T.vidskiptavinur || null, tengilidur: T.tengilidur || null, simi: null, netfang: T.netfang || null,
         uppruni: "tilbod", ytriNr: null, stadsetning: T.stadsetning || null, fra: T.fra || null, til: T.til || T.fra || null, dags: isoDay(new Date()), stada: "Lokið", afsl: +T.afsl || 0, athugasemd: "Skráð eftir á úr samþykktu tilboði " + (T.nr || ""), linur: (T.linur || []).map(l => ({ ...l, id: gid() })), verkefniId: T.verkefniId || null, tilbodId: T.id }));
       saveSnapshot(s => { Ps.forEach(P => { const w = lagerWant(P, s); P.lager = Object.keys(w).length ? { dags: isoDay(new Date()), linur: Object.entries(w).map(([v, m]) => ({ v, m })), eftirA: true } : null; (s.pantanir = s.pantanir || []).push(P); });
@@ -1055,10 +1055,10 @@
           try { tab = "pantanir"; } catch (e) {} openDetail("tb:" + id); }).catch(e => toast(errText(e))); return; }
     if (k === "tbs") { TS[r[0]] = r.slice(1).join(":"); render(); return; }
     if (k === "tbf") { TL.f = r[0] || ""; render(); return; }
-    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : r[0] === "blandad" ? "blandad" : "leiga"; if (D === "blandad") { tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; } if (!VRd(D).length && !confirm(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
+    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : r[0] === "blandad" ? "blandad" : "leiga"; if (D === "blandad") { tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; } if (!VRd(D).length && !await atrJa(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
     if (k === "tbed") { const [op, id] = r;
       if (op === "start") { const T = findT(id); if (laest(T) || (T?.bidur && !isP(T))) { toast("Samþykkt tilboð er læst – breyttu " + (pontunAf(T) ? "pöntun " + pontunAf(T).nr : "því með nýrri útgáfu") + "."); return; } if (T) { EDT = structuredClone(T); window._tbOpen = {}; render(); window.scrollTo({ top: 0 }); } return; }
-      if (op === "cancel") { if (!confirm("Hætta við breytingar á tilboðinu?")) return; EDT = null; render(); return; }
+      if (op === "cancel") { if (!await atrJa("Hætta við breytingar á tilboðinu?")) return; EDT = null; render(); return; }
       if (op === "save") { const D = EDT; if (!D) return; if (D.fra && D.til && D.til < D.fra) return toast("„Til“ getur ekki verið á undan „Frá“.");
         const ar = blokkar(D) ? arekstrar(D).length : 0;
         saveT(D.id, (q, s) => { const L0 = q.lager; Object.keys(D).forEach(x => { q[x] = D[x]; }); q.lager = L0 || null; lagerSync(q, s); }).then(() => { EDT = null; toast((isP(D) ? "Pöntun" : "Tilboð") + " vistað" + (ar ? ` – ath. ${ar} ${ar === 1 ? "vara er" : "vörur eru"} ekki laus` : "")); render(); }).catch(e => toast(errText(e))); return; } }
@@ -1072,10 +1072,10 @@
       // 2.61.0: samþykki fer í gegnum samþykktargluggann (pöntun og/eða verkefni); samþykkt tilboð með pöntun skiptir ekki um stöðu nema með nýrri útgáfu
       if (!isP(T0) && st === "Samþykkt" && T0.stada !== "Samþykkt") { samthForm(id, T0.bidur ? { vidsk: T0.bidur } : null); render(); return; }
       if (laest(T0) && st !== "Samþykkt" && pontunAf(T0)) { toast(`Tilboðið er orðið að pöntun ${pontunAf(T0).nr} – breyttu pöntuninni eða gerðu nýja útgáfu.`); render(); return; }
-      if (T0.stada !== st && !blokkar(T0) && blokkar({ ...T0, stada: st }) && arekstrar(T0).length && !confirm(`Búnaður er ekki laus ${dRange(T0)}:\n\n${arekTxt(T0)}\n\nSetja ${isP(T0) ? "pöntunina" : "tilboðið"} samt á „${st}“? Búnaðurinn verður þá tvíbókaður.`)) { render(); return; }
+      if (T0.stada !== st && !blokkar(T0) && blokkar({ ...T0, stada: st }) && arekstrar(T0).length && !await atrJa(`Búnaður er ekki laus ${dRange(T0)}:\n\n${arekTxt(T0)}\n\nSetja ${isP(T0) ? "pöntunina" : "tilboðið"} samt á „${st}“? Búnaðurinn verður þá tvíbókaður.`)) { render(); return; }
       saveT(id, (q, s) => { q.stada = st; if (st === "Sent" && !q.sent) q.sent = isoDay(new Date()); if (isP(q)) hverSkrar(q, st); lagerSync(q, s); }).then(() => { const L = findT(id)?.lager;
 toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " · dregið frá lager" : isP(T0) && T0.lager && !L ? " · bætt aftur á lager" : "")); }); return; }
-    if (k === "tbutg") { const T = findT(a), PO = T && pontunAf(T); if (!T || !confirm(`Búa til útgáfu ${(+T.utgafa || 1) + 1} af tilboði ${T.nr}?\n\nNúverandi útgáfa er skráð í „Fyrri útgáfur“ og staðan fer aftur í Drög.${PO ? `\n\nAth.: pöntun ${PO.nr} er þegar til úr tilboðinu og breytist ekki – uppfærðu hana sérstaklega ef þarf.` : ""}`)) return;
+    if (k === "tbutg") { const T = findT(a), PO = T && pontunAf(T); if (!T || !await atrJa(`Búa til útgáfu ${(+T.utgafa || 1) + 1} af tilboði ${T.nr}?\n\nNúverandi útgáfa er skráð í „Fyrri útgáfur“ og staðan fer aftur í Drög.${PO ? `\n\nAth.: pöntun ${PO.nr} er þegar til úr tilboðinu og breytist ekki – uppfærðu hana sérstaklega ef þarf.` : ""}`)) return;
       saveT(a, q => { (q.eldri = q.eldri || []).push({ utgafa: +q.utgafa || 1, dags: q.dags, net: totals(q).net }); q.utgafa = (+q.utgafa || 1) + 1; q.dags = isoDay(new Date()); q.stada = "Drög"; delete q.samthykkt; delete q.bidur; })
         .then(() => { const T1 = findT(a); return T1?.opinber ? tbUnlink(T1) : null; })
         .then(() => { EDT = structuredClone(findT(a)); render(); toast("Ný útgáfa – breyttu og vistaðu"); }); return; }
@@ -1095,7 +1095,7 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
         if (T.postConv && window.poReplyConv) { toast("Sæki tilboðspóstinn…"); poReplyConv({ conv: T.postConv, box: T.postBox, to, body, pid: T.verkefniId || "", onSent: skra, fallback: nyr }); } else nyr();
         return; }
       const x = document.createElement("a"); x.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`; x.target = "_blank"; x.rel = "noopener"; document.body.appendChild(x); x.click(); x.remove(); return; }
-    if (k === "tbdel") { const T = findT(a); if (!T || !confirm(`Eyða ${isP(T) ? "pöntun" : "tilboði"} ${T.nr} (${T.heiti})?`)) return;
+    if (k === "tbdel") { const T = findT(a); if (!T || !await atrJa(`Eyða ${isP(T) ? "pöntun" : "tilboði"} ${T.nr} (${T.heiti})?`)) return;
       saveSnapshot(s => { s.tilbod = (s.tilbod || []).filter(x => x.id !== a); if (s.pantanir) s.pantanir = s.pantanir.filter(x => x.id !== a); }).then(() => { toast((isP(T) ? "Pöntun" : "Tilboði") + " eytt"); goBack(); }).catch(e => toast(errText(e))); return; }
     if (k === "tbpdf") { const [op, id] = r, T = findT(id); if (!T) return; toast("Bý til PDF…");
       tbPdf(T).then(b => { const blob = new Blob([b], { type: "application/pdf" });
@@ -1105,7 +1105,7 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
         .catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     // 2.71.0: alltaf hægt að senda tilboð á verkkaupa – með Microsoft 365 beint úr appinu (PDF í viðhengi), annars í póstforriti tölvunnar með samþykktartengli
     if (k === "tbsend" && !(window.MS && MS.on && MS.on() && window.poCompose)) { const T = findT(a); if (!T) return;
-      if (!confirm("Microsoft 365 er ekki tengt, svo appið getur ekki sent póstinn sjálft.\n\nOpna póstforritið þitt með tilbúnum pósti og tengli þar sem viðskiptavinurinn sér og samþykkir tilboðið?\n\n(Til að senda beint með PDF í viðhengi: Stillingar › Microsoft 365.)")) return;
+      if (!await atrJa("Microsoft 365 er ekki tengt, svo appið getur ekki sent póstinn sjálft.\n\nOpna póstforritið þitt með tilbúnum pósti og tengli þar sem viðskiptavinurinn sér og samþykkir tilboðið?\n\n(Til að senda beint með PDF í viðhengi: Stillingar › Microsoft 365.)")) return;
       toast("Bý til tengil…");
       tbLink(T).then(url => { const to = T.netfang || findVsk(T.vskId)?.netfang || "", su = `Tilboð ${T.nr} – ${T.heiti || ""} frá ${DOK.co().nafn}`;
         const body = `Góðan dag${T.tengilidur ? " " + T.tengilidur.split(" ")[0] : ""},\n\nHér er tilboð ${T.nr} í ${T.heiti || "verkið"}${T.fra ? " (" + dRange(T) + ")" : ""}, samtals ${krs(totals(T).tot)} með VSK.\n\n${url ? "Tilboðið má skoða og samþykkja hér:\n" + url + "\n\n" : ""}Endilega hafðu samband ef spurningar vakna.`;
@@ -1120,8 +1120,8 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
         atts: [{ name: fileBase(T) + ".pdf", type: "application/pdf", size: bytes.length, data: bytes }],
         onSent: inf => saveT(a, q => { if (q.stada === "Drög") q.stada = "Sent"; q.sent = isoDay(new Date()); if (inf?.conv) { q.postConv = inf.conv; q.postBox = inf.box || null; } }).then(() => render()) }))).catch(e => toast("PDF tókst ekki: " + (e?.message || e))); return; }
     if (k === "tbpub") { const T = findT(a); if (!T) return; tbLink(T).then(url => { if (!url) return toast("Ekki tókst að búa til tengil."); navigator.clipboard?.writeText(url).then(() => toast("Samþykktartengill afritaður")).catch(() => prompt("Samþykktartengill:", url)); }); return; }
-    if (k === "tbpubx") { const T = findT(a); if (!T?.opinber || !confirm("Loka samþykktartenglinum? Hann hættir að virka.")) return; tbUnlink(T).then(() => { toast("Tengli lokað"); render(); }); return; }
-    if (k === "tbverk") { const T = findT(a); if (!T || T.verkefniId) return; if (!confirm(`Stofna verkefni úr ${isP(T) ? "pöntun" : "tilboði"} ${T.nr}?\n\n„${T.heiti}“ fyrir ${T.vidskiptavinur || T.tengilidur || "–"}, ${krs(totals(T).net)} án VSK.`)) return;
+    if (k === "tbpubx") { const T = findT(a); if (!T?.opinber || !await atrJa("Loka samþykktartenglinum? Hann hættir að virka.")) return; tbUnlink(T).then(() => { toast("Tengli lokað"); render(); }); return; }
+    if (k === "tbverk") { const T = findT(a); if (!T || T.verkefniId) return; if (!await atrJa(`Stofna verkefni úr ${isP(T) ? "pöntun" : "tilboði"} ${T.nr}?\n\n„${T.heiti}“ fyrir ${T.vidskiptavinur || T.tengilidur || "–"}, ${krs(totals(T).net)} án VSK.`)) return;
       const id = gid(), nr = nextProjNr();
       saveSnapshot(s => { const V = mkVerk(T, id, nr); (s.verkefni = s.verkefni || []).push(V); mappaBid(s, V);
         const q = (s.tilbod || []).find(x => x.id === a) || (s.pantanir || []).find(x => x.id === a); if (q) q.verkefniId = id; })

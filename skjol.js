@@ -131,7 +131,7 @@
       <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([["Tegund", esc(s.l)], ["Staður", esc(where(x))], ["Í OneDrive", x.slod ? esc(x.slod.replace(/\//g, " › ")) : ""], ["Verkefni", p ? projLink(p) : ""], ["Búið til", fmtDate(x.stofnad)], ["Síðast breytt", fmtDate(x.breytt)]])}</dl></div>`;
   };
 
-  window.skAct = function (k, r) {
+  window.skAct = async function (k, r) {
     const id = r.join(":");
     if (k === "skf") { fSnid = id; render(); return; }
     if (k === "sknew") { openNew(id || null); return; }
@@ -144,7 +144,7 @@
       if (!msOn()) return toast("Tengdu Microsoft til að endurnefna skrána.");
       msMove(x.odId, null, n.trim() + "." + SN[x.snid].ext).then(it => saveSnapshot(s => { const q = (s.skjol || []).find(y => y.id === id); if (q) Object.assign(q, { name: it.name.replace(/\.[^.]+$/, ""), url: it.webUrl || q.url, breytt: new Date().toISOString() }); }))
         .then(() => toast("Endurnefnt")).catch(e => toast(e.message)); return; }
-    if (k === "skdel") { const x = findD(id); if (!x || !confirm(`Fjarlægja „${x.name}“ úr skjalalistanum?${x.odId ? "\n\nSkráin sjálf í OneDrive eyðist ekki." : ""}`)) return;
+    if (k === "skdel") { const x = findD(id); if (!x || !await atrJa(`Fjarlægja „${x.name}“ úr skjalalistanum?${x.odId ? "\n\nSkráin sjálf í OneDrive eyðist ekki." : ""}`)) return;
       saveSnapshot(s => { s.skjol = (s.skjol || []).filter(y => y.id !== id); }).then(() => { toast("Fjarlægt úr listanum"); goBack(); }); return; }
   };
   document.addEventListener("change", e => { if (e.target.id === "skstad") { fStad = e.target.value; render(); } });

@@ -8,7 +8,7 @@ function toast(t,undo){const el=document.getElementById("toast");el.textContent=
   if(undo){const b=document.createElement("button"); b.type="button"; b.className="undo"; b.textContent="Afturkalla"; b.onclick=()=>{el.hidden=true; undo();}; el.append(" ",b);}
   el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,undo?7000:3200);}
 /* ---------- Eyða ---------- */
-function deleteItem(type,id){
+async function deleteItem(type,id){
   const T=s=>s.timar=s.timar||{}, entries=s=>[...new Set([...(s.timar?.faerslur||[]),...(s.timar?.nyjast||[])])];
   const dropTimes=(s,pred)=>{T(s); const gone=entries(s).filter(pred); const seen=new Set();
     gone.forEach(e=>{if(seen.has(e.id)) return; seen.add(e.id); const t=+e.timar||0, p=sFindP(s,e.verkefniId), u=e.undirverkId?sFindU(s,e.undirverkId)[1]:null;
@@ -34,7 +34,7 @@ function deleteItem(type,id){
     q=`Eyða „${c.name}“ úr viðskiptavinum?`+(n?`\n\n${n} verkefni tengjast fyrirtækinu. Þau haldast en tengingin fellur niður.`:"");
     mut=s=>{s.vidskiptavinir=(s.vidskiptavinir||[]).filter(x=>!sameId(x.id,id)); (s.verkefni||[]).forEach(p=>{if(sameId(p.vskId,id)){p.vskId=null;p.vidskiptavinur=null;} if(sameId(p.vkId,id)){p.vkId=null;p.verkkaupi=null;}});};}
   if((type==="verk"||type==="vsk")&&window.can&&!can("eyda")) return toast("Aðeins admin getur eytt verkefnum og viðskiptavinum.");
-  if(!mut||!confirm(q)) return; if(q2&&confirm(q2)) mut=mut2;
+  if(!mut||!await atrJa(q)) return; if(q2&&await atrJa(q2,{ja:"Já",nei:"Nei"})) mut=mut2;
   const before=structuredClone(S);
   saveSnapshot(mut).then(()=>{
     if(type==="fund"&&window.fbCancel&&window.__delFund) fbCancel(window.__delFund);
@@ -59,7 +59,7 @@ function restoreDock(id){const i=DOCK.findIndex(x=>x.id===id); if(i<0) return; i
 function drawDock(){const el=document.getElementById("dock"); el.hidden=!DOCK.length; document.body.classList.toggle("hasdock",!!DOCK.length);
   el.innerHTML=DOCK.map(x=>`<div class="dchip"><button type="button" class="dopen" data-dock="${x.id}" title="Opna aftur">${x.icon} <span>${esc(x.title)}</span></button><button type="button" class="dx" data-dockx="${x.id}" aria-label="Loka ${esc(x.title)}">✕</button></div>`).join("");
   el.querySelectorAll("[data-dock]").forEach(b=>b.onclick=()=>restoreDock(b.dataset.dock));
-  el.querySelectorAll("[data-dockx]").forEach(b=>b.onclick=()=>{if(confirm("Loka þessu án þess að vista?")){DOCK=DOCK.filter(x=>x.id!==b.dataset.dockx); drawDock();}});}
+  el.querySelectorAll("[data-dockx]").forEach(b=>b.onclick=()=>{atrJa("Loka þessu án þess að vista?\n\nÞað sem þú skráðir glatast.",{haetta:true}).then(j=>{if(j){DOCK=DOCK.filter(x=>x.id!==b.dataset.dockx); drawDock();}})});}
 window.addEventListener("beforeunload",e=>{if(DOCK.length||(!sheetwrap.hidden&&sheetHasWork())){e.preventDefault(); e.returnValue="";}});
 document.getElementById("sheetmin").addEventListener("click",minimizeSheet);
 document.getElementById("scrim").addEventListener("click",()=>sheetHasWork()?minimizeSheet():closeSheet());

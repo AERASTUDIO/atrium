@@ -208,9 +208,9 @@
       toast?.("Undirverk stofnuð"); return render(); }
     if (k === "anew") return aukNew(p);
     if (k === "asend") return aukSend(pid, v);
-    if (k === "aok") { if (!confirm("Merkja aukaverkið samþykkt? Notaðu þetta ef viðskiptavinurinn samþykkti munnlega eða í pósti.")) return; await aukApprove(pid, v, { nafn: tr(() => starfName(ME()), "") + " (skráð handvirkt)" }, "handvirkt"); toast?.("Aukaverk samþykkt"); return render(); }
+    if (k === "aok") { if (!await atrJa("Merkja aukaverkið samþykkt? Notaðu þetta ef viðskiptavinurinn samþykkti munnlega eða í pósti.")) return; await aukApprove(pid, v, { nafn: tr(() => starfName(ME()), "") + " (skráð handvirkt)" }, "handvirkt"); toast?.("Aukaverk samþykkt"); return render(); }
     if (k === "ano") { await saveP(pid, q => { const a = (q.aukaverk || []).find(z => z.id === v); if (a) a.stada = "Hafnað"; }); return render(); }
-    if (k === "adel") { if (!confirm("Eyða drögunum?")) return; await saveP(pid, q => { q.aukaverk = (q.aukaverk || []).filter(z => z.id !== v); }); return render(); }
+    if (k === "adel") { if (!await atrJa("Eyða drögunum?")) return; await saveP(pid, q => { q.aukaverk = (q.aukaverk || []).filter(z => z.id !== v); }); return render(); }
   }, true);
 
   /* ---------- Stillingar › Verkefnagreining ---------- */

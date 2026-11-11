@@ -154,7 +154,7 @@
   document.addEventListener("click", e => { document.querySelectorAll("details.fkmore[open]").forEach(d => { if (!d.contains(e.target) || e.target.closest("button:not(summary)")) d.removeAttribute("open"); }); }, true);
   { const reg = () => { if (typeof STPAGES === "undefined" || !STPAGES.folk) return false; STPAGES.folk.fn = () => window.nuFolkHTML(); STPAGES.folk.d = "Hverjir hafa aðgang, hlutverk og hverjir skrá tíma"; return true; }; if (!reg()) { const iv = setInterval(() => { if (reg()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); } }
 
-  window.nuAct = (k, r) => {
+  window.nuAct = async (k, r) => {
     if (!can("notendur")) return toast("Aðeins admin getur breytt notendum.");
     const email = lc(r.join(":"));
     const u = nuUsers().find(x => lc(x.email) === email);
@@ -175,30 +175,30 @@
     const self = lc(u.email) === lc(USER?.email);
     const lastAdmin = u.hlutverk === "admin" && admins().length <= 1;
     if (k === "nuvirk") {
-      if (self) return alert("Þú getur ekki gert sjálfa(n) þig óvirka(n).");
-      if (u.virkur && lastAdmin) return alert("Það verður alltaf að vera að minnsta kosti einn virkur admin.");
-      if (u.virkur && !confirm(`Gera ${u.nafn} óvirkan? Hann/hún kemst þá ekki inn í appið. Tímaskráningar haldast.`)) return;
+      if (self) return atrSegja("Þú getur ekki gert sjálfa(n) þig óvirka(n).");
+      if (u.virkur && lastAdmin) return atrSegja("Það verður alltaf að vera að minnsta kosti einn virkur admin.");
+      if (u.virkur && !await atrJa(`Gera ${u.nafn} óvirkan? Hann/hún kemst þá ekki inn í appið. Tímaskráningar haldast.`)) return;
       nuSave(n => { n[email].virkur = !u.virkur; n[email].breytt = new Date().toISOString(); });
     }
     if (k === "nuren") {
       const nafn = prompt("Nafn:", u.nafn || ""); if (nafn == null) return;
       const sk = (prompt("Skammstöfun:", u.sk || "") || "").trim().toUpperCase(); if (!sk) return;
-      if (sk !== u.sk && nuUsers().some(x => x.sk === sk)) return alert(`Skammstöfunin ${sk} er þegar í notkun.`);
+      if (sk !== u.sk && nuUsers().some(x => x.sk === sk)) return atrSegja(`Skammstöfunin ${sk} er þegar í notkun.`);
       nuSave(n => { Object.assign(n[email], { nafn: nafn.trim(), sk, breytt: new Date().toISOString() }); })
         .then(() => { if (sk === u.sk) cfgSave(c => { const s = c.starfsmenn.find(x => x.sk === sk); if (s) s.nafn = nafn.trim(); }); else ensureStarf(sk, nafn.trim()); });
     }
     if (k === "nudel") {
       if (u.virkur) return;
-      if (confirm(`Eyða ${u.nafn} úr notendaskránni? Tímaskráningar haldast.`)) nuSave(n => { delete n[email]; });
+      atrJa(`Eyða ${u.nafn} úr notendaskránni?\n\nTímaskráningar haldast.`).then(j => { if (j) nuSave(n => { delete n[email]; }); });
     }
   };
-  document.addEventListener("change", e => {
+  document.addEventListener("change", async e => {
     const email = e.target.dataset?.nurole; if (email == null) return;
     if (!can("notendur")) return;
     const u = nuUsers().find(x => lc(x.email) === lc(email)), v = e.target.value;
     if (!u || v === u.hlutverk) return;
-    if (u.hlutverk === "admin" && admins().length <= 1 && u.virkur) { alert("Það verður alltaf að vera að minnsta kosti einn virkur admin."); e.target.value = u.hlutverk; return; }
-    if (lc(u.email) === lc(USER?.email) && !confirm("Þú ert að taka af þér admin-réttindi. Halda áfram?")) { e.target.value = u.hlutverk; return; }
+    if (u.hlutverk === "admin" && admins().length <= 1 && u.virkur) { atrSegja("Það verður alltaf að vera að minnsta kosti einn virkur admin."); e.target.value = u.hlutverk; return; }
+    if (lc(u.email) === lc(USER?.email) && !await atrJa("Taka af þér admin-réttindi?\n\nÞú getur þá ekki breytt stillingum eða notendum.",{ja:"Halda áfram",haetta:true})) { e.target.value = u.hlutverk; return; }
     nuSave(n => { n[lc(email)].hlutverk = v; n[lc(email)].breytt = new Date().toISOString(); });
   });
 })();

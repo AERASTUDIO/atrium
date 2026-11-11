@@ -42,7 +42,7 @@
   async function nafnhreinsa(q) {
     const R = finna(q), n = fjoldi(R) - (R.notendur || []).length; if (!n) return toast?.("Ekkert fannst til að nafnhreinsa");
     const held = (R.reikningar || []).filter(o => geymist("reikningar", o)).length;
-    if (!confirm(`Nafnhreinsa „${q}“ í ${n - held} færslum?\n\nAllur texti sem inniheldur leitarorðið verður „${NAFNHR}“. Þetta er ekki hægt að afturkalla.` + (held ? `\n\n${held} reikningar yngri en 7 ára haldast óbreyttir vegna bókhaldsskyldu.` : "") + ((R.notendur || []).length ? `\n\nNotendaaðgangar breytast ekki – gerðu notandann óvirkan í Stillingar › Fólk.` : ""))) return;
+    if (!await atrJa(`Nafnhreinsa „${q}“ í ${n - held} færslum?\n\nAllur texti sem inniheldur leitarorðið verður „${NAFNHR}“. Þetta er ekki hægt að afturkalla.` + (held ? `\n\n${held} reikningar yngri en 7 ára haldast óbreyttir vegna bókhaldsskyldu.` : "") + ((R.notendur || []).length ? `\n\nNotendaaðgangar breytast ekki – gerðu notandann óvirkan í Stillingar › Fólk.` : ""))) return;
     const scrub = x => { if (Array.isArray(x)) return x.map(scrub); if (x && typeof x === "object") { Object.keys(x).forEach(k => { x[k] = scrub(x[k]); }); return x; } return match(x, q) ? NAFNHR : x; };
     await saveSnapshot(s => {
       Object.entries(s).forEach(([k, v]) => {

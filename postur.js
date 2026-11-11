@@ -510,7 +510,7 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     } finally { migrating = false; }
   };
 
-  window.poAct = function (k, r) {
+  window.poAct = async function (k, r) {
     if (k === "posigsave") { const o = sgRead(); saveSnapshot(st => { st.stillingar = st.stillingar || {}; if (SIGKEY()) { st.stillingar.undirskriftir = st.stillingar.undirskriftir || {}; st.stillingar.undirskriftir[SIGKEY()] = o; } else st.stillingar.undirskrift = o; }).then(() => toast("Undirskrift vistuð")); return; }
     if (k === "posigcopy") { poSigCopy(); return; }
     if (k === "ponew") { poCompose({ pid: r[0] || null, subject: r[0] && findProj(r[0]) ? findProj(r[0]).nr + " " + findProj(r[0]).stutt + " – " : "" }); return; }
@@ -519,23 +519,23 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     if (k === "pofilt") { filt = r[0] || ""; render(); return; }
     if (k === "poread") { setRead(r[0], r[1] === "1"); return; }
     if (k === "poflag") { setFlag(r[0], r[1] === "1"); return; }
-    if (k === "pomove") { const [id, dest] = [r.slice(0, -1).join(":"), r[r.length - 1]]; if (dest === "deleteditems" && !confirm("Færa póstinn í Eytt?")) return; moveTo(id, dest); return; }
+    if (k === "pomove") { const [id, dest] = [r.slice(0, -1).join(":"), r[r.length - 1]]; if (dest === "deleteditems" && !await atrJa("Færa póstinn í Eytt?")) return; moveTo(id, dest); return; }
     if (k === "poharv") { toast("Sæki netföng úr pósti…"); harvest(true).then(() => toast("Tengiliðir uppfærðir")).catch(e => toast(e.message)); return; }
     if (k === "poto") { poCompose({ to: r.join(":") }); return; }
-    if (k === "pofor") { const a = r.join(":").toLowerCase(); if (confirm("Gleyma " + a + "?")) saveSnapshot(st => { st.netfangaskra = (st.netfangaskra || []).filter(x => x.a.toLowerCase() !== a); }); return; }
+    if (k === "pofor") { const a = r.join(":").toLowerCase(); atrJa("Gleyma " + a + "?\n\nNetfangið hverfur úr tillögum þegar þú skrifar viðtakanda.").then(j => { if (j) saveSnapshot(st => { st.netfangaskra = (st.netfangaskra || []).filter(x => x.a.toLowerCase() !== a); }); }); return; }
     if (k === "poclr") { q = ""; reset(); render(); return; }
     if (k === "poref") { reset(); FOLDERS = null; render(); return; }
     if (k === "pomore") { load(true); render(); return; }
     if (k === "potarget") { target = r[0] || null; render(); return; }
     if (k === "polink") { link(r[0], r[1]); return; }
-    if (k === "pounl") { const t = THR().find(x => x.id === r[0]); if (t && confirm("Aftengja þráðinn „" + t.efni + "“ frá verkefninu?")) poLinkConv(t.conv, null).then(() => toast("Þráður aftengdur")); return; }
-    if (k === "poleg") { if (confirm("Fjarlægja þessa eldri tengingu?")) saveSnapshot(st => { st.postar = (st.postar || []).filter(x => x.id !== r[0]); }); return; }
+    if (k === "pounl") { const t = THR().find(x => x.id === r[0]); if (t) atrJa("Aftengja þráðinn „" + t.efni + "“ frá verkefninu?").then(j => { if (j) poLinkConv(t.conv, null).then(() => toast("Þráður aftengdur")); }); return; }
+    if (k === "poleg") { atrJa("Fjarlægja þessa eldri tengingu?").then(j => { if (j) saveSnapshot(st => { st.postar = (st.postar || []).filter(x => x.id !== r[0]); }); }); return; }
     if (k === "pothr") { delete TC[r.join(":")]; render(); return; }
     if (k === "pofind") { target = r[0]; const p = findProj(target); q = p ? p.stutt : ""; reset(); DETAIL = null; tab = "postur"; render(); window.scrollTo({ top: 0 }); return; }
     // Forskoða viðhengi (1.9.2): PDF, myndir og texti beint; Office-skjöl eru afrituð í Mín skjöl › Viðhengi og forskoðuð þaðan
     if (k === "poprev") { toast("Sæki viðhengi…"); attBlob(r[0], r[1]).then(async ({ blob, name }) => {
         if (/\.(docx?|xlsx?|pptx?|odt|ods|odp|rtf)$/i.test(name) && window.odSaveMine) {
-          if (!confirm(`Til að forskoða „${name}“ er afrit vistað í Mín skjöl › Viðhengi í OneDrive. Halda áfram?`)) return;
+          if (!await atrJa(`Til að forskoða „${name}“ er afrit vistað í Mín skjöl › Viðhengi í OneDrive. Halda áfram?`)) return;
           const it = await odSaveMine("Viðhengi", name, blob, blob.type); doAct(window.msPrevAct ? msPrevAct(it) : "msprev:" + it.id);
         } else blobPreview(blob, name);
       }).catch(e => toast(e.message)); return; }

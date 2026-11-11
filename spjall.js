@@ -89,7 +89,7 @@
     if (k === "spras") { ras = r.join(":"); render(); return true; }
     if (k === "spto") { ras = dmKey(r.join(":")); doAct("tab:spjall"); return true; }
     if (k === "spopen") { ras = r.join(":"); doAct("tab:spjall"); return true; }
-    if (k === "spdel") { const id = r.join(":"); if (confirm("Eyða skilaboðunum?")) DB.commit([{ path: "spjall/" + id, del: true }]).catch(e => toast(e?.code || e?.message)); return true; }
+    if (k === "spdel") { const id = r.join(":"); atrJa("Eyða skilaboðunum?").then(j => { if (j) DB.commit([{ path: "spjall/" + id, del: true }]).catch(e => toast(e?.code || e?.message)); }); return true; }
     return false;
   };
 })();

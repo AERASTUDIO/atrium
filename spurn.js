@@ -21,13 +21,28 @@
         ${at.length ? `<ul class="spurn-l">${at.map(a => `<li class="${E(a.tak || "ok")}"><i>${IC[a.tak || "ok"] || IC.ok}</i><span>${E(a.t)}</span></li>`).join("")}</ul>` : ""}
         ${o.inntak ? `<label class="spurn-i"><span>${E(o.inntak.label || "")}</span><input type="${E(o.inntak.type || "text")}" value="${E(o.inntak.value || "")}" placeholder="${E(o.inntak.ph || "")}"></label>` : ""}
         ${o.ath ? `<p class="spurn-ath">${E(o.ath)}</p>` : ""}
-        <div class="spurn-b"><button type="button" class="btn" data-s="0">${E(o.nei || "Hætta við")}</button><button type="button" class="btn primary${o.haetta ? " spurn-d" : ""}" data-s="1">${E(o.ja || "Staðfesta")}</button></div></div>`;
+        <div class="spurn-b">${o.ein ? "" : `<button type="button" class="btn" data-s="0">${E(o.nei || "Hætta við")}</button>`}<button type="button" class="btn primary${o.haetta ? " spurn-d" : ""}" data-s="1">${E(o.ja || "Staðfesta")}</button></div></div>`;
       const done0 = v => { if (v && o.inntak) { const x = w.querySelector(".spurn-i input").value.trim(); if (o.inntak.krafist && !x) { w.querySelector(".spurn-i input").focus(); return; } v = x || true; } done(v); };
       const done = v => { document.removeEventListener("keydown", key, true); w.classList.add("ut"); setTimeout(() => w.remove(), 160); try { prev && prev.focus && prev.focus(); } catch (e) {} res(v); };
-      const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } else if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); done0(true); } };
+      const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } else if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); const f = document.activeElement?.closest?.("[data-s]"); /* 2.120.1: Enter virkjar hnappinn sem hefur fókus; eyðing aldrei óvart með Enter */ if (f && w.contains(f)) done0(f.dataset.s === "1"); else if (!o.haetta || o.inntak) done0(true); } };
       w.addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (b) done0(b.dataset.s === "1"); else if (e.target === w) done(false); });
       document.addEventListener("keydown", key, true); document.body.appendChild(w);
-      requestAnimationFrame(() => { w.classList.add("inn"); (w.querySelector(".spurn-i input") || w.querySelector('[data-s="1"]')).focus(); });
+      requestAnimationFrame(() => { w.classList.add("inn"); (w.querySelector(".spurn-i input") || (o.haetta && w.querySelector('[data-s="0"]')) || w.querySelector('[data-s="1"]')).focus(); });
     });
+  };
+  /* 2.120.1: í stað confirm() og alert() vafrans – sami gluggi alls staðar.
+     atrJa("Spurning?\n\nNánari skýring", { ja, haetta }) → Promise<boolean>. Fyrri hlutinn verður fyrirsögn, sá seinni texti.
+     atrSegja("Skilaboð", "Fyrirsögn") → Promise (einn hnappur, „Í lagi“). */
+  const skipta = t => { t = String(t ?? ""); let i = t.indexOf("\n\n");
+    if (i < 0 && t.length > 80) { const q = t.search(/[?.:] /); if (q > 0 && q < 110) i = q + 1; }
+    return i > 0 ? [t.slice(0, i).trim(), t.slice(i).trim()] : [t, ""]; };
+  const ORD = [[/^Eyða/, "Eyða", 1], [/^Fjarlægja/, "Fjarlægja", 1], [/^Nafnhreinsa/, "Nafnhreinsa", 1], [/^Gleyma/, "Gleyma", 1], [/^Aftengja/, "Aftengja"], [/^Loka/, "Loka"], [/^Afturkalla/, "Afturkalla"], [/^Hætta við/, "Já, hætta við", 1], [/^Færa/, "Færa"], [/^Merkja/, "Merkja"], [/^Stofna/, "Stofna"], [/^Staðfesta/, "Staðfesta"], [/^Skrá/, "Skrá"], [/^Afrita/, "Afrita"], [/^Setja/, "Setja"], [/^Gera/, "Já"], [/^Búa til/, "Búa til"], [/^Gefa/, "Gefa"]];
+  window.atrJa = function (texti, o = {}) {
+    const [titill, rest] = skipta(texti), m = ORD.find(([r]) => r.test(titill)) || [];
+    return atrSpurn({ titill, texti: rest, ja: o.ja || m[1] || "Halda áfram", nei: o.nei, haetta: o.haetta ?? !!m[2], ath: o.ath });
+  };
+  window.atrSegja = function (texti, titill) {
+    const [t, rest] = titill ? [titill, String(texti ?? "")] : skipta(texti);
+    return atrSpurn({ titill: t, texti: rest, ja: "Í lagi", ein: true });
   };
 })();

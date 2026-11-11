@@ -272,7 +272,7 @@
   async function vtAct(a) {
     const k = a.slice(0, a.indexOf(":")), arg = a.slice(a.indexOf(":") + 1), all = pending();
     try {
-      if (k === "all") { const ids = new Set(arg.split(",")), ps = all.filter(e => ids.has(String(e.id))); if (!ps.length || !confirm(`Staðfesta ${ps.length} tíma?`)) return; for (const e of ps) await merkja(e, "stadfest"); toast(`${ps.length} tímar staðfestir`); }
+      if (k === "all") { const ids = new Set(arg.split(",")), ps = all.filter(e => ids.has(String(e.id))); if (!ps.length || !await atrJa(`Staðfesta ${ps.length} tíma?`)) return; for (const e of ps) await merkja(e, "stadfest"); toast(`${ps.length} tímar staðfestir`); }
       else { const e = all.find(x => String(x.id) === arg); if (!e) return;
         if (k === "ok") { await merkja(e, "stadfest"); toast("Tími staðfestur"); }
         else { const ast = prompt("Ástæða (sést hjá þeim sem skráði):", ""); if (ast == null) return; await merkja(e, "hafnad", ast.trim() ? { astaeda: ast.trim().slice(0, 300) } : {}); toast("Tíma hafnað"); } }

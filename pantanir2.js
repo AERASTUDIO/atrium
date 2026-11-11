@@ -628,7 +628,7 @@
     catch (e) { toast("Tókst ekki: " + (e?.message || e) + (String(e?.code || "").includes("permission") ? " – birta þarf nýjar Firestore-reglur" : "")); }
   }
   async function pubRevoke(pid) {
-    const P = findP(pid); if (!P?.opinber || !confirm("Loka pöntunarsíðunni? Tengillinn hættir að virka.")) return; const t = P.opinber;
+    const P = findP(pid); if (!P?.opinber || !await atrJa("Loka pöntunarsíðunni? Tengillinn hættir að virka.")) return; const t = P.opinber;
     try { if (DEMO()) LS().removeItem(lsKey(t)); else await window.__DB?.commit?.([{ path: "opinber/" + t, del: true }]); } catch (e) {}
     await savePN(pid, Q0 => { delete Q0.opinber; }); delete PUB[t]; toast("Pöntunarsíðu lokað"); render();
   }
@@ -733,7 +733,7 @@
     if (nx === "Afhent" && !payOk(P)) { payAsk(id, PAYWHY).then(ok => { if (ok) flow(id, "ut"); }); return; }
     flow(id, nx === "Afhent" ? "ut" : "inn");
   }, true);
-  document.addEventListener("click", e => {
+  document.addEventListener("click", async e => {
     if (!on()) return; const b = e.target.closest("[data-pf]"); if (!b) return; e.preventDefault(); e.stopPropagation();
     const [op, id, a, c, n] = b.dataset.pf.split(":");
     if (op === "pick") return pickScan(id);
@@ -747,7 +747,7 @@
     if (op === "tpl") return saveTemplate(id);
     if (op === "mail") return mailDlg();
     if (op === "pay") return payAsk(id);
-    if (op === "payx") { if (!confirm("Afturkalla skráða greiðslu?")) return; return savePN(id, P => { delete P.greitt; }).then(() => { toast("Greiðsla afturkölluð"); render(); }); }
+    if (op === "payx") { if (!await atrJa("Afturkalla skráða greiðslu?")) return; return savePN(id, P => { delete P.greitt; }).then(() => { toast("Greiðsla afturkölluð"); render(); }); }
     if (op === "payh") return savePN(id, P => { P.greidsluhattur = a; }).then(() => render());
     if (op === "rkut0") return savePN(id, P => { delete P.reikningur; }).then(() => render());
     if (op === "handv") return handvirkt(id);

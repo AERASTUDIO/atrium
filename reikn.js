@@ -109,11 +109,11 @@
     const upd = () => { const L = orderLines(picked()), t = totals(L, +rk.vsk || 0); w.querySelector(".rkpsum").innerHTML = `<div class="sub-i"><span>Án VSK</span><b>${esc(kr(t.net))}</b></div>${t.vskSund.map(x => `<div class="sub-i"><span>VSK ${esc(fx(x.p))} %${t.vskSund.length > 1 ? " af " + esc(kr(x.net)) : ""}</span><b>${esc(kr(x.vsk))}</b></div>`).join("")}<div class="sub-i" style="font-size:16px"><span>Samtals</span><b>${esc(kr(t.tot))}</b></div>`; };
     w.addEventListener("change", upd); upd();
     w.querySelector(".rkp-ut").onclick = async () => { const Ps = picked(); if (!Ps.length) return toast("Veldu pöntun.");
-      if (!confirm(`Merkja ${Ps.map(x => x.nr).join(", ")} sem reikningsfært utan Atrium? Þá birtist ${Ps.length === 1 ? "hún" : "þær"} ekki lengur sem óreikningsfært.`)) return;
+      if (!await atrJa(`Merkja ${Ps.map(x => x.nr).join(", ")} sem reikningsfært utan Atrium? Þá birtist ${Ps.length === 1 ? "hún" : "þær"} ekki lengur sem óreikningsfært.`)) return;
       const ids = new Set(Ps.map(x => x.id)); await saveSnapshot(st => { (st.pantanir || []).forEach(q => { if (ids.has(q.id)) q.reikningur = "utan"; }); }); close(); toast("Merkt reikningsfært utan Atrium"); render(); };
     w.querySelector("#rkp-ok").onclick = async () => {
       const Ps = picked(), nr = parseInt(w.querySelector("#rkp-n").value) || 0; if (!Ps.length) return toast("Veldu pöntun."); if (!nr) return toast("Skráðu númer.");
-      if (reikningar().some(r => r.nr === nr) && !confirm(`Reikningur nr. ${nr} er þegar til. Nota samt sama númer?`)) return;
+      if (reikningar().some(r => r.nr === nr) && !await atrJa(`Reikningur nr. ${nr} er þegar til. Nota samt sama númer?`)) return;
       const L = orderLines(Ps), vskP = +rk.vsk || 0, sl = { ...rk }; delete sl.nastaNr; delete sl.timagjald;
       const pids = [...new Set(Ps.map(x => x.verkefniId).filter(Boolean))], ids = new Set(Ps.map(x => x.id));
       const R = { id: newId(), nr, dags: w.querySelector("#rkp-d").value, gjalddagi: w.querySelector("#rkp-g").value, verkefniIds: pids, verkefniId: pids[0] || null, pontunIds: [...ids], vskId: P0.vskId, kaupandi: buyerOf(c), seljandi: sl, linur: L, vskP, ...totals(L, vskP), timaIds: [], kostnIds: [], stada: "Ógreitt", stofnad: new Date().toISOString() };
@@ -299,7 +299,7 @@
     };
     const create = async (D) => {
       const { G, R } = D;
-      if (reikningar().some(r => r.nr === R.nr) && !confirm(`Reikningur nr. ${R.nr} er þegar til. Nota samt sama númer?`)) return;
+      if (reikningar().some(r => r.nr === R.nr) && !await atrJa(`Reikningur nr. ${R.nr} er þegar til. Nota samt sama númer?`)) return;
       const eIds = new Set(R.timaIds), kIds = new Set(R.kostnIds);
       Q("#rk-save, #rk-pv-save").forEach(b => b.disabled = true);
       await saveSnapshot(st => {
@@ -592,7 +592,7 @@
       <button type="button" class="btn" data-act="rkcfg" style="margin-top:8px">Vista upplýsingar</button>`;
   };
 
-  window.rkAct = function (k, r) {
+  window.rkAct = async function (k, r) {
     const id = r.join(":");
     if (["rknew", "rkpn", "rkdk", "rkkredit", "rkresend", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
     if (k === "rknew") { openForm(id || null); return; }
@@ -642,7 +642,7 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
       saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = "Ógilt"; q.ogilt = isoDay(new Date()); } const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (e.reikningur === id) delete e.reikningur; }); (s.kostnadur || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); (s.pantanir || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); })
         .then(() => toast("Ógilt – tímar, kostnaður og pantanir aftur óreikningsfærð")); })(); return; }
     if (k === "rkdel" && window.can && !can("eyda")) return toast("Aðeins admin getur eytt reikningum.");
-    if (k === "rkdel") { const R = findR(id); if (!R || !confirm(`Eyða reikningi nr. ${R.nr}?\n\nTímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.pdfUrl ? "\nPDF-skjalið í OneDrive eyðist ekki." : ""}`)) return;
+    if (k === "rkdel") { const R = findR(id); if (!R || !await atrJa(`Eyða reikningi nr. ${R.nr}?\n\nTímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.pdfUrl ? "\nPDF-skjalið í OneDrive eyðist ekki." : ""}`)) return;
       rkDelMany([id]).then(() => { toast("Reikningi eytt"); goBack(); }); return; }
     if (k === "rkcfg") { const g = x => (document.getElementById("rk-" + x)?.value || "").trim(), n = x => parseFloat(g(x).replace(",", ".")) || 0;
       const o = { nafn: g("nafn"), kt: g("kt"), vsknr: g("vsknr"), heimilisfang: g("heimilisfang"), netfang: g("netfang"), simi: g("simi"), banki: g("banki"), timagjald: parseKr(g("timagjald")), vsk: n("vsk"), frestur: document.getElementById("rk-frestur") ? Math.round(n("frestur")) || 14 : (CFG().reikn?.frestur ?? 14), nastaNr: Math.round(n("nastaNr")) || 1001, bokhald: g("bokhald") || null,

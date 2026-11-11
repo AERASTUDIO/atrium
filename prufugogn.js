@@ -84,7 +84,7 @@
       <div class="links" style="margin-top:12px">${kjarni() ? "" : '<button type="button" class="btn primary" data-act="pgogn:inn">Hlaða inn prufugögnum</button>'}${tot ? '<button type="button" class="btn danger" data-act="pgogn:ut">Eyða öllum prufugögnum</button>' : ""}</div></div>`;
   };
 
-  function act(k, r) {
+  async function act(k, r) {
     if (!can("stillingar")) return toast("Aðeins admin.");
     const a = r[0];
     if (a === "inn") {
@@ -95,7 +95,7 @@
       return;
     }
     if (a === "ut") {
-      const n = count(); if (!confirm("Eyða öllum prufugögnum?\n\n" + Object.entries(n).filter(([, c]) => c).map(([k, c]) => `${c} ${HEITI[k]}`).join("\n") + "\n\nAnnað helst óbreytt.")) return;
+      const n = count(); if (!await atrJa("Eyða öllum prufugögnum?\n\n" + Object.entries(n).filter(([, c]) => c).map(([k, c]) => `${c} ${HEITI[k]}`).join("\n") + "\n\nAnnað helst óbreytt.")) return;
       saveSnapshot(s => { for (const key of KEYS) s[key] = (s[key] || []).filter(x => !x?.prufa); if (s.timar?.faerslur) s.timar.faerslur = s.timar.faerslur.filter(x => !x?.prufa); })
         .then(() => toast("Prufugögnum eytt")).catch(e => toast(errText(e)));
     }

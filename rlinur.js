@@ -77,9 +77,9 @@
     rlset: (k, r) => { const [kind, id, v] = [r[0], r.slice(1, -1).join(":"), r[r.length - 1]];
       saveSnapshot(s => { const L = kind === "verk" ? s.verkefni || [] : [...(s.tilbod || []), ...(s.pantanir || [])], q = L.find(x => String(x.id) === String(id)); if (q) q.rlina = v || null; })
         .then(() => { toast(v ? "Rekstrarlína: " + (byId(v)?.heiti || "") : "Rekstrarlína sjálfkrafa"); render(); }).catch(e => toast(e?.message || String(e))); },
-    rlcfg: (k, r) => { const op = r[0];
+    rlcfg: async (k, r) => { const op = r[0];
       if (op === "add") { const L = readCfg(); L.push({ id: "rl" + Date.now().toString(36), heiti: "Ný lína", litur: LITIR[L.length % LITIR.length], flokkar: [] }); saveCfg(L).then(() => render()); return; }
-      if (op === "del") { const i = +r[1], L = readCfg(); if (!confirm(`Eyða línunni „${L[i]?.heiti}“? Merkingar á tilboðum og verkefnum hverfa.`)) return; L.splice(i, 1); saveCfg(L).then(() => render()); return; }
+      if (op === "del") { const i = +r[1], L = readCfg(); if (!await atrJa(`Eyða línunni „${L[i]?.heiti}“? Merkingar á tilboðum og verkefnum hverfa.`)) return; L.splice(i, 1); saveCfg(L).then(() => render()); return; }
       if (op === "save") saveCfg(readCfg()).then(() => { toast("Rekstrarlínur vistaðar"); render(); }); }
   });
   const addPage = () => { if (typeof STPAGES === "undefined") return false; STPAGES.rlinur = { l: "Rekstrarlínur", d: "Eigin rekstrarlínur þvert á leigu, sölu og þjónustu", s: ["Rekstrarlínur", "Drykkjaþjónusta", "Vöruflokkar"], adm: 1, fn: () => cfgHTML() }; return true; };

@@ -1143,7 +1143,7 @@
       if (k === "u1tcp") { const e = faerslur().find(x => String(x.id) === v); if (!e) return; kind = "tima"; PREFILL = { date: isoD(today), pid: e.verkefniId || "", lysing: e.lysing || "", timar: e.timar }; openSheet(); return; }
       if (k === "u1cpw") { const a = d(v), p0 = new Date(a); p0.setDate(p0.getDate() - 7); const me = ME();
         const prev = faerslur().filter(e => (e.starfsmadur || me) === me && d(e.date) >= p0 && d(e.date) < a); if (!prev.length) return toast?.("Engir tímar í síðustu viku");
-        if (!confirm(`Afrita ${prev.length} færslur (${H(prev.reduce((x, e) => x + (+e.timar || 0), 0))} klst.) úr síðustu viku yfir á þessa viku?`)) return;
+        if (!await atrJa(`Afrita ${prev.length} færslur (${H(prev.reduce((x, e) => x + (+e.timar || 0), 0))} klst.) úr síðustu viku yfir á þessa viku?`)) return;
         await saveSnapshot(s0 => { s0.timar = s0.timar || {}; s0.timar.faerslur = s0.timar.faerslur || []; prev.forEach(e => { const x = d(e.date); x.setDate(x.getDate() + 7); const di = isoD(x); s0.timar.faerslur.push({ ...e, id: newId(), date: di, timabil: timabilOf(di), reikningur: null, live: undefined }); }); });
         toast?.(prev.length + " færslur afritaðar"); render(); return; }
       if (k === "u1xl") { const rows = [[{ v: "Hvert fer tíminn · " + (st.hvLab || ""), s: 1 }], [], ["Flokkur", "Klst.", "%"], ...(st.hvRows || []).map(([n, h, pc]) => [n, +h, pc])];

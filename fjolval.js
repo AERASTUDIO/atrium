@@ -55,17 +55,17 @@
   async function delAll(k, nafn) {
     const ids = [...SEL]; if (!ids.length) return; const n = ids.length;
     if (k === "rk") { if (!window.rkDelMany) return; const rs = (S?.reikningar || []).filter(x => ids.includes(String(x.id))); if (!rs.length) { SEL.clear(); deco(); return; }
-      if (!confirm(rs.length === 1 ? `Eyða reikningi nr. ${rs[0].nr}?\n\nTímar, kostnaður og pantanir á honum verða aftur óreikningsfærð.` : `Eyða ${rs.length} reikningum?\n\nTímar, kostnaður og pantanir á þeim verða aftur óreikningsfærð.`)) { if (nafn) { SEL.clear(); deco(); } return; }
+      if (!await atrJa(rs.length === 1 ? `Eyða reikningi nr. ${rs[0].nr}?\n\nTímar, kostnaður og pantanir á honum verða aftur óreikningsfærð.` : `Eyða ${rs.length} reikningum?\n\nTímar, kostnaður og pantanir á þeim verða aftur óreikningsfærð.`)) { if (nafn) { SEL.clear(); deco(); } return; }
       try { await rkDelMany(rs.map(r => r.id)); SEL.clear(); try { if (DETAIL && ids.includes(String(DETAIL).split(":")[1])) DETAIL = null; } catch (e) {} render(); toast(`${rs.length} ${rs.length === 1 ? "reikningi" : "reikningum"} eytt`); } catch (e) { toast(window.errText ? errText(e) : String(e)); }
       return; }
-    if (k === "vr") { if (!confirm(nafn ? `Eyða „${nafn}“ úr vörulistanum?\n\nTilboð og pantanir sem nota hana halda sínum línum.` : `Eyða ${n} ${n === 1 ? "vöru" : "vörum"} úr vörulistanum?\n\nTilboð og pantanir sem nota þær halda sínum línum.`)) { if (nafn) { SEL.clear(); deco(); } return; }
+    if (k === "vr") { if (!await atrJa(nafn ? `Eyða „${nafn}“ úr vörulistanum?\n\nTilboð og pantanir sem nota hana halda sínum línum.` : `Eyða ${n} ${n === 1 ? "vöru" : "vörum"} úr vörulistanum?\n\nTilboð og pantanir sem nota þær halda sínum línum.`)) { if (nafn) { SEL.clear(); deco(); } return; }
       const before = structuredClone(S);
       try { await saveSnapshot(s => { s.vorur = (s.vorur || []).filter(x => !ids.includes(String(x.id))); }); SEL.clear(); try { if (DETAIL && ids.includes(String(DETAIL).split(":")[1])) DETAIL = null; } catch (e) {} render();
         toast(`${n} eytt`, () => saveSnapshot(s => { Object.keys(s).forEach(q => delete s[q]); Object.assign(s, structuredClone(before)); }).then(() => toast("Hætt við að eyða"))); } catch (e) { toast(window.errText ? errText(e) : String(e)); }
       return; }
     const what = k === "verk" ? (n === 1 ? "verkefni" : "verkefnum") : k === "vsk" ? (n === 1 ? "viðskiptavini" : "viðskiptavinum") : isPant() ? (n === 1 ? "pöntun" : "pöntunum") : (n === 1 ? "tilboði" : "tilboðum");
     const extra = k === "verk" ? "\n\nTíma- og kostnaðarskráningar og undirverk verkefnanna eyðast líka. Fundir og skjöl haldast." : k === "vsk" ? "\n\nVerkefni sem tengjast þeim haldast en tengingin fellur niður." : "";
-    if (!confirm(nafn ? `Eyða „${nafn}“?${extra}` : `Eyða ${n} ${what}?${extra}`)) { if (nafn) { SEL.clear(); deco(); } return; }
+    if (!await atrJa(nafn ? `Eyða „${nafn}“?${extra}` : `Eyða ${n} ${what}?${extra}`)) { if (nafn) { SEL.clear(); deco(); } return; }
     const before = structuredClone(S), has = x => ids.includes(String(x.id));
     try {
       await saveSnapshot(s => {
