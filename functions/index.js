@@ -621,9 +621,41 @@ if (process.env.BOKHALD === "payday") {
     let logo = null; if (process.env.DOC_LOGO) { try { const r = await fetch(process.env.DOC_LOGO); if (r.ok) logo = Buffer.from(await r.arrayBuffer()); } catch (e) {} }
     return fylgiskjalPdf({ R, T, K, P, nafn, logo });
   };
+  const pdKredit = async (ev, a) => {
+    const ref = ev.data.after.ref, B = a.bokhald, now = () => new Date().toISOString(), today = now().slice(0, 10), rid = ev.params.id;
+    try {
+      if (!B.pid) throw new Error("Reikningurinn finnst ekki í Payday (vantar auðkenni).");
+      const pd = pdApi(await pdToken());
+      const g = await pd("GET", "/invoices/" + encodeURIComponent(B.pid));
+      if (!g.ok) throw new Error("Payday svaraði " + g.status + " við leit að reikningnum: " + pdErr(g));
+      let st = String(g.data?.status || "").toUpperCase();
+      if (st === "PAID") throw new Error("Reikningurinn er greiddur í Payday – kreditfærðu hann þar (endurgreiðsla þarf að fylgja).");
+      if (st !== "CANCELLED" && st !== "DELETED") {
+        if (g.data?.claimCreated && !g.data?.claimCancelled) { const c = await pd("PUT", "/invoices/" + encodeURIComponent(B.pid), { status: "SENT", claimCancelledDate: today }); if (!c.ok) logger.warn("pdKredit: krafa", c.status, pdErr(c)); }
+        const u = await pd("PUT", "/invoices/" + encodeURIComponent(B.pid), { status: "CANCELLED", cancelledDate: today });
+        if (!u.ok) throw new Error("Payday hafnaði kreditfærslu (" + u.status + "): " + pdErr(u));
+        st = "CANCELLED";
+      }
+      // Losa tíma, kostnað og pantanir af reikningnum
+      for (const col of ["timar", "kostnadur", "pantanir"]) {
+        const sn = await db.collection(col).where("reikningur", "==", rid).get(); const bt = db.batch(); let n = 0;
+        sn.forEach(d => { bt.update(d.ref, { reikningur: admin.firestore.FieldValue.delete(), breytt_t: now(), breytt_af: "Payday-kreditfærsla" }); n++; }); if (n) await bt.commit();
+      }
+      await ref.update({ stada: "Ógilt", ogilt: today, bokhald: { ...B, pstada: st, kredit: { ...B.kredit, stada: "sent", dags: now() } } });
+      logger.info("bokhaldPayday kreditfært", { id: rid, pid: B.pid });
+    } catch (e) {
+      logger.error("pdKredit", e);
+      await ref.update({ bokhald: { ...B, kredit: { ...B.kredit, stada: "villa", villa: String(e.message || e).slice(0, 400), dags: now() } } });
+    }
+  };
   exports.bokhaldPayday = onDocumentWritten({ document: "reikningar/{id}", secrets: [PD_ID, PD_SECRET], timeoutSeconds: 120 }, async ev => {
     const a = ev.data?.after?.exists ? ev.data.after.data() : null, b = ev.data?.before?.exists ? ev.data.before.data() : null;
-    if (!a || a.bokhald?.kerfi !== "payday" || a.bokhald?.stada !== "bidur" || (b?.bokhald?.stada === "bidur" && b.bokhald.beidni === a.bokhald.beidni)) return;
+    if (!a || a.bokhald?.kerfi !== "payday") return;
+    /* 2.119.0: kreditfæra úr Atrium – bokhald.kredit = { stada:"bidur" } → reikningurinn felldur niður í Payday (krafa felld niður,
+       Payday gefur út kreditreikning); drögin verða ógild og tímar, kostnaður og pantanir aftur óreikningsfærð */
+    const K = a.bokhald.kredit;
+    if (K?.stada === "bidur" && !(b?.bokhald?.kredit?.stada === "bidur" && b.bokhald.kredit.beidni === K.beidni)) return pdKredit(ev, a);
+    if (a.bokhald?.stada !== "bidur" || (b?.bokhald?.stada === "bidur" && b.bokhald.beidni === a.bokhald.beidni)) return;
     const ref = ev.data.after.ref, R = a, B = a.bokhald, now = () => new Date().toISOString();
     const result = inv => { const nr = inv?.number != null ? String(inv.number) : null, st = String(inv?.status || "").toUpperCase();
       return nr && st !== "DRAFT" ? { bokhald: { ...B, kerfi: "payday", stada: "sent", pid: inv.id, nr, pstada: st, dags: now() }, bokhaldNr: nr, bokhaldDags: now().slice(0, 10) }

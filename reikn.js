@@ -183,11 +183,14 @@
   setInterval(() => { autoSync().catch(() => {}); }, 4000);
   // 2.118.5: staða í bókhaldskerfi – merki í listum og tilkynning þegar netþjónninn hefur lokið sendingu
   window.rkBkTag = R => { const b = R && R.bokhald; if (!b || !b.stada || R.stada === "Ógilt") return ""; const n = b.kerfi === "dk" ? "DK" : "Payday";
+    if (b.kredit?.stada === "bidur") return ` <span class="rkbktag">Kreditfæri…</span>`;
     const t = b.stada === "sent" ? `Í ${n}${b.nr || R.bokhaldNr ? " nr. " + (b.nr || R.bokhaldNr) : ""}` : b.stada === "drog" ? `Drög í ${n}` : b.stada === "bidur" ? `Sendist í ${n}…` : b.stada === "villa" ? `Villa frá ${n}` : "";
     return t ? ` <span class="rkbktag${b.stada === "villa" ? " villa" : b.stada === "sent" ? " ok" : ""}" title="Staða í bókhaldskerfi">${esc(t)}</span>` : ""; };
   { const seen = new Map();
     setInterval(() => { try { if (typeof S === "undefined" || !S || !FJ()) return;
       reikningar().forEach(R => { const st = R.bokhald?.stada || "", was = seen.get(R.id); seen.set(R.id, st);
+        const kk = R.bokhald?.kredit?.stada || "", kw = seen.get("k" + R.id); seen.set("k" + R.id, kk);
+        if (kw === "bidur" && kk && kk !== "bidur") toast(kk === "sent" ? `Reikningur ${R.bokhald.nr || ""} kreditfærður í Payday – tímarnir aftur óreikningsfærðir` : `Kreditfærsla í Payday tókst ekki (drög ${R.nr})`);
         if (was !== "bidur" || st === "bidur" || !st) return; const n = R.bokhald.kerfi === "dk" ? "DK" : "Payday";
         toast(st === "villa" ? `Villa frá ${n} við drög ${R.nr} – opnaðu drögin til að sjá hvað brást` : st === "drog" ? `Drög ${R.nr} komin í ${n}${R.bokhald.fylgiskjal ? " með fylgiskjali" : ""}` : `Reikningur ${R.bokhald.nr || ""} gefinn út í ${n} (drög ${R.nr})`); });
     } catch (e) {} }, 2500); }
@@ -473,7 +476,7 @@
   function rkBkInner(R, b, fj, v) {
     if (PDON() && (!b.kerfi || b.kerfi === "payday")) {
       const d = PDC(), btn = (t, pri) => fj ? `<button type="button" class="btn sm${pri ? " primary" : ""}" data-act="rkdk:${esc(R.id)}" style="margin-left:6px">${t}</button>` : "";
-      if (b.stada === "sent") return `<div class="rkvb ok"><b>✓ Gefinn út í Payday</b> – reikningur nr. <b>${esc(String(b.nr || R.bokhaldNr || ""))}</b>${b.krafa ? " · krafa í netbanka" : b.engKrafa ? " · <b>engin krafa</b> (bankatenging ekki virk í Payday)" : ""}${b.post ? " · sendur í tölvupósti" : ""}${b.fylgiskjal ? " · með sundurliðun tíma" : ""}${b.eindagi ? " · eindagi " + esc(dIS(b.eindagi)) : ""}${b.dags ? " · " + esc(dIS(String(b.dags).slice(0, 10))) : ""}</div>`;
+      if (b.stada === "sent") return (b.kredit?.stada === "bidur" ? `<div class="rkvb"><b>Kreditfæri í Payday…</b> Krafan er felld niður og reikningurinn bakfærður.</div>` : "") + `<div class="rkvb ${b.kredit?.stada === "villa" ? "no" : "ok"}">${b.kredit?.stada === "villa" ? `<b>Kreditfærsla tókst ekki:</b> ${esc(b.kredit.villa || "")}<br>` : ""}<b>✓ Gefinn út í Payday</b> – reikningur nr. <b>${esc(String(b.nr || R.bokhaldNr || ""))}</b>${b.krafa ? " · krafa í netbanka" : b.engKrafa ? " · <b>engin krafa</b> (bankatenging ekki virk í Payday)" : ""}${b.post ? " · sendur í tölvupósti" : ""}${b.fylgiskjal ? " · með sundurliðun tíma" : ""}${b.eindagi ? " · eindagi " + esc(dIS(b.eindagi)) : ""}${b.dags ? " · " + esc(dIS(String(b.dags).slice(0, 10))) : ""}${fj && b.kredit?.stada !== "bidur" && R.stada !== "Greitt" ? `<br><button type="button" class="btn sm" data-act="rkkredit:${esc(R.id)}" style="margin-top:6px">${b.kredit?.stada === "villa" ? "Reyna aftur að kreditfæra" : "Kreditfæra í Payday"}</button>` : ""}</div>`;
       if (b.stada === "drog") return `<div class="rkvb ok"><b>✓ Drög í Payday</b>${b.fylgiskjal ? " með sundurliðun tíma (fylgiskjal)" : ""} – farðu yfir reikninginn í Payday og sendu hann þaðan; þá fær hann númer.${btn("Sækja stöðu úr Payday")}<br><span class="hint" style="margin:0">Breyttirðu drögunum í Atrium? Eyddu þeim í Payday og smelltu á „Sækja stöðu úr Payday“ – þá eru þau send aftur.</span></div>`;
       if (b.stada === "bidur") return `<div class="rkvb"><b>${b.pid ? "Sæki stöðu úr Payday…" : "Sendist í Payday…"}</b>${b.pid ? "" : " Netþjónninn stofnar viðskiptavin ef þarf og reikninginn í Payday."}</div>`;
       const err = b.stada === "villa" ? `<b>Villa frá Payday:</b> ${esc(b.villa || "óþekkt")}<br>` : "";
@@ -502,7 +505,7 @@
       <div class="links"><button type="button" class="btn primary" data-act="rkpdf:${esc(R.id)}">Sækja PDF</button><button type="button" class="btn" data-act="rkpv:${esc(R.id)}">Forskoða PDF</button>
         ${R.pdfUrl ? `<a class="btn" href="${esc(R.pdfUrl)}" target="_blank" rel="noopener">📁 Í ${ODN()}</a>` : on && FJ() ? `<button type="button" class="btn" data-act="rkod:${esc(R.id)}">Vista í OneDrive</button>` : ""}
         <button type="button" class="btn" data-act="rkprint:${esc(R.id)}">Prenta</button><button type="button" class="btn" data-act="rkxlsx:${esc(R.id)}">Excel</button>
-        ${FJ() && !OGILT(R) ? `${DROG() ? `<button type="button" class="btn" data-act="rkbok:${esc(R.id)}">${R.bokhaldNr ? "Breyta númeri í bókhaldi" : "Skrá í bókhald"}</button>` : ""}<button type="button" class="btn" data-act="rkpaid:${esc(R.id)}">${greitt ? "Merkja ógreitt" : "✓ Merkja greitt"}</button><button type="button" class="btn danger" data-act="rkogilda:${esc(R.id)}">Ógilda</button>` : ""}</div>
+        ${FJ() && !OGILT(R) ? `${DROG() ? `<button type="button" class="btn" data-act="rkbok:${esc(R.id)}">${R.bokhaldNr ? "Breyta númeri í bókhaldi" : "Skrá í bókhald"}</button>` : ""}<button type="button" class="btn" data-act="rkpaid:${esc(R.id)}">${greitt ? "Merkja ógreitt" : "✓ Merkja greitt"}</button>${R.bokhald?.kerfi === "payday" && R.bokhald?.stada === "sent" ? "" : `<button type="button" class="btn danger" data-act="rkogilda:${esc(R.id)}">Ógilda</button>`}` : ""}</div>
       ${DROG() ? `<p class="hint" style="margin-top:8px">${esc(DROG_TXT)} Þegar reikningurinn hefur verið gefinn út þar: <b>Skrá í bókhald</b> og skráðu númerið.</p>` : ""}
       ${FJ() ? rkBkHTML(R) : ""}
       <div class="invwrap">${invoiceHTML(R)}</div>
@@ -570,7 +573,7 @@
 
   window.rkAct = function (k, r) {
     const id = r.join(":");
-    if (["rknew", "rkpn", "rkdk", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
+    if (["rknew", "rkpn", "rkdk", "rkkredit", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpn") { billOrders(id); return; }
     if (k === "rkdk") { const R = findR(id); if (!R) return; const v = vidbunadur(R); if (v.length) return toast("Vantar: " + v.join(", "));
@@ -596,6 +599,9 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
     if (k === "rkpaid") { saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = q.stada === "Greitt" ? "Ógreitt" : "Greitt"; q.greitt = q.stada === "Greitt" ? isoDay(new Date()) : null; } }).then(() => toast("Staða reiknings uppfærð")); return; }
     if (k === "rkbok") { const R = findR(id); if (!R) return; const v = prompt(`Númer reikningsins í bókhaldskerfinu (fyrir drög ${R.nr}):`, R.bokhaldNr || ""); if (v === null) return;
       saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.bokhaldNr = v.trim() || null; q.bokhaldDags = v.trim() ? isoDay(new Date()) : null; } }).then(() => toast(v.trim() ? "Skráð í bókhald" : "Bókhaldsnúmer fjarlægt")); return; }
+    if (k === "rkkredit") { const R = findR(id); if (!R || !R.bokhald?.pid) return;
+      if (!confirm(`Kreditfæra reikning nr. ${R.bokhald.nr || R.bokhaldNr} (${kr(R.tot)}) á ${R.kaupandi?.name || "greiðanda"}?\n\n• Krafan í netbanka fellur niður\n• Payday bakfærir reikninginn (kreditreikningur)\n• Drögin í Atrium verða ógild og tímarnir aftur óreikningsfærðir – þú getur gert nýjan reikning úr þeim\n\nÞetta er ekki hægt að afturkalla.`)) return;
+      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q && q.bokhald) q.bokhald = { ...q.bokhald, kredit: { stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" } }; }).then(() => toast("Kreditfæri í Payday…")); return; }
     if (k === "rkogilda") { const R = findR(id); if (!R || !confirm(`Ógilda ${NRL(R).toLowerCase()}?\n\nDrögin haldast skráð (merkt ógild) en tímarnir og kostnaðurinn verða aftur óreikningsfærð.${R.bokhaldNr ? "\n\nATH: reikningurinn er skráður í bókhaldi (" + R.bokhaldNr + ") – þar þarf að gefa út kreditreikning." : ""}`)) return;
       saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) { q.stada = "Ógilt"; q.ogilt = isoDay(new Date()); } const T = s.timar || {}; [...(T.faerslur || []), ...(T.nyjast || [])].forEach(e => { if (e.reikningur === id) delete e.reikningur; }); (s.kostnadur || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); (s.pantanir || []).forEach(x => { if (x.reikningur === id) delete x.reikningur; }); })
         .then(() => toast("Ógilt – tímar, kostnaður og pantanir aftur óreikningsfærð")); return; }
