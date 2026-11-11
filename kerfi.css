@@ -1062,3 +1062,8 @@ html body #view .usvc.n1{grid-template-columns:minmax(0,1fr)}
 .upbar i{display:block;height:100%;background:var(--ink);transition:width .2s}
 .upr.err .upbar i{background:var(--crit)}
 summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10px;background:var(--accent-soft)}
+/* 2.118.5: staða reiknings í bókhaldskerfi (Payday/DK) í listum */
+.rkbktag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:400;line-height:18px;background:var(--pappir,#F6F7F8);color:var(--stal,#7C8896);border:1px solid var(--thoka,#C9D1D9);vertical-align:middle;white-space:nowrap}
+.rkbktag.ok{color:#2f6b45;border-color:#b9d8c3;background:#eef7f1}
+.rkbktag.villa{color:#a33a2c;border-color:#e7beb7;background:#fbefed}
+[data-theme="dark"] .rkbktag,html.dark .rkbktag{background:transparent}

@@ -181,6 +181,16 @@
   }
   window.rkAutoSync = autoSync;
   setInterval(() => { autoSync().catch(() => {}); }, 4000);
+  // 2.118.5: staða í bókhaldskerfi – merki í listum og tilkynning þegar netþjónninn hefur lokið sendingu
+  window.rkBkTag = R => { const b = R && R.bokhald; if (!b || !b.stada || R.stada === "Ógilt") return ""; const n = b.kerfi === "dk" ? "DK" : "Payday";
+    const t = b.stada === "sent" ? `Í ${n}${b.nr || R.bokhaldNr ? " nr. " + (b.nr || R.bokhaldNr) : ""}` : b.stada === "drog" ? `Drög í ${n}` : b.stada === "bidur" ? `Sendist í ${n}…` : b.stada === "villa" ? `Villa frá ${n}` : "";
+    return t ? ` <span class="rkbktag${b.stada === "villa" ? " villa" : b.stada === "sent" ? " ok" : ""}" title="Staða í bókhaldskerfi">${esc(t)}</span>` : ""; };
+  { const seen = new Map();
+    setInterval(() => { try { if (typeof S === "undefined" || !S || !FJ()) return;
+      reikningar().forEach(R => { const st = R.bokhald?.stada || "", was = seen.get(R.id); seen.set(R.id, st);
+        if (was !== "bidur" || st === "bidur" || !st) return; const n = R.bokhald.kerfi === "dk" ? "DK" : "Payday";
+        toast(st === "villa" ? `Villa frá ${n} við drög ${R.nr} – opnaðu drögin til að sjá hvað brást` : st === "drog" ? `Drög ${R.nr} komin í ${n}${R.bokhald.fylgiskjal ? " með fylgiskjali" : ""}` : `Reikningur ${R.bokhald.nr || ""} gefinn út í ${n} (drög ${R.nr})`); });
+    } catch (e) {} }, 2500); }
 
   function buildLines(groups, sund) {
     const multi = groups.length > 1, L = [];
