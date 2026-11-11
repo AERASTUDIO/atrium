@@ -632,10 +632,13 @@ if (process.env.BOKHALD === "payday") {
       const lines = (R.linur || []).filter(l => !l.haus && Math.round((+l.magn || 0) * (+l.verd || 0)) !== 0)
         .map(l => ({ description: txt(l.lysing, 250) || "Lína", quantity: +l.magn || 0, unitPriceExcludingVat: +l.verd || 0, vatPercentage: +(l.vsk ?? dflt) || 0, discountPercentage: 0 }));
       if (!lines.length) throw new Error("Engar línur til að senda.");
-      const today = now().slice(0, 10), inv = String(R.dags || today).slice(0, 10) > today ? today : String(R.dags || today).slice(0, 10);
-      const due = String(R.gjalddagi || inv).slice(0, 10) < inv ? inv : String(R.gjalddagi || inv).slice(0, 10);
+      // 2.118.3: reikningsdagur = dagurinn sem sent er í Payday; gjalddagi sama dag (stillanlegt) og eindagi N dögum síðar (sjálfgefið 20)
+      const today = now().slice(0, 10), inv = today, plus = (d0, n) => { const x = new Date(d0 + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+      const ein = Math.max(0, Math.round(P.eindagi === "" || P.eindagi == null ? 20 : +P.eindagi || 0));
+      const due = P.gjSamd === false ? (String(R.gjalddagi || inv).slice(0, 10) < inv ? inv : String(R.gjalddagi).slice(0, 10)) : inv;
+      const fin = plus(inv, ein) < due ? due : plus(inv, ein);
       const drog = P.drog !== false;
-      const body = { customer: { id: custId }, description: txt(R.lysing || "", 1000) || undefined, invoiceDate: inv, dueDate: due, finalDueDate: due, currencyCode: "ISK",
+      const body = { customer: { id: custId }, description: txt(R.lysing || "", 1000) || undefined, invoiceDate: inv, dueDate: due, finalDueDate: fin, currencyCode: "ISK",
         reference: txt("ATR-" + R.nr, 100), status: drog ? "DRAFT" : "SENT", lines,
         ...(!drog ? { sendEmail: !!P.post, createClaim: !!P.krafa } : {}),
         ...(stadg && P.grId ? { paidDate: String(R.greitt || inv).slice(0, 10), paymentType: String(P.grId) } : {}) };
