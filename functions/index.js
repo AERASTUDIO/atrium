@@ -574,6 +574,7 @@ if (process.env.BOKHALD === "dk") {
      3) reikningur stofnaður (POST /invoices) – línur verð án VSK og VSK % línunnar; status DRAFT (sjálfgefið: farið yfir og sent úr Payday) eða SENT
      4) bokhald = { stada:"drog", pid } (drög í Payday) eða { stada:"sent", pid, nr } og bokhaldNr – eða { stada:"villa", villa } */
 if (process.env.BOKHALD === "payday") {
+  const { fylgiskjalPdf } = require("./fylgiskjal");
   const PD_ID = defineSecret("PAYDAY_CLIENT_ID"), PD_SECRET = defineSecret("PAYDAY_CLIENT_SECRET");
   const PD_URL = (process.env.PAYDAY_URL || "https://api.payday.is").replace(/\/+$/, "");
   const kt10 = k => String(k || "").replace(/\D/g, "");
@@ -586,7 +587,8 @@ if (process.env.BOKHALD === "payday") {
     return j.accessToken;
   };
   const pdApi = tok => async (method, path, body) => {
-    const r = await fetch(PD_URL + path, { method, headers: { Authorization: "Bearer " + tok, "Api-Version": "alpha", Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined });
+    const form = typeof FormData !== "undefined" && body instanceof FormData;
+    const r = await fetch(PD_URL + path, { method, headers: { Authorization: "Bearer " + tok, "Api-Version": "alpha", Accept: "application/json", ...(body && !form ? { "Content-Type": "application/json" } : {}) }, body: body ? (form ? body : JSON.stringify(body)) : undefined });
     const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
     return { ok: r.ok, status: r.status, data: j, text: t };
   };
@@ -604,6 +606,21 @@ if (process.env.BOKHALD === "payday") {
     if (!p.ok || !p.data?.id) throw new Error("Tókst ekki að stofna viðskiptavin í Payday (" + p.status + "): " + pdErr(p));
     return p.data.id;
   };
+  // Gögn fylgiskjals: tímar og kostnaður á reikningnum, verkefni, nöfn starfsfólks og merki fyrirtækis (DOC_LOGO, slóð á PNG)
+  const fylgiskjal = async (R, rid) => {
+    const getAll = async (col, ids) => { const m = new Map();
+      (await db.collection(col).where("reikningur", "==", rid).get()).forEach(d => m.set(d.id, { id: d.id, ...d.data() }));
+      const rest = (ids || []).filter(i => i && !m.has(i)); for (let i = 0; i < rest.length; i += 100) { const sn = await db.getAll(...rest.slice(i, i + 100).map(x => db.doc(col + "/" + x))); sn.forEach(d => { if (d.exists) m.set(d.id, { id: d.id, ...d.data() }); }); }
+      return [...m.values()]; };
+    const T = (await getAll("timar", R.timaIds)).filter(e => +e.timar > 0), K = await getAll("kostnadur", R.kostnIds);
+    if (!T.length && !K.length) return null;
+    const pids = [...new Set([...T, ...K].map(x => x.verkefniId).filter(Boolean))], P = {};
+    if (pids.length) (await db.getAll(...pids.map(x => db.doc("verkefni/" + x)))).forEach(d => { if (d.exists) P[d.id] = d.data(); });
+    const nafn = {}; const nu = (await db.doc("app/notendur").get()).data()?.notendur || {}; Object.values(nu).forEach(u => { if (u && u.sk && u.nafn) nafn[u.sk] = u.nafn; });
+    const st = (await db.doc("app/state").get()).data() || {}; (st.stillingar?.starfsmenn || []).forEach(x => { if (x && x.sk && x.nafn && !nafn[x.sk]) nafn[x.sk] = x.nafn; });
+    let logo = null; if (process.env.DOC_LOGO) { try { const r = await fetch(process.env.DOC_LOGO); if (r.ok) logo = Buffer.from(await r.arrayBuffer()); } catch (e) {} }
+    return fylgiskjalPdf({ R, T, K, P, nafn, logo });
+  };
   exports.bokhaldPayday = onDocumentWritten({ document: "reikningar/{id}", secrets: [PD_ID, PD_SECRET], timeoutSeconds: 120 }, async ev => {
     const a = ev.data?.after?.exists ? ev.data.after.data() : null, b = ev.data?.before?.exists ? ev.data.before.data() : null;
     if (!a || a.bokhald?.kerfi !== "payday" || a.bokhald?.stada !== "bidur" || (b?.bokhald?.stada === "bidur" && b.bokhald.beidni === a.bokhald.beidni)) return;
@@ -617,9 +634,11 @@ if (process.env.BOKHALD === "payday") {
       if (B.pid) {
         const g = await pd("GET", "/invoices/" + encodeURIComponent(B.pid));
         if (g.ok && g.data) { const st = String(g.data.status || "").toUpperCase();
-          if (st === "DELETED" || st === "CANCELLED") throw new Error("Reikningnum var " + (st === "DELETED" ? "eytt" : "hætt við hann") + " í Payday. Ógiltu drögin í Atrium eða fjarlægðu tenginguna (Breyta númeri í bókhaldi).");
-          await ref.update(result(g.data)); logger.info("bokhaldPayday staða", { id: ev.params.id, st }); return; }
-        if (g.status !== 404) throw new Error("Payday svaraði " + g.status + " við leit að reikningnum: " + pdErr(g));
+          if (st === "CANCELLED") throw new Error("Hætt var við reikninginn í Payday. Ógiltu drögin í Atrium eða búðu til ný.");
+          if (st !== "DELETED") { await ref.update(result(g.data)); logger.info("bokhaldPayday staða", { id: ev.params.id, st }); return; }
+        } else if (g.status !== 404) throw new Error("Payday svaraði " + g.status + " við leit að reikningnum: " + pdErr(g));
+        // 2.118.4: drögunum var eytt í Payday → búin til aftur (t.d. eftir breytingu í Atrium)
+        delete B.pid; logger.info("bokhaldPayday: eytt í Payday – stofna aftur", { id: ev.params.id });
       }
       const st = (await db.doc("app/state").get()).data() || {}, rk = st.stillingar?.reikn || {}, P = rk.payday || {};
       const kaup = R.kaupandi || {}, kt = kt10(kaup.kennitala), stadg = !!R.stadgreitt;
@@ -642,9 +661,16 @@ if (process.env.BOKHALD === "payday") {
         reference: txt("ATR-" + R.nr, 100), status: drog ? "DRAFT" : "SENT", lines,
         ...(!drog ? { sendEmail: !!P.post, createClaim: !!P.krafa } : {}),
         ...(stadg && P.grId ? { paidDate: String(R.greitt || inv).slice(0, 10), paymentType: String(P.grId) } : {}) };
-      const p = await pd("POST", "/invoices", body);
+      // 2.118.4: fylgiskjal – sundurliðun tíma (og útlagðs kostnaðar) sem PDF, hengt á reikninginn (multipart: data + attachment1)
+      let p, fylgi = false;
+      if (P.fylgiskjal !== false) {
+        const pdf = await fylgiskjal(R, ev.params.id).catch(e => { logger.warn("fylgiskjal", String(e.message || e)); return null; });
+        if (pdf) { const fd = new FormData(); fd.append("data", JSON.stringify(body)); fd.append("attachment1", new Blob([pdf], { type: "application/pdf" }), `Sundurlidun-tima-ATR-${R.nr}.pdf`);
+          p = await pd("POST", "/invoices", fd); fylgi = p.ok; }
+      }
+      if (!p) p = await pd("POST", "/invoices", body);
       if (!p.ok || !p.data?.id) throw new Error("Payday hafnaði reikningnum (" + p.status + "): " + pdErr(p));
-      await ref.update(result(p.data));
+      const out = result(p.data); out.bokhald.fylgiskjal = fylgi; await ref.update(out);
       logger.info("bokhaldPayday stofnað", { id: ev.params.id, pid: p.data.id, status: p.data.status, nr: p.data.number });
     } catch (e) {
       logger.error("bokhaldPayday", e);
