@@ -18,6 +18,8 @@
   const kaupandi = p => findVsk(p?.vskId) || findVsk(p?.vkId) || null; // greiðandi = viðskiptavinur (verkkaupi aflagður 1.4.0)
   const fx = n => String(n).replace(".", ",");
   const keyOf = x => x.verkefniId || NONE;
+  /* 2.122.2: tillaga að númeri sleppir númerum sem eru þegar til (áður kom „Reikningur nr. X er þegar til“ ef næsta númer í stillingum var notað) */
+  const nastaLaust = n => { let x = +n || 1001; const used = new Set(reikningar().map(r => +r.nr)); while (used.has(x)) x++; return x; };
   /* Innheimtuháttur verkefnis (2.42.0): timar = tímavinna (tímar × tímagjald rukkaðir); tilbod = fast verð skv. tilboði/pöntun (tímar til yfirsýnar);
      ekki = ekki rukkað. p.innheimta ræður; annars sjálfgefið: í útliti I fær verkefni með búnaði/vörum á tilboði eða pöntun „tilbod“, annars tímavinna.
      Utan útlits I er sjálfgefið tímavinna (óbreytt hegðun). */
@@ -102,7 +104,7 @@
       ${xs.length > 1 ? `<p class="pfhint" style="margin:0 0 8px">Fleiri afhentar pantanir þessa viðskiptavinar eru án reiknings – hakaðu við þær sem eiga að fara á sama reikning.</p>` : ""}
       <div class="rkpl">${xs.map(x => `<label class="rkpr"><input type="checkbox" value="${esc(x.id)}"${x.id === pid0 ? " checked" : ""}><span><b>${esc(x.nr)}</b> ${esc(x.heiti && x.heiti !== "Pöntun" ? x.heiti : "")}<small>${esc([x.fra ? dIS(x.fra) : "", x.stada].filter(Boolean).join(" · "))}</small></span><b>${esc(kr(pnNet(x)))}</b></label>`).join("")}</div>
       <div class="two" style="margin-top:12px"><label>Reikningsdagur<input id="rkp-d" type="date" value="${isoDay(today)}"></label><label>Gjalddagi<input id="rkp-g" type="date" value="${addDays(isoDay(today), +rk.frestur || 14)}"></label></div>
-      <label>${DROG() ? "Númer draga" : "Reikningsnúmer"}<input id="rkp-n" inputmode="numeric" value="${esc(String(rk.nastaNr))}"></label>
+      <label>${DROG() ? "Númer draga" : "Reikningsnúmer"}<input id="rkp-n" inputmode="numeric" value="${esc(String(nastaLaust(rk.nastaNr)))}"></label>
       <div class="rkpsum"></div>
       <div class="pfact"><button type="button" class="btn rkp-ut" title="T.d. eldri pöntun sem var reikningsfærð beint í bókhaldskerfinu">Reikningsfært annars staðar</button><button type="button" class="btn" data-x="1">Hætta við</button><button type="button" class="btn primary" id="rkp-ok">Búa til ${DROG() ? "reikningsdrög" : "reikning"}</button></div>`);
     const picked = () => [...w.querySelectorAll(".rkpl input:checked")].map(i => xs.find(x => x.id === i.value)).filter(Boolean);
@@ -254,7 +256,7 @@
       <form id="rkf" novalidate>
       <label>Viðskiptavinur (greiðandi)<select id="rk-buyer"><option value="">– Veldu –</option>${vskList().map(c => `<option value="${esc(c.id)}"${buyer0 && sameId(buyer0.id, c.id) ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
       <div class="two"><label>Reikningsdagur<input id="rk-dags" type="date" value="${isoDay(today)}"></label><label>Gjalddagi<input id="rk-gjd" type="date" value="${addDays(isoDay(today), +rk.frestur || 14)}"></label></div>
-      <label>Reikningsnúmer<input id="rk-nr" inputmode="numeric" value="${esc(String(rk.nastaNr))}"></label>
+      <label>Reikningsnúmer<input id="rk-nr" inputmode="numeric" value="${esc(String(nastaLaust(rk.nastaNr)))}"></label>
       <div class="kind" style="margin-top:4px">Verkefni á reikningnum</div>
       <p class="hint" style="margin:-4px 0 2px">Hakaðu við eitt eða fleiri verkefni. Verkefni greiðandans eru valin sjálfkrafa.</p>
       <div class="rkgs">${groups.map(grpHTML).join("")}</div>
