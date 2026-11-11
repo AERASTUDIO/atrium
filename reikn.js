@@ -212,13 +212,13 @@
     if (!groups.length) { toast("Ekkert óreikningsfært."); return; }
     if (pid && !groups.some(g => g.k === pid)) { toast("Engir óreikningsfærðir tímar eða kostnaður á verkefninu."); return; }
     const p0 = pid ? findProj(pid) : null, buyer0 = kaupandi(p0) || kaupandi(groups.find(g => g.p)?.p);
-    const missing = !rk.kt || !rk.banki;
+    const missing = !rk.kt || (!rk.banki && !["dk", "payday"].includes(rk.bokhald)); // 2.118.1: með bókhaldstengingu sér bókhaldskerfið um greiðsluupplýsingar (t.d. krafa í netbanka)
     const grpHTML = g => `<details class="rkg" data-g="${esc(g.k)}"><summary><label class="rkrow rkgh" onclick="event.stopPropagation()"><input type="checkbox" data-gall="${esc(g.k)}"><span><b>${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt)}` : "Án verkefnis (almennt)"}</b></span><b class="rkgt"></b></label></summary>
       <div class="rkgb">${g.es.length ? `<label class="rkrate">Tímagjald kr./klst.<input data-rate="${esc(g.k)}" inputmode="numeric" value="${rate(g.p) || ""}" placeholder="t.d. 15000"></label>` : ""}
       <div class="rkpick">${g.es.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).map(e => `<label class="rkrow"><input type="checkbox" data-rke="${esc(e.id)}" data-gk="${esc(g.k)}"><span>${esc(dIS(String(e.date).slice(0, 10)))} · ${esc(cleanLys(e.lysing))}${e.taxti && window.lidOf && lidOf(e.taxti) ? ` <span class="tag">${esc(lidOf(e.taxti).heiti)}</span>` : ""}</span><b>${esc(hrs(e.timar))}</b></label>`).join("")}
       ${g.ks.map(k => `<label class="rkrow"><input type="checkbox" data-rkk="${esc(k.id)}" data-gk="${esc(g.k)}"><span>${esc(dIS(k.date))} · 🧾 ${esc(k.lysing)}</span><b>${esc(kr(k.upphaed))}</b></label>`).join("")}</div></div></details>`;
     sheet.innerHTML = `<h3 id="sheet-h">Nýr reikningur</h3>
-      ${missing ? `<div class="msg err" style="margin-bottom:10px">Upplýsingar um seljanda vantar (kennitala og bankareikningur). Fylltu þær út í Stillingum → Reikningar áður en reikningur er sendur.</div>` : ""}
+      ${missing ? `<div class="msg err" style="margin-bottom:10px">Upplýsingar um seljanda vantar (${rk.kt ? "bankareikningur" : "kennitala"}${!rk.kt && !rk.banki && !["dk", "payday"].includes(rk.bokhald) ? " og bankareikningur" : ""}). Fylltu þær út í Stillingum → Reikningar áður en reikningur er sendur.</div>` : ""}
       <form id="rkf" novalidate>
       <label>Viðskiptavinur (greiðandi)<select id="rk-buyer"><option value="">– Veldu –</option>${vskList().map(c => `<option value="${esc(c.id)}"${buyer0 && sameId(buyer0.id, c.id) ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
       <div class="two"><label>Reikningsdagur<input id="rk-dags" type="date" value="${isoDay(today)}"></label><label>Gjalddagi<input id="rk-gjd" type="date" value="${addDays(isoDay(today), +rk.frestur || 14)}"></label></div>
