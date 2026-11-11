@@ -559,11 +559,25 @@
   const dHead = (sup, title, sub, acts) => `<div class="udh2"><div class="udl"><div class="spsup">${E(sup)}</div><h2 class="ptitle">${E(title)}</h2><div class="usub">${sub}</div></div><div class="uact">${acts}</div></div>`;
   const kp3 = arr => `<div class="ukps">${arr.map(([l, v]) => `<div class="ukp"><small>${E(l)}</small><b>${v}</b></div>`).join("")}</div>`;
   const DAYL = ["sun", "mán", "þri", "mið", "fim", "fös", "lau"];
+  /* 2.122.1: Tími án verkefnis („Innra“) fer aldrei á reikning. Ef lýsingin nefnir verkefni (t.d. „Grand Hotel – Uppsetning“) er stungið upp á því,
+     svo tímar sem voru óvart skráðir án verkefnis týnist ekki úr Reikningum. */
+  const fld = x => String(x || "").toLowerCase().replace(/ð/g, "d").replace(/þ/g, "th").replace(/æ/g, "ae").replace(/ö/g, "o").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const ALM = new Set(["innra", "almennt", "fundur", "vikufundur", "skrifstofa", "vinna", "verkefni", "undirbuningur", "uppsetning", "yfirferd", "samskipti", "klst", "timar", "annad", "almenn"]);
+  const ord = x => fld(x).split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !ALM.has(w));
+  window.timiTillaga = e => { if (!e || (e.verkefniId && findProj(e.verkefniId))) return null; const w = new Set(ord(String(e.lysing || "").replace(/\(\s*[\d.,]+\s*klst\.?\)/i, "")));
+    if (!w.size) return null; let best = null, bs = 0;
+    verkefni().forEach(p => { const pw = new Set(ord([p.nafn, p.stutt, p.vidskiptavinur, p.verkkaupi].join(" "))); let n = 0; w.forEach(x => { if (pw.has(x)) n++; }); const sc = n + (p.lokid || p.stada === "Lokið" ? 0 : .5) * (n > 0);
+      if (n && sc > bs) { bs = sc; best = p; } });
+    return best; };
+  window.timarAnVerk = () => { const fra = isoDay(new Date(Date.now() - 120 * 864e5)); return faerslur().filter(e => !e.reikningur && String(e.date || "") >= fra && !(e.verkefniId && findProj(e.verkefniId))); };
+  const anVerkHTML = () => { const L = timarAnVerk(), m = L.filter(e => timiTillaga(e)); if (!m.length) return "";
+    return `<div class="uinfo" style="margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.5">${m.length} ${m.length === 1 ? "tími án verkefnis virðist" : "tímar án verkefnis virðast"} eiga heima á verkefni (${H(m.reduce((a, e) => a + (+e.timar || 0), 0))} klst.). Tímar án verkefnis teljast innri vinna og fara ekki á reikning. <button type="button" class="btn sm" data-act="u1innra:">Skoða</button></div>`; };
+  window.anVerkHTML = anVerkHTML;
   window.UI1D = {
     oreikn() {
       const gs = window.rkUnbilled ? verkefni().map(p => { const x = rkUnbilled(p.id); return { p, h: sumT(x.es), k: sumK(x.ks), kr: window.rkUnbilledKr ? rkUnbilledKr(p.id) : 0 }; }).filter(g => g.h >= 0.5 || g.k).sort((a, b) => b.kr - a.kr) : [];
       const th = gs.reduce((s, g) => s + g.h, 0), tk = gs.reduce((s, g) => s + g.k, 0);
-      return dHead("Fjármál", "Óreikningsfært", E(H(th) + " klst." + (tk ? " og " + kr(tk) + " í útlögðum kostnaði" : "")), "") + `<div class="uvb"><div class="utb"><div class="utbr r4 h"><span>Verkefni</span><span>Klst.</span><span>Kostn.</span><span>Upphæð</span></div>`
+      return dHead("Fjármál", "Óreikningsfært", E(H(th) + " klst." + (tk ? " og " + kr(tk) + " í útlögðum kostnaði" : "")), "") + `<div class="uvb">${anVerkHTML()}<div class="utb"><div class="utbr r4 h"><span>Verkefni</span><span>Klst.</span><span>Kostn.</span><span>Upphæð</span></div>`
         + gs.map(g => `<a class="utbr r4" ${tapAttr("verk", g.p.id)}><span>${E(g.p.nr + " " + (g.p.stutt || ""))}</span><span>${H(g.h)}</span><span>${g.k ? kr(g.k) : ""}</span><span>${kr(g.kr)}</span></a>`).join("") + `</div>`
         + (MCP && gs.length ? `<div class="ubot"><button type="button" class="btn primary" data-act="rknew:${E(gs[0].p.id)}">Búa til reikningsdrög</button><button type="button" class="btn" data-act="u1go:trk:">Opna Reikninga</button></div>` : "") + `</div>`;
     },
@@ -598,6 +612,9 @@
         + `<div class="uvb">${kp3([["Tími", e.fra ? E(e.fra + (e.til ? "–" + e.til : "")) : "–"], ["Klst.", H(e.timar)], ["Vika " + wkNo, H(wk) + " af " + H(goal())]])}`
         + `<div class="ukv"><span>Svið <small>· af verkefninu</small></span><span>${E(sv.map(x => x === "Innra" ? x : (window.svidHeiti ? svidHeiti(x) : x)).join(", "))}</span></div>`
         + (p ? `<div class="ukv"><span>Undirverk</span><span>${sel}</span></div><div class="ukv"><span>Reikningsfært <small>· ef verkefnið er á tímagjaldi</small></span><span>${rk}</span></div>` : "")
+        + (!p && !e.reikningur ? (() => { const tl = timiTillaga(e), gone = e.verkefniId && !findProj(e.verkefniId);
+            return `<div class="uinfo" style="margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;line-height:1.5">${gone ? "Verkefnið sem tíminn var skráður á finnst ekki lengur. " : ""}Tími án verkefnis telst innri vinna og <b>fer ekki á reikning</b>.${tl ? ` Lýsingin bendir til <b>${E(tl.nr + " " + (tl.stutt || tl.nafn || ""))}</b>.` : ""}`
+              + (MCP ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${tl ? `<button type="button" class="btn primary" data-act="u1tproj:${E(e.id)}:${E(tl.id)}">Færa á ${E(tl.nr)}</button>` : ""}<select class="usel" aria-label="Færa á verkefni" onchange="if(this.value) doAct('u1tproj:${E(e.id)}:'+this.value)"><option value="">Færa á verkefni…</option>${verkefni().filter(q => !(q.lokid || q.stada === "Lokið") || q === tl).map(q => `<option value="${E(q.id)}">${E(q.nr + " " + (q.stutt || q.nafn || ""))}</option>`).join("")}</select></div>` : "") + `</div>`; })() : "")
         + `<div class="ush2"><span>Lýsing</span></div><p style="margin:4px 0 0;font-size:14px">${E(e.lysing || "")}</p></div>`;
     },
     reikn(id) {
@@ -773,13 +790,13 @@
       const wR = r => { const p = findProj(r.verkefniId || (r.verkefniIds || [])[0]), late = !["Greitt", "Ógilt"].includes(r.stada) && daysTo(r.gjalddagi) < 0;
         return wrow(tapAttr("reikn", r.id), [wc(E(String(r.nr).padStart(3, "0"))), wc(E(r.kaupandi?.name || "") + (late ? ' <i class="udot" title="Fram yfir gjalddaga"></i>' : "") + (window.rkBkTag ? rkBkTag(r) : ""), "t"), wc(E(p ? p.nr + " " + (p.stutt || "") : "")), wc(E(dI(r.dags))), wc(`<span class="${late ? "red" : ""}">${E(dI(r.gjalddagi))}</span>`), wc(pill(late && r.stada !== "Ógilt" ? "Fram yfir" : r.stada || "", late && r.stada !== "Ógilt")), wc(E(kr(r.tot)), "r")]); };
       return top + wl("80px minmax(0,1.3fr) minmax(0,1.3fr) 110px 110px 120px 120px", wcols(["Nr.", "Kaupandi", "Verkefni", "Dags.", "Gjalddagi", "Staða", "Upphæð"])
-        + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(wU).join("") : "")
+        + (showU && !SQ() ? `<div style="padding:0 16px">${anVerkHTML()}</div>` : "") + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(wU).join("") : "")
         + (showP && PO.length ? (f === "allt" ? grpH("Afhentar pantanir án reiknings") : "") + PO.map(wP).join("") : "")
         + (rs.length ? (f === "allt" ? grpH("Ógreiddir reikningar") : "") + rs.sort((a, b) => b.nr - a.nr).map(wR).join("") : "")
         + (!(showU && ub.length) && !(showP && PO.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "")); }
     return top
       + `<div class="ucols uf5"><span>Nr.</span><span>Heiti</span><span>Verk / klst.</span><span>Dags.</span><span class="r">Upphæð</span></div>`
-      + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(rowU).join("") : "")
+      + (showU && !SQ() ? `<div style="padding:0 16px">${anVerkHTML()}</div>` : "") + (showU && ub.length ? (f === "allt" ? grpH("Óreikningsfært") : "") + ub.map(rowU).join("") : "")
       + (showP && PO.length ? (f === "allt" ? grpH("Pantanir án reiknings") : "") + PO.map(P => `<div class="urow uf5" ${tapP(P)}><span class="m">${E(P.nr)}</span><span class="t">${E(P.vidskiptavinur || "")}</span><span class="m">${E(P.til || P.fra ? dateIS(d(P.til || P.fra)) : "")}</span><span class="m"></span><span class="r">${E(kr(pnN(P)))}</span></div>`).join("") : "")
       + (rs.length ? (f === "allt" ? grpH("Ógreiddir reikningar") : "") + rs.sort((a, b) => b.nr - a.nr).map(rowR).join("") : "")
       + (!(showU && ub.length) && !(showP && PO.length) && !rs.length ? `<div class="uempty">Ekkert hér.</div>` : "");
@@ -1085,6 +1102,10 @@
       const v = r.join(":");
       if (k === "u1wk") { st.wk = v === "0" ? 0 : st.wk + (+v); render(); return; }
       if (k === "u1ff") { st.ff = v; st.sel.clear(); render(); return; }
+      if (k === "u1innra") { st.ff = "Innra"; st.sel.clear(); tab = "tfaer"; DETAIL = null; render(); return; }
+      if (k === "u1tproj") { const [id, pid] = r, q0 = findProj(pid); if (!q0) return;
+        await saveSnapshot(s => { const e = (s.timar?.faerslur || []).find(x => String(x.id) === id); if (!e) return; e.verkefniId = q0.id; e.nr = q0.nr; e.undirverkId = null; e.lysing = String(e.lysing || "").replace(/^Innra – /, ""); });
+        toast("Tíminn færður á " + q0.nr + " – hann birtist nú í Reikningum"); render(); return; }
       if (k === "u1sel") { if (!v) st.sel.clear(); else st.sel.has(v) ? st.sel.delete(v) : st.sel.add(v); render(); return; }
       if (k === "u1rep") { st.rep = v; render(); return; }
       if (k === "u1rp") { st.rp = v; render(); return; }
