@@ -652,7 +652,8 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
       ["sjalfvirkt", "dkSjalf"].forEach(x => { const el = document.getElementById("rk-" + x); if (el) o[x] = el.checked; });
       if (document.querySelector('input[name="rk-pd-hamur"]')) o.payday = { hamur: document.querySelector('input[name="rk-pd-hamur"]:checked')?.value || "utgefa", post: !!document.getElementById("rk-pd-post")?.checked, krafa: true, fylgiskjal: !!document.getElementById("rk-pd-fylgiskjal")?.checked, gjSamd: true, eindagi: g("pd-eindagi") === "" ? 20 : Math.max(0, Math.round(n("pd-eindagi"))), stadgKt: g("pd-stadgKt"), grId: g("pd-grId") };
       if (document.getElementById("rk-dk-solumadur")) o.dk = { ...Object.fromEntries(["solumadur", "lykill", "mati", "skilmali", "stadgKt", "grId", "grNafn", "stadgMati"].map(x => [x, g("dk-" + x)])), post: !!document.getElementById("rk-dk-post")?.checked };
-      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o }; }).then(() => { toast("Upplýsingar um seljanda vistaðar"); render(); }); return; }
+      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o };
+        /* 2.122.4: VSK % > 0 = á VSK-skrá (verðskráin sýnir það sama) */ if (s.stillingar.verdskra) s.stillingar.verdskra = { ...s.stillingar.verdskra, vskSkra: o.vsk > 0, ...(o.vsk > 0 ? { vsk: o.vsk } : {}) }; }).then(() => { toast("Upplýsingar um seljanda vistaðar"); render(); }); return; }
   };
   window.rkPdfBytes = invoicePdf;
   // 2.113.2: eyða reikningum (einum eða mörgum, t.d. úr lista) – tímar, kostnaður og pantanir verða aftur óreikningsfærð.

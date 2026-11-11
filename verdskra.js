@@ -8,8 +8,9 @@
     // 2.22.0: sjálfgefnir liðir koma úr uppsetningunni (ORG.verdskra í <m>/fyrirtaeki.js) – ekki lengur verðskrá AERA hjá öllum
     lidir: (window.ORG && window.ORG.verdskra) || [],
     v: 2,
-    vsk: 24, vskSkra: false,
-    athugasemd: "VSK leggst aðeins á reikninga eftir að félagið er komið á VSK-skrá."
+    // 2.122.4: sjálfgefið á VSK-skrá (24 %) – áður ekki á VSK-skrá (staða AERA fyrir 11.2026)
+    vsk: 24, vskSkra: true,
+    athugasemd: ""
   };
   // Vistuð verðskrá eldri en v2 fær nýju línurnar (Sonik, Almenn vinna) bætt við þar til hún er vistuð aftur
   window.VERD = () => { const v = (typeof CFG === "function" && CFG().verdskra) || null; if (!(v && Array.isArray(v.lidir) && v.lidir.length)) return DEF;
@@ -42,7 +43,7 @@
     const head = EDIT ? `<tr><th>Verkþáttur</th><th class="r">Verð án VSK</th><th></th><th>Á verkefni</th><th></th></tr>` : `<tr><th>Verkþáttur</th><th class="r">Verð án VSK (kr./klst.)</th><th class="r">VSK ${vp}% (kr.)</th><th class="r">Verð með VSK (kr./klst.)</th></tr>`;
     const lo = Math.min(...v.lidir.map(l => +l.verd || 0)), hi = Math.max(...v.lidir.map(l => +l.verd || 0));
     const used = verkefni().filter(p => !isDone(p)).map(p => [p, taxtiOf(p)]);
-    return backBar() + `<div class="kicker"><span class="kind">Skjal</span>${v.uppfaert ? `<span class="pill">Uppfært ${esc(fmtDate(v.uppfaert))}</span>` : `<span class="pill">18. okt. 2026</span>`}</div>
+    return backBar() + `<div class="kicker"><span class="kind">Skjal</span>${v.uppfaert ? `<span class="pill">Uppfært ${esc(fmtDate(v.uppfaert))}</span>` : ""}</div>
       <h2 class="big" style="margin-top:6px">Verðskrá ${esc(ORG.nafn)}</h2>
       <p class="sub">Tímagjald ${esc(ORG.nafn)} er ${esc(kr0(lo))}${hi !== lo ? "–" + esc(kr0(hi)) : ""} kr. á klukkustund án VSK, eftir tegund verks.</p>
       <div class="viewtitle">Tímagjald</div><div class="tw"><table class="vstab">${`<thead>${head}</thead>`}<tbody>${rows}</tbody></table></div>
@@ -73,7 +74,8 @@
       TMP = v; render(); return; }
     if (op === "save") { const v = read(); if (!v.lidir.length) return toast("Verðskráin þarf að minnsta kosti eina línu.");
       if (v.lidir.some(l => !(l.verd > 0))) return toast("Skráðu verð á allar línur.");
-      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.verdskra = { ...v, uppfaert: new Date().toISOString(), af: window.USER?.email || "" }; })
+      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.verdskra = { ...v, uppfaert: new Date().toISOString(), af: window.USER?.email || "" };
+        /* 2.122.4: „á VSK-skrá“ og VSK % reikninga eru sami hluturinn – haldið í takt */ s.stillingar.reikn = { ...(s.stillingar.reikn || {}), vsk: v.vskSkra ? (+v.vsk || 24) : 0 }; })
         .then(() => { EDIT = false; TMP = null; toast("Verðskrá vistuð"); }).catch(e => toast(errText(e))); }
   };
   // Tímabundin útgáfa á meðan línum er bætt við/eytt í breytingaham (áður en vistað er)
