@@ -141,14 +141,14 @@
   const autoWant = (P, fra) => P && !P.rkEytt && P.pontun !== false && (P.linur || []).length && P.stada !== "Hafnað" && String(P.dags || P.fra || "") >= fra
     && (pnStadg(P) || (!P.greitt && hattur(P) === "reikningur" && !!P.vskId && AUTO_ST.includes(P.stada)));
   const mkAuto = (P, nr, rk) => { const c = P.vskId ? findVsk(P.vskId) : null, L = orderLines([P]), vskP = +rk.vsk || 0, sl = { ...rk }, d0 = isoDay(new Date());
-    ["nastaNr", "timagjald", "sjalfvirkt", "sjalfFra", "dkSjalf", "flokkar", "dk", "bokhald"].forEach(k => delete sl[k]);
+    ["nastaNr", "timagjald", "sjalfvirkt", "sjalfFra", "dkSjalf", "flokkar", "dk", "payday", "bokhald"].forEach(k => delete sl[k]);
     const R = { id: "pn" + P.id, nr, dags: d0, gjalddagi: addDays(d0, +rk.frestur || 14), verkefniIds: P.verkefniId ? [P.verkefniId] : [], verkefniId: P.verkefniId || null, pontunIds: [P.id], vskId: P.vskId || null,
       kaupandi: buyerOf(c) || { name: P.tengilidur || "Staðgreiðsluviðskiptavinur", kennitala: "", heimilisfang: "", postnumer: "", stadur: "", netfang: P.netfang || "" },
       seljandi: sl, linur: L, vskP, ...totals(L, vskP), timaIds: [], kostnIds: [], stada: "Ógreitt", stofnad: new Date().toISOString(), sjalf: true, lifandi: true };
     if (pnStadg(P)) { R.stada = "Greitt"; R.greitt = String(P.greitt.dags).slice(0, 10); R.stadgreitt = true; R.gjalddagi = R.dags; R.lifandi = false; R.tilbuid = new Date().toISOString(); }
     else if (pnDone(P)) { R.lifandi = false; R.tilbuid = new Date().toISOString(); }
     return R; };
-  const dkAuto = (R, rk) => { if (rk.bokhald === "dk" && rk.dkSjalf && !R.bokhald && !vidbunadur(R).length) R.bokhald = { kerfi: "dk", stada: "bidur", beidni: new Date().toISOString(), af: "sjálfvirkt" }; };
+  const dkAuto = (R, rk) => { if ((rk.bokhald === "dk" || rk.bokhald === "payday") && rk.dkSjalf && !R.bokhald && !vidbunadur(R).length) R.bokhald = { kerfi: rk.bokhald, stada: "bidur", beidni: new Date().toISOString(), af: "sjálfvirkt" }; };
   let autoBusy = false, autoSig = "";
   async function autoSync() {
     if (autoBusy || typeof S === "undefined" || !S || !window.salaAPI) return;
@@ -297,7 +297,9 @@
      býr Atrium til REIKNINGSDRÖG: grunn að reikningi sem er færður í bókhaldskerfið. Drögum er ekki eytt heldur ógilt. */
   const DROG = () => true; // 2.92.0: reikningur í Atrium er alltaf drög – lögformlegur reikningur er gefinn út í bókhaldskerfinu (handvirkt eða með tengingu)
   const BK = () => RK().bokhald || "", DKON = () => BK() === "dk", DKC = () => ({ solumadur: "", lykill: "", mati: "", skilmali: "", stadgKt: "", stadgMati: "", stadgSkilmali: "", grId: "", grNafn: "", post: false, ...(RK().dk || {}) });
-  const BKS = { bidur: "Sendist í DK…", sent: "Í DK", villa: "Villa frá DK" };
+  // 2.118.0: Payday – sama ferli og DK (fallið bokhaldPayday); drög í Payday (stada "drog") fá númer þegar þau eru send úr Payday
+  const PDON = () => BK() === "payday", TENGT = () => DKON() || PDON(), BKN = () => PDON() ? "Payday" : "DK";
+  const PDC = () => ({ drog: true, post: false, krafa: false, stadgKt: "", grId: "", ...(RK().payday || {}) });
   const TT = () => DROG() ? "Reikningsdrög" : "Reikningur";
   const NRL = R => (DROG() ? "Drög nr. " : "Reikningur nr. ") + R.nr;
   const DROG_TXT = "Reikningsdrög – ekki reikningur. Lögformlegur reikningur er gefinn út í bókhaldskerfi.";
@@ -446,8 +448,9 @@
   // Hvað vantar áður en reikningurinn getur farið sjálfvirkt í bókhald
   const vidbunadur = R => { const P = pakki(R), v = [];
     if (!R.stadgreitt && !ktOK(P.kaupandi.kt)) v.push("kennitölu greiðanda"); if (!ktOK(P.utgefandi.kt)) v.push("kennitölu seljanda (Stillingar › Reikningar)");
+    if (PDON()) { const d = PDC(); if (R.stadgreitt && !ktOK(P.kaupandi.kt) && !ktOK(d.stadgKt)) v.push("kennitölu staðgreiðsluviðskiptavinar í Payday (Stillingar › Reikningar › Payday)"); }
     if (DKON()) { const d = DKC(); if (R.stadgreitt && !ktOK(P.kaupandi.kt) && !d.stadgKt) v.push("staðgreiðsluviðskiptavin í DK (Stillingar › Reikningar › DK)"); if (R.stadgreitt && !d.grId) v.push("greiðslumáta staðgreiðslu í DK"); }
-    const nl = [...new Set(P.linur.filter(l => !l.lykill).map(l => (FLOKKAR.find(f => f[0] === l.flokkur) || [, "óflokkaðar línur"])[1].toLowerCase()))]; if (nl.length) v.push((DKON() ? "vörunúmer í DK fyrir " : "tekjulykil fyrir ") + nl.join(", "));
+    const nl = [...new Set(P.linur.filter(l => !l.lykill).map(l => (FLOKKAR.find(f => f[0] === l.flokkur) || [, "óflokkaðar línur"])[1].toLowerCase()))]; if (nl.length && !PDON()) v.push((DKON() ? "vörunúmer í DK fyrir " : "tekjulykil fyrir ") + nl.join(", "));
     return v; };
   // 2.92.0: staða í bókhaldi og „Senda í DK“ (netþjónninn – fallið bokhaldDk – sér um sendinguna; lykillinn er í Secret Manager)
   window.rkBkHTML = function (R) {
@@ -457,6 +460,15 @@
     return au + rkBkInner(R, b, fj, v);
   };
   function rkBkInner(R, b, fj, v) {
+    if (PDON() && (!b.kerfi || b.kerfi === "payday")) {
+      const d = PDC(), btn = (t, pri) => fj ? `<button type="button" class="btn sm${pri ? " primary" : ""}" data-act="rkdk:${esc(R.id)}" style="margin-left:6px">${t}</button>` : "";
+      if (b.stada === "sent") return `<div class="rkvb ok"><b>✓ Í Payday</b> – reikningur nr. <b>${esc(String(b.nr || R.bokhaldNr || ""))}</b>${b.dags ? " · " + esc(dIS(String(b.dags).slice(0, 10))) : ""}</div>`;
+      if (b.stada === "drog") return `<div class="rkvb ok"><b>✓ Drög í Payday</b> – farðu yfir reikninginn í Payday og sendu hann þaðan; þá fær hann númer.${btn("Sækja númer úr Payday")}</div>`;
+      if (b.stada === "bidur") return `<div class="rkvb"><b>${b.pid ? "Sæki stöðu úr Payday…" : "Sendist í Payday…"}</b>${b.pid ? "" : " Netþjónninn stofnar viðskiptavin ef þarf og reikninginn í Payday."}</div>`;
+      const err = b.stada === "villa" ? `<b>Villa frá Payday:</b> ${esc(b.villa || "óþekkt")}<br>` : "";
+      return `<div class="rkvb ${v.length || err ? "no" : "ok"}">${err}${v.length ? `<b>Ekki tilbúið:</b> vantar ${esc(v.join(" og "))}.` : `<b>✓ Tilbúið</b> – greiðandi með kennitölu og VSK á öllum línum.`}
+        ${!v.length ? btn(err ? "Reyna aftur" : d.drog !== false ? "Senda í Payday (drög)" : "Senda í Payday", true) : ""} <button type="button" class="pflink" data-act="rkcsv:${esc(R.id)}">CSV</button></div>`;
+    }
     if (DKON()) {
       if (b.stada === "sent") return `<div class="rkvb ok"><b>✓ Í DK</b> – reikningur nr. <b>${esc(String(b.nr || R.bokhaldNr || ""))}</b>${b.dags ? " · " + esc(dIS(String(b.dags).slice(0, 10))) : ""}${b.post ? " · sendur greiðanda úr DK" : ""}</div>`;
       if (b.stada === "bidur") return `<div class="rkvb"><b>Sendist í DK…</b> Netþjónninn stofnar viðskiptavin ef þarf og reikninginn í DK.</div>`;
@@ -505,8 +517,8 @@
   window.rkStillingarHTML = function () {
     const r = RK(), f = (k, l, extra = "") => `<label>${l}<input id="rk-${k}" value="${esc(String(r[k] ?? ""))}" ${extra}></label>`;
     return `<div class="viewtitle">Reikningar</div>
-      <label>Bókhaldskerfi<select id="rk-bokhald"><option value="">Ekkert tengt – drög færð handvirkt (CSV)</option><option value="dk"${r.bokhald === "dk" ? " selected" : ""}>DK (dkPlus)</option><option value="payday" disabled>Payday – kemur síðar</option></select></label>
-      <p class="hint" style="margin:0 0 12px">Lögformlegir reikningar (samfelld númeraröð, ekki eytt, varðveittir í 7 ár) eru gefnir út í bókhaldskerfi. Á meðan ekkert er tengt eru reikningar í Atrium <b>reikningsdrög</b>: grunnur sem er færður í bókhaldskerfið, og númer reikningsins þar er skráð á drögin. Tenging við bókhaldskerfi (t.d. Payday eða DK) verður valmöguleiki hér.</p>
+      <label>Bókhaldskerfi<select id="rk-bokhald"><option value="">Ekkert tengt – drög færð handvirkt (CSV)</option><option value="dk"${r.bokhald === "dk" ? " selected" : ""}>DK (dkPlus)</option><option value="payday"${r.bokhald === "payday" ? " selected" : ""}>Payday</option></select></label>
+      <p class="hint" style="margin:0 0 12px">Lögformlegir reikningar (samfelld númeraröð, ekki eytt, varðveittir í 7 ár) eru gefnir út í bókhaldskerfi. Á meðan ekkert er tengt eru reikningar í Atrium <b>reikningsdrög</b>: grunnur sem er færður í bókhaldskerfið, og númer reikningsins þar er skráð á drögin. Með tengingu (Payday eða DK) sendir Atrium drögin í bókhaldskerfið, sem gefur reikninginn út með sínu númeri. Veldu kerfi og smelltu á <b>Vista upplýsingar</b> – þá birtast stillingar þess.</p>
       <p class="hint" style="margin:0 0 8px">Upplýsingar um seljanda sem birtast á reikningum. PDF reikninga vistast í ${ODN()}: ${esc(ORG.od.reikningar.replace(/\//g, " › "))} › ár.</p>
       ${f("nafn", "Nafn seljanda")}
       <div class="two">${f("kt", "Kennitala", 'inputmode="numeric" placeholder="000000-0000"')}${f("vsknr", "VSK-númer", 'inputmode="numeric"')}</div>
@@ -517,7 +529,14 @@
       <div class="two">${f("frestur", "Greiðslufrestur (dagar)", 'inputmode="numeric"')}${f("nastaNr", DROG() ? "Næsta númer draga" : "Næsta reikningsnúmer", 'inputmode="numeric"')}</div>
       ${window.ON && ON("pantanir") ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);margin-top:6px"><input type="checkbox" id="rk-sjalfvirkt"${r.sjalfvirkt !== false ? " checked" : ""} style="width:auto"> Reikningsdrög myndast sjálfkrafa úr pöntunum</label>
       <p class="hint" style="margin:0 0 8px">Viðskiptavinur í reikningi: drög verða til þegar pöntun er staðfest, uppfærast með henni og eru tilbúin við skil. Staðgreitt: greiddur reikningur (kvittun) þegar greiðsla er skráð. Gildir um pantanir frá ${esc(r.sjalfFra ? dIS(r.sjalfFra) : "deginum í dag")}.</p>
-      ${r.bokhald === "dk" ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="rk-dkSjalf"${r.dkSjalf ? " checked" : ""} style="width:auto"> Senda tilbúin drög sjálfkrafa í DK (ef ekkert vantar)</label>` : ""}` : ""}
+      ${r.bokhald === "dk" || r.bokhald === "payday" ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="rk-dkSjalf"${r.dkSjalf ? " checked" : ""} style="width:auto"> Senda tilbúin drög sjálfkrafa í ${r.bokhald === "dk" ? "DK" : "Payday"} (ef ekkert vantar)</label>` : ""}` : ""}
+      ${r.bokhald === "payday" ? (() => { const d = { drog: true, ...(r.payday || {}) }, fd = (k, l, ph = "") => `<label>${l}<input id="rk-pd-${k}" value="${esc(String(d[k] ?? ""))}" placeholder="${esc(ph)}"></label>`, cb = (k, l) => `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="rk-pd-${k}"${d[k] ? " checked" : ""} style="width:auto"> ${l}</label>`;
+        return `<div class="viewtitle" style="margin-top:22px">Payday</div>
+        <p class="hint" style="margin:0 0 8px">„Senda í Payday“ á reikningsdrögum finnur viðskiptavininn eftir kennitölu (eða stofnar hann) og býr til reikning í Payday með línum, verði án VSK og VSK % hverrar línu. Aðgangur að Payday (Client ID og Client secret) er geymdur á netþjóninum, aldrei í appinu.</p>
+        ${cb("drog", "Stofna sem drög í Payday – ég fer yfir og sendi reikninginn þaðan (mælt með)")}
+        ${cb("post", "Payday sendir reikninginn á netfang greiðanda (aðeins ef ekki drög)")}
+        ${cb("krafa", "Stofna kröfu í netbanka greiðanda (aðeins ef ekki drög)")}
+        <div class="two">${fd("stadgKt", "Staðgreiðsluviðskiptavinur – kennitala", "notuð ef kennitölu greiðanda vantar")}${fd("grId", "Greiðslutegund staðgreiðslu (auðkenni í Payday)", "valfrjálst – merkir greitt")}</div>`; })() : ""}
       ${r.bokhald === "dk" ? (() => { const d = { ...(r.dk || {}) }, fd = (k, l, ph = "") => `<label>${l}<input id="rk-dk-${k}" value="${esc(String(d[k] ?? ""))}" placeholder="${esc(ph)}"></label>`;
         return `<div class="viewtitle" style="margin-top:22px">DK (dkPlus)</div>
         <p class="hint" style="margin:0 0 8px">„Senda í DK“ á reikningsdrögum stofnar viðskiptavin (eftir kennitölu) og sölureikning í DK. Aðgangslykillinn úr dkPlus er geymdur á netþjóninum (Secret Manager), aldrei í appinu. Gildin hér fást hjá bókara úr DK.</p>
@@ -538,8 +557,10 @@
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpn") { billOrders(id); return; }
     if (k === "rkdk") { const R = findR(id); if (!R) return; const v = vidbunadur(R); if (v.length) return toast("Vantar: " + v.join(", "));
-      if (!confirm(`Senda drög ${R.nr} (${kr(R.tot)}) í DK?\n\nDK gefur út reikninginn með sínu númeri${DKC().post ? " og sendir hann greiðanda í tölvupósti" : ""}.`)) return;
-      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) q.bokhald = { kerfi: "dk", stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" }; }).then(() => toast("Sendist í DK…")); return; }
+      const pdS = PDON() && R.bokhald?.pid, pd = PDC(), kerfi = BKN();
+      if (!pdS && !confirm(PDON() ? (pd.drog !== false ? `Senda drög ${R.nr} (${kr(R.tot)}) í Payday?\n\nReikningurinn verður til sem drög í Payday. Þú ferð yfir hann og sendir hann þaðan – þá fær hann númer.` : `Senda drög ${R.nr} (${kr(R.tot)}) í Payday?\n\nPayday gefur út reikninginn með sínu númeri strax${pd.post ? ", sendir hann greiðanda í tölvupósti" : ""}${pd.krafa ? " og stofnar kröfu í netbanka" : ""}.`)
+        : `Senda drög ${R.nr} (${kr(R.tot)}) í DK?\n\nDK gefur út reikninginn með sínu númeri${DKC().post ? " og sendir hann greiðanda í tölvupósti" : ""}.`)) return;
+      saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === id); if (q) q.bokhald = { ...(pdS ? q.bokhald : {}), kerfi: BK(), stada: "bidur", beidni: new Date().toISOString(), af: window.USER?.email || "" }; }).then(() => toast(pdS ? "Sæki stöðu úr Payday…" : "Sendist í " + kerfi + "…")); return; }
     if (k === "rkcsv") { const R = findR(id); if (!R) return; const b = new Blob([csvOf(R)], { type: "text/csv;charset=utf-8" }), a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fileBase(R) + " – bókhald.csv"; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("CSV sótt"); return; }
     if (k === "rkvb") { const R = findR(id); if (!R) return; const v = vidbunadur(R); toast(v.length ? "Vantar: " + v.join(", ") : "Tilbúið fyrir bókhald"); return; }
     if (k === "rkpdf") { const R = findR(id); if (R) downloadPdf(R); return; }
@@ -568,6 +589,7 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
       const o = { nafn: g("nafn"), kt: g("kt"), vsknr: g("vsknr"), heimilisfang: g("heimilisfang"), netfang: g("netfang"), simi: g("simi"), banki: g("banki"), timagjald: parseKr(g("timagjald")), vsk: n("vsk"), frestur: Math.round(n("frestur")) || 14, nastaNr: Math.round(n("nastaNr")) || 1001, bokhald: g("bokhald") || null,
         flokkar: Object.fromEntries(FLOKKAR.map(([k]) => [k, { vsk: g("f-" + k + "-vsk"), lykill: g("f-" + k + "-lykill") }])) };
       ["sjalfvirkt", "dkSjalf"].forEach(x => { const el = document.getElementById("rk-" + x); if (el) o[x] = el.checked; });
+      if (document.getElementById("rk-pd-drog")) o.payday = { drog: !!document.getElementById("rk-pd-drog").checked, post: !!document.getElementById("rk-pd-post")?.checked, krafa: !!document.getElementById("rk-pd-krafa")?.checked, stadgKt: g("pd-stadgKt"), grId: g("pd-grId") };
       if (document.getElementById("rk-dk-solumadur")) o.dk = { ...Object.fromEntries(["solumadur", "lykill", "mati", "skilmali", "stadgKt", "grId", "grNafn", "stadgMati"].map(x => [x, g("dk-" + x)])), post: !!document.getElementById("rk-dk-post")?.checked };
       saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o }; }).then(() => { toast("Upplýsingar um seljanda vistaðar"); render(); }); return; }
   };

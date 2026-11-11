@@ -561,6 +561,95 @@ if (process.env.BOKHALD === "dk") {
   });
 }
 
+/* ---------- Bókhald: Payday – 2.118.0 ----------
+   Virkt aðeins í uppsetningu með BOKHALD=payday í .env.<verkefni> (t.d. AERA). Aðgangur úr Payday (Stillingar › Fyrirtækið › API)
+   er geymdur í Secret Manager – aldrei í appinu eða GitHub:
+     firebase functions:secrets:set PAYDAY_CLIENT_ID --project aera
+     firebase functions:secrets:set PAYDAY_CLIENT_SECRET --project aera
+   PAYDAY_URL (valfrjálst) = https://api.test.payday.is fyrir prófunarumhverfi Payday; sjálfgefið https://api.payday.is.
+   Flæði: appið setur reikningar/{id}.bokhald = { kerfi:"payday", stada:"bidur" } („Senda í Payday“) →
+     0) aðgangslykill (POST /auth/token { clientId, clientSecret }, haus Api-Version: alpha)
+     1) ef reikningurinn er þegar í Payday (bokhald.pid) er hann aðeins sóttur – endurtekning býr ekki til tvo; drög fá númer þegar þau eru send í Payday
+     2) viðskiptavinur fundinn eftir kennitölu (GET /customers), annars stofnaður (POST /customers { ssn, … })
+     3) reikningur stofnaður (POST /invoices) – línur verð án VSK og VSK % línunnar; status DRAFT (sjálfgefið: farið yfir og sent úr Payday) eða SENT
+     4) bokhald = { stada:"drog", pid } (drög í Payday) eða { stada:"sent", pid, nr } og bokhaldNr – eða { stada:"villa", villa } */
+if (process.env.BOKHALD === "payday") {
+  const PD_ID = defineSecret("PAYDAY_CLIENT_ID"), PD_SECRET = defineSecret("PAYDAY_CLIENT_SECRET");
+  const PD_URL = (process.env.PAYDAY_URL || "https://api.payday.is").replace(/\/+$/, "");
+  const kt10 = k => String(k || "").replace(/\D/g, "");
+  const txt = (s, n) => String(s || "").slice(0, n);
+  const pdErr = r => { const d = r.data || {}; return txt(d.message || d.title || d.error || (Array.isArray(d.errors) ? d.errors.map(e => e.message || e).join("; ") : d.errors ? JSON.stringify(d.errors) : "") || r.text, 300); };
+  const pdToken = async () => {
+    const r = await fetch(PD_URL + "/auth/token", { method: "POST", headers: { "Content-Type": "application/json", "Api-Version": "alpha", Accept: "application/json" }, body: JSON.stringify({ clientId: PD_ID.value().trim(), clientSecret: PD_SECRET.value().trim() }) });
+    const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
+    if (!r.ok || !j?.accessToken) throw new Error("Innskráning í Payday tókst ekki (" + r.status + ") – athugaðu PAYDAY_CLIENT_ID og PAYDAY_CLIENT_SECRET" + (process.env.PAYDAY_URL ? "" : " og hvort aðgangurinn sé í prófunarumhverfi Payday (PAYDAY_URL)") + ".");
+    return j.accessToken;
+  };
+  const pdApi = tok => async (method, path, body) => {
+    const r = await fetch(PD_URL + path, { method, headers: { Authorization: "Bearer " + tok, "Api-Version": "alpha", Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined });
+    const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+    return { ok: r.ok, status: r.status, data: j, text: t };
+  };
+  // Viðskiptavinur eftir kennitölu: fyrst leit, svo farið yfir listann (litlar skrár), annars stofnaður
+  const pdCustomer = async (pd, kt, kaup) => {
+    const hit = L => (L || []).find(c => kt10(c.ssn) === kt);
+    const q = await pd("GET", "/customers?query=" + encodeURIComponent(kt) + "&perpage=100");
+    let c = q.ok ? hit(q.data?.customers || q.data) : null;
+    for (let page = 1; !c && page <= 30; page++) {
+      const g = await pd("GET", "/customers?page=" + page + "&perpage=100"); if (!g.ok) throw new Error("Payday svaraði " + g.status + " við lista viðskiptavina: " + pdErr(g));
+      const L = g.data?.customers || []; c = hit(L); if (!L.length || page >= (+g.data?.pages || 1)) break;
+    }
+    if (c) return c.id;
+    const p = await pd("POST", "/customers", { ssn: kt, name: txt(kaup.name, 100) || undefined, email: txt(kaup.netfang, 100) || undefined, address: txt(kaup.heimilisfang, 100) || undefined, zipCode: txt(kaup.postnumer, 10) || undefined, city: txt(kaup.stadur, 60) || undefined });
+    if (!p.ok || !p.data?.id) throw new Error("Tókst ekki að stofna viðskiptavin í Payday (" + p.status + "): " + pdErr(p));
+    return p.data.id;
+  };
+  exports.bokhaldPayday = onDocumentWritten({ document: "reikningar/{id}", secrets: [PD_ID, PD_SECRET], timeoutSeconds: 120 }, async ev => {
+    const a = ev.data?.after?.exists ? ev.data.after.data() : null, b = ev.data?.before?.exists ? ev.data.before.data() : null;
+    if (!a || a.bokhald?.kerfi !== "payday" || a.bokhald?.stada !== "bidur" || (b?.bokhald?.stada === "bidur" && b.bokhald.beidni === a.bokhald.beidni)) return;
+    const ref = ev.data.after.ref, R = a, B = a.bokhald, now = () => new Date().toISOString();
+    const result = inv => { const nr = inv?.number != null ? String(inv.number) : null, st = String(inv?.status || "").toUpperCase();
+      return nr && st !== "DRAFT" ? { bokhald: { ...B, kerfi: "payday", stada: "sent", pid: inv.id, nr, pstada: st, dags: now() }, bokhaldNr: nr, bokhaldDags: now().slice(0, 10) }
+        : { bokhald: { ...B, kerfi: "payday", stada: "drog", pid: inv.id, pstada: st || "DRAFT", dags: now() } }; };
+    try {
+      const pd = pdApi(await pdToken());
+      // 1) Þegar í Payday? – sækja stöðu (drög sem hafa verið send í Payday fá númer)
+      if (B.pid) {
+        const g = await pd("GET", "/invoices/" + encodeURIComponent(B.pid));
+        if (g.ok && g.data) { const st = String(g.data.status || "").toUpperCase();
+          if (st === "DELETED" || st === "CANCELLED") throw new Error("Reikningnum var " + (st === "DELETED" ? "eytt" : "hætt við hann") + " í Payday. Ógiltu drögin í Atrium eða fjarlægðu tenginguna (Breyta númeri í bókhaldi).");
+          await ref.update(result(g.data)); logger.info("bokhaldPayday staða", { id: ev.params.id, st }); return; }
+        if (g.status !== 404) throw new Error("Payday svaraði " + g.status + " við leit að reikningnum: " + pdErr(g));
+      }
+      const st = (await db.doc("app/state").get()).data() || {}, rk = st.stillingar?.reikn || {}, P = rk.payday || {};
+      const kaup = R.kaupandi || {}, kt = kt10(kaup.kennitala), stadg = !!R.stadgreitt;
+      const ktC = kt.length === 10 ? kt : (stadg ? kt10(P.stadgKt) : "");
+      if (ktC.length !== 10) throw new Error("Kennitölu greiðanda vantar (og enginn staðgreiðsluviðskiptavinur er stilltur í Stillingar › Reikningar › Payday).");
+      // 2) Viðskiptavinur
+      const custId = await pdCustomer(pd, ktC, ktC === kt ? kaup : { name: "Staðgreiðsla" });
+      // 3) Reikningur
+      const dflt = +R.vskP || 0;
+      const lines = (R.linur || []).filter(l => !l.haus && Math.round((+l.magn || 0) * (+l.verd || 0)) !== 0)
+        .map(l => ({ description: txt(l.lysing, 250) || "Lína", quantity: +l.magn || 0, unitPriceExcludingVat: +l.verd || 0, vatPercentage: +(l.vsk ?? dflt) || 0, discountPercentage: 0 }));
+      if (!lines.length) throw new Error("Engar línur til að senda.");
+      const today = now().slice(0, 10), inv = String(R.dags || today).slice(0, 10) > today ? today : String(R.dags || today).slice(0, 10);
+      const due = String(R.gjalddagi || inv).slice(0, 10) < inv ? inv : String(R.gjalddagi || inv).slice(0, 10);
+      const drog = P.drog !== false;
+      const body = { customer: { id: custId }, description: txt(R.lysing || "", 1000) || undefined, invoiceDate: inv, dueDate: due, finalDueDate: due, currencyCode: "ISK",
+        reference: txt("ATR-" + R.nr, 100), status: drog ? "DRAFT" : "SENT", lines,
+        ...(!drog ? { sendEmail: !!P.post, createClaim: !!P.krafa } : {}),
+        ...(stadg && P.grId ? { paidDate: String(R.greitt || inv).slice(0, 10), paymentType: String(P.grId) } : {}) };
+      const p = await pd("POST", "/invoices", body);
+      if (!p.ok || !p.data?.id) throw new Error("Payday hafnaði reikningnum (" + p.status + "): " + pdErr(p));
+      await ref.update(result(p.data));
+      logger.info("bokhaldPayday stofnað", { id: ev.params.id, pid: p.data.id, status: p.data.status, nr: p.data.number });
+    } catch (e) {
+      logger.error("bokhaldPayday", e);
+      await ref.update({ bokhald: { ...B, kerfi: "payday", stada: "villa", villa: String(e.message || e).slice(0, 400), dags: now() } });
+    }
+  });
+}
+
 /* ---------- 2.102.0: tími vettvangsnotanda bíður staðfestingar ---------- */
 // timar/{id} með vett: true → starfsfólk á skrifstofu á verkefninu fær tilkynningu (annars admin). Val: vtimi.
 exports.vettTimi = onDocumentCreated("timar/{id}", async ev => {
