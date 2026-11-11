@@ -13,7 +13,7 @@ async function deleteItem(type,id){
   const dropTimes=(s,pred)=>{T(s); const gone=entries(s).filter(pred); const seen=new Set();
     gone.forEach(e=>{if(seen.has(e.id)) return; seen.add(e.id); const t=+e.timar||0, p=sFindP(s,e.verkefniId), u=e.undirverkId?sFindU(s,e.undirverkId)[1]:null;
       if(p) p.timar=Math.max(0,(p.timar||0)-t); if(u) u.timar=Math.max(0,(u.timar||0)-t); s.timar.samtals=Math.max(0,(s.timar.samtals||0)-t);
-      if(s.timar.timabil&&(e.timabil||timabilOf(e.date))===s.timar.timabil) s.timar.timabilSamtals=Math.max(0,(s.timar.timabilSamtals||0)-t);});
+      if(s.timar.timabil&&tPer(e)===s.timar.timabil) s.timar.timabilSamtals=Math.max(0,(s.timar.timabilSamtals||0)-t);});
     if(s.timar.faerslur) s.timar.faerslur=s.timar.faerslur.filter(e=>!pred(e)); if(s.timar.nyjast) s.timar.nyjast=s.timar.nyjast.filter(e=>!pred(e)); return seen.size;};
   let label="", q="", mut=null, q2=null, mut2=null;
   if(type==="verk"){const p=findProj(id); if(!p) return; const nu=(p.undirverk||[]).length, nt=faerslur().filter(e=>e.verkefniId===id).length+kostn().filter(k=>k.verkefniId===id).length;

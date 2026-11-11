@@ -204,16 +204,16 @@ function weekBars(){
 }
 function vTimar(sub="vikan"){
   const cur=curPeriod(), all=fT();
-  const per=verkefni().map(p=>({p,t:all.filter(e=>e.verkefniId===p.id&&(e.timabil||timabilOf(e.date))===cur).reduce((a,e)=>a+(+e.timar||0),0)})).filter(r=>r.t>0).sort((a,b)=>b.t-a.t); {const tg=all.filter(e=>!e.verkefniId&&(e.timabil||timabilOf(e.date))===cur).reduce((a,e)=>a+(+e.timar||0),0); if(tg>0) per.push({p:null,t:tg});};
+  const per=verkefni().map(p=>({p,t:all.filter(e=>e.verkefniId===p.id&&tPer(e)===cur).reduce((a,e)=>a+(+e.timar||0),0)})).filter(r=>r.t>0).sort((a,b)=>b.t-a.t); {const tg=all.filter(e=>!e.verkefniId&&tPer(e)===cur).reduce((a,e)=>a+(+e.timar||0),0); if(tg>0) per.push({p:null,t:tg});};
   const max=Math.max(1,...per.map(r=>r.t));
   let fl=all.slice().sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
   if(timFilter) fl=fl.filter(e=>timFilter==="__none"?!e.verkefniId:e.verkefniId===timFilter);
-  const groups={}; fl.forEach(e=>{const k=e.timabil||timabilOf(e.date); (groups[k]=groups[k]||[]).push(e);});
-  const periods=[...new Set([cur,...all.map(e=>e.timabil||timabilOf(e.date))])];
+  const groups={}; fl.forEach(e=>{const k=tPer(e); (groups[k]=groups[k]||[]).push(e);});
+  const periods=[...new Set([cur,...all.map(e=>tPer(e))])];
   const T_chips=`${STARFS().length>1?(FSEL()?`<div class="fsels" style="margin-top:14px">${fsel([["tstarf:","Allir starfsmenn",!timStarf],...STARFS().map(x=>["tstarf:"+x.sk,x.nafn,timStarf===x.sk])],"Starfsmaður")}</div>`:`<div class="stat-row" style="margin-top:14px"><button type="button" class="chipbtn" data-act="tstarf:" aria-pressed="${!timStarf}">Allir</button>${STARFS().map(x=>`<button type="button" class="chipbtn" data-act="tstarf:${esc(x.sk)}" aria-pressed="${timStarf===x.sk}">${esc(x.nafn)}</button>`).join("")}</div>`):""}`;
   const T_vikan=`${klukkaBanner()}<div class="viewtitle">Tímabil ${esc(cur)}</div>
     ${STARFS().length>1?(FSEL()?`<div class="fsels" style="margin-top:14px">${fsel([["tstarf:","Allir starfsmenn",!timStarf],...STARFS().map(x=>["tstarf:"+x.sk,x.nafn,timStarf===x.sk])],"Starfsmaður")}</div>`:`<div class="stat-row" style="margin-top:14px"><button type="button" class="chipbtn" data-act="tstarf:" aria-pressed="${!timStarf}">Allir</button>${STARFS().map(x=>`<button type="button" class="chipbtn" data-act="tstarf:${esc(x.sk)}" aria-pressed="${timStarf===x.sk}">${esc(x.nafn)}</button>`).join("")}</div>`):""}
-    <div class="kpis"><div class="card"><b>${num(sumT(all.filter(e=>(e.timabil||timabilOf(e.date))===cur)))}</b><span>klst. á tímabili</span></div><div class="card"><b>${periodLeft()}</b><span>dagar eftir af tímabili</span></div></div>
+    <div class="kpis"><div class="card"><b>${num(sumT(all.filter(e=>tPer(e)===cur)))}</b><span>klst. á tímabili</span></div><div class="card"><b>${periodLeft()}</b><span>dagar eftir af tímabili</span></div></div>
     ${weekBars()}
     <div class="viewtitle">Eftir verkefnum á tímabilinu</div><div class="card list">${per.length?per.map(({p,t})=>`<div class="${p?"tap":""}" ${p?tapAttr("verk",p.id):""}><div class="sub-i"><span>${p?`<span class="nr">${esc(p.nr)}</span> ${esc(p.stutt)}`:"Almennt (án verkefnis)"}</span><b style="font-variant-numeric:tabular-nums">${hrs(t)}</b></div><div class="bar"><i style="width:${t/max*100}%"></i></div></div>`).join(""):`<span style="color:var(--muted)">Engir tímar á tímabilinu.</span>`}</div>`;
   const T_kostn=`    ${(()=>{const ks=kostn().filter(k=>(!timStarf||(k.starfsmadur||ME())===timStarf)&&(!timFilter||k.verkefniId===timFilter)); const cur_=ks.filter(k=>timabilOf(k.date)===cur), old=ks.length-cur_.length;
@@ -244,7 +244,7 @@ function reportClick(){const sel=document.getElementById("repper").value, pid=do
   let pred, label;
   if(sel==="__dagar"){const a=document.getElementById("repfra").value, b=document.getElementById("reptil").value; if(!a||!b) return toast("Veldu frá og til dagsetningu."); if(b<a) return toast("„Til“ getur ekki verið á undan „Frá“.");
     pred=e=>{const x=String(e.date||"").slice(0,10); return x>=a&&x<=b;}; label=dIS(a)+" – "+dIS(b);}
-  else {pred=e=>(e.timabil||timabilOf(e.date))===sel; label=sel;}
+  else {pred=e=>tPer(e)===sel; label=sel;}
   openReport(e=>pred(e)&&(!pp||e.verkefniId===pp.id||nrMatch(e.nr,pp.nr))&&(!sid||e.undirverkId===sid)&&(!sk||(e.starfsmadur||ME())===sk),{bil:label,verkefni:(pp?.nafn||"")+(su?" › "+su.nr+" "+subName(su):""),starf:sk?starfName(sk):"",flokka:grp||!!sid});}
 const dIS=iso=>{const y=d(iso); return y?pad(y.getDate())+"."+pad(y.getMonth()+1)+"."+y.getFullYear():"";};
 let REP=null;

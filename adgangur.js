@@ -59,7 +59,7 @@
       ${PERMS.map(([l, k, p]) => `<div class="pmr" role="row"><span role="cell"><b>${esc(l)}</b><small>${esc(k)}</small></span>${roles.map(r => `<span role="cell"><i class="pp ${CLS[p[r] || "—"]}">${esc(TXT[p[r] || "—"])}</i></span>`).join("")}</div>`).join("")}</div>`;
 
     const urow = u => {
-      const self = lc(u.email) === lc(USER?.email), t = mine(u, S?.timar?.faerslur), k = mine(u, S?.kostnadur), tp = t.filter(e => (e.timabil || timabilOf(e.date)) === per);
+      const self = lc(u.email) === lc(USER?.email), t = mine(u, S?.timar?.faerslur), k = mine(u, S?.kostnadur), tp = t.filter(e => tPer(e) === per);
       return `<div class="aurow${u.virkur ? "" : " off"}">
         <div class="aun"><span class="mav sm">${esc(u.sk || "?")}</span><div><b>${esc(u.nafn || u.email)}${self ? " (þú)" : ""}</b><small>${esc(u.email)}</small></div></div>
         <div class="aur"><select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(u.nafn)}"${self ? " disabled title=\"Þú getur ekki breytt eigin hlutverki hér\"" : ""}>${roles.map(r => `<option value="${r}"${r === u.hlutverk ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select></div>

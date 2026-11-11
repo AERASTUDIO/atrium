@@ -74,7 +74,7 @@
         if (k === "verk") { const P = new Set(ids); s.verkefni = (s.verkefni || []).filter(x => !P.has(String(x.id)));
           const tm = s.timar = s.timar || {}, pr = e => P.has(String(e.verkefniId)), seen = new Set();
           [...new Set([...(tm.faerslur || []), ...(tm.nyjast || [])])].filter(pr).forEach(e => { if (seen.has(e.id)) return; seen.add(e.id); const t = +e.timar || 0;
-            tm.samtals = Math.max(0, (tm.samtals || 0) - t); if (tm.timabil && typeof timabilOf === "function" && (e.timabil || timabilOf(e.date)) === tm.timabil) tm.timabilSamtals = Math.max(0, (tm.timabilSamtals || 0) - t); });
+            tm.samtals = Math.max(0, (tm.samtals || 0) - t); if (tm.timabil && typeof timabilOf === "function" && tPer(e) === tm.timabil) tm.timabilSamtals = Math.max(0, (tm.timabilSamtals || 0) - t); });
           if (tm.faerslur) tm.faerslur = tm.faerslur.filter(e => !pr(e)); if (tm.nyjast) tm.nyjast = tm.nyjast.filter(e => !pr(e));
           if (s.kostnadur) s.kostnadur = s.kostnadur.filter(x => !P.has(String(x.verkefniId)));
           (s.fundir || []).forEach(f => { if (P.has(String(f.projectId))) f.projectId = null; }); (s.skjol || []).forEach(x => { if (P.has(String(x.projectId))) x.projectId = null; }); }

@@ -133,7 +133,7 @@ async function saveEdit(type,id){
       await saveSnapshot(s=>{const L=sTimes(s); const q=L.find(x=>x.id===id); const p=sFindP(s,pid), u=sid?sFindU(s,sid)[1]:null;
         const oP=sFindP(s,e.verkefniId), oU=e.undirverkId?sFindU(s,e.undirverkId)[1]:null; if(oP) oP.timar=(oP.timar||0)-old; if(oU) oU.timar=(oU.timar||0)-old;
         if(p) p.timar=(p.timar||0)+t; if(u) u.timar=(u.timar||0)+t; s.timar.samtals=(s.timar.samtals||0)+diff;
-        if(s.timar.timabil){const was=(e.timabil||timabilOf(e.date))===s.timar.timabil, now=timabilOf(dt)===s.timar.timabil; s.timar.timabilSamtals=(s.timar.timabilSamtals||0)-(was?old:0)+(now?t:0);}
+        if(s.timar.timabil){const was=tPer(e)===s.timar.timabil, now=timabilOf(dt)===s.timar.timabil; s.timar.timabilSamtals=(s.timar.timabilSamtals||0)-(was?old:0)+(now?t:0);}
         if(q) Object.assign(q,{date:dt,lysing:lys,fra:fr&&to?fr:null,til:fr&&to?to:null,timar:t,starfsmadur:sk,verkefniId:pid,undirverkId:sid||null,nr:u?.nr||p?.nr,timabil:timabilOf(dt),...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null}:{})});
         if(s.timar.faerslur) s.timar.nyjast=s.timar.faerslur.slice(0,10);});
     }

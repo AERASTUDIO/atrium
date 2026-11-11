@@ -43,6 +43,8 @@ function vStillingarAll(){
   <div class="two" style="align-items:end"><label>Markmið klst. á viku<input id="cfg-vikumark" type="text" inputmode="decimal" value="${esc(num(CFG().vikumark||40))}"></label><span></span></div>
   <div class="two" style="align-items:end;margin-top:8px"><label>Dagvinna frá<input id="cfg-dvfra" type="time" step="900" value="${esc((CFG().dagvinna||window.ORG?.dagvinna||{}).fra||"08:00")}"></label><label>Dagvinna til<input id="cfg-dvtil" type="time" step="900" value="${esc((CFG().dagvinna||window.ORG?.dagvinna||{}).til||"16:00")}"></label></div>
   <p class="hint" style="margin:6px 0 8px">Tímar utan dagvinnu á virkum dögum, um helgar og á almennum frídögum teljast yfirvinna í tímaskýrslum.</p>
+  <div class="two" style="align-items:end;margin-top:8px"><label>Tímabil hefst (dagur mánaðar)<input id="cfg-tbdagur" type="number" inputmode="numeric" min="1" max="28" value="${esc(String(CFG().timabilDagur||window.ORG?.timabilDagur||1))}"></label><span class="hint" style="align-self:center">Nú: ${esc(curPeriod())}</span></div>
+  <p class="hint" style="margin:6px 0 8px">1 = almanaksmánuður (sjálfgefið). Tímabilið ræður samtölum í Tímum og tímaskýrslum – líka eldri tíma.</p>
   <div class="links"><button type="button" class="btn" data-act="cfg:vikumark:0">Vista vinnuviku</button></div>`:""}
   <div class="viewtitle">Áminningar</div>
   <p class="hint" style="margin:0 0 8px">Áreiðanlegast er að setja fundi og skil í dagatal símans, sem lætur þig vita. Tilkynningar appsins virka á meðan það er opið eða nýlega opnað.</p>
@@ -83,7 +85,8 @@ async function cfgAct(a,i){if(!can("stillingar")) return toast("Aðeins admin ge
   if(a==="sfeg") cfgSave(c=>c.starfsmenn.forEach((x,k)=>x.eg=k===i));
   if(a==="vikumark"){const v=parseFloat(String(document.getElementById("cfg-vikumark").value).replace(",",".")), f=document.getElementById("cfg-dvfra")?.value||"", t=document.getElementById("cfg-dvtil")?.value||"";
     if(!(v>0&&v<120)) return toast("Markmið þarf að vera á bilinu 1–119 klst."); if(f&&t&&t<=f) return toast("Dagvinna þarf að enda eftir að hún hefst.");
-    cfgSave(c=>{c.vikumark=v; if(f&&t) c.dagvinna={fra:f,til:t};}).then(()=>toast("Vinnuvika vistuð"));}
+    const tb=parseInt(document.getElementById("cfg-tbdagur")?.value||"1",10); if(!(tb>=1&&tb<=28)) return toast("Tímabil hefst á degi 1–28.");
+    cfgSave(c=>{c.vikumark=v; if(f&&t) c.dagvinna={fra:f,til:t}; if(tb===1) delete c.timabilDagur; else c.timabilDagur=tb;}).then(()=>toast("Vinnuvika vistuð"));}
   if(a==="snid"){const t=THJ()[i], lines=document.getElementById("snid-"+i).value.split("\n").map(x=>x.trim()).filter(Boolean); cfgSave(c=>{c.snidmat=c.snidmat||structuredClone(SNID()); c.snidmat[t]=lines;}).then(()=>toast("Sniðmát vistað"));}
 }
 document.addEventListener("change",e=>{const i=e.target.dataset?.cfgcolor; if(i!=null&&can("stillingar")) cfgSave(c=>{c.stodur[+i].c=e.target.value;});});

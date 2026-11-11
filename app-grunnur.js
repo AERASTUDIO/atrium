@@ -143,7 +143,7 @@ const vsName=p=>projVsk(p)?.name||p.vidskiptavinur||"", vkName=p=>projVk(p)?.nam
 const num=n=>{const v=Math.round((n||0)*100)/100;const [i,f]=String(Math.abs(v)).split(".");return (v<0?"−":"")+i.replace(/\B(?=(\d{3})+(?!\d))/g,".")+(f?","+f:"");};
 const hrs=n=>num(n)+" klst.";
 const curPeriod=()=>timabilOf(isoDay(today));
-const periodSum=k=>faerslur().filter(e=>(e.timabil||timabilOf(e.date))===k).reduce((a,e)=>a+(+e.timar||0),0);
+const periodSum=k=>faerslur().filter(e=>tPer(e)===k).reduce((a,e)=>a+(+e.timar||0),0);
 const mondayOf=x=>{const m=new Date(x); m.setHours(0,0,0,0); m.setDate(m.getDate()-((m.getDay()+6)%7)); return m;};
 const weekSum=(off=0,sk=null,noLive=false)=>{const a=mondayOf(today); a.setDate(a.getDate()+7*off); const b=new Date(a); b.setDate(b.getDate()+7); return faerslur().filter(e=>{const x=d(e.date); return (!noLive||!e.live)&&x&&x>=a&&x<b&&(!sk||(e.starfsmadur||ME())===sk);}).reduce((t,e)=>t+(+e.timar||0),0);};
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -170,7 +170,12 @@ function linkBtns(o,opts={}){let h="";
   return h?`<div class="links">${h}</div>`:"";}
 const isTmp=id=>!id||/^(tmp|nytt)/.test(String(id));
 const USTAT=["Not started","Up next","In progress","Done"];
-function timabilOf(iso){const x=d(iso); if(!x) return ""; let y=x.getFullYear(), m=x.getMonth(); if(x.getDate()<=20){m--; if(m<0){m=11;y--;}} const e=new Date(y,m+1,20); return `21.${pad(m+1)}${y!==e.getFullYear()?"."+y:""} – 20.${pad(e.getMonth()+1)}.${e.getFullYear()}`;}
+/* 2.122.0: Tímabil fylgir almanaksmánuði (1.–síðasti dagur) nema fyrirtækið stilli annan upphafsdag (Stillingar › Reikningar og fyrirtæki › Vinnuvika,
+   stillingar.timabilDagur 1–28; uppsetning: ORG.timabilDagur). Áður 21.–20. Tímabil færslu er alltaf reiknað út frá dagsetningu hennar (tPer) – vistaða reitnum timabil er ekki treyst. */
+const tbDagur=()=>{const v=+(CFG().timabilDagur||window.ORG?.timabilDagur||1); return v>=1&&v<=28?Math.floor(v):1;};
+function timabilOf(iso){const x=d(iso); if(!x) return ""; const D=tbDagur(); let y=x.getFullYear(), m=x.getMonth(); if(x.getDate()<D){m--; if(m<0){m=11;y--;}}
+  const a=new Date(y,m,D), e=new Date(y,m+1,D-1); return `${a.getDate()}.${pad(a.getMonth()+1)}${a.getFullYear()!==e.getFullYear()?"."+a.getFullYear():""} – ${e.getDate()}.${pad(e.getMonth()+1)}.${e.getFullYear()}`;}
+const tPer=e=>timabilOf(e?.date);
 const NONE='<span style="color:var(--muted)">Ekki skráð</span>';
 const kvRows=rows=>rows.filter(Boolean).map(([k,v])=>`<dt>${k}</dt><dd>${v==null||v===""?NONE:v}</dd>`).join("");
 const textCard=(title,s)=>s?`<div class="viewtitle">${title}</div><div class="card" style="font-size:14.5px;white-space:pre-line">${esc(s)}</div>`:"";
@@ -330,7 +335,7 @@ function homeChartParts(){
   // (klukka í gangi er þegar með í weekSum sem bráðabirgðafærsla)
   P.ch_vikur=(`<div class="chart"><div class="chh4"><b>${fj&&STARFS().length>1?"Tímar teymisins":"Þínir tímar"}</b><span>síðustu 8 vikur</span></div>${barsV(wv,wks.map(o=>"v"+isoWeek(mon(o))),{goal:fj&&STARFS().length>1?0:(+CFG().vikumark||40),hi:7,acts:wks.map(()=>"tab:timar")})}</div>`);
   // 2. Tímar á verkefni á yfirstandandi tímabili
-  const per=curPeriod(), byP=new Map(); faerslur().filter(e=>(e.timabil||timabilOf(e.date))===per&&(!mine||(e.starfsmadur||ME())===mine)).forEach(e=>{const k=e.verkefniId||"_"; byP.set(k,(byP.get(k)||0)+(+e.timar||0));});
+  const per=curPeriod(), byP=new Map(); faerslur().filter(e=>tPer(e)===per&&(!mine||(e.starfsmadur||ME())===mine)).forEach(e=>{const k=e.verkefniId||"_"; byP.set(k,(byP.get(k)||0)+(+e.timar||0));});
   const pr=[...byP.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>{const p=findProj(k); return {l:p?`<span class="nr">${esc(p.nr)}</span> ${esc(p.stutt||"")}`:"Almennt",v,txt:num(Math.round(v*10)/10)+" klst.",act:p?"verk:"+p.id:"tab:tfaer"};});
   P.ch_verk=(`<div class="chart"><div class="chh4"><b>Tímar á verkefni</b><span>tímabil ${esc(per)}</span></div>${pr.length?barsH(pr):`<div class="empty" style="margin:8px 0">Engir tímar á tímabilinu ennþá.</div>`}</div>`);
   // 3. Verkefni eftir stöðu

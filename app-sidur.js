@@ -32,8 +32,8 @@ const timeRowL=e=>{const x=d(e.date); if(e.live) return `<div class="lrow tap" d
 const sumT=es=>es.reduce((a,e)=>a+(+e.timar||0),0);
 function timesPage(es,startAct){
   const pid=DETAIL&&DETAIL.startsWith("verk:")?DETAIL.slice(5):null, sidR=DETAIL&&DETAIL.startsWith("sub:")?DETAIL.slice(4):null;
-  const groups={}; es.forEach(e=>{const k=e.timabil||timabilOf(e.date); (groups[k]=groups[k]||[]).push(e);});
-  return `<div class="kpis"><div class="card"><b>${num(sumT(es))}</b><span>klst. alls</span></div><div class="card"><b>${num(sumT(es.filter(e=>(e.timabil||timabilOf(e.date))===curPeriod())))}</b><span>klst. á tímabili</span></div></div>
+  const groups={}; es.forEach(e=>{const k=tPer(e); (groups[k]=groups[k]||[]).push(e);});
+  return `<div class="kpis"><div class="card"><b>${num(sumT(es))}</b><span>klst. alls</span></div><div class="card"><b>${num(sumT(es.filter(e=>tPer(e)===curPeriod())))}</b><span>klst. á tímabili</span></div></div>
   ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="${startAct}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button><button type="button" class="btn" data-act="add:kostn">+ Kostnaður</button>${pid&&(es.length||kostn().some(k=>k.verkefniId===pid))?`<button type="button" class="btn" data-act="prep:${esc(pid)}">Tímaskýrsla</button>`:""}${sidR&&es.length?`<button type="button" class="btn" data-act="srep:${esc(sidR)}">Tímaskýrsla undirverks</button>`:""}</div>`:""}
   ${pid&&window.rkProjSection&&ON("reikningar")?rkProjSection(pid):""}
   ${es.length?Object.entries(groups).map(([k,g])=>`<div class="viewtitle">${esc(k)} · ${hrs(sumT(g))}</div>${llist(g.map(timeRowL))}`).join(""):`<div class="empty" style="margin-top:16px">Engar tímaskráningar ennþá.</div>`}
@@ -139,7 +139,7 @@ function dTime(e){
     ["Dagur",fmtDate(e.date)],["Tími",e.fra?esc(e.fra+(e.til?"–"+e.til:"")):""],["Klst.",hrs(e.timar)],["Verkefni",p?projLink(p):esc(e.nr||"")],
     ["Undirverk",r?`<a class="plink" ${tapAttr("sub",r.u.id)}><span class="nr">${esc(r.u.nr)}</span> ${esc(subName(r.u))}</a>`:""],
     ["Þjónusta",window.svcOf?(()=>{const l=svcOf(e), pr=window.entryRate?entryRate(e,rateOf(p)):0; return esc((l?l.heiti:"")+(pr?" · "+num(pr)+" kr./klst.":"")+(e.taxti?"":" (eins og verkefnið)"));})():""],
-    ["Starfsmaður",esc(e.starfsmadur?starfName(e.starfsmadur):"")],["Tímabil",esc(e.timabil||timabilOf(e.date))],["Lýsing",esc(e.lysing||"")]])}</dl>
+    ["Starfsmaður",esc(e.starfsmadur?starfName(e.starfsmadur):"")],["Tímabil",esctPer(e)],["Lýsing",esc(e.lysing||"")]])}</dl>
     ${linkBtns({id:e.id},{edit:"time"})}</div>`;
 }
 function dKostn(k){
