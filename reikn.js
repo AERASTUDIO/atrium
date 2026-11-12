@@ -25,7 +25,7 @@
      Utan útlits I er sjálfgefið tímavinna (óbreytt hegðun). */
   const INNH = { timar: "Tímavinna – rukkað eftir unnum tímum", tilbod: "Fast verð – rukkað skv. tilboði eða pöntun", ekki: "Ekki rukkað" };
   window.INNH = INNH;
-  window.innheimtaOf = p => { if (!p) return window.ORG?.utlit === "I" ? "ekki" : "timar"; /* tímar án verkefnis = Innra */ if (INNH[p.innheimta]) return p.innheimta; if (window.ORG?.utlit !== "I") return "timar";
+  window.innheimtaOf = p => { if (!p) return window.ORG?.utlit === "I" ? "ekki" : "timar"; /* tímar án verkefnis = Innra */ if (INNH[p.innheimta]) return p.innheimta; if (INNH[CFG().innheimta]) return CFG().innheimta; /* 2.123.0: sjálfgefinn innheimtuháttur fyrirtækisins (Stillingar › Reikningar og fyrirtæki); tómt = sjálfvirkt eins og áður */ if (window.ORG?.utlit !== "I") return "timar";
     const api = window.salaAPI; if (["leiga", "sala"].includes(p.deild)) return "tilbod";
     if (api) { const docs = [...api.TB(), ...api.PN()].filter(T => T.verkefniId === p.id || T.id === p.tilbodId || T.id === p.pontunId); if (docs.some(T => T.stada !== "Hafnað" && (T.linur || []).some(l => l.teg !== "vinna"))) return "tilbod"; }
     return INNH[CFG().innheimta] ? CFG().innheimta : "timar"; };
@@ -563,6 +563,8 @@
       <div class="two">${f("netfang", "Netfang", 'type="email"')}${f("simi", "Sími", 'inputmode="tel"')}</div>
       ${f("banki", "Bankareikningur", 'placeholder="0000-26-000000"')}
       <div class="two">${f("timagjald", "Sjálfgefið tímagjald (kr./klst.)", 'inputmode="numeric"')}${f("vsk", "VSK %", 'inputmode="decimal"')}</div>
+      <label>Hvernig verkefni eru rukkuð<select id="rk-innheimta">${[["", "Sjálfvirkt – fast verð ef tilboð með búnaði, annars tímavinna"], ["timar", "Tímavinna – rukkað eftir skráðum tímum"], ["tilbod", "Fast verð – rukkað skv. tilboði, tímar til yfirsýnar"]].map(([v, l]) => `<option value="${v}"${(CFG().innheimta || "") === v ? " selected" : ""}>${l}</option>`).join("")}</select></label>
+      <p class="hint" style="margin:4px 0 10px">Sjálfgefið fyrir ný og eldri verkefni sem hafa ekki eigin stillingu – breyta má hverju verkefni fyrir sig. Tímar eru alltaf skráðir á verk; með föstu verði eru þeir bornir saman við tilboðið og umfram má rukka sem aukavinnu.</p>
       <div class="two">${r.bokhald === "payday" ? `<label>Greiðslufrestur<input value="Eindagi Payday – ${esc(String(r.frestur))} dagar" disabled title="Með Payday ræður eindaginn í Payday-stillingunum hér fyrir neðan"></label>` : f("frestur", "Greiðslufrestur (dagar)", 'inputmode="numeric"')}${f("nastaNr", DROG() ? "Næsta númer draga" : "Næsta reikningsnúmer", 'inputmode="numeric"')}</div>
       ${window.ON && ON("pantanir") ? `<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);margin-top:6px"><input type="checkbox" id="rk-sjalfvirkt"${r.sjalfvirkt !== false ? " checked" : ""} style="width:auto"> Reikningsdrög myndast sjálfkrafa úr pöntunum</label>
       <p class="hint" style="margin:0 0 8px">Viðskiptavinur í reikningi: drög verða til þegar pöntun er staðfest, uppfærast með henni og eru tilbúin við skil. Staðgreitt: greiddur reikningur (kvittun) þegar greiðsla er skráð. Gildir um pantanir frá ${esc(r.sjalfFra ? dIS(r.sjalfFra) : "deginum í dag")}.</p>
@@ -652,7 +654,7 @@ Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}.` : ""}`,
       ["sjalfvirkt", "dkSjalf"].forEach(x => { const el = document.getElementById("rk-" + x); if (el) o[x] = el.checked; });
       if (document.querySelector('input[name="rk-pd-hamur"]')) o.payday = { hamur: document.querySelector('input[name="rk-pd-hamur"]:checked')?.value || "utgefa", post: !!document.getElementById("rk-pd-post")?.checked, krafa: true, fylgiskjal: !!document.getElementById("rk-pd-fylgiskjal")?.checked, gjSamd: true, eindagi: g("pd-eindagi") === "" ? 20 : Math.max(0, Math.round(n("pd-eindagi"))), stadgKt: g("pd-stadgKt"), grId: g("pd-grId") };
       if (document.getElementById("rk-dk-solumadur")) o.dk = { ...Object.fromEntries(["solumadur", "lykill", "mati", "skilmali", "stadgKt", "grId", "grNafn", "stadgMati"].map(x => [x, g("dk-" + x)])), post: !!document.getElementById("rk-dk-post")?.checked };
-      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o };
+      const ihV = document.getElementById("rk-innheimta")?.value; saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.reikn = { ...(s.stillingar.reikn || {}), ...o }; if (ihV !== undefined) { if (ihV) s.stillingar.innheimta = ihV; else delete s.stillingar.innheimta; }
         /* 2.122.4: VSK % > 0 = á VSK-skrá (verðskráin sýnir það sama) */ if (s.stillingar.verdskra) s.stillingar.verdskra = { ...s.stillingar.verdskra, vskSkra: o.vsk > 0, ...(o.vsk > 0 ? { vsk: o.vsk } : {}) }; }).then(() => { toast("Upplýsingar um seljanda vistaðar"); render(); }); return; }
   };
   window.rkPdfBytes = invoicePdf;

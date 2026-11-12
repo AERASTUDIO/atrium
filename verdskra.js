@@ -16,7 +16,12 @@
   window.VERD = () => { const v = (typeof CFG === "function" && CFG().verdskra) || null; if (!(v && Array.isArray(v.lidir) && v.lidir.length)) return DEF;
     if ((v.v || 1) < 2 && DEF.lidir.length) { const lidir = v.lidir.concat(DEF.lidir.filter(l => ["sonik", "almenn"].includes(l.id) && !v.lidir.some(x => x.id === l.id || x.heiti === l.heiti))); return { ...DEF, ...v, lidir }; }
     return { ...DEF, ...v }; };
-  const lid = id => VERD().lidir.find(l => l.id === id);
+  /* 2.123.0: ein verðlína fyrir hverja tegund vinnu – vinnulínur vörulistans (Tilboð › Þjónustur, t.d. „Hljóðmaður 9.500 kr./klst.“)
+     eru líka valkostir þegar tími er skráður, svo sama verð gildir á tilboði og í tímaskráningu. Breytt í Vörulista; id = "v:<vöru-id>". */
+  const VINNA = () => { try { const api = window.salaAPI; if (!api || !(window.ON && (ON("tilbod") || ON("leiga") || ON("sala")))) return [];
+    return api.VR().filter(v => v.tegund === "vinna" && /klst/.test(v.eining || "") && +v.soluverd > 0).map(v => ({ id: "v:" + v.id, heiti: v.heiti, verd: +v.soluverd, vara: true })); } catch (e) { return []; } };
+  window.vinnuLinur = () => { const L = VERD().lidir, nofn = new Set(L.map(l => String(l.heiti).toLowerCase())); return L.concat(VINNA().filter(v => !nofn.has(String(v.heiti).toLowerCase()))); };
+  const lid = id => VERD().lidir.find(l => l.id === id) || (String(id || "").startsWith("v:") ? VINNA().find(l => l.id === id) : null);
   // Þjónusta (verkþáttur) verkefnis; tímar án verkefnis fá línuna merkta „Án verkefnis“
   window.taxtiOf = p => (p?.taxti && lid(p.taxti)) || (p ? VERD().lidir.find(l => (l.verkefni || []).includes(p.nr)) : VERD().lidir.find(l => l.almennt)) || VERD().lidir.find(l => l.sjalfgefid) || null;
   window.lidOf = lid;
@@ -26,7 +31,8 @@
   window.entryRate = (e, base) => { const p = e?.verkefniId ? findProj(e.verkefniId) : null, own = e?.taxti && lid(e.taxti);
     return own && own.id !== taxtiOf(p)?.id ? +own.verd : base; };
   // Val á þjónustu í tímaskráningarformi (tómt = eltir verkefnið)
-  window.taxtiSelect = (id, cur) => `<label>Þjónusta<select id="${id}"><option value="">Eins og verkefnið</option>${VERD().lidir.map(l => `<option value="${esc(l.id)}"${cur === l.id ? " selected" : ""}>${esc(l.heiti)} · ${esc(num(l.verd))} kr./klst.</option>`).join("")}</select></label>`;
+  window.taxtiSelect = (id, cur) => { const o = l => `<option value="${esc(l.id)}"${cur === l.id ? " selected" : ""}>${esc(l.heiti)} · ${esc(num(l.verd))} kr./klst.</option>`, L = vinnuLinur(), a = L.filter(l => !l.vara), b = L.filter(l => l.vara);
+    if (!L.length) return ""; return `<label>Tegund vinnu<select id="${id}"><option value="">Eins og verkefnið</option>${a.map(o).join("")}${b.length ? (a.length ? `<optgroup label="Úr vörulista">${b.map(o).join("")}</optgroup>` : b.map(o).join("")) : ""}</select></label>`; };
   window.rateOf = p => +(p?.timagjald || taxtiOf(p)?.verd || 0);
   const kr0 = n => num(Math.round(+n || 0));
   const fj = () => !!(window.can && can("stillingar"));
@@ -47,6 +53,7 @@
       <h2 class="big" style="margin-top:6px">Verðskrá ${esc(ORG.nafn)}</h2>
       <p class="sub">Tímagjald ${esc(ORG.nafn)} er ${esc(kr0(lo))}${hi !== lo ? "–" + esc(kr0(hi)) : ""} kr. á klukkustund án VSK, eftir tegund verks.</p>
       <div class="viewtitle">Tímagjald</div><div class="tw"><table class="vstab">${`<thead>${head}</thead>`}<tbody>${rows}</tbody></table></div>
+      ${(() => { const vl = vinnuLinur().filter(l => l.vara); return vl.length ? `<div class="viewtitle" style="margin-top:18px">Vinnulínur úr vörulista</div><p class="hint" style="margin:0 0 8px">Sömu línur og á tilboðum – líka hægt að velja þær þegar tími er skráður. Verðinu er breytt í Vörulista.</p><div class="tw"><table class="vstab"><tbody>${vl.map(l => `<tr><td>${esc(l.heiti)}</td><td class="r">${esc(kr0(l.verd))} kr./klst.</td></tr>`).join("")}</tbody></table></div>` : ""; })()}
       ${EDIT ? `<div class="links" style="margin-top:8px"><button type="button" class="btn" data-act="vs:add">+ Lína</button></div>
         <label class="chk" style="margin-top:12px"><input type="checkbox" id="vs-skra"${vs ? " checked" : ""}> Félagið er á VSK-skrá (VSK ${vp}% leggst á reikninga)</label>
         <label>Athugasemd<textarea id="vs-ath">${esc(v.athugasemd || "")}</textarea></label>

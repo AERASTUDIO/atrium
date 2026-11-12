@@ -736,6 +736,11 @@
     else if (sv.includes("Sala")) k = [tbK(), kp("Vörur", sl.length ? sl.reduce((a, x) => a + (+x.l.magn || 0), 0) + " stk." : "–"), kp("Tímar", H(p.timar || 0) + (p.aklst ? " af " + H(p.aklst) : "") + " klst.")];
     else k = [kp("Tímar", H(p.timar || 0) + (p.aklst ? " af " + H(p.aklst) : "") + " klst."), ih === "timar" ? kp("Óreikningsfært", unb || "–") : kp("Innheimta", ih === "tilbod" ? "Fast verð" : "Ekki rukkað"), tbK()];
     let h = `<div class="ukps">${k.join("")}</div>`;
+    /* 2.123.0: Fast verð – unnir tímar metnir á verði vinnunnar (eigin tegund vinnu eða meðalverð vinnu á tilboðinu) og bornir saman við vinnuna í tilboðinu */
+    if (ih === "tilbod" && api) { const vT = src.reduce((a, T) => a + (+api.totals(T)?.vinna || 0), 0), es = faerslur().filter(e => e.verkefniId === p.id && !e.live);
+      if (vT > 0 && es.length) { const avg = vnH > 0 ? vT / vnH : (window.rateOf ? rateOf(p) : 0), rt = e => (e.taxti && window.lidOf && lidOf(e.taxti)) ? +lidOf(e.taxti).verd : avg;
+        const vd = Math.round(es.reduce((a, e) => a + (+e.timar || 0) * rt(e), 0)), pc = Math.round(vd / vT * 100), yfir = pc > 100, aukaK = es.filter(e => e.rukka === true && !e.reikningur).length;
+        h += `<div class="${pc >= 90 ? "uwarn" + (yfir ? "" : " info") : "uinfo"}" style="${pc >= 90 ? "" : "margin:10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px"}">${pc >= 90 ? "<i></i>" : ""}<span><b>Unnið að virði ${E(kr(vd))}</b> af ${E(kr(vT))} vinnu í tilboði (${pc} %).${yfir ? " Fram úr tilboði – merktu tíma sem aukavinnu eða sendu aukaverk ef rukka á umfram." : ""}${aukaK ? ` ${aukaK} ${aukaK === 1 ? "tími merktur" : "tímar merktir"} sem aukavinna fara á reikning.` : ""}</span></div>`; } }
     // Tímavinna á móti áætlun (2.42.0): viðvörun þegar unnir tímar nálgast eða fara fram úr áætluðum tímum
     if (ih === "timar" && +p.aklst > 0 && (+p.timar || 0) >= 0.9 * p.aklst) { const pc = Math.round((+p.timar || 0) / p.aklst * 100), yfir = pc > 100;
       h = `<div class="uwarn${yfir ? "" : " info"}"><i></i><span><b>${yfir ? "Komið fram úr áætlun" : "Nálgast áætlun"}:</b> ${H(+p.timar || 0)} af ${H(p.aklst)} klst. (${pc} %)${yfir ? " – ræddu við viðskiptavininn áður en meira er unnið" : ""}</span></div>` + h; }

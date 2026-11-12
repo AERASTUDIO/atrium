@@ -893,7 +893,7 @@
   const mappaBid = (s, V) => { (s.odBidrod = s.odBidrod || []).push({ verkefniId: V.id, nafn: V.nafn || V.stutt || V.nr, stofnad: new Date().toISOString() }); };
   const mkVerk = (T, id, nr) => { const st = (STODUR().find(x => x.n === "Í vinnslu") || STODUR().find(x => !x.lokid) || STODUR()[0]).n;
     return { id, nr, stutt: T.heiti, nafn: nr + " " + T.heiti, stada: st, vidskiptavinur: T.vidskiptavinur || null, verkkaupi: null, vskId: T.vskId || null, vkId: null,
-      thjonusta: vflOf(T), timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: klstOf(T), ...(vinnaEin(T) ? { innheimta: "timar" } : {}), tilbod: isP(T) ? null : totals(T).net, tilbodId: isP(T) ? null : T.id, ...(isP(T) ? { pontunId: T.id } : {}), deild: isMix(T) ? null : tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
+      thjonusta: vflOf(T), timar: 0, yfirlit: null, mappa: null, undirverk: [], starfsmenn: [ME()], aklst: klstOf(T), ...(vinnaEin(T) && CFG().innheimta !== "tilbod" ? { innheimta: "timar" } : {}), tilbod: isP(T) ? null : totals(T).net, tilbodId: isP(T) ? null : T.id, ...(isP(T) ? { pontunId: T.id } : {}), deild: isMix(T) ? null : tDeild(T), timabilFra: T.fra || null, timabilTil: T.til || T.fra || null,
       lysing: [isMix(T) ? null : DL[tDeild(T)].l, T.stadsetning, T.fra ? dRange(T) : ""].filter(Boolean).join(" · ") || null }; };
   const hefurVorur = T => (T.linur || []).some(l => l.teg !== "vinna"), hefurVinnu = T => (T.linur || []).some(l => l.teg === "vinna");
   // Samþykkt tilboð er læst (2.61.0): breytingar fara í pöntunina eða nýja útgáfu
