@@ -19,7 +19,7 @@ function openEdit(type,id){
     <label>Staða<select id="e-status">${STODUR().filter(x=>!x.falin||x.n===p.stada).map(x=>opt(x.n,x.n,p.stada)).join("")}</select></label>
     ${projFields("e",p)}
     ${window.ORG?.pakkaval?(window.tegSelect?tegSelect("e-deild",p.deild||""):""):(window.deildSelect?deildSelect("e-deild",p.deild||""):"")}
-    ${thjField(p.thjonusta||[])}
+    ${window.vflOn()?thjField(p.thjonusta||[]):""}
     <label>Mappa (slóð)<input id="e-mappa" type="url" value="${esc(p.mappa||"")}" placeholder="https://…"></label>
     ${window.INNH?`<label>Innheimta<select id="e-innh"><option value="">Sjálfvirkt – ${esc((INNH[innheimtaOf({...p,innheimta:null})]||"").split(" – ")[0])}</option>${Object.entries(INNH).map(([k,l])=>`<option value="${k}"${p.innheimta===k?" selected":""}>${esc(l)}</option>`).join("")}</select></label>`:""}
     <div class="two"><label>Áætlaðir tímar<input id="e-aklst" inputmode="decimal" value="${p.aklst?esc(num(p.aklst)):""}" placeholder="t.d. 40"></label><label>Tilboð (kr.)<input id="e-tilbod" inputmode="numeric" value="${p.tilbod?esc(String(p.tilbod)):""}" placeholder="t.d. 450000"></label></div>

@@ -92,7 +92,9 @@ const DTL={"Draft":"Drög","Spec":"Lýsing","PRD":"Kröfulýsing","RFC":"Tillaga
 /* ---------- Stillingar appsins (S.stillingar) ---------- */
 const DEF_STODUR=[{n:"Beiðni",c:"slate"},{n:"Tilboð",c:"violet"},{n:"Í vinnslu",c:"blue"},{n:"Í bið",c:"amber"},{n:"Í yfirferð",c:"teal"},{n:"Afhent",c:"green",lokid:true},{n:"Reikningsfært",c:"gray",lokid:true}];
 // Þjónusta án möppu (2.16.0): úr uppsetningu (ORG.anMoppu, t.d. AERA: ["Almennt"]); sjálfgefið fá öll verkefni möppu
-const noFolder=p=>{const t=(p?.thjonusta||[]), A=window.ORG?.anMoppu||[]; return A.length>0&&t.length>0&&t.every(x=>A.includes(x));};
+// 2.137.0: verkflokkar sameinaðir undirflokkum – verkflokkar sjást aðeins þar sem engir undirflokkar eru skilgreindir
+window.vflOn=()=>!(window.RL&&RL().length);
+const noFolder=p=>{const A=window.ORG?.anMoppu||[]; if(!A.length||!p) return false; const rn=!window.vflOn()&&window.rlName?rlName(p):"", t=rn?[rn]:(p.thjonusta||[]); return t.length>0&&t.every(x=>A.includes(x));};
 // Sjálfgefin þjónusta, sniðmát og starfsmaður (2.16.0): hlutlaus í kjarnanum; uppsetning setur sín gildi (ORG.thjonusta, ORG.snidmat)
 const DEF_THJ=["Almennt"];
 const DEF_STARF=window.ORG?.admin?.sk?[{sk:ORG.admin.sk,nafn:ORG.admin.nafn,eg:true}]:[];

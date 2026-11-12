@@ -86,4 +86,26 @@
   });
   // 2.125.0: stillingarnar eru á síðunni Stillingar › Svið (ui1-skjair.js) – ekki lengur sér síða
   window.rlCfgHTML = cfgHTML;
+
+  /* 2.137.0: verkflokkar sameinaðir undirflokkum (einu sinni, af stjórnanda). Hver verkflokkur fær undirflokk með sama nafni
+     (eða þann sem nafnið passar við) og verkefni með verkflokk en engan undirflokk fá hann. Gamla merkingin (thjonusta) helst í gögnunum. */
+  const nrm = x => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  let sameinad = false;
+  async function sameina() {
+    if (sameinad || typeof S === "undefined" || !S?.stillingar || !CF().length) return;
+    if (!window.can || !can("stillingar") || S.stillingar.vflSameinad || window.AERA_DEMO && !window.__prufaSameina) return;
+    const VV = typeof verkefni === "function" ? verkefni() : [], T = (typeof THJ === "function" ? THJ() : []).filter(t => t && VV.some(v => (v.thjonusta || []).includes(t))); /* aðeins verkflokkar sem eru í notkun */
+    if (!T.length) { if (window.can && can("stillingar") && !(window.AERA_DEMO && !window.__prufaSameina)) { sameinad = true; saveSnapshot(st => { st.stillingar = st.stillingar || {}; st.stillingar.vflSameinad = new Date().toISOString(); }).catch(() => { sameinad = false; }); } return; }
+    sameinad = true;
+    const finn = (L, t) => { const a = nrm(t); return L.find(r => nrm(r.heiti) === a) || L.find(r => nrm(r.heiti).startsWith(a) || a.startsWith(nrm(r.heiti))) || L.find(r => nrm(r.heiti).split(/\s+/)[0] === a.split(/\s+/)[0]); };
+    const L0 = CF(), nyir = T.filter(t => !finn(L0, t)).length, merkt = (typeof verkefni === "function" ? verkefni() : []).filter(v => !v.rlina && (v.thjonusta || []).length).length;
+    try { await saveSnapshot(st => { st.stillingar = st.stillingar || {}; const L = st.stillingar.rlinur = st.stillingar.rlinur || []; const map = {};
+        T.forEach(t => { let r = finn(L, t); if (!r) { r = { id: "rl-" + nrm(t).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") /* fast auðkenni – mutation má keyra oftar en einu sinni */, heiti: t, litur: LITIR[L.length % LITIR.length], flokkar: [], svid: null }; L.push(r); } map[t] = r.id; });
+        (st.verkefni || []).forEach(v => { if (v.rlina) return; const t = (v.thjonusta || []).find(x => map[x]); if (t) v.rlina = map[t]; });
+        st.stillingar.vflSameinad = new Date().toISOString(); });
+      toast(`Verkflokkar sameinaðir undirflokkum${nyir ? " · " + nyir + " nýir undirflokkar" : ""} · ${merkt} verkefni merkt`); }
+    catch (e) { sameinad = false; console.warn("Sameina verkflokka", e); }
+  }
+  window.rlSameina = sameina;
+  setInterval(() => { try { sameina(); } catch (e) {} }, 4000);
 })();

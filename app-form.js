@@ -196,7 +196,7 @@ function dtPair(pre,key,label,iso){return `<div class="two"><label>${label}<inpu
 // Einföld tímasetning (2.15.5, ORG.pakkaval): Byrjar (valfrjálst) → Skil / lýkur; klukka falin þar til beðið er um hana;
 // Viðburður aðeins ef Búnaður og lager er virkt. Sömu reitir í gögnunum: timabilFra, skiladagur (og timabilTil = skil ef byrjar er valið).
 // Þjónusta á verkefni (2.16.0): falin og valin sjálfkrafa ef aðeins ein þjónusta er til
-function thjField(sel){const T=THJ(); if(window.ORG?.pakkaval&&window.ORG?.utlit!=="I") return ""; /* 2.18.7: engin þjónusta á verkefni í Dev – tegund (leiga/sala) flokkar */ if(T.length<=1) return T.length?`<input type="checkbox" name="thj" value="${esc(T[0])}" checked hidden>`:"";
+function thjField(sel){if(!window.vflOn()) return window.RL&&RL().length?`<label>Undirflokkur<select id="f-rl"><option value="">Enginn undirflokkur</option>${RL().map(r=>`<option value="${esc(r.id)}">${esc(r.heiti)}</option>`).join("")}</select></label>`:""; const T=THJ(); if(window.ORG?.pakkaval&&window.ORG?.utlit!=="I") return ""; /* 2.18.7: engin þjónusta á verkefni í Dev – tegund (leiga/sala) flokkar */ if(T.length<=1) return T.length?`<input type="checkbox" name="thj" value="${esc(T[0])}" checked hidden>`:"";
   return `<div><div class="kind" style="margin-bottom:6px">${VFL()}</div><div class="chips">${T.map(t=>`<label><input type="checkbox" name="thj" value="${esc(t)}"${(sel||[]).includes(t)?" checked":""}>${esc(t)}</label>`).join("")}</div></div>`;}
 function projDatesPv(pre,p){
   const hid=(k,v)=>`<input type="hidden" id="${pre}-${k}" value="${esc(v||"")}">`, tm=(k,lab,iso)=>`<label>${lab}<input id="${pre}-${k}" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" autocomplete="off" data-t24 value="${hhmm(iso)}"></label>`;
@@ -426,7 +426,7 @@ async function save(ev){
       const snidOn=document.getElementById("f-snid")?.checked, subN=snidOn?[...new Set(thj.flatMap(t=>SNID()[t]||[]))]:[];
       const undir=subN.map((n,k)=>{const snr=nr+"-"+pad(k+1); return {id:newId(),nr:snr,heiti:snr+" "+n,stada:"Not started",skiladagur:null,timar:0,serMappa:null,mappa:null,lysing:null};});
       const aklst=parseFloat(String(val("f-aklst")).replace(",","."))||null, tilbod=parseInt(String(val("f-tilbod")).replace(/\D/g,""))||null;
-      await saveSnapshot(s=>{s.verkefni.push({id,nr,stutt:name,nafn,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,timar:0,yfirlit:null,mappa:null,undirverk:undir,starfsmenn:(()=>{const v=[...document.querySelectorAll('input[name="fstf"]:checked')].map(i=>i.value); return v.length?v:[ME()];})(),aklst,tilbod,...extra}); if(!noFolder({thjonusta:thj})) (s.odBidrod=s.odBidrod||[]).push({verkefniId:id,nafn,stofnad:new Date().toISOString()});});
+      await saveSnapshot(s=>{s.verkefni.push({id,nr,stutt:name,nafn,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,...(document.getElementById("f-rl")?{rlina:val("f-rl")||null}:{}),timar:0,yfirlit:null,mappa:null,undirverk:undir,starfsmenn:(()=>{const v=[...document.querySelectorAll('input[name="fstf"]:checked')].map(i=>i.value); return v.length?v:[ME()];})(),aklst,tilbod,...extra}); if(!noFolder({thjonusta:thj})) (s.odBidrod=s.odBidrod||[]).push({verkefniId:id,nafn,stofnad:new Date().toISOString()});});
       toast(`${nafn} vistað`);
     }
     if(kind==="vsk"){

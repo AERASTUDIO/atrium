@@ -151,6 +151,7 @@
   const mineP = p => (p.starfsfolk || p.starfsmenn || []).some(x => (x.sk || x) === ME()) || (window.projStaff && projStaff(p).some(x => (x.sk || x) === ME()));
   function vlist(key, title, pf, vfl) {
     if (!ON("leiga") && !ON("sala")) vfl = true;   // 2.113.2: Core – verkflokkur í stað sviðs
+    if (!window.vflOn()) vfl = false;   // 2.137.0: undirflokkar í stað verkflokka
     const all = verkefni().filter(p => pf(p) && (!window.rlMatch || rlMatch(p))), f = st.vf[key] || "gangi", fv = vfl ? st.vf[key + "V"] || "" : "";
     const fls = vfl ? THJ().filter(t => all.some(p => (p.thjonusta || []).includes(t))) : [];
     const xs = all.filter(p => SQ() || (!fv || (p.thjonusta || []).includes(fv)) && (f === "lokid" ? isDone(p) : f === "skil7" ? !isDone(p) && p.skiladagur && daysTo(p.skiladagur) >= 0 && daysTo(p.skiladagur) <= 7 : f === "seint" ? !isDone(p) && p.skiladagur && p.skiladagur < isoD(today) : !isDone(p) && (f !== "min" || mineP(p)))).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true }));
