@@ -1238,3 +1238,12 @@ body #view .uh3.uid2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .uvc small.nr{margin-top:-4px;font-size:11.5px}
 .uvcp{display:block;height:5px;border-radius:3px;background:var(--line)}.uvcp i{display:block;height:5px;border-radius:3px;background:var(--kacc,#24578A)}
 .uvcm{font-size:12px;color:var(--muted)}
+/* 2.134.0: deila í spjalli */
+body.pv.ui1 .spshr{position:absolute;top:18px;right:146px;z-index:5;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+body.pv.ui1 .spshr:hover{color:var(--ink)}
+.spref{display:flex;flex-direction:column;gap:1px;margin-top:6px;padding:9px 12px;border:1px solid var(--line);border-left:3px solid var(--kacc,#24578A);border-radius:9px;background:var(--surface);color:var(--ink)!important;text-decoration:none!important;min-width:200px;max-width:340px}
+.spref small{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.spref b{font-weight:500;font-size:13.5px}.spref span{font-size:12px;color:var(--muted)}.spref i{font-style:normal;font-size:12px;color:var(--kacc,#24578A);margin-top:3px}
+.spref.spprev{max-width:none;margin:0 0 12px}
+.spm.me .spref{margin-left:auto}
+.dshr{display:inline-flex}
