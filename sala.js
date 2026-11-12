@@ -414,6 +414,9 @@
     if (!xs.length) return h + `<div class="empty">Engar pantanir passa við síuna.</div>`;
     return h + PSTADA.map(st => { const ys = xs.filter(P => P.stada === st); return ys.length ? `<div class="viewtitle">${esc(st)} · ${ys.length}</div>${llist(ys.map(P => pnRow(P, true)))}` : ""; }).join("");
   }
+  // 2.128.0: Pantanir-flipi á verkefni
+  window.pnCountFor = pid => PNON() ? PN().filter(P => P.verkefniId === pid).length : 0;
+  window.pnProjTab = p => { if (!PNON()) return ""; return (MCP ? `<div class="links"><button type="button" class="btn primary" data-act="vpnny:${esc(p.id)}">+ Pöntun</button></div>` : "") + (pnFor(P => P.verkefniId === p.id) || `<div class="empty" style="margin-top:16px">Engar pantanir tengdar þessu verkefni.</div>`); };
   window.pnFor = pred => { if (!PNON()) return ""; const xs = PN().filter(pred).sort((a, b) => String(b.fra || "").localeCompare(String(a.fra || ""))); return xs.length ? `<div class="viewtitle">Pantanir · ${xs.length}</div>${llist(xs.map(pnRow))}` : ""; };
 
   /* ---------- Útleiguyfirlit (2.20.0): leigubúnaður × dagar ---------- */
@@ -1147,7 +1150,7 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
   // Skrá viðbætur í kjarnann (sjá app-sidur.js: VIEWS_EXT, DETAIL_EXT, ACT_EXT, FAB_EXT)
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { ltilbod: () => vTilbod("leiga"), lvorur: () => vVorur("leiga"), stilbod: () => vTilbod("sala"), svorur: () => vVorur("sala"), vvinna: () => vVinna(), pantanir: () => vPantanir(), vutl: () => vUtleiga() });
   Object.assign(window.DETAIL_EXT = window.DETAIL_EXT || {}, { vara: id => { const v = findV(id); return v && dVara(v); }, tb: id => { const T = findT(id); return T && dTilbod(T); } });
-  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { vr: salaAct, tb: salaAct, pn: salaAct });
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { vr: salaAct, tb: salaAct, pn: salaAct, vpnny: (k, r) => pnForm({ verkefniId: r[0] }) });
   Object.assign(window.FAB_EXT = window.FAB_EXT || {}, { vvinna: () => vinnaForm(), lvorur: () => varaForm("leiga", null), svorur: () => varaForm("sala", null), ltilbod: () => salaAct("tbnew", [PV() ? "blandad" : "leiga"]), stilbod: () => salaAct("tbnew", ["sala"]), pantanir: () => pnForm(null), vutl: () => pnForm(null) });
   window.salaEditing = () => !!EDT;
   { const r0 = render; render = function () { const x = r0.apply(this, arguments); try { tbWatch(); } catch (e) { console.warn("tbWatch", e); } return x; }; }
