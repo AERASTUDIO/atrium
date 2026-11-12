@@ -76,7 +76,7 @@
   let bMemo = null, bS = null, bT = 0;
   const bidur = () => { if (bMemo && bS === S && Date.now() - bT < 3000) return bMemo; const c = {};
     try { (window.oklItems ? oklItems({ stika: 1 }) : []).forEach(i => { const k = i.k === "Fjármál" ? (i.dark ? "fjarmal" : "") : BK[i.k]; if (k) c[k] = (c[k] || 0) + 1; });
-      const sp = window.spUnread ? +spUnread() || 0 : 0; if (sp) c.spjall = sp; } catch (e) {}
+      const sp = window.spBidur ? +spBidur() || 0 : window.spUnread ? +spUnread() || 0 : 0; if (sp) c.spjall = sp; /* 2.142.0: ólesin skilaboð + ósvöruð bein samtöl */ } catch (e) {}
     c.heim = Object.values(c).reduce((a, n) => a + n, 0); bMemo = c; bS = S; bT = Date.now(); return c; };
   window.stikaBidur = bidur;
   const vlSynd = () => { try { return ON("leiga") || ON("sala"); } catch (e) { return true; } };  // Vörulisti í stikunni aðeins með Leigu eða Sölu
@@ -182,7 +182,7 @@
     if (tab === "upphaf") {
       if (!wideScr()) { tab = "yfirlit"; return renderI(); }
       document.body.classList.remove("hassplit", "spfull"); document.body.classList.add("onstart"); drawMenu();
-      if (!v.querySelector(".ustart")) v.innerHTML = startHTML();
+      { const th = document.documentElement.dataset.theme !== "light" ? "dokk" : "ljos", us = v.querySelector(".ustart"); if (!us || us.dataset.th !== th) v.innerHTML = startHTML(); }
       return;
     }
     document.body.classList.remove("onstart"); document.body.dataset.tab = tab;
@@ -433,13 +433,13 @@
     const P = ["0,0 72,0 58,14 0,14", "0,14 58,14 72,28 0,28", "72,0 72,28 58,14", "100,0 100,72 86,58 86,0", "86,0 86,58 72,72 72,0", "100,72 72,72 86,58",
       "100,100 28,100 42,86 100,86", "100,86 42,86 28,72 100,72", "28,100 28,72 42,86", "0,100 0,28 14,42 14,100", "14,100 14,42 28,28 28,100", "0,28 28,28 14,42"];
     // 2.93.3: sama samsetning og á innskráningu – Atrium-merkið og merki fyrirtækisins hlið við hlið, jafnhá (ljóst/dökkt eftir þema)
-    const L = (window.ORG && (ORG.merki || ORG.logo)) || {}, dk = document.documentElement.dataset.theme === "dark", co = ORG.nafn !== "Atrium" && (L.dokk || L.ljos), v = "dokk"; // 2.93.5: sömu litir og á innskráningu (dökkur grunnur, ljós merki)
+    const L = (window.ORG && (ORG.merki || ORG.logo)) || {}, dk = document.documentElement.dataset.theme !== "light", v = dk ? "dokk" : "ljos", co = ORG.nafn !== "Atrium" && (dk ? (L.dokk || L.ljos) : (L.ljos || L.dokk)); // 2.142.0: fylgir völdu þema (ljóst/dökkt), sömu litir í öllum uppsetningum
     const ver = `<div class="uver">Atrium ${esc(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</div>`;
     // 2.103.3: áskriftarleið fyrirtækisins undir merkjunum (t.d. COMPLETE eða PRO · YFIRSÝN)
     const ln = window.leidNu ? leidNu() : null, lt = ln ? [ln.heiti, ...(ln.auka || []).map(k => window.PAKKAR?.[k]?.[0] || k)].join(" · ") : "";
     const lh = lt ? `<div class="ustleid" title="Áskriftarleið">${esc(lt)}</div>` : "";
-    if (co) return `<div class="ustart ustdark">${lh ? `<div class="ustcol">` : ""}<div class="ustpair"><div class="ustatr2"><img class="ustmk" src="icons/atrium-merki-${v}.svg" alt="Atrium"><img class="ustwd" src="icons/atrium-ordmerki-${v}.svg" alt=""></div><span class="ustsep" aria-hidden="true"></span><img class="ustco2" src="${esc(co)}" alt="${esc(ORG.nafn || "")}"></div>${lh ? lh + `</div>` : ""}${ver}</div>`;
-    return `<div class="ustart"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div>${lh}${ver}</div>`;
+    if (co) return `<div class="ustart ${dk ? "ustdark" : "ustljos"}" data-th="${v}">${lh ? `<div class="ustcol">` : ""}<div class="ustpair"><div class="ustatr2"><img class="ustmk" src="icons/atrium-merki-${v}.svg" alt="Atrium"><img class="ustwd" src="icons/atrium-ordmerki-${v}.svg" alt=""></div><span class="ustsep" aria-hidden="true"></span><img class="ustco2" src="${esc(co)}" alt="${esc(ORG.nafn || "")}"></div>${lh ? lh + `</div>` : ""}${ver}</div>`;
+    return `<div class="ustart ${dk ? "ustdark" : "ustljos"}" data-th="${v}"><svg class="uwire" viewBox="-4 -4 108 108" aria-label="Atrium" role="img">${P.map(pt => `<polygon points="${pt}"/>`).join("")}</svg><div class="u3name">ATRIUM</div>${lh}${ver}</div>`;
   }
 
 

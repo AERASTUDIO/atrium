@@ -32,7 +32,7 @@
     if (tab !== "yfirlit" && tab !== "upphaf") return;
     const v = document.getElementById("view"); if (!v || v.querySelector(".fsk") || !synilegt()) return;
     const st = v.querySelector(".ustart .ustcol");
-    if (st) { st.insertAdjacentHTML("beforeend", html()); st.querySelector(".fsk").classList.add("fsk-dokk"); return; }
+    if (st) { st.insertAdjacentHTML("beforeend", html()); if (st.closest(".ustdark")) st.querySelector(".fsk").classList.add("fsk-dokk"); return; }
     const ph = v.querySelector(".phead, .uhead, h1, h2");
     if (ph && ph.parentElement === v) ph.insertAdjacentHTML("afterend", html()); else v.insertAdjacentHTML("afterbegin", html());
   }

@@ -13,6 +13,7 @@ function setVariant(kind,v){if(kind==="light") LVAR=v; else DVAR=v; try{localSto
 function applyTheme(){const eff=THEME==="auto"?(matchMedia("(min-width:1024px)").matches||window.ORG?.simi==="I"?"light":"dark"):THEME;
   document.documentElement.dataset.theme=eff; document.documentElement.dataset.variant=eff==="light"?LVAR:DVAR; const m=document.getElementById("themecolor"); if(m) m.content=(ORG.litir||{})[eff==="light"?"ljos":"dokk"]||(VARIANTS[eff].find(x=>x[0]===(eff==="light"?LVAR:DVAR))||VARIANTS[eff][0])[2];
   const lg=ORG.merki||ORG.logo||{}, cu=eff==="light"?(lg.ljos||lg.dokk):(lg.dokk||lg.ljos); if(cu) document.querySelectorAll("img.colog").forEach(i=>{if(i.getAttribute("src")!==cu){i.src=cu;i.alt=ORG.nafn||"";}}); // merki fyrirtækis við hlið Atrium
+  /* 2.142.0: innskráning fylgir þema – Atrium-orðmerki og merki fyrirtækis í réttri útgáfu */ try{const lw=document.querySelector("#login .lword"); if(lw) lw.src="icons/atrium-ordmerki-"+(eff==="light"?"ljos":"dokk")+".svg"; const lc=document.getElementById("login-colog"); if(lc&&cu&&lc.getAttribute("src")!==cu) lc.src=cu;}catch(e){}
   const b=document.getElementById("themebtn"); if(b){b.innerHTML=THEME_IC[THEME]; b.setAttribute("aria-label",THEME_L[THEME]+" – ýttu til að skipta"); b.title=THEME_L[THEME];}}
 function setTheme(t){THEME=t; try{localStorage.setItem("aera-theme",t);}catch(e){} applyTheme(); if(typeof render==="function"&&S) render();}
 applyTheme(); matchMedia("(min-width:1024px)").addEventListener?.("change",applyTheme);

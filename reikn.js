@@ -364,7 +364,7 @@
     </div>`;
   }
 
-  /* ---------- PDF (frá 1.7.0: skjalagerd.js – merki, Poppins, haus og fótur) ---------- */
+  /* ---------- PDF (frá 1.7.0: skjalagerd.js – merki, Manrope, haus og fótur) ---------- */
   async function invoicePdf(R) {
     const P = await DOK.pdf(), { C, M, X1 } = P, s = R.seljandi || {}, b = R.kaupandi || {}, label = NRL(R);
     let y = P.head(TT(), [[DROG() ? "Drög nr." : "Reikningur nr.", String(R.nr)], ["Dagsetning", dIS(R.dags)], ["Gjalddagi", dIS(R.gjalddagi)]]);

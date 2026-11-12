@@ -194,7 +194,7 @@
   /* ---------- Reiknir (gluggi) ---------- */
   const css = document.createElement("style");
   css.textContent = `
-  .ikw{position:fixed;inset:0;z-index:180;background:rgba(10,16,20,.45);display:flex;align-items:stretch;justify-content:center;font-family:var(--f-display,Poppins,system-ui,sans-serif)}
+  .ikw{position:fixed;inset:0;z-index:180;background:rgba(10,16,20,.45);display:flex;align-items:stretch;justify-content:center;font-family:var(--f-display,Manrope,system-ui,sans-serif)}
   .ikw .ikb{background:var(--bg,#f5f7f8);color:var(--ink,#121416);width:min(1240px,100%);height:100%;overflow:auto;display:flex;flex-direction:column}
   @media (min-width:900px){.ikw{padding:24px}.ikw .ikb{border-radius:18px;height:auto;max-height:100%}}
   .ikw .ikh{position:sticky;top:0;z-index:3;background:var(--bg,#f5f7f8);display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line,#dce3e8)}

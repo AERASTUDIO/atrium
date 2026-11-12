@@ -115,7 +115,7 @@
   const typeOf = n => { const e = (n.split(".").pop() || "").toLowerCase(); return ODTYPE[e] || e.toUpperCase(); };
   function fileRow(it) {
     if (it.folder) return `<a class="lrow fl" ${odLink(it)}><div class="lm"><div class="lt">📁 ${esc(it.name)}</div><div class="ls">${esc(["Mappa", kb(it.size), it.folder.childCount ? it.folder.childCount + " atriði" : ""].filter(Boolean).join(" · "))}</div></div><div class="lr">${ICON.ext}</div></a>`;
-    return `<div class="lrow fl tap" data-act="msprev:${esc(it.id)}" role="button" tabindex="0"><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typeOf(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr" ${odLink(it)} aria-label="${odMode() === "tolva" ? "Opna í tölvunni" : "Opna í OneDrive"}" onclick="event.stopPropagation()">${ICON.ext}</a></div>`;
+    return `<div class="lrow fl tap" data-act="msprev:${esc(it.id)}" data-pfid="${esc(it.id)}" draggable="true" role="button" tabindex="0"><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typeOf(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr" ${odLink(it)} aria-label="${odMode() === "tolva" ? "Opna í tölvunni" : "Opna í OneDrive"}" onclick="event.stopPropagation()">${ICON.ext}</a></div>`;
   }
 
   window.msSkrar = function (p) {
@@ -217,6 +217,18 @@
     upFiles(T.w.dataset.upk, T.sub, files);
   });
 
+  /* 2.142.0: færa skrá milli undirmappa verkefnis – dragðu skrána á möppuna */
+  const PFT = "application/x-atrium-pf";
+  document.addEventListener("dragstart", e => { const r = e.target.closest?.("[data-upk] [data-pfid]"); if (!r) return; e.dataTransfer.setData(PFT, r.dataset.pfid); e.dataTransfer.effectAllowed = "move"; r.classList.add("oddrag"); });
+  document.addEventListener("dragend", () => document.querySelectorAll(".oddrag").forEach(x => x.classList.remove("oddrag")));
+  ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { if (![...(e.dataTransfer?.types || [])].includes(PFT)) return; const f = e.target.closest?.("[data-upk] [data-updir]"); if (!f) return; e.preventDefault(); e.dataTransfer.dropEffect = "move"; upClear(); f.classList.add("upon"); }));
+  document.addEventListener("drop", async e => {
+    const id = e.dataTransfer?.getData(PFT); if (!id) return; const f = e.target.closest?.("[data-upk] [data-updir]"), w = e.target.closest?.("[data-upk]"); upClear(); if (!f || !w) return; e.preventDefault();
+    const k = w.dataset.upk, sub = f.dataset.updir;
+    try { const d = await G(`/me/drive/root:/${encP(ROOT + "/" + k + "/" + sub)}?$select=id`); await G(`/me/drive/items/${id}`, { method: "PATCH", body: { parentReference: { id: d.id }, "@microsoft.graph.conflictBehavior": "rename" } }); toast("Fært í " + sub); delete TREE[k]; loadTree(k); }
+    catch (er) { toast("Gat ekki fært: " + (er.message || er)); }
+  });
+
   /* ---------- Forskoðun skráa ---------- */
   /* Forskoðun (1.9.2): tekur við auðkenni skráar á drifi fyrirtækisins/notandans, „d:<drif>~<auðkenni>“ (skrá á hvaða drifi sem er)
      eða „u:<slóð>“ (OneDrive/SharePoint-slóð – flett upp með /shares). */
@@ -278,7 +290,7 @@
   }
   window.msMakeDocx = makeDocx;
 
-  // Fundargerð (frá 1.7.0): haus með merki og „FUNDARGERÐ“, Poppins, upplýsingatafla og kaflar (skjalagerd.js)
+  // Fundargerð (frá 1.7.0): haus með merki og „FUNDARGERÐ“, Manrope, upplýsingatafla og kaflar (skjalagerd.js)
   function fundDoc(f, p) {
     const x = d(f.date), when = x ? `${DAY[x.getDay()]} ${fmtDate(f.date)}` : "", kl = hhmm(f.date) ? hhmm(f.date) + (hhmm(f.dateEnd) ? "–" + hhmm(f.dateEnd) : "") : "";
     const blocks = [{ s: "Title", t: f.name }, { s: "Subtitle", t: p ? p.nafn : ORG.nafn }];

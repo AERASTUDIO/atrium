@@ -104,7 +104,7 @@ body.qropen{overflow:hidden}
 .qract .btn{min-height:40px}
 .qract .btn:not(.primary){flex:1 1 100%;justify-content:center;background:var(--raise);border:1px solid var(--line)}
 /* Það sem vantar við skönnun (2.73.0) – læsilegt í síma */
-.qmiss{position:fixed;inset:0;z-index:10050;background:rgba(10,13,16,.55);display:flex;align-items:flex-end;justify-content:center;padding:12px;font-family:var(--f-display,Poppins,system-ui,sans-serif)}
+.qmiss{position:fixed;inset:0;z-index:10050;background:rgba(10,13,16,.55);display:flex;align-items:flex-end;justify-content:center;padding:12px;font-family:var(--f-display,Manrope,system-ui,sans-serif)}
 @media (min-width:700px){.qmiss{align-items:center}}
 .qmiss .qmb{width:100%;max-width:520px;max-height:86vh;display:flex;flex-direction:column;background:var(--surface,#fff);color:var(--ink,#111);border-radius:18px;box-shadow:0 24px 60px -16px rgba(0,0,0,.5);overflow:hidden;animation:qmup .18s ease-out}
 @keyframes qmup{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}

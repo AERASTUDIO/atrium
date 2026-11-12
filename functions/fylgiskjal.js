@@ -1,5 +1,5 @@
 /* Fylgiskjal reiknings (2.118.4): sundurliðun tíma (og útlagðs kostnaðar) sem PDF – hengt á reikninginn í Payday.
-   Byggt á netþjóni (pdf-lib) svo það virki líka við sjálfvirka sendingu. Letur: Poppins (SIL OFL, fonts/OFL.txt). */
+   Byggt á netþjóni (pdf-lib) svo það virki líka við sjálfvirka sendingu. Letur: Manrope frá 2.142.0 (SIL OFL) – eins og appið. */
 const fs = require("fs"), path = require("path");
 const { PDFDocument, rgb } = require("pdf-lib");
 const fontkit = require("@pdf-lib/fontkit");
@@ -14,7 +14,7 @@ const kl = s => { const m = String(s || "").match(/(\d{1,2}):(\d{2})/); return m
 async function fylgiskjalPdf({ R, T, K, P, nafn, logo }) {
   const doc = await PDFDocument.create(); doc.registerFontkit(fontkit);
   const f = n => fs.readFileSync(path.join(__dirname, "fonts", n));
-  const F = { r: await doc.embedFont(f("Poppins-Regular.ttf"), { subset: true }), m: await doc.embedFont(f("Poppins-Medium.ttf"), { subset: true }), l: await doc.embedFont(f("Poppins-Light.ttf"), { subset: true }) };
+  const F = { r: await doc.embedFont(f("Manrope-Regular.ttf"), { subset: true }), m: await doc.embedFont(f("Manrope-Medium.ttf"), { subset: true }), l: await doc.embedFont(f("Manrope-SemiBold.ttf"), { subset: true }) };
   let img = null; if (logo) { try { img = await doc.embedPng(logo); } catch (e) { img = null; } }
   const W = 595.28, H = 841.89, M = 48, X1 = W - M, s = R.seljandi || {};
   let pg, y, nr = 0; const pages = [];

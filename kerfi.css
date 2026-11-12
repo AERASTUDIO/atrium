@@ -2,7 +2,7 @@
    Eitt sett af stærðum fyrir allt appið, í tölvu og síma. Hlaðið síðast svo það gildi ofan á eldri lög (app.css, brand.css,
    Útlit I, símaútlit). Úttekt 23.10.2026: 23 leturstærðir, 14 hnappahæðir og 8 reitahæðir → hér 6 · 3 · 2.
 
-   Letur (Poppins):  xs 11.5  · sm 12.5 · md 14 · lg 16 · xl 20 · 2xl 24
+   Letur (Manrope frá 2.138.0):  xs 11.5  · sm 12.5 · md 14 · lg 16 · xl 20 · 2xl 24
    Þyngd:            300 stórir titlar og tölur · 400 texti · 500 áhersla (aldrei 600/700)
    Hnappar:          36 px (tölva) / 40 px (sími) · lítill 30 px · flögur 28 px
    Reitir:           38 px, 14 px letur (tölva) / 44 px, 16 px letur (sími – svo iOS stækki ekki)
@@ -673,7 +673,7 @@ body.kerfi .dpbtn.dpe .dpt{color:var(--muted)}
 body.kerfi .dpbtn:hover{border-color:color-mix(in srgb,var(--kacc) 45%,var(--line))}
 body.kerfi .dpbtn:focus-visible{outline:none;border-color:var(--kacc);box-shadow:0 0 0 3px var(--acc-soft,rgba(36,87,138,.15))}
 body.kerfi .dpbtn:disabled{opacity:.6;cursor:default}
-.dpop{position:fixed;z-index:9999;width:292px;padding:14px;border-radius:14px;background:var(--surface,#fff);color:var(--ink);font-family:var(--f-display,Poppins,system-ui,sans-serif);
+.dpop{position:fixed;z-index:9999;width:292px;padding:14px;border-radius:14px;background:var(--surface,#fff);color:var(--ink);font-family:var(--f-display,Manrope,system-ui,sans-serif);
   box-shadow:0 0 0 1px var(--line2,rgba(0,0,0,.08)),0 18px 40px -12px rgba(0,0,0,.35);animation:dpin .14s ease-out}
 @keyframes dpin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .dpop .dph{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}
@@ -759,7 +759,7 @@ body.kerfi .stmap{position:absolute;right:6px;bottom:calc((var(--h-in,38px) - 28
 body.kerfi .stmap:hover{background:var(--acc-soft,var(--b0))}
 body.kerfi .stmap[hidden]{display:none}
 #tbed label.sthas .stmap{bottom:5px}
-.stbox{position:fixed;z-index:9999;max-height:320px;overflow:auto;padding:6px;border-radius:12px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 0 0 1px var(--line2,rgba(0,0,0,.08)),0 18px 40px -12px rgba(0,0,0,.35);font-family:var(--f-display,Poppins,system-ui,sans-serif)}
+.stbox{position:fixed;z-index:9999;max-height:320px;overflow:auto;padding:6px;border-radius:12px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 0 0 1px var(--line2,rgba(0,0,0,.08)),0 18px 40px -12px rgba(0,0,0,.35);font-family:var(--f-display,Manrope,system-ui,sans-serif)}
 .stbox .stit{display:flex;align-items:flex-start;gap:10px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .stbox .stit svg{color:var(--kacc);margin-top:2px;flex:none}
 .stbox .stit b{display:block;font-weight:500;font-size:13.5px}
@@ -1070,7 +1070,7 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 /* 2.119.1: staðfestingargluggi (spurn.js) */
 .spurn-w{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,20,22,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .16s ease}
 .spurn-w.inn{opacity:1}.spurn-w.ut{opacity:0}
-.spurn{width:min(440px,100%);background:var(--surface,#fff);color:var(--ink,#121416);border:1px solid var(--line,#E3E7EB);border-radius:14px;box-shadow:0 24px 60px rgba(18,20,22,.28);padding:24px 24px 18px;font-family:Poppins,system-ui,sans-serif;transform:translateY(8px) scale(.985);transition:transform .18s ease;outline:none}
+.spurn{width:min(440px,100%);background:var(--surface,#fff);color:var(--ink,#121416);border:1px solid var(--line,#E3E7EB);border-radius:14px;box-shadow:0 24px 60px rgba(18,20,22,.28);padding:24px 24px 18px;font-family:Manrope,system-ui,sans-serif;transform:translateY(8px) scale(.985);transition:transform .18s ease;outline:none}
 .spurn-w.inn .spurn{transform:none}
 .spurn-yfir{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#7C8896);margin-bottom:6px}
 .spurn-t{font-size:19px;font-weight:400;line-height:1.3;margin:0 0 6px;color:var(--ink,#121416)}
@@ -1097,7 +1097,7 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
   #sheetwrap .sheet #addf>.actions{position:sticky;bottom:calc(-1 * var(--shpb,24px));z-index:3;background:var(--sheet,var(--surface));margin:14px calc(-1 * var(--shpx,26px)) calc(-1 * var(--shpb,24px))!important;padding:12px var(--shpx,26px) 16px!important;border-top:1px solid var(--line)}
 }
 /* 2.121.0: Fyrstu skref (fyrstuskref.js) */
-.fsk{margin:16px 0 18px;padding:18px 20px 10px;border:1px solid var(--line);border-radius:var(--rad,12px);background:var(--surface);font-family:Poppins,system-ui,sans-serif}
+.fsk{margin:16px 0 18px;padding:18px 20px 10px;border:1px solid var(--line);border-radius:var(--rad,12px);background:var(--surface);font-family:Manrope,system-ui,sans-serif}
 .fsk-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .fsk-y{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .fsk-t{font-size:17px;font-weight:400;margin:4px 0 0;color:var(--ink);line-height:1.3}
@@ -1119,7 +1119,7 @@ summary.upon{outline:2px dashed var(--ink);outline-offset:-2px;border-radius:10p
 @media (max-width:600px){.fsk{padding:14px 14px 6px;margin:12px 0 16px}.fsk-t{font-size:15.5px}.fsk-m small{display:none}.fsk-l button{min-height:46px}}
 /* 2.122.5: staða tengingar í tölvu (app-stillingar.js drawSync) */
 #syncfl{display:none}
-@media (min-width:1024px){#syncfl:not([hidden]){display:block;position:fixed;right:24px;bottom:24px;z-index:10090;padding:8px 14px;border-radius:999px;font:500 12.5px Poppins,system-ui,sans-serif;background:var(--surface,#fff);color:var(--muted,#5B6774);border:1px solid var(--line,#E3E7EB);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+@media (min-width:1024px){#syncfl:not([hidden]){display:block;position:fixed;right:24px;bottom:24px;z-index:10090;padding:8px 14px;border-radius:999px;font:500 12.5px Manrope,system-ui,sans-serif;background:var(--surface,#fff);color:var(--muted,#5B6774);border:1px solid var(--line,#E3E7EB);box-shadow:0 6px 20px rgba(0,0,0,.08)}
   #syncfl.off:not([hidden]){background:#3a3f45;color:#fff;border-color:#3a3f45}}
 /* 2.122.6: óvaldir flipar í flipastiku (.seg) á gráum grunni náðu ekki 4,5:1 – blandað við letralitinn */
 body.kerfi :is(.seg,.hdtabs) button:not([aria-selected="true"]){color:color-mix(in srgb,var(--muted) 65%,var(--ink))}
@@ -1131,21 +1131,21 @@ body.kerfi :is(.seg,.hdtabs) button:not([aria-selected="true"]){color:color-mix(
 #view.anim-det:not(:has(.spdet)):not(:has(.dbody))>*{animation:aIn .16s var(--ease,ease) both}
 @media (prefers-reduced-motion:reduce){#view.anim-det *,#view.anim>*{animation:none!important}}
 /* 2.124.0: skýringar við stillingar (hjalp.js) */
-.hj{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-height:0!important;margin:0 0 0 6px;padding:0!important;border-radius:50%;border:1px solid var(--line2,var(--line));background:transparent;color:var(--muted);font:600 10.5px Poppins,system-ui,sans-serif;line-height:1;vertical-align:1px;cursor:help;flex:0 0 auto}
+.hj{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-height:0!important;margin:0 0 0 6px;padding:0!important;border-radius:50%;border:1px solid var(--line2,var(--line));background:transparent;color:var(--muted);font:600 10.5px Manrope,system-ui,sans-serif;line-height:1;vertical-align:1px;cursor:help;flex:0 0 auto}
 .hj:hover,.hj:focus-visible{color:var(--ink);border-color:var(--muted);outline:none}
 @media (pointer:coarse){.hj{width:22px;height:22px;font-size:12px}}
-.hj-tip{position:fixed;z-index:10200;padding:9px 12px;border-radius:8px;background:var(--ink,#0F1720);color:var(--bg,#fff);font:400 12.5px/1.5 Poppins,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.18);pointer-events:none;text-transform:none;letter-spacing:0}
+.hj-tip{position:fixed;z-index:10200;padding:9px 12px;border-radius:8px;background:var(--ink,#0F1720);color:var(--bg,#fff);font:400 12.5px/1.5 Manrope,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.18);pointer-events:none;text-transform:none;letter-spacing:0}
 .hj-tip[hidden]{display:none}
 .hjl{display:inline-flex;align-items:center;gap:0}
 /* 2.126.0: pósthólf – möppur sem flipar + „Fleiri“, síur í einni línu, tegund viðhengis */
 .pofolds2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pofolds2 .pofseg{flex:1 1 auto;min-width:0}
-.pofolds2 .pomore select{min-height:36px;height:36px;padding:0 28px 0 10px;border-radius:var(--rad,8px);border:1px solid var(--line);background:var(--surface);font:500 13px Poppins,system-ui,sans-serif;color:var(--muted)}
+.pofolds2 .pomore select{min-height:36px;height:36px;padding:0 28px 0 10px;border-radius:var(--rad,8px);border:1px solid var(--line);background:var(--surface);font:500 13px Manrope,system-ui,sans-serif;color:var(--muted)}
 .pofolds2 .pomore.on select{color:var(--ink);border-color:var(--kacc,var(--ink))}
 .pofolds2 .poref{min-width:36px;padding:0!important}
 .pofilt{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}.pofilt::-webkit-scrollbar{display:none}
 .pofilt .chipbtn{flex:0 0 auto}
-.potyp{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:22px;padding:0 4px;border-radius:5px;background:var(--field,#F6F7F8);border:1px solid var(--line);font:600 9.5px Poppins,system-ui,sans-serif;letter-spacing:.04em;color:var(--muted)}
+.potyp{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:22px;padding:0 4px;border-radius:5px;background:var(--field,#F6F7F8);border:1px solid var(--line);font:600 9.5px Manrope,system-ui,sans-serif;letter-spacing:.04em;color:var(--muted)}
 @media (max-width:600px){.potengja{flex-wrap:wrap!important;gap:8px!important}.potengja .potl{flex:1 1 100%}.potengja .posel,.potengja>.uchip{flex:1 1 100%!important;max-width:none!important}.potengja .posel select{width:100%}}
 
 /* 2.127.0: stikan – tala = bíður þín, klukkan efst */

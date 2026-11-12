@@ -224,7 +224,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="hw"&&window.heimAct){heimAct(r); return;}
   if(k==="vs"&&window.vsAct){vsAct(r); return;}
   if(k==="viewas"&&window.viewAsAct){viewAsAct(r); return;}
-  if(/^od(cd|in|ref)$/.test(k)&&window.odAct){odAct(k,r); return;}
+  if(/^od(cd|in|ref|mk)$/.test(k)&&window.odAct){odAct(k,r); return;}
   if(k==="odrec"&&window.odRecReset){odRecReset(); render(); return;}
   if(k.startsWith("sk")&&window.skAct){skAct(k,r,el); return;}
   if(k.startsWith("po")&&window.poAct){poAct(k,r,el); return;}
@@ -306,8 +306,11 @@ function render(){
     /* 2.124.0: sama hluta (t.d. Stillingar eða listi með spjaldi við hliðina) – aðeins spjaldið fær stutta hreyfingu, listinn stendur kyrr. Áður hreyfðist allur skjárinn við hvern smell (hikst). */
     const samiFlipi=RSTATE._t===tab; RSTATE._t=tab; const split=document.body.classList.contains("hassplit");
     v.classList.remove("anim","slide","anim-det"); void v.offsetWidth;
-    if(samiFlipi&&(split||window.STSUB||DETAIL)) v.classList.add("anim-det"); else {v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide");}
-    clearTimeout(RSTATE._a); RSTATE._a=setTimeout(()=>v.classList.remove("anim","slide","anim-det"),600);}
+    /* 2.142.0: flipar innan sama hluta (t.d. Skjöl: Mín skjöl · Fyrirtækið · Nýlegt) – hausinn stendur kyrr og aðeins efnið dofnar (180 ms), ekkert hopp */
+    const secK=t=>(SECTIONS.find(x=>x.tabs.some(y=>y[0]===t))||{}).k, samiHluti=!samiFlipi&&RSTATE._pt&&secK(RSTATE._pt)===secK(tab); RSTATE._pt=tab;
+    v.classList.remove("anim-tab");
+    if(samiFlipi&&(split||window.STSUB||DETAIL)) v.classList.add("anim-det"); else if(samiHluti&&!DETAIL) v.classList.add("anim-tab"); else {v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide");}
+    clearTimeout(RSTATE._a); RSTATE._a=setTimeout(()=>v.classList.remove("anim","slide","anim-det","anim-tab"),240);} /* 2.142.0: 240 ms (var 600) – endurteikning rétt á eftir (t.d. gögn úr SharePoint) dofnar ekki aftur */
   document.getElementById("foot").textContent=S.uppfaert?"Síðast breytt "+fmtDate(S.uppfaert)+(hhmm(S.uppfaert)?" kl. "+hhmm(S.uppfaert):""):"";
 }
 /* 2.120.0: Gögn sem berast (Firestore, aðrir notendur, sjálfvirk drög) teikna skjáinn aftur án þess að trufla notandann:

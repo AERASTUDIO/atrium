@@ -355,7 +355,7 @@
   };
   const LOGO_URL = new URL(ORG.sigLogo, document.baseURI).href, LOGO_CID = "logo@" + ORG.len;
   window.poSigHTML = (logo, o) => { const g = { ...SIG(), ...(o || {}) }, E = x => esc(x || ""), web = String(g.vefur || "").replace(/^https?:\/\//, "");
-    return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Poppins,Calibri,Arial,Helvetica,sans-serif;color:#121416">
+    return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Manrope,Calibri,Arial,Helvetica,sans-serif;color:#121416">
 ${g.kvedja ? `<tr><td colspan="2" style="padding:0 0 14px 0;font-size:10.5pt;color:#121416">${E(g.kvedja)},</td></tr>` : ""}
 <tr><td style="padding:0 16px 0 0;vertical-align:middle"><img src="${logo}" width="140" height="44" alt="${E(ORG.nafn)}" style="display:block;border:0;width:140px;height:44px"></td>
 <td style="border-left:2px solid #2F3742;padding:2px 0 2px 16px;vertical-align:middle;font-size:10pt;line-height:15pt">

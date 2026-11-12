@@ -1,6 +1,6 @@
 /* Skjalagerð (frá 1.7.0): sameiginlegt útlit fyrir öll skjöl sem appið býr til – reikninga, tímaskýrslur og fundargerðir.
    - Merki: ORG.docLogo (sjálfgefið icons/doc-logo.png) (lárétta merkið, mynd vinstra megin, texti hægra megin)
-   - Letur: Poppins (fonts/, SIL Open Font License) – Light í fyrirsögnum, Regular í meginmáli, Medium í áherslum
+   - Letur (frá 2.142.0): Manrope (fonts/Manrope-*.ttf, SIL Open Font License) eins og appið – fyrirsagnir SemiBold (kallað „light“ í kóðanum vegna eldri nafna), meginmál Regular, áherslur Medium
    - Litir merkjahandbókar: Nótt #121416, Grafít #2F3742, Stál #7C8896, Þoka #C9D1D9, Pappír #F6F7F8
    - Haus: merki + tegund skjals (t.d. REIKNINGUR) og auðkenni; fótur á hverri síðu: fyrirtæki, kt., vefur og „Bls. x af y“
    PDF er búið til með jsPDF (lib/, MIT), sem er sótt fyrst þegar þess er þörf. */
@@ -12,7 +12,7 @@
   const b64 = buf => { const u = new Uint8Array(buf); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
   async function libs() {
     if (!JS) JS = (window.jspdf ? Promise.resolve() : loadScript("lib/jspdf.umd.min.js")).then(() => window.jspdf.jsPDF);
-    if (!FONTS) FONTS = Promise.all(["Light", "Regular", "Medium"].map(async w => [w, b64(await (await fetch("fonts/Poppins-" + w + ".ttf")).arrayBuffer())]));
+    if (!FONTS) FONTS = Promise.all([["light", "SemiBold"], ["regular", "Regular"], ["medium", "Medium"]].map(async ([w, f]) => [w, f, b64(await (await fetch("fonts/Manrope-" + f + ".ttf")).arrayBuffer())]));
     return [await JS, await FONTS];
   }
   // Merkið sem PNG (bæti og data-URL) – sótt einu sinni
@@ -31,11 +31,11 @@
   async function pdf() {
     const [jsPDF, fonts] = await libs(), L = await logo();
     const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
-    fonts.forEach(([w, data]) => { doc.addFileToVFS("Poppins-" + w + ".ttf", data); doc.addFont("Poppins-" + w + ".ttf", "Poppins", w.toLowerCase()); });
+    fonts.forEach(([w, f, data]) => { doc.addFileToVFS("Manrope-" + f + ".ttf", data); doc.addFont("Manrope-" + f + ".ttf", "Manrope", w); });
     const W = 595.28, H = 841.89, M = 48;
     const P = {
       doc, W, H, M, X1: W - M, C,
-      font(w = "regular", size = 9.5, color = C.nott) { doc.setFont("Poppins", w); doc.setFontSize(size); doc.setTextColor(...color); return P; },
+      font(w = "regular", size = 9.5, color = C.nott) { doc.setFont("Manrope", w); doc.setFontSize(size); doc.setTextColor(...color); return P; },
       text(t, x, y, o = {}) { P.font(o.w || "regular", o.size || 9.5, o.color || C.nott); if (o.space) doc.setCharSpace(o.space); doc.text(String(t ?? ""), x, y, { align: o.align || "left" }); if (o.space) doc.setCharSpace(0); return P; },
       wrap(t, w, size = 9.5, wgt = "regular") { P.font(wgt, size); return doc.splitTextToSize(String(t ?? ""), w); },
       rect(x, y, w, h, c) { doc.setFillColor(...c); doc.rect(x, y, w, h, "F"); return P; },
@@ -94,7 +94,7 @@
     const footer = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:space="6" w:color="${HEX.lina}"/></w:pBdr><w:tabs><w:tab w:val="right" w:pos="9070"/></w:tabs></w:pPr>${run(coLine(), { c: HEX.stal, sz: 15 })}<w:r><w:rPr><w:color w:val="${HEX.stal}"/><w:sz w:val="15"/></w:rPr><w:tab/><w:t xml:space="preserve">Bls. </w:t></w:r><w:r><w:rPr><w:color w:val="${HEX.stal}"/><w:sz w:val="15"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr><w:color w:val="${HEX.stal}"/><w:sz w:val="15"/></w:rPr><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:rPr><w:color w:val="${HEX.stal}"/><w:sz w:val="15"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr><w:color w:val="${HEX.stal}"/><w:sz w:val="15"/></w:rPr><w:t>1</w:t></w:r><w:r><w:rPr><w:color w:val="${HEX.stal}"/><w:sz w:val="15"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>`;
     const firstTitle = blocks.findIndex(b => b.s === "Title"), body = blocks.slice(0, firstTitle + 2).map(para).join("") + table + blocks.slice(firstTitle + 2).map(para).join("");
     const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${body}<w:sectPr><w:headerReference w:type="default" r:id="rIdH"/><w:footerReference w:type="default" r:id="rIdF"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1701" w:right="1418" w:bottom="1418" w:left="1418" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>`;
-    const F = '<w:rFonts w:ascii="Poppins" w:hAnsi="Poppins" w:cs="Poppins" w:eastAsia="Poppins"/>', FL = '<w:rFonts w:ascii="Poppins Light" w:hAnsi="Poppins Light" w:cs="Poppins Light"/>';
+    const F = '<w:rFonts w:ascii="Manrope" w:hAnsi="Manrope" w:cs="Manrope" w:eastAsia="Manrope"/>', FL = '<w:rFonts w:ascii="Manrope" w:hAnsi="Manrope" w:cs="Manrope"/>';
     const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:docDefaults><w:rPrDefault><w:rPr>${F}<w:color w:val="${HEX.nott}"/><w:sz w:val="20"/><w:lang w:val="is-IS"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="288" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
 <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>

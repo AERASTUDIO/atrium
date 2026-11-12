@@ -21,6 +21,9 @@
   // Nýjustu skilaboð (fyrir eininguna Spjall á Heim)
   window.spRecent = n => all().slice().sort((a, b) => String(b.t).localeCompare(String(a.t))).slice(0, n);
   window.spUnread = () => [...new Set(all().map(m => m.ras))].reduce((a, r) => a + unreadIn(r), 0);
+  // 2.142.0: ósvöruð samtöl – bein skilaboð þar sem síðustu skilaboðin (sl. 14 daga) eru frá hinum aðilanum; talin í stikunni þótt þau hafi verið lesin
+  window.spOsvarad = () => { const lim = new Date(Date.now() - 14 * 864e5).toISOString(); return [...new Set(DM.map(m => m.ras))].filter(r => { const l = msgs(r).pop(); return l && l.af !== me() && String(l.t) > lim; }); };
+  window.spBidur = () => { const ur = new Set([...new Set(all().map(m => m.ras))].filter(r => unreadIn(r) > 0)); return [...new Set(all().map(m => m.ras))].reduce((a, r) => a + unreadIn(r), 0) + window.spOsvarad().filter(r => !ur.has(r)).length; };
   const when = iso => { const x = new Date(iso), t = new Date(); return x.toDateString() === t.toDateString() ? x.toTimeString().slice(0, 5) : fmtDate(iso) + " " + x.toTimeString().slice(0, 5); };
   const onPage = () => typeof tab !== "undefined" && tab === "spjall" && !DETAIL;
 

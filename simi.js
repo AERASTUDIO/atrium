@@ -116,7 +116,8 @@
     const p = curProj();
     const cm = p ? (p.athugasemdir || []).slice().sort((a, b) => String(b.d).localeCompare(String(a.d))).slice(0, 2) : [];
     const pc = p ? `<section class="sdp"><div class="sdph"><a data-open="verk:${E(p.id)}" role="button" tabindex="0"><span class="sdl">${k ? "Þú ert á" : "Næst"} · ${E(p.nr || "")}</span><b>${E(p.stutt || p.nafn || "")}</b></a>${ico("chev", 16)}</div>${ed ? `<div class="sdpa"><button type="button" class="sdbtn" data-simk="mynd:${E(p.id)}">${ico("cam", 15)}Mynd</button><button type="button" class="sdbtn" data-simk="ath:${E(p.id)}">${ico("note", 15)}Athugasemd</button></div>` : ""}${cm.map(c => `<div class="sdcm"><small>${E(typeof starfName === "function" ? starfName(c.sk) : c.sk)} · ${E(String(c.d || "").slice(0, 10).split("-").reverse().join("."))}</small>${E(c.t)}</div>`).join("")}</section>` : "";
-    return `<div class="sd"><div class="sdh"><span class="sdl">${DN[d.getDay()]} ${d.getDate()}. ${MN[d.getMonth()]}</span><h1>Í dag</h1></div>${clock}${(() => { const n = window.vtBidaN ? vtBidaN() : 0; return n ? `<a class="sdk" data-act="vtsta" role="button" tabindex="0" style="display:flex;flex-direction:row;text-align:left;justify-content:space-between;align-items:center;text-decoration:none;color:inherit;cursor:pointer"><span><b>${n === 1 ? "1 tími bíður" : n + " tímar bíða"} staðfestingar</b><br><span class="sdl">Skráðir af vettvangsnotendum</span></span><span aria-hidden="true">›</span></a>` : ""; })()}<div class="sdsec">Dagskrá</div><section class="sdlist">${list}</section>${p ? `<div class="sdsec">Verkefni</div>${pc}` : ""}</div>`;
+    const mods = (() => { try { if (!window.UI1V?.yfirlit) return ""; const h = UI1V.yfirlit(), i = h.indexOf('<div class="u2grid">'); return i < 0 ? "" : h.slice(i); } catch (e) { return ""; } })();
+    return `<div class="sd"><div class="sdh"><span class="sdl">${DN[d.getDay()]} ${d.getDate()}. ${MN[d.getMonth()]}<button type="button" class="btn u2sers" onclick="idagSersnida()">Sérsníða</button></span><h1>Í dag</h1></div>${clock}${(() => { const n = window.vtBidaN ? vtBidaN() : 0; return n ? `<a class="sdk" data-act="vtsta" role="button" tabindex="0" style="display:flex;flex-direction:row;text-align:left;justify-content:space-between;align-items:center;text-decoration:none;color:inherit;cursor:pointer"><span><b>${n === 1 ? "1 tími bíður" : n + " tímar bíða"} staðfestingar</b><br><span class="sdl">Skráðir af vettvangsnotendum</span></span><span aria-hidden="true">›</span></a>` : ""; })()}<div class="sdsec">Dagskrá</div><section class="sdlist">${list}</section>${p ? `<div class="sdsec">Verkefni</div>${pc}` : ""}${mods ? `<div class="sdmods">${mods}</div>` : ""}</div>`;
   }
   let Q = "";
   const fold = x => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -166,6 +167,14 @@
     const FK = rent ? "pantanir" : "verkefni", fs = (() => { try { return SECTIONS; } catch (e) { return []; } })().find(x => x.k === FK), ft = fs && (fs.tabs.find(t => !YF[t[0]] && ok(t[0])) || fs.tabs[0])[0];
     const inFl = !!fs && !inDag && !inLeit && !inTim && (D ? (FK === "verkefni" ? /^verk:/.test(String(D)) : /^tb:/.test(String(D))) : secOf(t)?.k === FK);
     tb.innerHTML = B("yfirlit", "Í dag", "dag", inDag) + (ft ? B(ft, fs.l, FK === "pantanir" ? "pant" : "verk", inFl) : "") + (qr ? B("scan", "Skanna", "scan", false) : B("leit", "Leita", "leit", inLeit)) + B("timar", "Tímar", "tim", inTim) + B("meira", "Meira", "meira", !inDag && !inLeit && !inTim && !inFl);
+  }
+  // 2.142.0: bjalla í haus símans (við hlið prófílmyndar) – tilkynningar opnast í spjaldi eins og í tölvu
+  function bell() {
+    const av = document.getElementById("avbtn"); if (!av || !window.u1Tilk) return;
+    let b = document.getElementById("simbell"); if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "simbell"; b.className = "simbell"; b.onclick = () => u1Tilk(); av.before(b); }
+    let un = 0; try { un = (window.u1TilkN ? u1TilkN() : 0); } catch (e) {}
+    b.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>${un ? `<span>${un > 99 ? "99+" : un}</span>` : ""}`;
+    b.setAttribute("aria-label", "Tilkynningar" + (un ? ", " + un + " ólesnar" : ""));
   }
   function views() {
     const v = document.getElementById("view"); if (!v || det()) return;
@@ -246,7 +255,7 @@
     document.body.classList.toggle("simidet", !!det());
     if (!phone()) { document.getElementById("simact")?.remove(); document.body.classList.remove("simhasact"); return; }
     document.body.classList.remove("simdag");
-    views(); splitFix(); spjallFix(); secChips(); actBar(); bar();
+    views(); splitFix(); spjallFix(); secChips(); actBar(); bar(); try { bell(); } catch (e) {}
     // Hlutar sem neðri stikan opnar beint (Í dag, Leita, Tímar, Meira) eru efsta stig – enginn „Til baka“
     if (!det() && /^(yfirlit|leit|meira|timar|tfaer|tskyr|timyf)$/.test(cur())) document.querySelectorAll("#view .uback:not(.simback)").forEach(b => b.remove());
     // „Meira“ í neðri stiku: virkt þegar opinn hluti er ekki í stikunni
