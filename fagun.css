@@ -169,3 +169,8 @@ html:not(#atrium-litir) body.kerfi :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t
   html:not(#atrium-litir) body.kerfi.pv.ui1.srail .side nav#sitems .tab.tq svg{display:inline-block!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1.srail .side nav#sitems .tab:not(.tq)+.sgrp{margin:8px 4px!important;padding:0!important;height:1px!important;font-size:0!important}
 }
+
+/* 2.135.4: letur eins og á skjámyndunum – Poppins; fyrirsagnir Regular (400), spjaldafyrirsagnir og hnappar Medium (500), ekkert Light (300) */
+html:not(#atrium-litir) body.kerfi :is(h1,h2,.ptitle,.hello,h2.big,.cal-head h2){font-weight:400!important;letter-spacing:-.005em}
+html:not(#atrium-litir) body.kerfi :is(h3,.uhch h3){font-weight:500!important}
+html:not(#atrium-litir) body.kerfi :is(.kpis .card b,.date b,.ring b,.ukp b){font-weight:400!important}
