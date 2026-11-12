@@ -271,19 +271,19 @@ function pageHead(){if(tab==="yfirlit"||tab==="leit") return "";
 /* 2.120.3: Skrunstaða lista helst þegar skjárinn teiknast upp á nýtt (gögn berast, sjálfvirk drög, vistun, klukkan) – áður fór
    listinn í tölvu (.splist) alltaf efst. Fylgst er með hvaða hlutar innan #view hafa verið skrunaðir; á sama skjá er staðan sett aftur,
    og listinn (.splist) heldur stöðunni líka þegar spjald er opnað við hliðina eða lokað. */
-const SCROLLED=new Set(); let scPend=null;
+const SCROLLED=new Set(); let scPend=null; /* 2.124.1: ástand teikningar geymt hér – ekki á render-fallinu, sem einingar skipta út (þá týndist það) */ window.RSTATE=window.RSTATE||{};
 document.addEventListener("scroll",e=>{const t=e.target; if(t&&t.nodeType===1&&t.closest?.("#view")) SCROLLED.add(t);},true);
 const scKey=(v,el)=>{if(el.id) return "#"+el.id; const sel=el.tagName.toLowerCase()+[...el.classList].filter(c=>!/^(on|anim|slide|in-[lr])$/.test(c)).map(c=>"."+CSS.escape(c)).join(""); return sel+"@"+[...v.querySelectorAll(sel)].indexOf(el);};
-function scSnap(v){if(!v||!render._k) return null; const out=[];
+function scSnap(v){if(!v||!RSTATE._k) return null; const out=[];
   SCROLLED.forEach(el=>{if(!el.isConnected||!v.contains(el)){SCROLLED.delete(el); return;} if(el.scrollTop||el.scrollLeft) out.push([scKey(v,el),el.scrollTop,el.scrollLeft,el.classList.contains("splist")]);});
-  return out.length?{prev:render._k,out}:null;}
+  return out.length?{prev:RSTATE._k,out}:null;}
 function scRestore(v,ss){if(!ss) return; const [pt,,ps]=ss.prev.split("|"), now=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""), same=now===ss.prev, sameTab=pt===tab&&ps===(window.STSUB||"");
   if(!same&&!sameTab) return;
   ss.out.forEach(([key,t,l,isList])=>{if(!same&&!isList) return; let el=null; if(key[0]==="#") el=document.getElementById(key.slice(1)); else {const i=key.lastIndexOf("@"); el=v.querySelectorAll(key.slice(0,i))[+key.slice(i+1)]||null;}
     if(el){el.scrollTop=t; el.scrollLeft=l; SCROLLED.add(el);}});}
 function render(){
   applyEin(); if(!TABS.includes(tab)&&tab!=="leit") tab="yfirlit"; // leit er ekki flipi í valmynd (lagað 2.18.2 – leitin opnaðist ekki frá 2.0.0)
-  drawMenu(); window.deildHdr?.(); clearTimeout(render._n); render._n=setTimeout(scheduleNotifs,500);
+  drawMenu(); window.deildHdr?.(); clearTimeout(RSTATE._n); RSTATE._n=setTimeout(scheduleNotifs,500);
   const v=document.getElementById("view");
   if(!S){v.innerHTML="";return;} /* opnunarskjárinn (app.html) birtist þar til gögnin eru komin */
   const det=DETAIL?detailHTML():null; if(DETAIL&&!det) DETAIL=null;
@@ -292,12 +292,12 @@ function render(){
   if(!scPend){scPend=scSnap(v)||{}; queueMicrotask(()=>{const ss=scPend; scPend=null; if(ss.prev) scRestore(document.getElementById("view"),ss);});} /* eftir allar umbúðir (Útlit I o.fl.) */
   v.innerHTML=(window.viewAsBanner?viewAsBanner():"")+(det||pageHead()+(window.deildMob?deildMob(tab):"")+({yfirlit:()=>(window.ORG?.pakkaval&&window.vHeim2?vHeim2():vYfirlit("heim")),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolFyr?vSkjolFyr():(window.vSkjolNy?vSkjolNy():""),skjolmin:()=>window.vSkjolMin?vSkjolMin():"",skjolnyl:()=>window.vSkjolNyl?vSkjolNyl():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||window.VIEWS_EXT?.[tab]||(()=>vYfirlit("heim")))()); drawSync();
   // Hreyfing aðeins þegar skipt er um síðu – ekki þegar gögn uppfærast
-  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==render._k){const dv=!!DETAIL&&!String(render._k||"").includes("|"+DETAIL+"|"); render._k=key;
+  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==RSTATE._k){const dv=!!DETAIL&&!String(RSTATE._k||"").includes("|"+DETAIL+"|"); RSTATE._k=key;
     /* 2.124.0: sama hluta (t.d. Stillingar eða listi með spjaldi við hliðina) – aðeins spjaldið fær stutta hreyfingu, listinn stendur kyrr. Áður hreyfðist allur skjárinn við hvern smell (hikst). */
-    const samiFlipi=render._t===tab; render._t=tab; const split=document.body.classList.contains("hassplit");
+    const samiFlipi=RSTATE._t===tab; RSTATE._t=tab; const split=document.body.classList.contains("hassplit");
     v.classList.remove("anim","slide","anim-det"); void v.offsetWidth;
     if(samiFlipi&&(split||window.STSUB||DETAIL)) v.classList.add("anim-det"); else {v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide");}
-    clearTimeout(render._a); render._a=setTimeout(()=>v.classList.remove("anim","slide","anim-det"),600);}
+    clearTimeout(RSTATE._a); RSTATE._a=setTimeout(()=>v.classList.remove("anim","slide","anim-det"),600);}
   document.getElementById("foot").textContent=S.uppfaert?"Síðast breytt "+fmtDate(S.uppfaert)+(hhmm(S.uppfaert)?" kl. "+hhmm(S.uppfaert):""):"";
 }
 /* 2.120.0: Gögn sem berast (Firestore, aðrir notendur, sjálfvirk drög) teikna skjáinn aftur án þess að trufla notandann:
@@ -308,7 +308,7 @@ function renderDataNow(){const v=document.getElementById("view"), a=document.act
   const ed=a&&v&&v.contains(a)&&(a.isContentEditable||a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&!/^(button|submit|reset|checkbox|radio|range|color|file|image)$/i.test(a.type)));
   if(ed){if(renderData._el!==a){renderData._el=a; a.addEventListener("blur",()=>{if(renderData._el===a) renderData._el=null; setTimeout(renderData,0);},{once:true});} try{drawSync();}catch(e){} return;}
   renderData._el=null; if(!v){render(); return;}
-  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""), same=key===render._k, fq='input:not([type=hidden]):not([type=button]):not([type=submit]),textarea,select';
+  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""), same=key===RSTATE._k, fq='input:not([type=hidden]):not([type=button]):not([type=submit]),textarea,select';
   const fk=(el,i)=>el.id?"#"+el.id:el.name?"n:"+el.name:"i:"+i, keep=[];
   if(same) [...v.querySelectorAll(fq)].forEach((el,i)=>{const k=fk(el,i); if(el.type==="checkbox"||el.type==="radio"){if(el.checked!==el.defaultChecked) keep.push([k,"c",el.checked]);}
     else if(el.tagName==="SELECT"){const d=[...el.options].find(o=>o.defaultSelected); if(d&&el.value!==d.value) keep.push([k,"s",el.value]);}
