@@ -216,7 +216,7 @@
       if (v.skiladagur) put(v.skiladagur, { k: "skil", t: hm(v.skiladagur), txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
       if (v.timabilFra) put(v.timabilFra, { k: "hefst", t: "", txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
       if (v.vidburdur) put(v.vidburdur, { k: "vidb", t: hm(v.vidburdur), txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
-      (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done") put(u.skiladagur, { k: "skil", t: "", txt: (u.nr || "") + " " + tr(() => subName(u), u.heiti || u.nafn || ""), sub: nm, menn: [...new Set([u.abyrgd, ...(u.starfsmenn || [])].filter(Boolean))], go: "u1go:verk:sub:" + u.id }); }); });
+      (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done") put(u.skiladagur, { k: "skil", t: "", txt: (u.nr || "") + " " + tr(() => subName(u), u.heiti || u.nafn || ""), sub: nm, menn: (M => M.length ? M : (v.starfsmenn || []))([...new Set([u.abyrgd, ...(u.starfsmenn || [])].filter(Boolean))]), go: "u1go:verk:sub:" + u.id }); }); });
     tr(() => window.salaAPI.TB(), []).forEach(T => { if (T.stada === "Sent" && T.gildir) put(T.gildir, { k: "frestur", t: "", txt: "Tilboð " + (T.nr || "") + " rennur út", sub: T.vidskiptavinur || "", menn: [], go: "u1go:ltilbod:tb:" + T.id }); });
     if (tr(() => can("fjarmal"), false)) (S?.reikningar || []).forEach(r => { if (r.gjalddagi && !["Greitt", "Ógilt"].includes(r.stada) && r.nr) put(r.gjalddagi, { k: "gjd", t: "", txt: "Reikningur " + r.nr, sub: r.kaupandi?.name || "", menn: [], go: "u1go:trk:reikn:" + r.id }); });
     R.forEach(xs => xs.sort((a, b) => String(a.t || "99").localeCompare(String(b.t || "99"))));
