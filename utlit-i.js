@@ -493,6 +493,11 @@
   // Loka spjaldi: listinn fer aftur yfir allan skjáinn
   const closeDet = () => { DETAIL = null; full = false; render(); };
   document.addEventListener("click", e => { const b = e.target.closest('[data-ui1="close"]'); if (!b) return; closeDet(); });
+  // 2.131.5: smellur á autt svæði í listanum (fyrir neðan línurnar) lokar spjaldinu
+  document.addEventListener("click", e => { try { if (!DETAIL || !document.body.classList.contains("ui1")) return; } catch (x) { return; }
+    const sl = e.target.closest(".split .splist"); if (!sl) return;
+    if (e.target.closest("a,button,input,select,textarea,label,[data-open],[data-act],[role=button],.lrow,.urow,tr,.uhead,.phead,.ulbar,.spfilt,.ukbd")) return;
+    closeDet(); });
   // Smellt aftur á valið atriði í listanum: spjaldið lokast og stóri listinn birtist aftur
   document.addEventListener("click", e => { if (!DETAIL || !desk() || !document.body.classList.contains("ui1") || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
     const r = e.target.closest?.(".splist [data-open]"); if (!r || e.target.closest("button, a, input, select, label") && e.target.closest("button, a, input, select, label") !== r) return;
