@@ -64,7 +64,7 @@
   function itemHTML(x) { const at = x.act ? `data-act="${E(x.act)}"` : x.open ? `href="#" data-open="${E(x.open)}"` : "";
     const tag = x.act || x.open ? "a" : "span";
     return `<${tag} ${at} class="dti dti-${x.k}" title="${E((x.t ? x.t + (x.e ? "–" + x.e : "") + " " : "") + x.txt)}">${x.lock ? "🔒 " : ""}${x.t ? `<b>${E(x.t)}</b> ` : ""}${E(x.txt)}</${tag}>`; }
-  function weekOne(p, days, ti) {
+  function weekOne(p, days, ti) { const wem = p.email && p.email !== lc(tr(() => fbMe(), "")) ? p.email : "";
     const R = atridi(p, days, true), hours = [...Array(H1 - H0 + 1)].map((_, i) => H0 + i);
     const lbl = d => { const x = new Date(d + "T12:00:00"); return DN[x.getDay()] + " " + x.getDate() + "."; };
     const top = days.map(d => { const xs = (R.get(d) || []).filter(x => !x.t || toMin(x.t) === null); return `<div class="dwa${d === ti ? " dtt" : ""}">${xs.map(itemHTML).join("")}</div>`; }).join("");
@@ -74,7 +74,7 @@
         const at = x.act ? `data-act="${E(x.act)}" role="button" tabindex="0"` : x.open ? `data-open="${E(x.open)}" role="button" tabindex="0"` : "";
         return `<div class="dwe dwe-${x.k}" style="${st}" ${at}><b>${x.lock ? "🔒 " : ""}${E(x.txt)}</b><small>${E(x.t)}${x.e ? "–" + E(x.e) : ""}</small></div>`; }).join("");
       const now = d === ti ? (() => { const n = new Date(), m = n.getHours() * 60 + n.getMinutes(); return m >= H0 * 60 && m <= H1 * 60 ? `<i class="dwnow" style="top:${(m - H0 * 60) / 60 * PXH}px"></i>` : ""; })() : "";
-      return `<div class="dwc${d === ti ? " dtt" : ""}" data-dag="${E(d)}">${hours.slice(0, -1).map((h, i) => `<button type="button" class="dwslot" style="top:${i * PXH}px;height:${PXH}px" data-act="dvny:${E(d)}:${pad(h)}:00" aria-label="Nýr viðburður ${E(lbl(d))} kl. ${pad(h)}"></button>`).join("")}${ev}${now}</div>`; }).join("");
+      return `<div class="dwc${d === ti ? " dtt" : ""}" data-dag="${E(d)}">${hours.slice(0, -1).map((h, i) => `<button type="button" class="dwslot" style="top:${i * PXH}px;height:${PXH}px" data-act="dvny:${E(d)}:${pad(h)}:00${wem ? ":" + E(wem) : ""}" aria-label="${wem ? "Bóka" : "Nýr viðburður"} ${E(lbl(d))} kl. ${pad(h)}"></button>`).join("")}${ev}${now}</div>`; }).join("");
     return `<div class="card dwk"><div class="dwrow dwh"><div></div>${days.map(d => `<div class="${d === ti ? "dtt" : ""}">${E(lbl(d))}</div>`).join("")}</div>
       <div class="dwrow dwall"><div class="dwlab">Allan daginn</div>${top}</div>
       <div class="dwrow dwbody" style="height:${(H1 - H0) * PXH}px"><div class="dwhrs">${hours.slice(0, -1).map((h, i) => `<span style="top:${i * PXH}px">${pad(h)}:00</span>`).join("")}</div>${cols}</div></div>`;
@@ -87,7 +87,7 @@
     const rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
     const who = WHO === "me" ? (P.find(p => p.email && p.email === me) || { sk: tr(() => ME(), ""), nafn: "Ég", email: me }) : WHO === "*" ? null : P.find(p => (p.email || p.sk) === WHO) || null;
     const sel = `<label class="dtwho"><span class="sr">Hvers dagatal</span><select onchange="doAct('dtwho:'+this.value)"><option value="me"${WHO === "me" ? " selected" : ""}>Ég</option><option value="*"${WHO === "*" ? " selected" : ""}>Allir</option>${P.filter(p => p.email !== me).map(p => `<option value="${E(p.email || p.sk)}"${WHO === (p.email || p.sk) ? " selected" : ""}>${E(p.nafn)}</option>`).join("")}</select></label>`;
-    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Fólk</h2></div><div class="uhr dtnav">${sel}<button type="button" class="btn" data-act="dteymi:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dteymi:0">Þessi vika</button><button type="button" class="btn" data-act="dteymi:1" aria-label="Næsta vika">›</button><span class="dtrng">${E(rng)}</span><button type="button" class="btn primary" data-act="dvny:${E(days.includes(ti) ? ti : days[0])}:09:00">+ Viðburður</button></div></div>`;
+    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Fólk</h2></div><div class="uhr dtnav">${sel}<button type="button" class="btn" data-act="dteymi:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dteymi:0">Þessi vika</button><button type="button" class="btn" data-act="dteymi:1" aria-label="Næsta vika">›</button><span class="dtrng">${E(rng)}</span><button type="button" class="btn${who ? "" : " primary"}" data-act="dtbok:${E(days.includes(ti) ? ti : days[0])}:${who ? E(who.email || "") : ""}">${who ? "Verk á dagatal" : "+ Setja á dagatal"}</button><button type="button" class="btn${who ? " primary" : ""}" data-act="dvny:${E(days.includes(ti) ? ti : days[0])}:09:00${who && who.email && who.email !== me ? ":" + E(who.email) : ""}"${who ? "" : ' hidden'}>${who && who.email && who.email !== me ? "+ Bóka " + E(String(who.nafn).split(" ")[0]) : "+ Viðburður"}</button>${!who ? "" : ""}</div></div>`;
     const msTxt = tr(() => window.fbCalOk && fbCalOk(), false) ? "" : `<p class="hint dthint">Fundir, viðburðir og verk úr Atrium. Tengdu Microsoft 365 til að sjá líka Outlook-dagatöl.</p>`;
     const leg = `<div class="dtleg"><span><i class="dti-f"></i>Fundur</span><span><i class="dti-e"></i>Viðburður</span><span><i class="dti-o"></i>Outlook</span><span><i class="dti-v"></i>Verkefni</span><span><i class="dti-p"></i>Afhending / skil</span><span><i class="dti-s"></i>Skiladagur</span>${who ? `<span><i class="dwe-t" style="width:14px;height:10px;border-radius:3px;display:inline-block"></i>Skráðir tímar</span>` : ""}<span class="dtlh">${who ? "Smelltu á lausan tíma til að bæta við viðburði · 🔒 = aðrir sjá „Upptekinn“" : "„+“ bókar viðkomandi – Atrium varar við ef hann er upptekinn"}</span><a href="#" class="dtfl" data-act="tab:fundir">Fundalisti →</a></div>`;
     if (who) return hdr + msTxt + leg + weekOne(who, days, ti);
@@ -134,6 +134,57 @@
   }
   window.vidbForm = vidbForm;
 
+  /* ---------- Bóka starfsmann (2.134.2): fundur/bókun þar sem starfsmaðurinn er boðaður – hann fær boðið í Bíður mín og skilaboð í spjalli ---------- */
+  // Það sem er til og má setja á dagatal: verkefni, opin undirverk og opnar pantanir
+  function tengjanleg() { const L = [];
+    tr(() => verkefni(), []).filter(p => !tr(() => isDone(p), false)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).forEach(p => {
+      L.push({ l: "Verkefni · " + (p.nr || "") + " " + (p.stutt || p.nafn || ""), h: p.stutt || p.nafn || "", pid: p.id });
+      (p.undirverk || []).filter(u => u.stada !== "Done").forEach(u => L.push({ l: "Undirverk · " + (u.nr || "") + " " + tr(() => subName(u), u.heiti || ""), h: tr(() => subName(u), u.heiti || "") + " (" + (p.nr || "") + ")", pid: p.id, uid: u.id, dag: u.skiladagur ? String(u.skiladagur).slice(0, 10) : "" })); });
+    tr(() => window.salaAPI.PN(), []).filter(P => !["Skilað", "Lokið"].includes(P.stada)).forEach(P => L.push({ l: "Pöntun · " + (P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : P.vidskiptavinur || ""), h: (P.stada === "Afhent" ? "Skil " : "Afhending ") + (P.nr || "") + (P.heiti && P.heiti !== "Pöntun" ? " " + P.heiti : ""), pid: P.verkefniId || "", pnid: P.id, dag: String((P.stada === "Afhent" ? P.til : P.fra) || "").slice(0, 10), kl: hm(P.stada === "Afhent" ? P.til : P.fra) }));
+    return L; }
+  function bokForm(d, t, em) {
+    const meE = lc(tr(() => fbMe(), "")), PP = folk(), TL = tengjanleg();
+    const tl = t ? pad(Math.min(23, +t.slice(0, 2) + 1)) + ":" + t.slice(3, 5) : "";
+    sheet.innerHTML = `<h3 id="sheet-h">Setja á dagatal</h3><form id="bkf" novalidate>
+      <label>Hver<select id="bk-w">${em ? "" : `<option value="">Veldu starfsmann…</option>`}${PP.map(p => `<option value="${E(p.email)}"${p.email === (em || "") ? " selected" : ""}>${E(p.nafn)}${p.email === meE ? " (ég)" : ""}</option>`).join("")}</select></label>
+      <label>Tengist (valfrjálst)<input id="bk-l" list="bk-ll" placeholder="Leita að verkefni, undirverki eða pöntun sem er til…" autocomplete="off"><datalist id="bk-ll">${TL.map(x => `<option value="${E(x.l)}"></option>`).join("")}</datalist></label>
+      <label>Hvað<input id="bk-h" required placeholder="T.d. Uppsetning í sal, yfirferð teikninga"></label>
+      <div class="three"><label>Dagur<input id="bk-d" type="date" value="${E(d)}" required></label><label>Frá<input id="bk-f" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" data-t24 value="${E(t)}"></label><label>Til<input id="bk-t" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" data-t24 value="${E(tl)}"></label></div>
+      <label class="chk" id="bk-spl"><input type="checkbox" id="bk-sp" checked><span id="bk-spt">Senda skilaboð í spjalli</span></label>
+      <p class="hint" id="bk-hint"></p>
+      <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="bk-x">Hætta við</button><button class="btn primary" id="bk-ok">Setja á dagatal</button></div></form>`;
+    sheetwrap.hidden = false;
+    const W = document.getElementById("bk-w"), Lk = document.getElementById("bk-l"), Hh = document.getElementById("bk-h");
+    const upd = () => { const w = W.value, P = PP.find(p => p.email === w), f = P ? String(P.nafn).split(" ")[0] : "", min = !w || w === meE;
+      document.getElementById("bk-spl").hidden = min; document.getElementById("bk-spt").textContent = "Senda " + f + " skilaboð í spjalli";
+      document.getElementById("bk-hint").textContent = min ? "Fer í þitt dagatal." : `${f} sér þetta í dagatalinu sínu og fær það í „Bíður mín“ til að samþykkja eða hafna. Atrium varar við ef ${f} er upptekin(n) á þessum tíma.`; };
+    W.onchange = upd; upd();
+    let sel = null;
+    Lk.oninput = () => { sel = TL.find(x => x.l === Lk.value) || null; if (sel) { if (!Hh.value || Hh.dataset.auto) { Hh.value = sel.h; Hh.dataset.auto = "1"; } if (sel.dag) document.getElementById("bk-d").value = sel.dag; if (sel.kl) { document.getElementById("bk-f").value = sel.kl; } } };
+    Hh.oninput = () => { delete Hh.dataset.auto; };
+    setTimeout(() => (em ? Lk : W).focus(), 50);
+    document.getElementById("bk-x").onclick = closeSheet;
+    let samt = false;
+    document.getElementById("bkf").onsubmit = async e => { e.preventDefault(); const msgEl = document.getElementById("f-msg"), say = (t2, w) => { msgEl.innerHTML = `<div class="msg ${w ? "warn" : "err"}">${E(t2)}</div>`; };
+      const nt = v => { v = String(v || "").trim().replace(/[.,]/, ":"); if (/^\d{1,2}$/.test(v)) v += ":00"; const m2 = v.match(/^(\d{1,2}):(\d{2})$/); return m2 && +m2[1] < 24 && +m2[2] < 60 ? pad(+m2[1]) + ":" + m2[2] : ""; };
+      const w = W.value, P = PP.find(p => p.email === w), h = Hh.value.trim(), d2 = document.getElementById("bk-d").value, f1 = nt(document.getElementById("bk-f").value), t1 = nt(document.getElementById("bk-t").value), min = w === meE;
+      if (!w) return say("Veldu starfsmann."); if (!h) return say("Skrifaðu hvað þetta er – eða veldu verkefni, undirverk eða pöntun."); if (!d2 || !f1 || !t1 || t1 <= f1) return say("Veldu dag og tíma frá og til (t.d. 13:00–16:00).");
+      const att = min ? [] : [{ nafn: P?.nafn || w, netfang: w, innri: true }], ok = document.getElementById("bk-ok");
+      if (!samt) { ok.disabled = true; let c = []; try { c = await (window.fbConflicts ? fbConflicts({ slots: [{ s: d2 + "T" + f1, e: d2 + "T" + t1 }], att }) : []); } catch (x) {} ok.disabled = false;
+        const nm = P?.nafn || "", hans = c.filter(x => !nm || x.startsWith(nm)); if (hans.length) { samt = true; ok.textContent = "Setja samt"; return say(hans.slice(0, 3).join(" · ") + ". Smelltu aftur til að setja samt.", true); } }
+      const s0 = TL.find(x => x.l === Lk.value) || null, pr = s0?.pid ? tr(() => findProj(s0.pid), null) : null, nid = typeof newId === "function" ? newId() : "b" + Date.now().toString(36);
+      const rec = { id: nid, name: h, date: d2 + "T" + f1, dateEnd: d2 + "T" + t1, stofnandi: meE, attendees: att, projectId: pr?.id || null, undirverkId: s0?.uid || null, pontunId: s0?.pnid || null, verknr: pr ? (pr.nr || "") + " " + (pr.stutt || "") : null, stadsetning: null, fundarhlekkur: null, fundargerd: null, mappa: null, seria: null, bokun: !min || null };
+      ok.disabled = true;
+      try { await saveSnapshot(s => { (s.fundir = s.fundir || []).push(rec);
+          // starfsmaðurinn skráist líka á pöntunina / verkefnið (sést þá í „Verk“ og fær aðgang að pöntuninni)
+          const sk = P?.sk; if (sk && s0?.pnid) { const Q = (s.pantanir || []).find(x => x.id === s0.pnid); if (Q && !(Q.starfsmenn || []).includes(sk)) Q.starfsmenn = [...(Q.starfsmenn || []), sk]; }
+          if (sk && pr) { const V = (s.verkefni || []).find(x => x.id === pr.id); if (V && !(V.starfsmenn || []).includes(sk)) V.starfsmenn = [...(V.starfsmenn || []), sk]; } });
+        if (!min && document.getElementById("bk-sp")?.checked && window.spSendRef) { try { await spSendRef(w, `Ég setti þig á: ${h} – ${d2.slice(8, 10)}.${d2.slice(5, 7)}. kl. ${f1}–${t1}`, s0?.uid ? "sub:" + s0.uid : s0?.pnid ? "tb:" + s0.pnid : pr ? "verk:" + pr.id : "fund:" + nid); } catch (x) {} }
+        closeSheet(); toast(min ? "Sett á dagatalið þitt" : (P?.nafn || w) + " bókaður – fær boðið í Bíður mín"); }
+      catch (err) { ok.disabled = false; say(err?.message || String(err)); } };
+  }
+  window.bokForm = bokForm;
+
   /* ---------- Dagatal › Verk (2.131.2): vikan í dálkum – allt með dagsetningu úr pöntunum, verkefnum, tilboðum og reikningum ---------- */
   let VOFF = 0, VF = "", VMODE = "vika";
   const VT = { ut: ["Leiga út", "#2F7D57", "#E3F1EA"], inn: ["Leiga inn", "#2F7D57", "#E3F1EA"], afh: ["Afhending", "#B7791F", "#FFF6E5"], skilp: ["Skil pöntunar", "#B7791F", "#FFF6E5"],
@@ -171,15 +222,13 @@
 
   function act(k, r) {
     if (k === "dtwho") { WHO = r.join(":") || "me"; render(); return; }
-    if (k === "dvny") { vidbForm(r[0], (r[1] || "09") + ":" + (r[2] || "00")); return; }
+    if (k === "dvny") { if (r[3]) bokForm(r[0], (r[1] || "09") + ":" + (r[2] || "00"), r.slice(3).join(":")); else vidbForm(r[0], (r[1] || "09") + ":" + (r[2] || "00")); return; }
     if (k === "dvid") { vidbForm(null, null, r[0]); return; }
     if (k === "dverk") { const n = +r[0]; VOFF = n === 0 ? 0 : VOFF + n; render(); return; }
     if (k === "dverkf") { VF = r[0] || ""; render(); return; }
     if (k === "dverkm") { VMODE = r[0] === "tl" ? "tl" : "vika"; render(); return; }
     if (k === "dteymi") { const n = +r[0]; OFF = n === 0 ? 0 : OFF + n; render(); return; }
-    if (k === "dtbok") { const [d, em] = r; window.kind = "fund"; try { kind = "fund"; } catch (e) {} window.PREFILL = { date: d }; try { PREFILL = { date: d }; } catch (e) {} openSheet();
-      setTimeout(() => { const q = document.getElementById("f-attq"); if (q && em && em !== lc(tr(() => fbMe(), ""))) { q.value = em; q.dispatchEvent(new Event("input", { bubbles: true })); q.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); }
-        const t = document.getElementById("f-time"); if (t && !t.value) t.focus(); }, 60); }
+    if (k === "dtbok") { const [d, em] = r; bokForm(d, "09:00", em || ""); return; }
   }
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dvny: act, dvid: act });
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { dteymi: view });
@@ -207,6 +256,9 @@
   .dtadd{position:absolute;right:4px;bottom:3px;width:22px;height:18px;border:1px dashed var(--line);border-radius:5px;background:transparent;color:var(--muted);font:500 13px/1 inherit;cursor:pointer;opacity:0}
   .dtc:hover .dtadd,.dtadd:focus{opacity:1}.dtadd:hover{border-style:solid;color:var(--ink)}
   @media (hover:none){.dtadd{opacity:.7}}
+  #vbf .smopt input[type=radio]{appearance:auto;-webkit-appearance:radio;width:18px;height:18px;min-height:0;flex:0 0 18px;margin:2px 0 0;padding:0;border:0;box-shadow:none;background:none}
+  #vbf .smopt{display:flex;flex-direction:row;align-items:flex-start;gap:10px}#vbf .smopt span{display:flex;flex-direction:column;gap:2px;text-align:left}
+  #vbf .smopt:has(input:checked){border-color:var(--kacc,#24578A);background:color-mix(in srgb,var(--kacc,#24578A) 6%,transparent)}
   .dtwho select{min-height:36px;border:1px solid var(--line2,var(--line));border-radius:8px;padding:0 10px;background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px}
   .sr{position:absolute;left:-9999px}
   .dti-e{background:color-mix(in srgb,#7A5AB8 14%,transparent)}

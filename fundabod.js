@@ -304,7 +304,7 @@
     if (em === "*" || !em) return true;
     em = lc(em); const att = window.fbAtt(f);
     if (!f.stofnandi && !att.length) return true;
-    if (lc(f.stofnandi) === em || lc(f.skipuleggjandi) === em) return true;
+    if (!f.bokun && (lc(f.stofnandi) === em || lc(f.skipuleggjandi) === em)) return true; // 2.134.2: bókun á starfsmann er ekki í dagatali þess sem bókaði
     const nm = lc(userBy(em)?.nafn);
     const a = att.find(a => lc(a.netfang) === em || (nm && lc(a.nafn) === nm));
     return !!a && a.svar !== "nei";

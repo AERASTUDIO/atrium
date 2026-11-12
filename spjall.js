@@ -69,6 +69,9 @@
     if (t === "skjal") { const x = (S?.skjol || []).find(y => y.id === id); return x && { heiti: x.name || "Skjal", sub: "" }; }
     if (t === "vsk") { const c = (S?.vidskiptavinir || []).find(y => String(y.id) === id); return c && { heiti: c.name || "", sub: c.tengilidur || "" }; }
     return null; };
+  window.spSendRef = async (email, texti, k) => { if (typeof DB === "undefined" || !DB?.commit || !email) return; const info = k ? spRefInfo(k) : null, r = dmKey(email), o = otherOf(r);
+    const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");
+    return DB.commit([{ path: "spjall/" + id, data: { id, ras: r, adilar: [me(), o].map(s => s.toLowerCase()).sort(), af: me(), nafn: window.USER?.nafn || me(), texti: texti || "", ...(info ? { ref: { k, teg: info.teg || REFT[k.split(":")[0]] || "", heiti: info.heiti, sub: info.sub || "" } } : {}), t: new Date().toISOString() } }]); };
   window.spDeila = function (k) {
     const info = spRefInfo(k); if (!info) { toast("Ekki hægt að deila þessu"); return; }
     if (typeof DB === "undefined" || !DB?.commit) { toast("Spjall er ekki í boði hér"); return; }
