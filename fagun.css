@@ -1,6 +1,6 @@
 /* Fágun (2.69.0) – útlit G: litir, áferð, texti, dýpt, tákn í spjöldum, stöðuflipar, númeramerki, gröf.
    Hlaðið á eftir kerfi.css. Bil og stærðir koma úr kerfi.css og eru óbreytt.
-   Litapalletta Atrium gildir aðeins þar sem uppsetning hefur ekki eigið utlit.css (Sonik, Party.is halda sínum litum);
+   2.131.2: Litapalletta Atrium gildir í öllum uppsetningum (Sonik og party.is líka) – utlit.css ræður aðeins innskráningu og opnunarskjá;
    allir aðrir tónar eru leiddir af litum uppsetningarinnar. */
 body.kerfi{
   --ink2:color-mix(in srgb,var(--ink) 70%,var(--muted)); --line2:color-mix(in srgb,var(--line),var(--ink) 9%);
@@ -8,7 +8,7 @@ body.kerfi{
   --amb-s:color-mix(in srgb,var(--t-amb) 13%,var(--surface)); --red-s:color-mix(in srgb,var(--t-red) 12%,var(--surface)); --grn-s:color-mix(in srgb,var(--t-grn) 13%,var(--surface)); --gry-s:color-mix(in srgb,var(--ink) 6%,var(--surface));
   --e1:0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,.05); --e2:0 0 0 1px var(--line2), 0 8px 20px -8px rgba(0,0,0,.25); --hl:none;
 }
-html:not(:has(link[href$="/utlit.css"]))[data-theme="light"] body.kerfi{
+html:not(#atrium-litir)[data-theme="light"] body.kerfi{
   --bg:#F2F4F6; --surface:#FFFFFF; --ink:#0F1720; --ink2:#3A4553; --muted:#5E6976; /* 2.122.6: dekkra svo smátexti nái WCAG AA (4,5:1) á grunninum */ --line:#E3E7EB; --line2:#D2D8DE;
   --kacc:#24578A; --on-kacc:#FFFFFF; --acc-soft:#EAF0F6; --field:#F8F9FA; --hover:#F6F8FA;
   --t-red:#B13E36; --t-amb:#9C6410; --t-grn:#2C7A57; --t-blu:#24578A;
@@ -16,7 +16,7 @@ html:not(:has(link[href$="/utlit.css"]))[data-theme="light"] body.kerfi{
   --e2:0 0 0 1px var(--line2), 0 6px 16px -6px rgba(15,23,32,.12);
   --hl:none; --sidebg:#141A21; --sideink:#C7CFD8; --sidemut:#7D8896;
 }
-html:not(:has(link[href$="/utlit.css"])):not([data-theme="light"]) body.kerfi{
+html:not(#atrium-litir):not([data-theme="light"]) body.kerfi{
   --bg:#0D1014; --surface:#14191F; --ink:#E7ECF1; --ink2:#B6C0CB; --muted:#8792A0; --line:rgba(255,255,255,.065); --line2:rgba(255,255,255,.11);
   --kacc:#7DAFE0; --on-kacc:#0D1014; --acc-soft:rgba(125,175,224,.10); --field:#0F1318; --hover:#181E25;
   --t-red:#E58A80; --t-amb:#E0B060; --t-grn:#79C3A0; --t-blu:#7DAFE0;
@@ -99,21 +99,21 @@ html:root body.kerfi #view .uhead .ptitle{font-weight:300!important;font-size:28
 html:root body.kerfi :is(#view,#sheetwrap) .btn{border-radius:9px!important;font-weight:500!important}
 html:root body.kerfi :is(#view,#sheetwrap) .btn.primary{box-shadow:none!important}
 /* Aðalhnappur (2.69.1, kostur B): blek í ljósu, ljós í dökku – hljóðlátur; uppsetningar með eigin liti halda hreimlit sínum */
-html:not(:has(link[href$="/utlit.css"])) body.kerfi :is(#view,#sheetwrap) .btn.primary.primary{background:var(--ink)!important;color:var(--surface)!important}
+html:not(#atrium-litir) body.kerfi :is(#view,#sheetwrap) .btn.primary.primary{background:var(--ink)!important;color:var(--surface)!important}
 html:root body.kerfi :is(#view,#sheetwrap) :is(input,select,textarea):not([type=checkbox]):not([type=radio]){border-radius:9px!important}
 html:root body.kerfi #view select:not(.mini){background-color:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--line2)!important}
 /* ---- Vinstri stika ---- */
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side{background:var(--sidebg)!important;border-right:0!important;box-shadow:inset -1px 0 0 rgba(255,255,255,.05)}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab{color:var(--sideink)!important;border-radius:9px!important}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab svg{opacity:.65}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab:hover{background:rgba(255,255,255,.04)!important}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab[aria-current="page"]{background:linear-gradient(90deg,rgba(125,175,224,.20),rgba(125,175,224,.06))!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(125,175,224,.18)!important}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .tab[aria-current="page"] svg{opacity:1;color:#9CC4EC}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side :has(> input){background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:9px!important}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side input{background:transparent!important;border:0!important;box-shadow:none!important}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .new{background:rgba(255,255,255,.06)!important;color:#fff!important;border:0!important;border-radius:10px!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .new svg{color:#9CC4EC!important}
-html:not(:has(link[href$="/utlit.css"])) body.kerfi .side .new:hover{background:rgba(255,255,255,.1)!important}
+html:not(#atrium-litir) body.kerfi .side{background:var(--sidebg)!important;border-right:0!important;box-shadow:inset -1px 0 0 rgba(255,255,255,.05)}
+html:not(#atrium-litir) body.kerfi .side .tab{color:var(--sideink)!important;border-radius:9px!important}
+html:not(#atrium-litir) body.kerfi .side .tab svg{opacity:.65}
+html:not(#atrium-litir) body.kerfi .side .tab:hover{background:rgba(255,255,255,.04)!important}
+html:not(#atrium-litir) body.kerfi .side .tab[aria-current="page"]{background:linear-gradient(90deg,rgba(125,175,224,.20),rgba(125,175,224,.06))!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(125,175,224,.18)!important}
+html:not(#atrium-litir) body.kerfi .side .tab[aria-current="page"] svg{opacity:1;color:#9CC4EC}
+html:not(#atrium-litir) body.kerfi .side :has(> input){background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:9px!important}
+html:not(#atrium-litir) body.kerfi .side input{background:transparent!important;border:0!important;box-shadow:none!important}
+html:not(#atrium-litir) body.kerfi .side .new{background:rgba(255,255,255,.06)!important;color:#fff!important;border:0!important;border-radius:10px!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important}
+html:not(#atrium-litir) body.kerfi .side .new svg{color:#9CC4EC!important}
+html:not(#atrium-litir) body.kerfi .side .new:hover{background:rgba(255,255,255,.1)!important}
 html:root body.kerfi #view .uhch h3 :is(.ucnt,.m){margin-left:8px;font-size:12px;font-weight:500;color:var(--muted);background:var(--gry-s);border-radius:999px;padding:1px 8px}
 html:root body.kerfi #view .usvc > *{position:relative}
 html:root body.kerfi #view .usvc > * .gic{position:absolute;right:20px;top:20px;margin:0;width:36px;height:36px;border-radius:10px}
@@ -140,3 +140,9 @@ html body #view .pback.pback.pback{font-size:0!important;width:36px!important;pa
 .ustcol{display:flex;flex-direction:column;align-items:center;gap:28px}
 .ustleid{font-size:12px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);padding:7px 16px 7px 20px;border:1px solid var(--line);border-radius:999px}
 .ustart.ustdark .ustleid{color:rgba(255,255,255,.62);border-color:rgba(255,255,255,.18)}
+
+/* 2.131.2: sömu litir í öllum uppsetningum – það sem utlit.css (Sonik, party.is) litaði sérstaklega inni í appinu */
+html:not(#atrium-litir) body.kerfi .fab{background:var(--ink)!important;color:var(--surface)!important;border-color:var(--ink)!important}
+html:not(#atrium-litir) body.kerfi #view .uhch h3 .ucnt{background:color-mix(in srgb,var(--ink) 7%,transparent)!important;color:var(--muted)!important}
+html:not(#atrium-litir) body.kerfi #view .ukp :is(svg,i){color:var(--kacc)!important}
+html:not(#atrium-litir) body.kerfi :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t-blu,.t-grn){font-weight:500}

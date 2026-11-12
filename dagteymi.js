@@ -71,15 +71,53 @@
     return hdr + msTxt + leg + `<div class="card dtgrid">${head}${rows || `<div class="empty">Ekkert starfsfólk skráð.</div>`}</div>`;
   }
 
+  /* ---------- Dagatal › Verk (2.131.2): vikan í dálkum – allt með dagsetningu úr pöntunum, verkefnum, tilboðum og reikningum ---------- */
+  let VOFF = 0, VF = "", VMODE = "vika";
+  const VT = { ut: ["Leiga út", "#2F7D57", "#E3F1EA"], inn: ["Leiga inn", "#2F7D57", "#E3F1EA"], afh: ["Afhending", "#B7791F", "#FFF6E5"], skilp: ["Skil pöntunar", "#B7791F", "#FFF6E5"],
+    skil: ["Skil", "#24578A", "#EAF0F6"], hefst: ["Hefst", "#24578A", "#EAF0F6"], vidb: ["Viðburður", "#24578A", "#EAF0F6"], frestur: ["Frestur", "#5E6976", "#F1F3F5"], gjd: ["Gjalddagi", "#5E6976", "#F1F3F5"] };
+  const VGRP = { ut: "afh", inn: "afh", afh: "afh", skilp: "afh", skil: "skil", hefst: "skil", vidb: "skil", frestur: "frestur", gjd: "frestur" };
+  function verkItems(days) {
+    const R = new Map(days.map(d => [d, []])), put = (d, it) => { d = String(d || "").slice(0, 10); if (R.has(d)) R.get(d).push(it); };
+    tr(() => window.salaAPI.PN(), []).forEach(P => { if (["Skilað", "Lokið"].includes(P.stada)) return; const L = P.deild === "leiga", who = P.vidskiptavinur || P.tengilidur || "", nm = [P.nr, P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""].filter(Boolean).join(" ");
+      if (P.fra && P.stada !== "Afhent") put(P.fra, { k: L ? "ut" : "afh", t: hm(P.fra), txt: nm, sub: who, menn: P.starfsmenn || [], need: 1, go: "u1go:pantanir:tb:" + P.id });
+      if (P.til && (P.til !== P.fra || P.stada === "Afhent") && (P.deild === "leiga" || P.deild === "blandad")) put(P.til, { k: L ? "inn" : "skilp", t: hm(P.til), txt: nm, sub: who, menn: P.starfsmenn || [], need: 1, go: "u1go:pantanir:tb:" + P.id }); });
+    tr(() => verkD(), []).forEach(v => { if (tr(() => isDone(v), false)) return; const nm = (v.nr ? v.nr + " " : "") + (v.stutt || ""), who = v.vidskiptavinur || "";
+      if (v.skiladagur) put(v.skiladagur, { k: "skil", t: hm(v.skiladagur), txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
+      if (v.timabilFra) put(v.timabilFra, { k: "hefst", t: "", txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
+      if (v.vidburdur) put(v.vidburdur, { k: "vidb", t: hm(v.vidburdur), txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
+      (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done") put(u.skiladagur, { k: "skil", t: "", txt: (u.nr || "") + " " + (u.heiti || u.nafn || ""), sub: nm, menn: u.abyrgd ? [u.abyrgd] : [], go: "u1go:verk:sub:" + u.id }); }); });
+    tr(() => window.salaAPI.TB(), []).forEach(T => { if (T.stada === "Sent" && T.gildir) put(T.gildir, { k: "frestur", t: "", txt: "Tilboð " + (T.nr || "") + " rennur út", sub: T.vidskiptavinur || "", menn: [], go: "u1go:ltilbod:tb:" + T.id }); });
+    if (tr(() => can("fjarmal"), false)) (S?.reikningar || []).forEach(r => { if (r.gjalddagi && !["Greitt", "Ógilt"].includes(r.stada) && r.nr) put(r.gjalddagi, { k: "gjd", t: "", txt: "Reikningur " + r.nr, sub: r.kaupandi?.name || "", menn: [], go: "u1go:trk:reikn:" + r.id }); });
+    R.forEach(xs => xs.sort((a, b) => String(a.t || "99").localeCompare(String(b.t || "99"))));
+    return R;
+  }
+  function verkView() {
+    const top = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Verk</h2></div><div class="uhr dtnav">${VMODE === "vika" ? `<button type="button" class="btn" data-act="dverk:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dverk:0">Þessi vika</button><button type="button" class="btn" data-act="dverk:1" aria-label="Næsta vika">›</button>` : ""}<span class="dtrng">${VMODE === "vika" ? "{RNG}" : ""}</span><span class="seg dvm"><button type="button" data-act="dverkm:vika" aria-pressed="${VMODE === "vika"}">Vika</button><button type="button" data-act="dverkm:tl" aria-pressed="${VMODE !== "vika"}">Tímalína</button></span></div></div>`;
+    if (VMODE !== "vika") return top.replace("{RNG}", "") + tr(() => window.pfCalHTML(), "");
+    const t = new Date(); t.setHours(12, 0, 0, 0); t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + VOFF * 7);
+    const days = [...Array(5)].map((_, i) => { const x = new Date(t); x.setDate(t.getDate() + i); return iso(x); }), ti = iso(new Date());
+    const f = new Date(days[0] + "T12:00:00"), l = new Date(days[4] + "T12:00:00"), rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
+    const R = verkItems(days), SK = new Map(tr(() => STARFS(), []).map(x => [x.sk, x.nafn]));
+    const chips = [["", "Allt"], ["afh", "Afhendingar og leiga"], ["skil", "Skil og verk"], ["frestur", "Frestir"]].map(([k, l2]) => `<button type="button" class="uchip${VF === k ? " on" : ""}" data-act="dverkf:${k}">${E(l2)}</button>`).join("");
+    const card = it => { const [lab, c, bg] = VT[it.k], av = it.menn.map(sk => `<span class="dvav" title="${E(SK.get(sk) || sk)}">${E(String(sk).slice(0, 2))}</span>`).join("");
+      return `<div class="dvc" data-act="${E(it.go)}" role="button" tabindex="0" style="border-left-color:${c}"><span class="dvt" style="color:${c}">${E(lab)}${it.t ? " · " + E(it.t) : ""}</span><b>${E(it.txt)}</b>${it.sub ? `<small>${E(it.sub)}</small>` : ""}${av ? `<div class="dvavs">${av}</div>` : it.need ? `<span class="dvwarn">Enginn skráður · opna til að bóka</span>` : ""}</div>`; };
+    const cols = days.map(d => { const x = new Date(d + "T12:00:00"), xs = (R.get(d) || []).filter(it => !VF || VGRP[it.k] === VF);
+      return `<section class="dvcol${d === ti ? " dvtd" : ""}"><div class="dvh">${DN[x.getDay()]} ${x.getDate()}. ${MN[x.getMonth()]}</div>${xs.map(card).join("") || `<div class="dvempty">–</div>`}</section>`; }).join("");
+    return top.replace("{RNG}", E(rng)) + `<div class="ulbar dvbar">${chips}<span class="m dvhint">Allt með dagsetningu í pöntunum, verkefnum, tilboðum og reikningum</span></div><div class="dvgrid">${cols}</div>`;
+  }
+
   function act(k, r) {
+    if (k === "dverk") { const n = +r[0]; VOFF = n === 0 ? 0 : VOFF + n; render(); return; }
+    if (k === "dverkf") { VF = r[0] || ""; render(); return; }
+    if (k === "dverkm") { VMODE = r[0] === "tl" ? "tl" : "vika"; render(); return; }
     if (k === "dteymi") { const n = +r[0]; OFF = n === 0 ? 0 : OFF + n; render(); return; }
     if (k === "dtbok") { const [d, em] = r; window.kind = "fund"; try { kind = "fund"; } catch (e) {} window.PREFILL = { date: d }; try { PREFILL = { date: d }; } catch (e) {} openSheet();
       setTimeout(() => { const q = document.getElementById("f-attq"); if (q && em && em !== lc(tr(() => fbMe(), ""))) { q.value = em; q.dispatchEvent(new Event("input", { bubbles: true })); q.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); }
         const t = document.getElementById("f-time"); if (t && !t.value) t.focus(); }, 60); }
   }
-  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act });
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act });
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { dteymi: view });
-  const reg = () => { if (window.UI1V && !UI1V.dteymi) UI1V.dteymi = view; };
+  const reg = () => { if (window.UI1V && !UI1V.dteymi) { UI1V.dteymi = view; UI1V.pndag = verkView; } };
   reg(); document.addEventListener("DOMContentLoaded", reg); setTimeout(reg, 0);
 
   const css = document.createElement("style");
@@ -103,6 +141,19 @@
   .dtadd{position:absolute;right:4px;bottom:3px;width:22px;height:18px;border:1px dashed var(--line);border-radius:5px;background:transparent;color:var(--muted);font:500 13px/1 inherit;cursor:pointer;opacity:0}
   .dtc:hover .dtadd,.dtadd:focus{opacity:1}.dtadd:hover{border-style:solid;color:var(--ink)}
   @media (hover:none){.dtadd{opacity:.7}}
+  .dvm{display:inline-flex;margin-left:12px}.dvm button{border:0;background:transparent;padding:0 12px;min-height:34px;border-radius:8px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}.dvm button[aria-pressed="true"]{background:var(--surface,#fff);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(15,37,48,.1)}
+  .dvbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}.dvhint{margin-left:auto;font-size:12.5px;color:var(--muted)}
+  .dvgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+  .dvcol{background:color-mix(in srgb,var(--line) 55%,transparent);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:120px}
+  .dvcol.dvtd{background:color-mix(in srgb,var(--hi,#24578A) 10%,transparent)}.dvcol.dvtd .dvh{color:var(--hi,#24578A);font-weight:600}
+  .dvh{font-size:13.5px;padding:2px 4px 4px}.dvempty{color:var(--muted);font-size:12px;padding:4px}
+  .dvc{background:var(--surface,#fff);border:1px solid var(--line);border-left:3px solid;border-radius:9px;padding:9px 11px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0}
+  .dvc:hover{box-shadow:0 2px 8px rgba(15,37,48,.08)}
+  .dvt{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .dvc b{font-weight:500;font-size:13.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis}.dvc small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dvavs{display:flex;padding-left:4px;margin-top:4px}.dvav{width:22px;height:22px;border-radius:50%;background:var(--ui1side,#2B3138);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;margin-left:-4px;border:2px solid var(--surface,#fff)}
+  .dvwarn{margin-top:4px;align-self:flex-start;font-size:11px;color:#8A5A00;background:#FFF6E5;border:1px solid #F0D9A8;border-radius:5px;padding:1px 6px}
+  @media (max-width:1023px){.dvgrid{grid-template-columns:minmax(0,1fr)}.dvhint{margin-left:0}}
   @media (max-width:1023px){.dtrow{grid-template-columns:120px repeat(5,minmax(96px,1fr))}.dtleg .dtlh{margin-left:0}}
   `;
   document.head.appendChild(css);
