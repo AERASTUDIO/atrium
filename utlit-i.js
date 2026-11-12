@@ -101,7 +101,7 @@
       // Fyrirsögn hóps sem hefur aðeins eitt atriði hverfur (t.d. ef fyrirtækið notar fáar einingar)
       const g = GRP[x.k] || ""; if (g !== last) { if (g && gN[g] > 1) h += `<div class="sgrp">${g}</div>`; last = g; }
       const on = x === cur && tab !== "leit" && tab !== "stillingar";
-      h += `<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}${BD[x.k] ? " – " + BD[x.k] + " bíða þín" : ""}">${x.ic}<span class="tl">${esc(x.l)}</span>${BD[x.k] ? `<span class="tbid">${BD[x.k]}</span>` : ""}</button>`;
+      h += `<button type="button" class="tab${GRP[x.k] ? " tq" : ""}" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}${BD[x.k] ? " – " + BD[x.k] + " bíða þín" : ""}">${x.ic}<span class="tl">${esc(x.l)}</span>${BD[x.k] ? `<span class="tbid">${BD[x.k]}</span>` : ""}</button>`;
       const vis = x.tabs.filter(t => !t[2]);
       if (on && vis.length > 1 && !x.hdr) {   // 2.104.0: hausflipa-hlutar sýna flipana efst á síðunni (hausflipar.js), ekki hér
         const act = vis.some(t => t[0] === tab) ? tab : x.tabs.some(t => t[0] === tab && t[2] === 2) ? (vis.find(t => t[0] === "vsk" || t[0] === "ltilbod") || vis[0])[0] : vis[0][0];

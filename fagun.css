@@ -146,3 +146,26 @@ html:not(#atrium-litir) body.kerfi .fab{background:var(--ink)!important;color:va
 html:not(#atrium-litir) body.kerfi #view .uhch h3 .ucnt{background:color-mix(in srgb,var(--ink) 7%,transparent)!important;color:var(--muted)!important}
 html:not(#atrium-litir) body.kerfi #view .ukp :is(svg,i){color:var(--kacc)!important}
 html:not(#atrium-litir) body.kerfi :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t-blu,.t-grn){font-weight:500}
+
+/* 2.131.3: stikan eins og á skjámyndunum – loftmeira, aukaliðir (Samskipti, Skrár) án tákna í minna og grárra letri */
+@media (min-width:1024px){
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side{gap:14px!important;padding:22px 14px 16px!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems{gap:2px!important;margin-top:4px}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab{min-height:40px!important;height:40px;padding:0 12px!important;gap:12px!important;font-size:14px!important;font-weight:400;border-radius:8px!important;color:#C9D1DA!important;box-shadow:none!important;background:none!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab svg{width:18px!important;height:18px!important;opacity:1!important;color:currentColor!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab:hover{background:#1E2733!important;color:#fff!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"]{background:#24303E!important;color:#fff!important;font-weight:500!important;box-shadow:none!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] svg{color:#fff!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq{min-height:34px!important;height:34px;font-size:13px!important;color:#8E99A6!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq svg{display:none!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq[aria-current="page"]{color:#fff!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq .tbid{font-size:10.5px;line-height:16px;min-width:16px}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .sgrp{font-size:10.5px!important;letter-spacing:.08em!important;text-transform:uppercase;color:#6B7684!important;font-weight:500!important;padding:8px 12px 4px!important;margin:0!important;border:0!important;background:none!important;height:auto!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab:not(.tq)+.sgrp{margin-top:12px!important;padding-top:16px!important;border-top:1px solid #222C38!important;margin-left:6px!important;margin-right:6px!important;padding-left:6px!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq+.sgrp{margin-top:8px!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side .tbid{background:#24578A!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] .tbid{background:#fff!important;color:#24303E!important}
+  /* samanfelld: aukaliðir fá tákn aftur */
+  html:not(#atrium-litir) body.kerfi.pv.ui1.srail .side nav#sitems .tab.tq svg{display:inline-block!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1.srail .side nav#sitems .tab:not(.tq)+.sgrp{margin:8px 4px!important;padding:0!important;height:1px!important;font-size:0!important}
+}
