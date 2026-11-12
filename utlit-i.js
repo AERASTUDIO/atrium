@@ -116,6 +116,8 @@
     // 2.135.0: eins og á skjámyndinni – „+ Nýtt“ og „Skrá tíma“ hlið við hlið, leitin í sér línu (klukka í gangi kemur í stað Skrá tíma)
     { const r = side?.querySelector(".sqrow"); if (r) { r.querySelector(".sqtim")?.remove(); const st = document.querySelector("#sextra .sx-start"); if (st) { st.remove(); r.insertAdjacentHTML("beforeend", `<button type="button" class="btn sqtim" onclick="kind='tima';PREFILL=null;openSheet()">Skrá tíma</button>`); } } }
     { const ft = document.getElementById("sfoot2"); if (ft && !ft.querySelector(".srefbtn")) ft.insertAdjacentHTML("beforeend", `<button type="button" class="tab srefbtn" title="Endurhlaða – sækja nýjustu útgáfu og gögn" aria-label="Endurhlaða" onclick="atrEndurhlada()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>`); }
+    // 2.138.0 (U2d): Atrium-tákn, Atrium og nafn fyrirtækis efst í stikunni
+    if (side && !side.querySelector(".abrand")) side.insertAdjacentHTML("afterbegin", `<button type="button" class="abrand" aria-label="Atrium – ${esc(window.ORG?.nafn || "")} – forsíða"><span class="abt"><i></i></span><span class="abn"><b>Atrium</b><small>${esc(window.ORG?.nafn || "")}</small></span></button>`);
     const cb = side?.querySelector(".cobrand"); if (cb && !side.querySelector(".srailbtn")) { const b = document.createElement("button"); b.type = "button"; b.className = "srailbtn";
       b.onclick = () => { const on = !document.body.classList.contains("srail"); try { localStorage.setItem("atrium-stika", on ? "rail" : "full"); } catch (e) {} railSet(); }; cb.after(b); }
     railSet();
@@ -456,7 +458,7 @@
   // Upphafsskjárinn opnast aðeins með smelli á merkið efst í vinstri stikunni.
   document.addEventListener("click", e => { const b = e.target.closest('#sitems .tab:not(.tsub)[aria-current="page"]'); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation();
     const t0 = b.dataset.tab; if (tab === t0 && !DETAIL && !window.STSUB) return; DETAIL = null; window.STSUB = null; tab = t0; render(); }, true);
-  document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo"); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
+  document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo, .side .abrand"); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   // Til baka (2.38.0): saga yfir skjái og spjöld sem opnuð eru (flipi, atriði, undirflipi, stillingasíða); ← Til baka, Alt+← og bakhnappur músar
   const NAV = []; let navLast = null, navBusy = false;
   const navNow = () => ({ tab, o: DETAIL || null, d: (typeof DTAB !== "undefined" && DETAIL ? DTAB : null) || null, st: window.STSUB || null });

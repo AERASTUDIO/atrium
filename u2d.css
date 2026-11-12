@@ -1,0 +1,136 @@
+/* U2d (2.138.0) – útlit eftir stílblaðinu „U2d“ á striganum „Atrium – útlitstillögur“.
+   Hlaðið síðast (á eftir fagun.css). Manrope, ljós grunnur, fljótandi glerstika, grafít fyrir það sem skiptir mestu,
+   blár (#2B63A6) aðeins í smáatriðum, 26 px horn á spjöldum, liðir og hnappar sem pillur. */
+@font-face{font-family:"Manrope";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/web/Manrope-400.woff2) format("woff2")}
+@font-face{font-family:"Manrope";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/web/Manrope-500.woff2) format("woff2")}
+@font-face{font-family:"Manrope";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/web/Manrope-600.woff2) format("woff2")}
+@font-face{font-family:"Manrope";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/web/Manrope-700.woff2) format("woff2")}
+
+/* ---------- Letur: aðeins Manrope ---------- */
+html body.kerfi,html body.kerfi :is(button,input,select,textarea,h1,h2,h3,h4,.btn,.tab,.dpop,.stbox,.spurn,.fsk,.hj,.hj-tip,#syncfl){font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif!important}
+html body.kerfi{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+/* ---------- Litir ---------- */
+html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{
+  --bg:#EDEFF2; --surface:#FFFFFF; --ink:#0F1720; --ink2:#3F4A57; --muted:#5E6976; --line:#DFE3E8; --line2:#D3D9E0;
+  --kacc:#2B63A6; --on-kacc:#FFFFFF; --acc-soft:#E7EEF8; --field:#F4F6F8; --hover:#EEF1F4; --accent:#2B63A6;
+  --t-red:#B13E36; --t-amb:#9C6410; --t-grn:#2C7A57; --t-blu:#2B63A6;
+  --gra:#2A3441; --on-gra:#FFFFFF; --gra-soft:#E3E7EC;
+  --glass:rgba(190,195,201,.5); --glass-hi:rgba(255,255,255,.55); --glass-tx:#3F4A57; --glass-mu:#5E6976;
+  --e1:0 2px 4px rgba(15,23,32,.03),0 18px 40px -20px rgba(15,23,32,.22); --e2:0 2px 4px rgba(15,23,32,.04),0 22px 44px -18px rgba(15,23,32,.28);
+}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{
+  --bg:#12171D; --surface:#1C232B; --ink:#E6EAEF; --ink2:#B6C0CB; --muted:#8E99A6; --line:#2C3540; --line2:#36414E;
+  --kacc:#6E9FD6; --on-kacc:#0D1014; --acc-soft:#22344A; --field:#171D24; --hover:#232B34; --accent:#6E9FD6;
+  --t-red:#E58A80; --t-amb:#E0B060; --t-grn:#79C3A0; --t-blu:#6E9FD6;
+  --gra:#E6EAEF; --on-gra:#12171D; --gra-soft:#2A333E;
+  --glass:rgba(44,52,62,.6); --glass-hi:rgba(255,255,255,.07); --glass-tx:#C9D1DA; --glass-mu:#8E99A6;
+  --e1:inset 0 0 0 1px rgba(255,255,255,.04),0 16px 32px -18px rgba(0,0,0,.6); --e2:inset 0 0 0 1px rgba(255,255,255,.06),0 20px 40px -18px rgba(0,0,0,.7);
+}
+html:root body.kerfi #view{background:none!important}
+
+/* ---------- Spjöld: 26 px horn, svífandi skuggi í stað rammalína ---------- */
+html:root body.kerfi #view :is(.card,.ucard,.ukp,.kp,.snjc,.dcard,.pdwrap){border-radius:26px!important;box-shadow:var(--e1)!important;border:0!important}
+html:root body.kerfi #view :is(.ukp.tap,.card[data-act],.ucard[data-act]):hover{box-shadow:var(--e2)!important}
+html:root body.kerfi #view .ucard{padding:22px 24px!important}
+html:root body.kerfi #view .ucard > .uhch{border-bottom:0!important;padding-bottom:8px!important}
+html:root body.kerfi #view :is(.pdsd,.uvc,.dvc,.wi,.sdcard){border-radius:18px!important}
+html:root body.kerfi #sheetwrap :is(#sheet,.sheet){border-radius:26px!important}
+
+/* ---------- Fyrirsagnir ---------- */
+html:root body.kerfi #view :is(.ptitle,.uhead .ptitle,h2.big){font-size:30px!important;font-weight:600!important;letter-spacing:-.025em!important;color:var(--ink)!important}
+html:root body.kerfi #view .uhh .ptitle{font-size:32px!important;font-weight:500!important;letter-spacing:-.03em!important}
+html:root body.kerfi #view .uhh .ptitle b{font-weight:700}
+html:root body.kerfi #view :is(.uhch h3,.card h3,.ucard h3){font-size:16px!important;font-weight:700!important;letter-spacing:-.005em!important}
+html:root body.kerfi #view .uhch h3 .gic{display:none!important}
+html:root body.kerfi #view .uhch h3::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--kacc);margin-right:10px}
+html:root body.kerfi #view :is(.ush,.ush2,.sdsec,.ugrp,thead th,.dow,.spsup){letter-spacing:.06em!important;font-size:11px!important;font-weight:600!important}
+html:root body.kerfi #view .spsup{text-transform:none!important;letter-spacing:0!important;font-size:13px!important;font-weight:500!important;color:var(--muted)!important}
+html:root body.kerfi #view :is(.ukp b,.kp b,.uwk b,.usvc > * b,.kpis .card b){font-weight:500!important;letter-spacing:-.02em!important;font-variant-numeric:tabular-nums}
+html:root body.kerfi #view :is(.ubm b,.urow .t,.uln b){font-weight:600}
+
+/* ---------- Hnappar: pillur, aðalhnappur grafít ---------- */
+html:root body.kerfi :is(#view,#sheetwrap,.side,header) .btn{border-radius:999px!important;font-weight:600!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) .btn.primary.primary{background:var(--gra)!important;color:var(--on-gra)!important;border-color:transparent!important;box-shadow:0 6px 14px -8px rgba(42,52,65,.7)!important}
+html:root body.kerfi :is(#view,#sheetwrap) .btn:not(.primary):not(.pnew){background:var(--hover)!important;border-color:transparent!important;box-shadow:none!important}
+html:root body.kerfi :is(#view,#sheetwrap) .btn:not(.primary):not(.pnew):hover{background:color-mix(in srgb,var(--hover),var(--ink) 5%)!important}
+html:root body.kerfi :is(#view,#sheetwrap) :is(input,select,textarea):not([type=checkbox]):not([type=radio]){border-radius:12px!important}
+html:root body.kerfi :is(#view,#sheetwrap) :is(.chipbtn[aria-pressed="true"],.seg button[aria-pressed="true"]){background:var(--gra)!important;color:var(--on-gra)!important;border-color:transparent!important}
+html:not(#u2a):not(#u2b) body.kerfi .fab{background:var(--gra)!important;color:var(--on-gra)!important;border-color:var(--gra)!important}
+
+/* ---------- Framvinda og línurit: blár ---------- */
+html:root body.kerfi #view :is(.ubar,.pbar,.prog){height:6px!important;border-radius:3px!important;background:var(--line)!important}
+html:root body.kerfi #view :is(.ubar,.pbar,.prog) > *{background:var(--kacc)!important;border-radius:3px!important}
+html:root body.kerfi #view .uwkb i{background:var(--gra-soft)!important;border-radius:8px 8px 4px 4px!important}
+html:root body.kerfi #view .pdsd.today{box-shadow:inset 0 3px 0 var(--kacc)!important;background:var(--acc-soft)!important}
+
+/* ---------- Hreyfing: spjöld svífa inn ---------- */
+@keyframes u2up{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  html:root body.kerfi #view :is(.ucard,.ukp,.uhtop > div > .card,.uh3 > *){animation:u2up .44s cubic-bezier(.2,0,0,1) both}
+  html:root body.kerfi #view :is(.uidr > *:nth-child(2),.uh3 > *:nth-child(2)){animation-delay:.06s}
+  html:root body.kerfi #view :is(.uidr > *:nth-child(3),.uh3 > *:nth-child(3)){animation-delay:.12s}
+}
+
+/* ---------- Vinstri stika: fljótandi glerstika (tölva) ---------- */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1{padding-left:280px!important;--ui1side:transparent}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side{left:16px!important;top:16px!important;bottom:16px!important;width:248px!important;border-radius:28px!important;
+    background:var(--glass)!important;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),inset 0 1px 0 rgba(255,255,255,.6),0 10px 30px -14px rgba(15,23,32,.22)!important;
+    color:var(--glass-tx)!important;padding:20px 14px 14px!important;gap:10px!important;border:0!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 16px 32px -16px rgba(0,0,0,.6)!important}
+  /* Merki: Atrium-tákn, Atrium og nafn fyrirtækis */
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side > .cobrand{display:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .abrand{display:flex;align-items:center;gap:12px;padding:2px 44px 6px 6px;margin:0;border:0;background:none;color:var(--ink);text-align:left;cursor:pointer;order:-5}
+  .abrand .abt{width:40px;height:40px;border-radius:12px;background:var(--gra-tile,#2A3441);display:grid;place-items:center;flex:none;box-shadow:0 6px 14px -6px rgba(42,52,65,.55)}
+  .abrand .abt i{width:24px;height:24px;background:url(icons/atrium-merki-dokk.svg) center/contain no-repeat}
+  .abrand .abn{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+  .abrand .abn b{font-size:16px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+  .abrand .abn small{font-size:13px;color:var(--glass-mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .srailbtn{top:26px!important;left:auto!important;right:14px!important;width:32px!important;height:32px!important;border-radius:10px!important;background:transparent!important;color:var(--glass-mu)!important;font-size:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .srailbtn::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='4.5' width='17' height='15' rx='3'/%3E%3Cpath d='M9.5 4.5v15M15.5 10l-2 2 2 2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='4.5' width='17' height='15' rx='3'/%3E%3Cpath d='M9.5 4.5v15M15.5 10l-2 2 2 2'/%3E%3C/svg%3E") center/contain no-repeat}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .srailbtn:hover{background:var(--glass-hi)!important;color:var(--ink)!important}
+  /* + Nýtt, Skrá tíma og leit */
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .sqrow{gap:6px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .sqrow .btn{height:40px!important;min-height:40px!important;border-radius:999px!important;border:0!important;box-shadow:none!important;font-size:13.5px!important;font-weight:600!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .sqrow .new{background:var(--glass-hi)!important;color:var(--ink)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .sqrow .new svg{color:var(--ink)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .sqrow .sqtim{background:var(--gra)!important;color:var(--on-gra)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .topsearch,html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side :has(> input){background:var(--glass-hi)!important;border:0!important;border-radius:999px!important;color:var(--glass-mu)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .topsearch input{color:var(--ink)!important}
+  /* Liðir */
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab{height:40px!important;min-height:40px!important;padding:0 14px!important;border-radius:999px!important;color:var(--glass-tx)!important;font-weight:500!important;background:none!important;box-shadow:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab:hover{background:var(--glass-hi)!important;color:var(--ink)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"]{background:var(--gra)!important;color:var(--on-gra)!important;font-weight:600!important;box-shadow:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] svg{color:var(--on-gra)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab.tq{height:36px!important;min-height:36px!important;font-size:13.5px!important;color:var(--glass-mu)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab.tq[aria-current="page"]{color:var(--on-gra)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .sgrp{color:var(--glass-mu)!important;opacity:.85;font-weight:600!important;letter-spacing:.07em!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab:not(.tq)+.sgrp{border-top:0!important;margin-top:10px!important;padding-top:10px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .tbid{background:rgba(15,23,32,.08)!important;color:var(--kacc)!important;font-weight:600!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side .tbid{background:rgba(255,255,255,.08)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] .tbid{background:rgba(255,255,255,.22)!important;color:var(--on-gra)!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] .tbid{background:rgba(0,0,0,.12)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .tsubs .tab.tsub{height:32px!important;min-height:32px!important;font-size:13px!important}
+  /* Klukka í gangi og fótur */
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k,html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-start{background:var(--glass-hi)!important;color:var(--ink)!important;border-radius:18px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sfoot2{border-top:0!important;background:var(--glass-hi);border-radius:18px;padding:6px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sfoot2 .tab{color:var(--ink)!important;border-radius:14px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sfoot2 .tab:hover{background:var(--glass-hi)!important}
+  /* Samanfelld stika: 76 px tákn-stika */
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail{padding-left:108px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side{width:76px!important;padding:18px 12px!important;align-items:center}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .abrand{padding:0;flex-direction:column}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .abrand .abn{display:none}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .srailbtn{position:static!important;margin:0 auto!important;transform:scaleX(-1)}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab{width:48px!important;padding:0!important;justify-content:center}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .sqrow .btn{width:44px!important;padding:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail #sfoot2{background:none;padding:0!important}
+}
+/* Sími: sami litur á hnöppum og merkjum */
+@media (max-width:1023px){
+  html body.kerfi .abrand{display:none}
+}
+/* Haus síðunnar: engin lína, rennur saman við grunninn */
+html:not(#u2a):not(#u2b) body.kerfi :is(.phead,.uhead){border-bottom:0!important;background:var(--bg)!important}
