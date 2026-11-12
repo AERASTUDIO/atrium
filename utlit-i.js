@@ -41,15 +41,15 @@
   if (C) C.tabs = [["vsk", "Viðskiptavinir"], ["vskyf", "Yfirlit", 1], ["vskl", "Leiga", 2], ["vsks", "Sala", 2], ["vskt", "Þjónusta", 2]];
   if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); }
   // Verkdagatal (2.68.0): eitt sameiginlegt dagatal í Kjarna – verkefni, pantanir og búnaður (pantanir2.js) – aðskilið persónulega Dagatalinu
-  if (!by("verkdag")) { const VD = { k: "verkdag", l: "Verkdagatal", ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h6M10 16.5h7"/></svg>', tabs: [["pndag", "Verkdagatal"]] };
-    SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(P || V) + 1, 0, VD); }
+  // 2.130.0: eitt Dagatal – Mitt · Verk (áður Verkdagatal, pantanir2.js) · Teymi (dagteymi.js) · Fundir; flipar efst á síðunni
+  { const D = by("dagatal"); if (D) { const fu = D.tabs.find(t => t[0] === "fundir"); D.tabs = [["dagatal", "Mitt"], ["pndag", "Verk"], ["dteymi", "Teymi"], ...(fu ? [["fundir", "Fundir"]] : D.tabs.filter(t => !["dagatal", "pndag", "dteymi"].includes(t[0])))]; D.hdrAlltaf = true; } }
   // Starfsfólk (2.102.0): eigin hluti í Starfsemi (áður Spjall › Samstarfsfólk) – spjald starfsmanns (folk.js)
   { const SP = by("spjall"); if (SP && !by("folk")) { SP.tabs = SP.tabs.filter(t => t[0] !== "teymi");
     SECTIONS_ALL.push({ k: "folk", l: "Starfsfólk", ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.8 14.6c2.4.1 4.1 1.6 4.7 4.4"/></svg>', tabs: [["teymi", "Starfsfólk"]] }); } }
   // Reikningar (2.104.0): Yfirlit fyrst (UI1V.rkyf)
   { const F = by("fjarmal"); if (F && !F.tabs.some(t => t[0] === "rkyf")) F.tabs.unshift(["rkyf", "Yfirlit"]); Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { rkyf: "reikningar" }); }
   // Persónulega dagatalið: fyrsti undirflipi heitir Yfirlit (ekki sama nafn og hlutinn)
-  { const D = by("dagatal"); if (D) D.tabs = D.tabs.map(t => t[0] === "dagatal" ? ["dagatal", "Yfirlit"] : t); }
+
   // Röð í vinstri stiku (2.68.0): Heim, Dagatal, Tímar efst (án fyrirsagnar) · Kjarni · Verkfæri · Samskipti
   // Aðalstarfsemin fremst (2.68.1): röðin er reiknuð í hvert sinn sem stikan er teiknuð (einingar geta breyst þegar stillingar hlaðast)
   const secRank = () => { let rent = false; try { rent = ON("pantanir") && (ON("leiga") || ON("sala")); } catch (e) {}

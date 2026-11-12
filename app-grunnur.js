@@ -74,6 +74,7 @@ function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return 
       if(SV&&window.ORG?.utlit==="I"&&YF[x.k]&&tabs.some(t=>t[0]===YF[x.k])){const yk=YF[x.k], mk=MAIN[x.k], nSv=tabs.filter(t=>SV.has(t[0])).length;
         tabs=tabs.map(t=>t[0]===yk?[yk,"Yfirlit"]:t[0]===mk?[mk,nSv>1&&x.k!=="fjarmal"?({pantanir:"Allar",vidsk:"Allir"}[x.k]||"Öll"):x.l]:SV.has(t[0])?(x.k==="bunadur"?[t[0],nSv===1?"Vörur":t[1]]:nSv>1?[t[0],t[1]]:[t[0],t[1],2]):t);
         tabs=[tabs.find(t=>t[0]===yk),...tabs.filter(t=>t[0]===mk),...tabs.filter(t=>t[0]!==yk&&t[0]!==mk)]; hdr=true;}}
+    if(x.hdrAlltaf&&window.ORG?.utlit==="I"&&tabs.filter(t=>!t[2]).length>1) hdr=true; // 2.130.0: Dagatal – flipar efst
     const vis=tabs.filter(t=>!t[2]); if(!vis.length) return;
     // Ef aðeins ein síða er eftir í hluta (t.d. Reikningar án tímaskráningar) ber hlutinn heiti hennar
     SECTIONS.push({...x,tabs,hdr,l:!hdr&&vis.length===1&&vis.length<x.tabs.filter(t=>!t[2]).length?vis[0][1]:x.l});});

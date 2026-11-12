@@ -273,6 +273,11 @@
     return tload;
   }
   window.fbTeamRefresh = teamRefresh;
+  // 2.130.0: Dagatal › Teymi – Outlook-atriði eins starfsmanns (eigin dagatal fyrir notandann sjálfan) og hleðsla allra
+  window.fbTeamEv = em => { em = String(em || "").toLowerCase(); if (!em) return [];
+    const src = em === myEmail() ? (FB.mine || []) : (FB.team || []).filter(e => (e.hverE || []).includes(em));
+    return src.filter(e => !e.isCancelled && e.showAs !== "free").map(e => ({ s: String(e.start?.dateTime || "").slice(0, 16), e: String(e.end?.dateTime || "").slice(0, 16), t: e.subject || "Upptekin", allDay: !!e.isAllDay })); };
+  window.fbTeamLoad = () => { if (!msOn() || !MS.can(TSH)) return; const w = window.CALWHO; window.CALWHO = w || "*"; try { teamRefresh(); } finally { window.CALWHO = w; } };
   function teamItems(add, known, w, who) {
     if (!who || !teamOk()) return;
     const mine = new Set([...FB.pending, ...FB.mine].map(e => e.iCalUId).filter(Boolean));
