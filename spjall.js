@@ -87,6 +87,28 @@
       try { await DB.commit([{ path: "spjall/" + id, data: d }]); closeSheet(); toast("Deilt með " + (o ? nameOf(o) : "# Almennt")); }
       catch (err) { document.getElementById("spd-ok").disabled = false; document.getElementById("f-msg").innerHTML = `<div class="msg err">${esc(err?.code || err?.message || "Villa")}</div>`; } };
   };
+  // 2.134.1: deila beint úr spjalli – leit í öllu sem hægt er að deila, sent í samtalið sem er opið
+  const fold = x => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ð/g, "d").replace(/þ/g, "th").replace(/æ/g, "ae").replace(/ö/g, "o");
+  function deilanleg() { const tr = f => { try { return f() || []; } catch (e) { return []; } }, K = [];
+    tr(() => verkefni()).slice().sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).forEach(p => { K.push("verk:" + p.id); (p.undirverk || []).filter(u => u.stada !== "Done").forEach(u => K.push("sub:" + u.id)); });
+    [...tr(() => window.salaAPI.TB()), ...tr(() => window.salaAPI.PN())].sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || ""))).forEach(T => K.push("tb:" + T.id));
+    (S?.fundir || []).filter(f => !f.persona).sort((a, b) => String(b.date).localeCompare(String(a.date))).forEach(f => K.push("fund:" + f.id));
+    (S?.reikningar || []).forEach(r => K.push("reikn:" + r.id)); (S?.skjol || []).filter(x => x.snid).forEach(x => K.push("skjal:" + x.id)); (S?.vidskiptavinir || []).forEach(c => K.push("vsk:" + c.id));
+    return K.map(k => ({ k, i: spRefInfo(k) })).filter(x => x.i); }
+  function pick() {
+    const all = deilanleg(), o = otherOf(ras);
+    sheet.innerHTML = `<h3 id="sheet-h">Deila í spjalli · ${esc(ras === "almennt" ? "# Almennt" : nameOf(o))}</h3><div class="sppk"><input id="sppq" type="search" placeholder="Leita – verkefni, undirverk, tilboð, pöntun, fundur, reikningur, skjal…" autocomplete="off" aria-label="Leita"><div class="sppl" id="sppl"></div></div><div class="actions"><button type="button" class="btn" id="spp-x">Hætta við</button></div>`;
+    sheetwrap.hidden = false; const q = document.getElementById("sppq"), L = document.getElementById("sppl");
+    const draw = () => { const w = fold(q.value).split(/\s+/).filter(Boolean), xs = all.filter(x => !w.length || w.every(t => fold([x.i.teg || REFT[x.k.split(":")[0]], x.i.heiti, x.i.sub].join(" ")).includes(t))).slice(0, 40);
+      L.innerHTML = xs.length ? xs.map(x => `<button type="button" class="spref sppi" data-k="${esc(x.k)}"><small>${esc(x.i.teg || REFT[x.k.split(":")[0]] || "")}</small><b>${esc(x.i.heiti)}</b>${x.i.sub ? `<span>${esc(x.i.sub)}</span>` : ""}</button>`).join("") : `<div class="empty">Ekkert fannst.</div>`; };
+    q.oninput = draw; draw(); setTimeout(() => q.focus(), 50);
+    document.getElementById("spp-x").onclick = closeSheet;
+    L.onclick = async e => { const b = e.target.closest(".sppi"); if (!b) return; const k = b.dataset.k, info = spRefInfo(k), el = document.getElementById("sptxt"), texti = (el?.value || "").trim();
+      const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");
+      const d = { id, ras, adilar: o ? [me(), o].map(s => s.toLowerCase()).sort() : [], af: me(), nafn: window.USER?.nafn || me(), texti, ref: { k, teg: info.teg || REFT[k.split(":")[0]] || "", heiti: info.heiti, sub: info.sub || "" }, t: new Date().toISOString() };
+      closeSheet(); if (el) { el.value = ""; el.style.height = ""; }
+      try { await DB.commit([{ path: "spjall/" + id, data: d }]); } catch (err) { if (el) el.value = texti; toast("Tókst ekki að deila: " + (err?.code || err?.message || "villa")); } };
+  }
   window.vSpjall = function () {
     if (typeof DB === "undefined" || !DB?.commit) return `<div class="empty">Spjall er ekki í boði í þessari útgáfu gagnanna.</div>`;
     const m = msgs(ras); if (m.length) setLesid(ras, m[m.length - 1].t);
@@ -95,7 +117,7 @@
     return `<div class="spwrap"><nav class="spchans" id="spchans" aria-label="Rásir">${chanList()}</nav>
       <section class="spconv"><div class="sphead"><b>${ras === "almennt" ? "# Almennt" : esc(ou?.nafn || o)}</b>${o ? `<span>${esc(o)}${ou?.sidast ? " · síðast inni " + esc(fmtDate(ou.sidast)) : ""}</span>` : `<span>${users().length} í teyminu</span>`}</div>
       <div class="spmsgs" id="spmsgs" aria-live="polite">${msgList()}</div>
-      <form id="spform" class="spform"><textarea id="sptxt" rows="1" placeholder="Skrifa skilaboð…" aria-label="Skilaboð" maxlength="4000"></textarea><button class="btn primary" type="submit">Senda</button></form></section></div>`;
+      <form id="spform" class="spform"><button type="button" class="btn spatt" data-act="sppick:" title="Deila verkefni, fundi, tilboði …" aria-label="Deila atriði úr Atrium"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><textarea id="sptxt" rows="1" placeholder="Skrifa skilaboð…" aria-label="Skilaboð" maxlength="4000"></textarea><button class="btn primary" type="submit">Senda</button></form></section></div>`;
   };
   async function send() {
     const el = document.getElementById("sptxt"), texti = (el?.value || "").trim(); if (!texti) return;
@@ -119,6 +141,7 @@
   };
 
   window.spAct = function (k, r) {
+    if (k === "sppick") { pick(); return true; }
     if (k === "spras") { ras = r.join(":"); render(); return true; }
     if (k === "spto") { ras = dmKey(r.join(":")); doAct("tab:spjall"); return true; }
     if (k === "spopen") { ras = r.join(":"); doAct("tab:spjall"); return true; }
