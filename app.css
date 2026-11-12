@@ -1357,3 +1357,4 @@ body.pv.ui1 .splist .rlbar{padding:0 16px}
 .rllit{display:flex;gap:6px;padding-top:8px}
 .rlc{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
 .rlc.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
+.smnext{margin:12px 0 0;padding:10px 14px;font-size:13.5px;background:color-mix(in srgb,var(--hi,#24578A) 7%,var(--surface,#fff));border-color:color-mix(in srgb,var(--hi,#24578A) 25%,var(--line))}.smnext b{font-weight:600}

@@ -27,6 +27,8 @@
   if (B) B.tabs.unshift(["vyfir", "Yfirlit"]);
   Object.assign(window.TAB_EIN = window.TAB_EIN || {}, { tbl: ["tilbod", "leiga"], tbs: ["tilbod", "sala"], tbt: "tilbod", vyfir: () => ON("bunadur") && (ON("leiga") || ON("sala")), tverk: "verkefni",   /* 2.113.1: Core – Vörulisti er aðeins Þjónusta, ekkert yfirlit leigu/sölu */ pnl: ["pantanir", "leiga"], pns: ["pantanir", "sala"], pnt: "pantanir" });
   if (TI) TI.tabs = TI.tabs.map(t => t[0] === "timar" ? ["timar", "Vikan"] : t);
+  // 2.129.0: sömu heiti og í símanum – Í dag og Tímar
+  if (H) H.l = "Í dag"; if (TI) TI.l = "Tímar";
   // Viðskiptavinir eigin hluti í Kjarna (ekki undir Verkefnum)
   let C = by("vidsk");
   if (V && !C) { V.tabs = V.tabs.filter(t => t[0] !== "vsk"); C = { k: "vidsk", l: "Viðskiptavinir", ic: TABDEF.find(t => t[0] === "vsk")[2], tabs: [["vsk", "Viðskiptavinir"]] }; SECTIONS_ALL.splice(SECTIONS_ALL.indexOf(V) + 1, 0, C); }
@@ -89,7 +91,11 @@
   function drawI() {
     _draw();
     const el = document.getElementById("sitems"); if (!el) return;
-    const cur = tab === "upphaf" ? null : secOf(tab); let last = null, h = "";
+    // 2.129.0: virki liðurinn fylgir því sem er opið (verkefni opnað úr Tilboðum → Verkefni), „Til baka“ fylgir leiðinni (NAV)
+    let cur = tab === "upphaf" ? null : secOf(tab); let last = null, h = "";
+    try { if (typeof DETAIL === "string" && DETAIL) { const [dk, did] = [DETAIL.split(":")[0], DETAIL.slice(DETAIL.indexOf(":") + 1)];
+      const k = dk === "tb" ? ((window.salaAPI?.PN() || []).some(P => P.id === did) ? "pantanir" : "tilbod") : ({ verk: "verkefni", reikn: "fjarmal", vsk: "vidsk", vara: "bunadur" })[dk];
+      const x = k && SECTIONS.find(y => y.k === k); if (x) cur = x; } } catch (e) {}
     const rk = secRank(), SX = SECTIONS.filter(x => !x.nobar && !(x.k === "bunadur" && !vlSynd())).sort((x, y) => rk(x) - rk(y)), gN = {}, BD = bidur(); SX.forEach(x => { const g = GRP[x.k] || ""; gN[g] = (gN[g] || 0) + 1; });
     SX.forEach(x => {
       // Fyrirsögn hóps sem hefur aðeins eitt atriði hverfur (t.d. ef fyrirtækið notar fáar einingar)
@@ -103,7 +109,19 @@
       }
     });
     el.innerHTML = h;
+    // 2.129.0: + Nýtt og Leita í einni línu; hnappur til að fella stikuna saman
+    const side = el.closest(".side"), nw = side?.querySelector(".new"), ts = document.querySelector(".topsearch");
+    if (side && nw && ts && !side.querySelector(".sqrow")) { const r = document.createElement("div"); r.className = "sqrow"; nw.before(r); r.append(nw, ts); }
+    const cb = side?.querySelector(".cobrand"); if (cb && !side.querySelector(".srailbtn")) { const b = document.createElement("button"); b.type = "button"; b.className = "srailbtn";
+      b.onclick = () => { const on = !document.body.classList.contains("srail"); try { localStorage.setItem("atrium-stika", on ? "rail" : "full"); } catch (e) {} railSet(); }; cb.after(b); }
+    railSet();
   }
+  // Samanfelld stika (2.129.0): sjálfkrafa undir 1280 px nema notandinn hafi valið annað
+  function railSet() { let pref = ""; try { pref = localStorage.getItem("atrium-stika") || ""; } catch (e) {}
+    const on = wideScr() && (pref === "rail" || (!pref && !matchMedia("(min-width:1280px)").matches)); document.body.classList.toggle("srail", on);
+    const b = document.querySelector(".srailbtn"); if (b) { b.textContent = on ? "»" : "«"; b.title = b.ariaLabel = on ? "Opna stikuna" : "Fella stikuna saman"; } }
+  matchMedia("(min-width:1280px)").addEventListener("change", railSet);
+  document.addEventListener("click", e => { if (document.body.classList.contains("srail") && e.target.closest("#sextra .sx-k") && !e.target.closest("button")) doAct("tab:timar"); });
   window.drawMenu = drawI; try { drawMenu = drawI; } catch (e) {}
 
   /* ---------- Listi og spjald hlið við hlið ---------- */

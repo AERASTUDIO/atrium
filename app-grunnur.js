@@ -65,7 +65,7 @@ if(window.ORG?.pakkaval){const by=k=>SECTIONS_ALL.find(x=>x.k===k), L=by("leiga"
 // Einingar (kjarni.js): flipar og hlutar sem eru ekki virkir hjá þessari uppsetningu eru faldir. Endurreiknað þegar stillingin breytist.
 const SECTIONS=[], TABS=[]; let _einSig=null;
 function applyEin(){const sg=window.einSig?einSig():""; if(sg===_einSig) return false; _einSig=sg;
-  SECTIONS.length=0; const VT=window.isVett&&isVett(); SECTIONS_ALL.forEach(x=>{if(VT&&window.VETT_FELA?.includes(x.k)) return; let tabs=x.tabs.filter(t=>!window.tabOn||tabOn(t[0]));
+  SECTIONS.length=0; const VT=window.isVett&&isVett(); SECTIONS_ALL.forEach(x=>{if(VT&&window.VETT_FELA?.includes(x.k)) return; if(x.k==="fjarmal"&&window.can&&window.USER&&!can("fjarmal")) return; /* 2.129.0: Reikningar aðeins fyrir admin og bókara */ let tabs=x.tabs.filter(t=>!window.tabOn||tabOn(t[0]));
     // 2.103.4: aðeins eitt svið virkt (t.d. Sala hjá Sonik) → engir sviðsundirliðir né Yfirlit í stikunni; hlutinn opnar Yfirlitið (listinn með „Sjá allt →“).
     // Tvö svið eða fleiri → Yfirlit og eitt á hvert svið eins og áður. (SVID_TABS: ui1-skjair.js)
     // 2.104.0 (útlit I): Verkefni, Pantanir, Viðskiptavinir, Tilboð, Reikningar og Vörulisti – einn liður í stikunni; Yfirlit opnast fyrst

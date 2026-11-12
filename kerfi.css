@@ -1168,3 +1168,31 @@ body.kerfi :is(.seg,.hdtabs) button:not([aria-selected="true"]){color:color-mix(
 }
 
 body.ui1 #sitems .tab .tbid{margin-left:auto;background:#3D7BC0;color:#fff;border-radius:999px;font-size:11px;font-weight:600;line-height:18px;min-width:18px;padding:0 6px;box-sizing:border-box;text-align:center}
+
+/* 2.129.0: stikan eins og á skjámyndunum – Nýtt og Leita í einni línu, hnappur til að fella saman, samanfelld stika (srail) */
+.srailbtn{display:none}
+@media (min-width:1024px){
+  :root body.pv.ui1 .side .cobrand{position:relative;padding-right:30px}
+  :root body.pv.ui1 .srailbtn{display:flex;position:absolute;top:18px;left:206px;width:28px;height:28px;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--ui1mu);font:500 15px/1 var(--f-label,inherit);cursor:pointer;z-index:2}
+  :root body.pv.ui1 .srailbtn:hover{background:#363D45;color:#fff}
+  :root body.pv.ui1 .side .sqrow{order:0;display:flex;gap:8px;align-items:stretch;margin:0 0 6px}
+  :root body.kerfi.pv.ui1 .side .sqrow .new{flex:none!important;width:auto!important;align-self:stretch!important;margin:0!important;padding:0 14px!important;min-height:40px!important;border-radius:10px}
+  :root body.pv.ui1 .side .sqrow .topsearch{flex:1 1 auto;min-width:0;min-height:40px;margin:0}
+  /* samanfelld */
+  :root body.pv.ui1.srail{padding-left:68px}
+  :root body.pv.ui1.srail .side{width:68px;padding:14px 10px 12px;overflow-x:hidden}
+  :root body.pv.ui1.srail .srailbtn{position:static;margin:0 auto 6px;order:-3}
+  :root body.pv.ui1.srail .side .cobrand{padding:0;margin:2px 0 8px;justify-content:center}
+  :root body.pv.ui1.srail .side .cobrand .logo,:root body.pv.ui1.srail .side .cobrand .cosep{display:none!important}
+  :root body.pv.ui1.srail .side .cobrand .colog{max-width:40px;max-height:30px;width:auto;height:auto;object-fit:contain;margin:0 auto}
+    :root body.pv.ui1.srail .side .tl,:root body.pv.ui1.srail .side .sgrp,:root body.pv.ui1.srail .tsubs,:root body.pv.ui1.srail .side .topsearch,:root body.pv.ui1.srail #sfoot2 .sfn{display:none!important}
+  :root body.kerfi.pv.ui1.srail .side .sqrow .new{font-size:0!important;padding:0!important;width:48px!important;justify-content:center}
+  :root body.kerfi.pv.ui1.srail .side .sqrow .new svg{margin:0}
+  :root body.pv.ui1.srail .side nav#sitems .tab,:root body.pv.ui1.srail #sfoot2 .tab{justify-content:center;padding:9px 0;position:relative}
+  :root body.pv.ui1.srail .side nav#sitems .tab .tbid{position:absolute;top:3px;right:6px;min-width:8px;width:8px;height:8px;padding:0;font-size:0;line-height:0}
+  :root body.pv.ui1.srail #sextra .sx-k{grid-template-columns:8px;width:48px;box-sizing:border-box;margin:0 auto;padding:12px 0;justify-content:center;justify-items:center;border-radius:10px;cursor:pointer}
+  :root body.pv.ui1.srail #sextra .sx-k>*{display:none!important}
+  :root body.pv.ui1.srail .side .sgrp+.tab,:root body.pv.ui1.srail nav#sitems .sgrp{display:block!important;height:1px;padding:0;margin:6px 4px;background:var(--ui1hi);font-size:0}
+  body.pv.ui1.srail .toast{left:calc(68px + 24px)!important}
+  body.srail #wcodrag{left:68px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 68px)}
+}

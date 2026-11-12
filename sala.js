@@ -935,9 +935,15 @@
         ${canP ? opt("p", true, "Stofna pöntun", `Afhending, lager, skönnun og rukkun – ${nV} ${nV === 1 ? "lína" : "línur"} af búnaði og vörum`) : ""}
         ${canV ? opt("v", dfV, "Stofna verkefni", vinnaEin(T) ? `Vinnan rukkuð eftir unnum tímum${kl ? " – áætlun " + esc(fx(kl)) + " klst." : ""}` : hefurVinnu(T) ? `Heldur utan um vinnuna${kl ? " (" + esc(fx(kl)) + " klst.)" : ""}, tíma og skjöl` : "Heldur utan um vinnu, tíma og skjöl") : ""}</div>` : ""}
       ${PO ? `<p class="hint">Pöntun ${esc(PO.nr)} er þegar til úr þessu tilboði.</p>` : ""}${PR ? `<p class="hint">Tilboðið er þegar tengt verkefni ${esc(PR.nr)}.</p>` : ""}
+      <div class="card smnext" id="sm-next" role="status" aria-live="polite"></div>
       <p class="hint">Eftir samþykki er tilboðið læst. Breytingar eru gerðar í pöntuninni eða í nýrri útgáfu tilboðsins.</p>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="sm-cancel">Hætta við</button><button class="btn primary" id="sm-ok">${ar.length ? "Samþykkja samt" : V ? "Staðfesta" : "Samþykkja"}</button></div></form>`;
     sheetwrap.hidden = false;
+    // 2.129.0: glugginn segir hvað verður til áður en smellt er
+    { const nP0 = +CF().nastaNrP || 1001, vnr0 = canV ? nextProjNr() : "", el = document.getElementById("sm-next");
+      const upd = () => { const p = canP && document.getElementById("sm-p")?.checked, v = canV && document.getElementById("sm-v")?.checked, a = [p && "pöntun P-" + nP0, v && "verkefni " + vnr0].filter(Boolean);
+        el.innerHTML = a.length ? `Þetta býr til <b>${esc(a.join(" og "))}</b> og opnar ${p ? "pöntunina" : "verkefnið"} á eftir.` : "Tilboðið verður merkt samþykkt – ekkert annað verður til."; };
+      document.querySelectorAll("#smf .smopt input").forEach(i => i.addEventListener("change", upd)); upd(); }
     document.getElementById("sm-cancel").onclick = closeSheet;
     document.getElementById("smf").onsubmit = async e => { e.preventDefault(); const ok = document.getElementById("sm-ok"); ok.disabled = true;
       const wP = canP && document.getElementById("sm-p")?.checked, wV = canV && document.getElementById("sm-v")?.checked;
