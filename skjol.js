@@ -20,6 +20,7 @@
   const undirDir = async uid => { try { const u = findSub(uid)?.u, url = u?.serMappa; if (!url || !window.MS?.g) return null;
       const enc = "u!" + btoa(unescape(encodeURIComponent(url))).replace(/=+$/, "").replace(/\//g, "_").replace(/\+/g, "-");
       const it = await MS.g(`/shares/${enc}/driveItem?$select=name,folder,parentReference`); if (!it?.folder) return null;
+      const b = window.odBase ? await odBase() : ""; if (!b.startsWith("/drives/") || it.parentReference?.driveId !== b.slice(8)) return null; /* aðeins ef sérmappan er á drifi fyrirtækisins */
       const pp = String(it.parentReference?.path || "").replace(/^.*?root:\/?/, ""); return decodeURIComponent((pp ? pp + "/" : "") + it.name); } catch (e) { console.warn("Sérmappa undirverks", e); return null; } };
   const dirOf = async (stadur, pid, mappa) => {
     if (stadur === "stofa") return ORG.od.stofa + "/" + (mappa || "Skjöl");
