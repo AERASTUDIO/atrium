@@ -984,7 +984,7 @@
 
   /* ---------- Heim: Yfirlit, Óklárað, Framundan, Tilkynningar ---------- */
   const fmtD = w => { const x = d(w); if (!x) return ""; return dateIS(x); };
-  const att = it => it.open ? tapAttr(it.open.split(":")[0], it.open.slice(it.open.indexOf(":") + 1)) : `data-act="${it.act}" role="button" tabindex="0"`;
+  const att = it => String(it.open || "").startsWith("oreikn") ? `data-act="u1kpf:trk:oreikn" role="button" tabindex="0"` : it.open ? tapAttr(it.open.split(":")[0], it.open.slice(it.open.indexOf(":") + 1)) : `data-act="${it.act}" role="button" tabindex="0"`;
   const tbOn = () => (window.tbOK ? tbOK() : (ON("leiga") || ON("sala")));
   function oklItems(o) {
     const R = [], api = window.salaAPI;
@@ -1073,9 +1073,26 @@
     const seen = new Set(ok.map(it => it.open).filter(Boolean)), bm = [...ok.filter(it => it.dark), ...wn.filter(w => !w.open || !seen.has(w.open)).map(w => ({ k: w.lvl === 1 ? "Svara" : "Viðvörun", title: w.title, sub: w.sub, open: w.open, act: w.act, pill: /Fundarboð/.test(w.title) ? "Svara" : "Opna", dark: w.lvl === 1, warn: w.lvl > 1 })), ...ok.filter(it => !it.dark)];
     // Hnappurinn segir hvað gerist; staðan (Ný, Seint …) fer í efstu línuna
     const VERB = { "Ný": "Afgreiða", "Seint": "Skoða", "Svar": "Fylgja eftir", "Ástand": "Skoða", "Reikningur": "Opna", "Póstur": "Opna", "Opna": "Opna" }, PRIM = new Set(["Staðfesta", "Stofna pöntun", "Búa til", "Skrá sem pantanir", "Svara"]);
-    const verb = it => VERB[it.pill] || it.pill || "Opna", stat = it => VERB[it.pill] && !["Opna", "Póstur", "Reikningur"].includes(it.pill) ? it.pill : "";
+    const stat = it => it.pill && !["Opna", "Póstur", "Reikningur", "Búa til", "Tengja", "Staðfesta", "Stofna pöntun", "Skrá sem pantanir", "Svara", "Panta inn"].includes(it.pill) ? it.pill : "";
+    // 2.131.1: hver lína leiðir á heimastað efnisins – ekkert er framkvæmt beint; hnappurinn segir hvert hann fer
+    const isPn = id => (window.salaAPI?.PN?.() || []).some(P => P.id === id);
+    const dest = it => { const o = String(it.open || ""), [t] = o.split(":"), id = o.slice(o.indexOf(":") + 1), g = (tb, v) => [`data-act="u1go:${tb}:${E(o)}"`, v];
+      if (t === "verk") return g("verk", "Opna verkefni");
+      if (t === "tb") return isPn(id) ? g("pantanir", it.pill === "Ný" ? "Opna pöntun" : "Skoða pöntun") : g("ltilbod", it.pill === "Staðfesta" ? "Skoða og staðfesta" : it.pill === "Stofna pöntun" ? "Skoða tilboðið" : "Opna tilboð");
+      if (t === "reikn") return g("trk", "Opna reikning");
+      if (t === "vara") return g("lvorur", it.pill === "Panta inn" ? "Skoða vöru" : "Skoða ástand");
+      if (t === "fund") return g("dagatal", it.pill === "Svara" ? "Svara" : "Opna fund");
+      if (t === "sub") return g("verk", "Opna undirverk");
+      if (t === "oreikn") return [`data-act="u1kpf:trk:oreikn"`, "Sjá hvað er óreikningsfært"];
+      if (o) return [`data-open="${E(o)}"`, "Opna"];
+      const a = String(it.act || "");
+      if (a === "tab:postur") return [`data-act="tab:postur"`, "Opna pósthólfið"];
+      if (/^u1go:trk/.test(a)) return [`data-act="${E(a)}"`, "Sjá reikningana"];
+      if (/^pntbAll/.test(a)) return [`data-act="${E(a)}"`, "Skrá sem pantanir…"];
+      return [`data-act="${E(a)}"`, "Opna"]; };
+    const verb = it => dest(it)[1];
     const tag = it => [it.grp === "Komið fram yfir" ? "Komið fram yfir" : it.k, stat(it)].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(" · ");
-    const bmRow = it => `<div class="ubm"><i class="ubmd${it.dark ? " d" : it.warn ? " w" : ""}"></i><div class="ubmx"><small>${E(tag(it))}</small><b>${E(it.title)}</b>${it.sub ? `<span>${E(it.sub)}</span>` : ""}</div><button type="button" class="btn${PRIM.has(verb(it)) ? " primary" : ""}" ${att(it)}>${E(verb(it))}</button></div>`;
+    const bmRow = it => `<div class="ubm" ${dest(it)[0]} role="button" tabindex="0"><i class="ubmd${it.dark ? " d" : it.warn ? " w" : ""}"></i><div class="ubmx"><small>${E(tag(it))}</small><b>${E(it.title)}</b>${it.sub ? `<span>${E(it.sub)}</span>` : ""}</div><button type="button" class="btn${it.dark ? " primary" : ""}" ${dest(it)[0]}>${E(verb(it))}</button></div>`;
     const bmH = `<section class="card ucard ubmc" aria-label="Bíður mín"><div class="uhch"><h3>Bíður mín${bm.length ? ` <span class="ucnt">${bm.length}</span>` : ""}</h3>${bm.length > 8 ? `<a href="#" data-act="tab:hfrag">Sjá öll ${bm.length} →</a>` : `<span class="m">Allt sem þarf að bregðast við</span>`}</div>${bm.length ? bm.slice(0, 8).map(bmRow).join("") : `<div class="uempty">Ekkert bíður þín – vel gert.</div>`}</section>`;
     return `<div class="uhead uhh"><div><div class="spsup">${E(dayTitle(today))}</div><h2 class="ptitle">${greet}${first ? ", " + E(first) : ""}</h2></div><div class="uhr"><button type="button" class="btn primary" onclick="openFab()">+ Nýtt</button></div></div>`
       + `<div class="uhtop uidag"><div class="uidl">${bmH}</div><div class="uidr">${vik}${dagskraHTML()}</div></div>`
