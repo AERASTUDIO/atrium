@@ -51,8 +51,8 @@
   // Röð í vinstri stiku (2.68.0): Heim, Dagatal, Tímar efst (án fyrirsagnar) · Kjarni · Verkfæri · Samskipti
   // Aðalstarfsemin fremst (2.68.1): röðin er reiknuð í hvert sinn sem stikan er teiknuð (einingar geta breyst þegar stillingar hlaðast)
   const secRank = () => { let rent = false; try { rent = ON("pantanir") && (ON("leiga") || ON("sala")); } catch (e) {}
-    const ST = rent ? ["pantanir", "verkdag", "bunadur", "verkefni"] : ["verkefni", "pantanir", "verkdag", "bunadur"];
-    const ORD = ["heim", "dagatal", "timar", ...ST, "folk", "vidsk", "tilbod", "fjarmal", "postur", "spjall", "skjol"];
+    // 2.127.0: ferillinn í sömu röð alls staðar – Tilboð → Pantanir → Verkefni – svo vinnan (Tímar, Reikningar, dagatöl); Samskipti og Skrár neðst
+    const ORD = ["heim", "tilbod", "pantanir", "verkefni", "timar", "fjarmal", "dagatal", "verkdag", "postur", "spjall", "vidsk", "bunadur", "folk", "skjol"];
     return x => { const i = ORD.indexOf(x.k); return i < 0 ? (x.k === "meira" ? 999 : 500) : i; }; };
   { const r = secRank(), sorted = SECTIONS_ALL.slice().sort((x, y) => r(x) - r(y)); SECTIONS_ALL.length = 0; sorted.forEach(x => SECTIONS_ALL.push(x)); }
   window.secRank = secRank;
@@ -67,7 +67,17 @@
   coSide(); new MutationObserver(coSide).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   // 2.68.1: Heim, Dagatal og Tímar efst án fyrirsagnar · Starfsemi · Viðskipti · Samskipti (hlutverk, ekki einingar – passar öllum tegundum starfsemi)
-  const GRP = { heim: "Mitt", dagatal: "Mitt", timar: "Mitt", verkefni: "Starfsemi", pantanir: "Starfsemi", verkdag: "Starfsemi", bunadur: "Starfsemi", vidsk: "Viðskipti", tilbod: "Viðskipti", fjarmal: "Viðskipti", postur: "Samskipti", spjall: "Samskipti", skjol: "Samskipti" };
+  // 2.127.0: aðalliðirnir án fyrirsagnar · Samskipti · Skrár (uppflettiskrár)
+  const GRP = { postur: "Samskipti", spjall: "Samskipti", vidsk: "Skrár", bunadur: "Skrár", folk: "Skrár", skjol: "Skrár" };
+  // Tala í stikunni = eitthvað bíður þín (sama og í Óklárað), aldrei fjöldi opinna atriða. Heim sýnir summuna.
+  const BK = { "Tilboð": "tilbod", "Pöntun": "pantanir", "Verkefni": "verkefni", "Lager": "bunadur", "Póstur": "postur" };
+  let bMemo = null, bS = null, bT = 0;
+  const bidur = () => { if (bMemo && bS === S && Date.now() - bT < 3000) return bMemo; const c = {};
+    try { (window.oklItems ? oklItems({ stika: 1 }) : []).forEach(i => { const k = i.k === "Fjármál" ? (i.dark ? "fjarmal" : "") : BK[i.k]; if (k) c[k] = (c[k] || 0) + 1; });
+      const sp = window.spUnread ? +spUnread() || 0 : 0; if (sp) c.spjall = sp; } catch (e) {}
+    c.heim = Object.values(c).reduce((a, n) => a + n, 0); bMemo = c; bS = S; bT = Date.now(); return c; };
+  window.stikaBidur = bidur;
+  const vlSynd = () => { try { return ON("leiga") || ON("sala"); } catch (e) { return true; } };  // Vörulisti í stikunni aðeins með Leigu eða Sölu
   // Símaútlit I (2.46.0, ORG.simi === "I"): síminn notar sama útlit og tölvan (listi og spjald, simi-ui1.css + simi.css);
   // wideScr() = raunverulegur breiður skjár, desk() = tölvuútlitið er í notkun
   const SIMI = window.ORG?.simi === "I";
@@ -80,12 +90,12 @@
     _draw();
     const el = document.getElementById("sitems"); if (!el) return;
     const cur = tab === "upphaf" ? null : secOf(tab); let last = null, h = "";
-    const rk = secRank(), SX = SECTIONS.filter(x => !x.nobar).sort((x, y) => rk(x) - rk(y)), gN = {}; SX.forEach(x => { const g = GRP[x.k] || ""; gN[g] = (gN[g] || 0) + 1; });
+    const rk = secRank(), SX = SECTIONS.filter(x => !x.nobar && !(x.k === "bunadur" && !vlSynd())).sort((x, y) => rk(x) - rk(y)), gN = {}, BD = bidur(); SX.forEach(x => { const g = GRP[x.k] || ""; gN[g] = (gN[g] || 0) + 1; });
     SX.forEach(x => {
       // Fyrirsögn hóps sem hefur aðeins eitt atriði hverfur (t.d. ef fyrirtækið notar fáar einingar)
       const g = GRP[x.k] || ""; if (g !== last) { if (g && gN[g] > 1) h += `<div class="sgrp">${g}</div>`; last = g; }
       const on = x === cur && tab !== "leit" && tab !== "stillingar";
-      h += `<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}">${x.ic}<span class="tl">${esc(x.l)}</span></button>`;
+      h += `<button type="button" class="tab" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}${BD[x.k] ? " – " + BD[x.k] + " bíða þín" : ""}">${x.ic}<span class="tl">${esc(x.l)}</span>${BD[x.k] ? `<span class="tbid">${BD[x.k]}</span>` : ""}</button>`;
       const vis = x.tabs.filter(t => !t[2]);
       if (on && vis.length > 1 && !x.hdr) {   // 2.104.0: hausflipa-hlutar sýna flipana efst á síðunni (hausflipar.js), ekki hér
         const act = vis.some(t => t[0] === tab) ? tab : x.tabs.some(t => t[0] === tab && t[2] === 2) ? (vis.find(t => t[0] === "vsk" || t[0] === "ltilbod") || vis[0])[0] : vis[0][0];

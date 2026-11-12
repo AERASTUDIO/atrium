@@ -984,7 +984,7 @@
   const fmtD = w => { const x = d(w); if (!x) return ""; return dateIS(x); };
   const att = it => it.open ? tapAttr(it.open.split(":")[0], it.open.slice(it.open.indexOf(":") + 1)) : `data-act="${it.act}" role="button" tabindex="0"`;
   const tbOn = () => (window.tbOK ? tbOK() : (ON("leiga") || ON("sala")));
-  function oklItems() {
+  function oklItems(o) {
     const R = [], api = window.salaAPI;
     upcoming().filter(i => daysTo(i.when) < 0).forEach(i => R.push({ grp: "Komið fram yfir", k: "Verkefni", title: i.title, sub: [i.kind, i.nr].filter(Boolean).join(" · "), date: i.when, pill: "Seint", dark: 1, open: i.open }));
     if (window.pnOpnar) { const ti = isoD(today); pnOpnar().forEach(P => { if (P.stada === "Ný") R.push({ grp: "Pantanir", k: "Pöntun", title: (P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""), sub: P.vidskiptavinur || P.tengilidur || "", date: P.fra, pill: "Ný", dark: 1, open: "tb:" + P.id });
@@ -995,7 +995,7 @@
     if (tbOn() && api) api.TB().filter(T => T.stada === "Sent" && daysTo(T.sent || T.dags) <= -7).forEach(T => R.push({ grp: "Svör", k: "Tilboð", title: (T.nr || "") + " " + (T.heiti || ""), sub: "sent " + dateIS(d(T.sent || T.dags)), date: T.sent || T.dags, pill: "Svar", open: "tb:" + T.id }));
     verkD().filter(p => p.stada === STODUR()[0]?.n && !isDone(p)).forEach(p => R.push({ grp: "Svör", k: "Verkefni", title: p.nr + " " + (p.stutt || ""), sub: p.vidskiptavinur || "", date: p.stofnad_t, pill: STODUR()[0].n, open: "verk:" + p.id }));
     if (ON("reikningar") && window.can && can("fjarmal")) {
-      if (window.rkUnbilled) { let h = 0, k = 0; verkefni().forEach(p => { const x = rkUnbilled(p.id); h += sumT(x.es); k += sumK(x.ks); }); if (h >= 1 || k) R.push({ grp: "Fjármál", k: "Fjármál", title: "Óreikningsfært · " + H(h) + " klst.", sub: k ? kr(k) + " í kostnaði" : "", date: "", pill: "Búa til", open: "oreikn:all" }); }
+      if (!o?.stika && window.rkUnbilled) { let h = 0, k = 0; verkefni().forEach(p => { const x = rkUnbilled(p.id); h += sumT(x.es); k += sumK(x.ks); }); if (h >= 1 || k) R.push({ grp: "Fjármál", k: "Fjármál", title: "Óreikningsfært · " + H(h) + " klst.", sub: k ? kr(k) + " í kostnaði" : "", date: "", pill: "Búa til", open: "oreikn:all" }); }
       const og = (S?.reikningar || []).filter(r => r.stada !== "Greitt" && r.stada !== "Ógilt"), late = og.some(r => daysTo(r.gjalddagi) < 0);
       if (og.length === 1) R.push({ grp: "Fjármál", k: "Fjármál", title: "1 ógreiddur reikningur · " + kr(og[0].tot), sub: og[0].kaupandi?.name || "", date: og[0].gjalddagi, pill: late ? "Seint" : "Opna", dark: late, open: "reikn:" + og[0].id });
       else if (og.length) R.push({ grp: "Fjármál", k: "Fjármál", title: og.length + " ógreiddir reikningar · " + kr(og.reduce((a, r) => a + (+r.tot || 0), 0)), sub: late ? "einn eða fleiri komnir fram yfir gjalddaga" : "", date: og.map(r => r.gjalddagi).sort()[0], pill: late ? "Seint" : "Opna", dark: late, act: "u1go:trk:" });
@@ -1005,6 +1005,7 @@
     const ofl = (window.MS_OFL || []).length; if (ON("postur") && ofl) R.push({ grp: "Póstur", k: "Póstur", title: ofl + " " + (ofl === 1 ? "póstur" : "póstar") + " til að tengja verkefni", sub: "Microsoft 365", date: "", pill: "Tengja", act: "tab:postur" });
     return R;
   }
+  window.oklItems = oklItems;
   function framItems(days = 14) {
     const ti = isoD(today), ud = (window.utlDocs && ON("leiga") ? utlDocs() : []).filter(u => !u.T || !window.tbMine || tbMine(u.T)), ux = [];
     ud.forEach(u => { if (u.fra >= ti) ux.push({ when: u.fra, title: u.nr + " " + u.heiti, kind: "Afhending", open: "tb:" + u.T.id, nr: u.vsk }); if (u.til >= ti && u.til !== u.fra) ux.push({ when: u.til, title: u.nr + " " + u.heiti, kind: "Skil", open: "tb:" + u.T.id, nr: u.vsk }); });
