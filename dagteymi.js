@@ -69,8 +69,12 @@
     const lbl = d => { const x = new Date(d + "T12:00:00"); return DN[x.getDay()] + " " + x.getDate() + "."; };
     const top = days.map(d => { const xs = (R.get(d) || []).filter(x => !x.t || toMin(x.t) === null); return `<div class="dwa${d === ti ? " dtt" : ""}">${xs.map(itemHTML).join("")}</div>`; }).join("");
     const cols = days.map(d => { const xs = (R.get(d) || []).filter(x => x.t && toMin(x.t) !== null);
-      const ev = xs.map(x => { const a = Math.max(H0 * 60, toMin(x.t)), e0 = toMin(x.e), b = Math.min(H1 * 60, e0 && e0 > a ? e0 : a + 60);
-        const st = `top:${(a - H0 * 60) / 60 * PXH}px;height:${Math.max(20, (b - a) / 60 * PXH - 3)}px`;
+      // 2.135.0: atriði sem skarast standa hlið við hlið (brautir innan hvers klasa)
+      const sp = xs.map(x => { const a = Math.max(H0 * 60, toMin(x.t)), e0 = toMin(x.e); return { x, a, b: Math.min(H1 * 60, e0 && e0 > a ? e0 : a + 60) }; }).sort((p1, p2) => p1.a - p2.a || p2.b - p1.b);
+      let cl = [], clEnd = -1; const flush = () => { const n = Math.max(...cl.map(c => c.lane)) + 1; cl.forEach(c => c.n = n); cl = []; };
+      sp.forEach(c => { if (c.a >= clEnd && cl.length) flush(); const ends = []; cl.forEach(o2 => { if (o2.b > c.a) ends[o2.lane] = true; }); let l = 0; while (ends[l]) l++; c.lane = l; cl.push(c); clEnd = Math.max(clEnd, c.b); }); if (cl.length) flush();
+      const ev = sp.map(({ x, a, b, lane, n }) => {
+        const st = `top:${(a - H0 * 60) / 60 * PXH}px;height:${Math.max(20, (b - a) / 60 * PXH - 3)}px;left:calc(${lane / n * 100}% + 4px);width:calc(${100 / n}% - 8px);right:auto`;
         const at = x.act ? `data-act="${E(x.act)}" role="button" tabindex="0"` : x.open ? `data-open="${E(x.open)}" role="button" tabindex="0"` : "";
         return `<div class="dwe dwe-${x.k}" style="${st}" ${at}><b>${x.lock ? "🔒 " : ""}${E(x.txt)}</b><small>${E(x.t)}${x.e ? "–" + E(x.e) : ""}</small></div>`; }).join("");
       const now = d === ti ? (() => { const n = new Date(), m = n.getHours() * 60 + n.getMinutes(); return m >= H0 * 60 && m <= H1 * 60 ? `<i class="dwnow" style="top:${(m - H0 * 60) / 60 * PXH}px"></i>` : ""; })() : "";
@@ -151,12 +155,13 @@
       <label>Hvað<input id="bk-h" required placeholder="T.d. Uppsetning í sal, yfirferð teikninga"></label>
       <div class="three"><label>Dagur<input id="bk-d" type="date" value="${E(d)}" required></label><label>Frá<input id="bk-f" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" data-t24 value="${E(t)}"></label><label>Til<input id="bk-t" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" data-t24 value="${E(tl)}"></label></div>
       <label class="chk" id="bk-spl"><input type="checkbox" id="bk-sp" checked><span id="bk-spt">Senda skilaboð í spjalli</span></label>
+      <label class="chk" id="bk-oll"><input type="checkbox" id="bk-ol"${tr(() => window.fbCalOk && fbCalOk(), false) ? " checked" : " disabled"}><span>Senda líka Outlook-boð${tr(() => window.fbCalOk && fbCalOk(), false) ? "" : " (tengdu Microsoft 365)"}</span></label>
       <p class="hint" id="bk-hint"></p>
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="bk-x">Hætta við</button><button class="btn primary" id="bk-ok">Setja á dagatal</button></div></form>`;
     sheetwrap.hidden = false;
     const W = document.getElementById("bk-w"), Lk = document.getElementById("bk-l"), Hh = document.getElementById("bk-h");
     const upd = () => { const w = W.value, P = PP.find(p => p.email === w), f = P ? String(P.nafn).split(" ")[0] : "", min = !w || w === meE;
-      document.getElementById("bk-spl").hidden = min; document.getElementById("bk-spt").textContent = "Senda " + f + " skilaboð í spjalli";
+      document.getElementById("bk-spl").hidden = min; document.getElementById("bk-oll").hidden = min; document.getElementById("bk-spt").textContent = "Senda " + f + " skilaboð í spjalli";
       document.getElementById("bk-hint").textContent = min ? "Fer í þitt dagatal." : `${f} sér þetta í dagatalinu sínu og fær það í „Bíður mín“ til að samþykkja eða hafna. Atrium varar við ef ${f} er upptekin(n) á þessum tíma.`; };
     W.onchange = upd; upd();
     let sel = null;
@@ -180,6 +185,7 @@
           const sk = P?.sk; if (sk && s0?.pnid) { const Q = (s.pantanir || []).find(x => x.id === s0.pnid); if (Q && !(Q.starfsmenn || []).includes(sk)) Q.starfsmenn = [...(Q.starfsmenn || []), sk]; }
           if (sk && pr) { const V = (s.verkefni || []).find(x => x.id === pr.id); if (V && !(V.starfsmenn || []).includes(sk)) V.starfsmenn = [...(V.starfsmenn || []), sk]; } });
         if (!min && document.getElementById("bk-sp")?.checked && window.spSendRef) { try { await spSendRef(w, `Ég setti þig á: ${h} – ${d2.slice(8, 10)}.${d2.slice(5, 7)}. kl. ${f1}–${t1}`, s0?.uid ? "sub:" + s0.uid : s0?.pnid ? "tb:" + s0.pnid : pr ? "verk:" + pr.id : "fund:" + nid); } catch (x) {} }
+        if (!min && document.getElementById("bk-ol")?.checked && window.fbSend) { try { await fbSend(nid); } catch (x) { toast("Outlook-boð fór ekki: " + (x?.message || x)); } }
         closeSheet(); toast(min ? "Sett á dagatalið þitt" : (P?.nafn || w) + " bókaður – fær boðið í Bíður mín"); }
       catch (err) { ok.disabled = false; say(err?.message || String(err)); } };
   }

@@ -111,7 +111,9 @@
     el.innerHTML = h;
     // 2.129.0: + Nýtt og Leita í einni línu; hnappur til að fella stikuna saman
     const side = el.closest(".side"), nw = side?.querySelector(".new"), ts = document.querySelector(".topsearch");
-    if (side && nw && ts && !side.querySelector(".sqrow")) { const r = document.createElement("div"); r.className = "sqrow"; nw.before(r); r.append(nw, ts); }
+    if (side && nw && ts && !side.querySelector(".sqrow")) { const r = document.createElement("div"); r.className = "sqrow"; nw.before(r); r.append(nw); r.after(ts); }
+    // 2.135.0: eins og á skjámyndinni – „+ Nýtt“ og „Skrá tíma“ hlið við hlið, leitin í sér línu (klukka í gangi kemur í stað Skrá tíma)
+    { const r = side?.querySelector(".sqrow"); if (r) { r.querySelector(".sqtim")?.remove(); const st = document.querySelector("#sextra .sx-start"); if (st) { st.remove(); r.insertAdjacentHTML("beforeend", `<button type="button" class="btn sqtim" onclick="kind='tima';PREFILL=null;openSheet()">Skrá tíma</button>`); } } }
     { const ft = document.getElementById("sfoot2"); if (ft && !ft.querySelector(".srefbtn")) ft.insertAdjacentHTML("beforeend", `<button type="button" class="tab srefbtn" title="Endurhlaða – sækja nýjustu útgáfu og gögn" aria-label="Endurhlaða" onclick="atrEndurhlada()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>`); }
     const cb = side?.querySelector(".cobrand"); if (cb && !side.querySelector(".srailbtn")) { const b = document.createElement("button"); b.type = "button"; b.className = "srailbtn";
       b.onclick = () => { const on = !document.body.classList.contains("srail"); try { localStorage.setItem("atrium-stika", on ? "rail" : "full"); } catch (e) {} railSet(); }; cb.after(b); }

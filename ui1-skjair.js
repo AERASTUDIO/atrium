@@ -941,11 +941,15 @@
     const wait = all.filter(T => T.stada === "Sent").sort((a, b) => String(a.sent || a.dags).localeCompare(String(b.sent || b.dags))), drog = all.filter(T => T.stada === "Drög");
     return head("Tilboð", "Yfirlit", nbtn("Tilboð")) + kp4([["Opin tilboð", open.length + " · " + mkr(open.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:opin"], ["Samþykkt 90 daga", won.length + " · " + mkr(won.reduce((a, T) => a + tbSum(T), 0)), "ltilbod:samth"], ["Hlutfall samþykkt", rate, "ltilbod:samth"], ["Bíða svars > 7 daga", wait.filter(T => daysTo(T.sent || T.dags) <= -7).length, "ltilbod:opin"]])
       + svCards(x => { const xs = open.filter(T => hasTeg(T, x)); return { n: xs.length, t: "opin tilboð · " + mkr(xs.reduce((a, T) => a + tbSum(T), 0)) }; }, { Leiga: "tbl", Sala: "tbs", "Þjónusta": "tbt" })
-      // 2.128.0: dálkarnir í röð ferilsins – Drög → Sent (samþykkt af viðskiptavini efst, bíður staðfestingar) → Samþykkt
-      + `<div class="udash">${dcard("Drög", drog.map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)))), "ltilbod", "Engin drög.")}`
-      + dcard("Sent – bíður svars", [...wait.filter(T => T.bidur), ...wait.filter(T => !T.bidur)].map(T => T.bidur ? drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E((T.bidur.nafn || "Viðskiptavinur") + " samþykkti – staðfestu"), "Staðfesta", true)
-        : drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E((T.vidskiptavinur || "") + " · sent " + fmtD(T.sent || T.dags) + (daysTo(T.sent || T.dags) <= -7 ? " · ósvarað " + -daysTo(T.sent || T.dags) + " daga" : "")), kr(tbSum(T)), daysTo(T.sent || T.dags) <= -7)), "ltilbod", "Ekkert bíður svars.")
-      + dcard("Nýlega samþykkt", won.sort((a, b) => String(b.dags).localeCompare(String(a.dags))).map(T => drow(go("ltilbod", "tb:" + T.id), E((T.nr || "") + " " + (T.heiti || "")), E(T.vidskiptavinur || ""), kr(tbSum(T)), true)), "ltilbod", "Ekkert samþykkt síðustu 90 daga.") + `</div>`;
+      // 2.135.0: ferillinn í þremur dálkum – Drög · Sent · Samþykkt/Hafnað (90 dagar)
+      + (() => { const pn = T => (api.PN() || []).find(P => P.tilbodId === T.id), pr = T => T.verkefniId && findProj(T.verkefniId);
+        const card = (T, o = {}) => { const sd = daysTo(T.sent || T.dags), gamalt = T.stada === "Sent" && !T.bidur && sd <= -7, P = pn(T), V = pr(T);
+          const top = T.bidur ? `<span class="tfs ok">${E((T.bidur.nafn || "Viðskiptavinur") + " samþykkti")}</span>` : gamalt ? `<span class="tfs warn">Ósvarað ${-sd} daga</span>` : T.stada === "Hafnað" ? `<span class="tfs no">Hafnað</span>` : T.stada === "Samþykkt" ? `<span class="tfs ok">Samþykkt</span>` : "";
+          const nedst = T.stada === "Samþykkt" ? (P ? "→ pöntun " + E(P.nr || "") : V ? "→ verkefni " + E(V.nr || "") : "") : T.stada === "Hafnað" ? E(T.vidskHafnad?.athugasemd ? "Ástæða: " + T.vidskHafnad.athugasemd : "") : T.stada === "Sent" ? "sent " + E(fmtD(T.sent || T.dags)) : V ? "verkefni " + E(V.nr || "") : "";
+          return `<a class="tfc${gamalt ? " warn" : ""}${T.bidur ? " bid" : ""}" ${go("ltilbod", "tb:" + T.id)}>${top}<small>${E((T.nr || "") + " · " + (T.vidskiptavinur || T.tengilidur || ""))}</small><b>${E(T.heiti || "Tilboð")}</b><span class="tfm">${E(kr(tbSum(T)))}${nedst ? " · " + nedst : ""}</span>${T.bidur ? `<span class="btn primary tfa">Skoða og staðfesta</span>` : ""}</a>`; };
+        const col = (t, xs, empty) => `<section class="tfcol"><div class="tfh"><b>${E(t)}</b><span>${xs.length}${xs.length ? " · " + E(mkr(xs.reduce((a, T) => a + tbSum(T), 0))) : ""}</span></div>${xs.length ? xs.map(T => card(T)).join("") : `<div class="tfe">${E(empty)}</div>`}</section>`;
+        const lokid = [...won, ...lost].sort((a, b) => String(b.samthykkt?.dags || b.dags).localeCompare(String(a.samthykkt?.dags || a.dags)));
+        return `<div class="tfgrid">${col("Drög", drog.sort((a, b) => String(b.dags).localeCompare(String(a.dags))), "Engin drög.")}${col("Sent – bíður svars", [...wait.filter(T => T.bidur), ...wait.filter(T => !T.bidur)], "Ekkert bíður svars.")}${col("Samþykkt / Hafnað · 90 dagar", lokid, "Ekkert síðustu 90 daga.")}</div>`; })();
   };
 
   // 2.104.0: Yfirlit og listi eru aðskildir flipar (hausflipar.js) – yfirlitin eru aftur sér síður
@@ -961,7 +965,7 @@
       + `<div class="udash">${dcard("Óreikningsfært eftir verkefnum", ub.map(x => drow(tapAttr("verk", x.p.id), E((x.p.nr || "") + " " + (x.p.stutt || "")), E(H(x.h) + " klst. · " + (x.p.vidskiptavinur || "")), kr(x.kr))), "trk", "Allt reikningsfært.")}`
       + dcard("Ógreiddir reikningar", og.sort((a, b) => String(a.gjalddagi || "").localeCompare(String(b.gjalddagi || ""))).map(r => drow(tapAttr("reikn", r.id), E(String(r.nr).padStart(3, "0") + " " + (r.kaupandi?.name || "")), E(r.gjalddagi ? "gjalddagi " + fmtD(r.gjalddagi) : ""), kr(r.tot), r.gjalddagi && daysTo(r.gjalddagi) < 0)), "trk", "Engir ógreiddir reikningar.")
       + dcard("Pantanir án reiknings", PO.map(P => drow(`data-act="rkpn:${E(P.id)}" role="button" tabindex="0"`, E((P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : "")), E(P.vidskiptavinur || ""), kr(pnN(P)))), "trk", "Engar afhentar pantanir bíða reiknings.")
-      + veltaSvid(R) + `</div>`;
+      + veltaSvid(R) + `</div>` + (window.snjPulseHTML ? `<div class="rkpuls">${snjPulseHTML()}</div>` : "");
   };
   /* 2.125.0: Velta (án VSK) á árinu eftir sviði og undirflokki – lína reiknings fer á svið eftir tegund (vinna → Þjónusta, leiga, sala),
      undirflokkur úr pöntun eða verkefni reikningsins. Útlagður kostnaður telst ekki til veltu. */

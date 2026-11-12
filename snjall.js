@@ -283,6 +283,7 @@
     return `<section class="card ucard snjc"><div class="uhch"><h3>Hver er hvar</h3><span class="m">í dag</span></div>${tm.map(p => { const s = p.st[0];
       return `<div class="snjr snjp" ${s?.open ? `data-open="${E(s.open)}" role="button" tabindex="0"` : ""}><span class="snjav${s && s.k !== "last" ? " on" : ""}">${E(String(p.sk || "").slice(0, 3))}</span><span class="snjrx"><b>${E(p.nafn)}${p.eg ? ' <span class="m">· þú</span>' : ""}</b><small class="${s ? "k-" + s.k : ""}">${E(s ? s.t : "Ekkert skráð í dag")}</small></span><span class="snjh">${p.h ? H(p.h) + " klst." : ""}</span></div>`; }).join("")}</section>`;
   }
+  window.snjPulseHTML = () => { try { return on() ? pulseHTML() : ""; } catch (e) { return ""; } }; // 2.135.0: Reikningar › Tölur
   function pulseHTML() {
     const p = pulse(); if (!p) return "";
     const d = p.nyt - p.nytL, tile = (l, v, s, cls = "") => `<div class="snjk${cls}"><small>${l}</small><b>${v}</b>${s ? `<span>${s}</span>` : ""}</div>`;

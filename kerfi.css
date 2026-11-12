@@ -1256,3 +1256,27 @@ body.pv.ui1 .spshr:hover{color:var(--ink)}
 .sppt button{flex:1;border:0;background:transparent;min-height:36px;border-radius:8px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}
 .sppt button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(15,23,32,.08)}
 .spref.spfile{border-left-color:#2F7D57}
+/* 2.135.0: Tilboð › Ferill í þremur dálkum */
+.tfgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start;margin-top:4px}
+.tfcol{background:color-mix(in srgb,var(--line) 55%,transparent);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.tfh{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px 6px}.tfh b{font-weight:500;font-size:14px}.tfh span{font-size:12px;color:var(--muted)}
+.tfc{display:flex;flex-direction:column;gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--ink);text-decoration:none;cursor:pointer;min-width:0}
+.tfc:hover{box-shadow:0 2px 8px rgba(15,23,32,.07)}.tfc.warn{border-color:#E7C98B}.tfc.bid{border-color:var(--kacc,#24578A)}
+.tfc small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tfc b{font-weight:500;font-size:14px}
+.tfm{font-size:12px;color:var(--muted)}.tfe{font-size:12.5px;color:var(--muted);padding:6px 4px}
+.tfs{align-self:flex-start;font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:5px;padding:1px 6px}
+.tfs.ok{color:var(--t-grn,#2C7A57);background:color-mix(in srgb,var(--t-grn,#2C7A57) 12%,transparent)}.tfs.warn{color:var(--t-amb,#9C6410);background:color-mix(in srgb,var(--t-amb,#9C6410) 13%,transparent)}.tfs.no{color:var(--t-red,#B13E36);background:color-mix(in srgb,var(--t-red,#B13E36) 12%,transparent)}
+.tfa{margin-top:6px;align-self:flex-start;min-height:32px;padding:0 12px;font-size:12.5px}
+@media (max-width:1023px){.tfgrid{grid-template-columns:minmax(0,1fr)}}
+.rkpuls{margin-top:16px}
+/* 2.135.0: + Nýtt og Skrá tíma hlið við hlið, leit fyrir neðan */
+@media (min-width:1024px){
+  :root body.kerfi.pv.ui1 .side .sqrow .new{flex:1 1 0!important;justify-content:center}
+  :root body.pv.ui1 .side .sqrow .sqtim{flex:1 1 0;min-height:40px;border-radius:10px;border:0;background:#24578A!important;color:#fff!important;font-weight:500}
+  :root body.pv.ui1 .side .sqrow .sqtim:hover{background:#2D67A1!important}
+  :root body.pv.ui1 .side .topsearch{order:0;margin:0 0 6px!important;min-height:40px}
+  :root body.pv.ui1.srail .side .sqrow{flex-direction:column}
+  :root body.pv.ui1.srail .side .sqrow .sqtim{font-size:0!important;width:48px;flex:none;margin:0 auto;padding:0}
+  :root body.pv.ui1.srail .side .sqrow .sqtim::before{content:"▶";font-size:13px}
+}
+@media (min-width:1024px){:root body.pv.ui1 #sextra:not(:has(.sx-k)){display:none!important}}
