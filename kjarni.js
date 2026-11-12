@@ -42,8 +42,7 @@
     vgreind:        ["Verkefnagreining", "Afkoma verkefna í rauntíma (tekjur, kostnaður, framlegð og spá), lokauppgjör við lok verkefnis og tillaga að áætlun út frá fyrri verkefnum", null, 1],
     aukaverk:       ["Aukaverk", "Aukaverk á verkefnum sem viðskiptavinurinn samþykkir með tengli og undirskrift; samþykkt aukaverk fara í áætlun og á reikning", null, 1],
     snjall:         ["Snjall-Heim", "Á Heim: drög að tímaskráningu dagsins (Loka deginum), viðvaranir um áætlun og bókanir, hver er hvar, skipanalína í mæltu máli og rekstrarpúls", null, 1],
-    // Frá 2.95.0: Rekstrarlínur (rlinur.js) – eigin línur fyrirtækisins þvert á svið, t.d. Drykkjaþjónusta. Sjálfgefið óvirk.
-    rlinur:         ["Rekstrarlínur", "Eigin rekstrarlínur fyrirtækisins (t.d. Drykkjaþjónusta) þvert á leigu, sölu og þjónustu: tilboð, pantanir og verkefni merkt línu, sjálfkrafa út frá vöruflokkum, og sía í listum og yfirlitum", null, 1],
+    // 2.125.0: Rekstrarlínur (2.95.0) eru orðnar undirflokkar sviða (Stillingar › Svið) – ekki lengur sér eining; rlinur.js er virk þegar undirflokkar eru skilgreindir.
     // Frá 2.109.0: Innflutningur og kostnaðarverð (innflutningur.js) – tilboð úr verðum erlendra birgja, innkaup og tollskýrsla. Sjálfgefið óvirk.
     innflutningur:  ["Innflutningur og kostnaðarverð", "Tilboð reiknuð úr verðum erlendra birgja (tollverð, tollgengi, aukagjöld, flutningur, álagning), innkaup á pöntunum og tollskýrsla borin saman við áætlun", "sala", 1],
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
@@ -59,7 +58,7 @@
   const PAKKAR = {
     leigasala: ["Leiga og sala", "Vörulisti, leiga, sala, lager, pantanir, QR-merki og innflutningur", ["leiga", "sala", "pantanir", "qr", "innflutningur", "deildir"]],
     afhending: ["Afhending", "Pöntunarferli: staðfesting, greiðsla, pökkun, undirskrift og skil", ["pferli"]],
-    yfirsyn:   ["Yfirsýn", "Verkefnagreining, Snjall-Heim og rekstrarlínur", ["vgreind", "snjall", "rlinur"]]
+    yfirsyn:   ["Yfirsýn", "Verkefnagreining og Snjall-Heim", ["vgreind", "snjall"]]
   };
   const LEIDIR = {
     core:     { heiti: "Core",     d: "Kjarninn – verkefni, tímar, tilboð og reikningsdrög", pakkar: [] },

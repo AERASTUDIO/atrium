@@ -711,10 +711,11 @@
     window.tabOn = t => (!t0 || t0(t)) && (!SVTAB[t] || !hasS() || svidOn(SVTAB[t]));
     const e0 = window.einSig; window.einSig = () => (e0 ? e0() : "") + "|" + (hasS() ? ["Leiga", "Sala", "Þjónusta"].map(k => svidOn(k) ? 1 : 0).join("") : "");
     try { _einSig = null; applyEin(); } catch (e) {} }
-  if (typeof STPAGES !== "undefined") STPAGES.svid = { l: "Svið", d: "Leiga, Sala og Þjónusta – flokkun verkefna og tilboða", s: [], adm: 1, fn: () => {
+  if (typeof STPAGES !== "undefined") STPAGES.svid = { l: "Svið", d: "Leiga, Sala og Þjónusta – flokkun og undirflokkar", s: ["Undirflokkar", "Rekstrarlínur"], adm: 1, fn: () => {
     const row = (k, desc, on, ein) => `<div class="uvs sv"><b><label class="usw" title="${svidOn(k) ? "Slökkva á sviðinu" : "Kveikja á sviðinu"}" style="vertical-align:middle;margin-right:8px"><input type="checkbox"${svidOn(k) ? " checked" : ""}${on ? "" : " disabled"} onchange="doAct('u1svo:${k}:'+(this.checked?1:0))"><i></i></label>${E(k)}</b><span class="m">${E(desc)}</span><input type="text" value="${E(CFG().svid?.[k]?.heiti || "")}" placeholder="${E(k)}" aria-label="Heiti sviðsins ${E(k)}" onchange="doAct('u1svh:${k}:'+this.value)"><span>${ein ? `<a href="#" data-act="stsub:einingar">${!on ? "Eining óvirk" : svidOn(k) ? "Virkt" : "Falið"} ›</a>` : svidOn(k) ? "Virkt" : "Falið"}</span></div>`;
     return `<div class="card ucard"><div class="unote" style="margin-top:0">Verkefni og tilboð flokkast sjálfkrafa á svið eftir línum tilboða og deild verkefnis. Hvert fyrirtæki getur endurnefnt sviðin, t.d. Þjónusta → Tækniþjónusta, og slökkt á sviðum sem það notar ekki – þá hverfa flipar sviðsins úr Verkefnum, Viðskiptavinum, Pöntunum, Tilboðum og Vörulista. Gögnin haldast.</div><div class="uvs sv h"><span>Svið</span><span>Til hvers</span><span>Heiti hjá fyrirtækinu</span><span>Virkt</span></div>`
-      + row("Leiga", "Útleiga á búnaði", ON("leiga"), 1) + row("Sala", "Sala á vörum af lager", ON("sala"), 1) + row("Þjónusta", "Vinna, tæknifólk, uppsetning", true, 0) + `</div>`; } };
+      + row("Leiga", "Útleiga á búnaði", ON("leiga"), 1) + row("Sala", "Sala á vörum af lager", ON("sala"), 1) + row("Þjónusta", "Vinna, tæknifólk, uppsetning", true, 0) + `</div>`
+      + (window.rlCfgHTML ? `<div class="viewtitle" style="margin-top:22px">Undirflokkar</div>${rlCfgHTML()}` : ""); } };
 
   /* ---------- Verkefni › Yfirlit: lykiltölur, opin undirverk og hlutar eftir sviði (Leiga: búnaður og tæknifólk; Sala: vörur) ---------- */
   window.u1VerkYfir = function (id, unb) {
@@ -951,8 +952,22 @@
       + kp4([["Óreikningsfært", mkr(ubK), "trk:oreikn"], ["Ógreitt", og.length + " · " + mkr(sum(og)), "trk:ogr"], ["Fram yfir gjalddaga", late.length + (late.length ? " · " + mkr(sum(late)) : ""), "trk:ogr"], ["Greitt 30 daga", mkr(sum(d30)), "trk:gr"]])
       + `<div class="udash">${dcard("Óreikningsfært eftir verkefnum", ub.map(x => drow(tapAttr("verk", x.p.id), E((x.p.nr || "") + " " + (x.p.stutt || "")), E(H(x.h) + " klst. · " + (x.p.vidskiptavinur || "")), kr(x.kr))), "trk", "Allt reikningsfært.")}`
       + dcard("Ógreiddir reikningar", og.sort((a, b) => String(a.gjalddagi || "").localeCompare(String(b.gjalddagi || ""))).map(r => drow(tapAttr("reikn", r.id), E(String(r.nr).padStart(3, "0") + " " + (r.kaupandi?.name || "")), E(r.gjalddagi ? "gjalddagi " + fmtD(r.gjalddagi) : ""), kr(r.tot), r.gjalddagi && daysTo(r.gjalddagi) < 0)), "trk", "Engir ógreiddir reikningar.")
-      + dcard("Pantanir án reiknings", PO.map(P => drow(`data-act="rkpn:${E(P.id)}" role="button" tabindex="0"`, E((P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : "")), E(P.vidskiptavinur || ""), kr(pnN(P)))), "trk", "Engar afhentar pantanir bíða reiknings.") + `</div>`;
+      + dcard("Pantanir án reiknings", PO.map(P => drow(`data-act="rkpn:${E(P.id)}" role="button" tabindex="0"`, E((P.nr || "") + " " + (P.heiti && P.heiti !== "Pöntun" ? P.heiti : "")), E(P.vidskiptavinur || ""), kr(pnN(P)))), "trk", "Engar afhentar pantanir bíða reiknings.")
+      + veltaSvid(R) + `</div>`;
   };
+  /* 2.125.0: Velta (án VSK) á árinu eftir sviði og undirflokki – lína reiknings fer á svið eftir tegund (vinna → Þjónusta, leiga, sala),
+     undirflokkur úr pöntun eða verkefni reikningsins. Útlagður kostnaður telst ekki til veltu. */
+  function veltaSvid(R) {
+    const y = String(today.getFullYear()), SV = { vinna: "Þjónusta", leiga: "Leiga", sala: "Sala", auka: "Aukagjöld" }, by = {}, RLn = window.RL ? RL() : [];
+    const subOf = r => { const P = (r.pontunIds || []).map(id => (window.salaAPI ? salaAPI.PN() : []).find(x => x.id === id)).find(Boolean); const p = findProj(r.verkefniId || (r.verkefniIds || [])[0]);
+      const k = (P && window.rlOf && rlOf(P)) || (p && window.rlOf && rlOf(p)) || ""; return RLn.find(x => x.id === k)?.heiti || ""; };
+    R.filter(r => String(r.dags || "").startsWith(y)).forEach(r => { const sub = subOf(r);
+      (r.linur || []).filter(l => !l.haus && l.flokkur !== "kostn").forEach(l => { const sv = SV[l.flokkur] || "Þjónusta", a = Math.round((+l.magn || 0) * (+l.verd || 0)); if (!a) return;
+        const o = by[sv] = by[sv] || { t: 0, s: {} }; o.t += a; if (sub) o.s[sub] = (o.s[sub] || 0) + a; }); });
+    const keys = Object.keys(by).sort((a, b) => by[b].t - a.t), tot = keys.reduce((s, k) => s + by[k].t, 0);
+    const bar = (l, v, sub) => `<div class="ubr"${sub ? ' style="padding-left:14px"' : ""}><span>${E(l)}</span><div class="ubar"><i style="width:${tot ? Math.max(2, v / tot * 100) : 0}%"></i></div><span>${E(kr(v))}</span></div>`;
+    return dcard("Velta " + y + " eftir sviði" + (RLn.length ? " og undirflokki" : ""), keys.flatMap(k => [bar(window.svidHeiti ? svidHeiti(k) : k, by[k].t), ...Object.entries(by[k].s).sort((a, b) => b[1] - a[1]).map(([s, v]) => bar(s, v, 1))]), "trk", "Enginn reikningur á árinu.");
+  }
   U.timyf = function () {
     const a = mondayOf(today), fs = faerslur(), wk = fs.filter(e => d(e.date) >= a), g = goal();
     const staff = STARFS().filter(x => fs.some(e => e.starfsmadur === x.sk));

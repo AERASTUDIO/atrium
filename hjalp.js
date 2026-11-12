@@ -50,6 +50,7 @@
     "Hlutar á Heim": "Hvaða spjöld birtast á Heim.",
     "Viðvaranir": "Hvenær appið varar við – t.d. áætlun að klárast eða tvíbókaður búnaður.",
     "Loka deginum – byggt á": "Hvaðan drög að tímaskráningu dagsins koma (dagatal, pöntunum, verkefnum).",
+    "Undirflokkar": "Skiptu sviði í hluta (t.d. Leiga › Drykkjaþjónusta). Verk fá flokk sjálfkrafa út frá vöruflokkum; listar síast eftir flokki og Reikningar sýna veltu eftir flokki.",
     "Undirskrift í pósti": "Neðst í tölvupósti sem sendur er úr appinu."
   };
   const norm = s => String(s || "").replace(/\s+/g, " ").trim();
