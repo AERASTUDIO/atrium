@@ -103,7 +103,7 @@ function dSub(u,p){
   const tabs=[["yfirlit","Yfirlit"],["timar","Tímar",tl.length?num(h):""],["skrar","Skjöl",nDoc||""],["tilbod","Tilboð",tbs.length||""],["stillingar","Stillingar"]]
     .filter(t=>t[0]==="timar"?ON("timar"):t[0]==="tilbod"?!!window.tbUndirTab&&!!window.tbOK&&tbOK():t[0]==="skrar"?ON("skjol")||!!m:true); fixTab(tabs);
   const head=backBar()+`<div class="kicker"><span class="nr">${esc(u.nr)}</span>${statusPill(u.stada)}${u.skiladagur&&u.stada!=="Done"?relPill(daysTo(u.skiladagur)):""}</div>
-  <h2 class="big" style="margin-top:6px">${esc(subName(u))}</h2><p class="sub" style="margin-bottom:0">Undirverk í ${projLink(p)}${ab?" · ábyrgð: "+esc(ab):""}</p>`+dtabs(tabs);
+  <h2 class="big" style="margin-top:6px">${esc(subName(u))}</h2><p class="sub" style="margin-bottom:0">Undirverk í ${projLink(p)}${ab?" · ábyrgð: "+esc(ab):""}${window.atrAv&&(u.abyrgd||(u.starfsmenn||[]).length)?` <span class="atavs">${[...new Set([u.abyrgd,...(u.starfsmenn||[])].filter(Boolean))].map(sk=>atrAv(sk,sk===u.abyrgd?"ábyrgð":"á undirverkinu")).join("")}</span>`:""}</p>`+dtabs(tabs);
   let body="";
   if(DTAB==="yfirlit"){const pc=ak?Math.round(h/ak*100):0;
     body=`${klukkaBanner(p)}

@@ -758,7 +758,7 @@
       const nd = (S?.skjol || []).filter(x => x.undirverkId === u.id && x.snid).length, nt = window.tbUndir ? tbUndir(u.id).length : 0, ab = u.abyrgd ? (STARFS().find(x => x.sk === u.abyrgd)?.nafn || u.abyrgd).split(" ")[0] : "";
       return `<a class="uvc" ${tapAttr("sub", u.id)}><span class="uvct"><b>${E(subName(u))}</b>${pill(STL[u.stada] || u.stada, u.stada === "In progress")}</span><small class="nr">${E(u.nr || "")}</small>
         <span class="uvcp"><i style="width:${ak ? Math.min(100, pc) : 0}%;${pc > 100 ? "background:var(--t-red,#B13E36)" : ""}"></i></span>
-        <span class="uvcm">${H(hh)}${ak ? " af " + H(ak) : ""} klst.${u.skiladagur ? " · skil " + E(fmtD(u.skiladagur)) : ""}${ab ? " · " + E(ab) : ""}${nd ? " · " + nd + " skjöl" : ""}${nt ? " · " + nt + " tilboð" : ""}</span></a>`; };
+        <span class="uvcm">${(() => { const M = [...new Set([u.abyrgd, ...(u.starfsmenn || [])].filter(Boolean))]; return M.length && window.atrAv ? `<span class="atavs" style="margin-right:6px">${M.map(sk => atrAv(sk, sk === u.abyrgd ? "ábyrgð" : "á undirverkinu")).join("")}</span>` : ""; })()}${H(hh)}${ak ? " af " + H(ak) : ""} klst.${u.skiladagur ? " · skil " + E(fmtD(u.skiladagur)) : ""}${nd ? " · " + nd + " skjöl" : ""}${nt ? " · " + nt + " tilboð" : ""}</span></a>`; };
     h += `<div class="ush2"><span>Undirverk${ou.length ? " · " + ou.length + " opin" : ""}</span><a href="#" data-act="dtab:undir">Öll undirverk →</a></div>` + (ou.length ? `<div class="uvcs">${ou.map(ucard).join("")}</div>` : `<div class="usub" style="padding:6px 0">Engin opin undirverk.</div>`);
     return `<div class="uvy">${h}</div>`;
   };

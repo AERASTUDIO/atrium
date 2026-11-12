@@ -38,9 +38,9 @@
     tr(() => verkD(), []).forEach(v => { if (!p.sk || !(v.starfsmenn || []).includes(p.sk) || !v.timabilFra) return; const f0 = String(v.timabilFra).slice(0, 10), t0 = String(v.timabilTil || v.timabilFra).slice(0, 10);
       days.forEach(d => { if (d >= f0 && d <= t0) put(d, { k: "v", t: "", txt: (v.nr ? v.nr + " " : "") + (v.stutt || ""), open: "verk:" + v.id }); }); });
     // Skil verkefna og undirverka sem viðkomandi er á
-    tr(() => verkD(), []).forEach(v => { if (!p.sk || !(v.starfsmenn || []).includes(p.sk)) return;
-      if (v.skiladagur && !tr(() => isDone(v), false)) put(String(v.skiladagur).slice(0, 10), { k: "s", t: "", txt: "Skil " + (v.nr || "") + " " + (v.stutt || ""), open: "verk:" + v.id });
-      (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done" && (!u.abyrgd || u.abyrgd === p.sk)) put(String(u.skiladagur).slice(0, 10), { k: "s", t: "", txt: "Skil " + (u.nr || "") + " " + (u.heiti || u.nafn || ""), open: "sub:" + u.id }); }); });
+    tr(() => verkD(), []).forEach(v => { if (!p.sk) return; const aV = (v.starfsmenn || []).includes(p.sk);
+      if (aV && v.skiladagur && !tr(() => isDone(v), false)) put(String(v.skiladagur).slice(0, 10), { k: "s", t: "", txt: "Skil " + (v.nr || "") + " " + (v.stutt || ""), open: "verk:" + v.id });
+      (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done" && (u.abyrgd === p.sk || (u.starfsmenn || []).includes(p.sk) || (aV && !u.abyrgd && !(u.starfsmenn || []).length))) put(String(u.skiladagur).slice(0, 10), { k: "s", t: "", txt: "Skil " + (u.nr || "") + " " + tr(() => subName(u), u.heiti || u.nafn || ""), open: "sub:" + u.id }); }); });
     // Skráðir tímar (liðnir dagar og í dag): hvar viðkomandi vann, klst. á verkefni
     { const ti = iso(new Date()), sum = new Map();
       tr(() => S.timar.faerslur, []).forEach(e => { const d = String(e.date || "").slice(0, 10); if (d < a || d > b || d > ti || (e.starfsmadur || e.sk) !== p.sk) return;
@@ -138,6 +138,17 @@
   }
   window.vidbForm = vidbForm;
 
+  /* ---------- Starfsmannstákn (2.136.0): upphafsstafir; músarbendill sýnir fullt nafn, hlutverk og stöðu núna ---------- */
+  const ROLEH = { admin: "Admin", bokari: "Bókari", starfsmadur: "Starfsmaður", vettvangur: "Vettvangur" };
+  window.atrStada = sk => { const P = folk().find(x => x.sk === sk) || { sk, nafn: sk, email: lc(tr(() => skEmail(sk), "")) }, n = new Date(), d = iso(n), nm = pad(n.getHours()) + ":" + pad(n.getMinutes());
+    const R = atridi(P, [d]).get(d) || [], nu = R.filter(x => x.t && x.e && x.t <= nm && nm < x.e).sort((a, b) => String(b.e).localeCompare(String(a.e)))[0];
+    const naest = R.filter(x => x.t && x.t > nm && x.k !== "t").sort((a, b) => String(a.t).localeCompare(String(b.t)))[0];
+    const u = tr(() => (window.nuUsers ? nuUsers() : []).find(x => x.sk === sk), null), hl = ROLEH[u?.hlutverk] || "";
+    const st = nu ? `Upptekin(n) til ${nu.e} – ${nu.txt}` : R.some(x => x.k === "e" && !x.t) ? "Fjarverandi í dag" : naest ? `Laus núna · næst kl. ${naest.t}: ${naest.txt}` : "Laus núna";
+    return { nafn: P.nafn || sk, hl, st, upptekin: !!nu }; };
+  window.atrAv = (sk, tag) => { const s = tr(() => atrStada(sk), { nafn: sk, hl: "", st: "" }), ini = String(sk || "").slice(0, 2).toUpperCase();
+    return `<span class="atav${s.upptekin ? " busy" : ""}" title="${E([s.nafn, s.hl, tag, s.st].filter(Boolean).join(" · "))}" aria-label="${E(s.nafn)}">${E(ini)}</span>`; };
+
   /* ---------- Bóka starfsmann (2.134.2): fundur/bókun þar sem starfsmaðurinn er boðaður – hann fær boðið í Bíður mín og skilaboð í spjalli ---------- */
   // Það sem er til og má setja á dagatal: verkefni, opin undirverk og opnar pantanir
   function tengjanleg() { const L = [];
@@ -205,7 +216,7 @@
       if (v.skiladagur) put(v.skiladagur, { k: "skil", t: hm(v.skiladagur), txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
       if (v.timabilFra) put(v.timabilFra, { k: "hefst", t: "", txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
       if (v.vidburdur) put(v.vidburdur, { k: "vidb", t: hm(v.vidburdur), txt: nm, sub: who, menn: v.starfsmenn || [], go: "u1go:verk:verk:" + v.id });
-      (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done") put(u.skiladagur, { k: "skil", t: "", txt: (u.nr || "") + " " + (u.heiti || u.nafn || ""), sub: nm, menn: u.abyrgd ? [u.abyrgd] : [], go: "u1go:verk:sub:" + u.id }); }); });
+      (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done") put(u.skiladagur, { k: "skil", t: "", txt: (u.nr || "") + " " + tr(() => subName(u), u.heiti || u.nafn || ""), sub: nm, menn: [...new Set([u.abyrgd, ...(u.starfsmenn || [])].filter(Boolean))], go: "u1go:verk:sub:" + u.id }); }); });
     tr(() => window.salaAPI.TB(), []).forEach(T => { if (T.stada === "Sent" && T.gildir) put(T.gildir, { k: "frestur", t: "", txt: "Tilboð " + (T.nr || "") + " rennur út", sub: T.vidskiptavinur || "", menn: [], go: "u1go:ltilbod:tb:" + T.id }); });
     if (tr(() => can("fjarmal"), false)) (S?.reikningar || []).forEach(r => { if (r.gjalddagi && !["Greitt", "Ógilt"].includes(r.stada) && r.nr) put(r.gjalddagi, { k: "gjd", t: "", txt: "Reikningur " + r.nr, sub: r.kaupandi?.name || "", menn: [], go: "u1go:trk:reikn:" + r.id }); });
     R.forEach(xs => xs.sort((a, b) => String(a.t || "99").localeCompare(String(b.t || "99"))));
@@ -219,7 +230,7 @@
     const f = new Date(days[0] + "T12:00:00"), l = new Date(days[4] + "T12:00:00"), rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
     const R = verkItems(days), SK = new Map(tr(() => STARFS(), []).map(x => [x.sk, x.nafn]));
     const chips = [["", "Allt"], ["afh", "Afhendingar og leiga"], ["skil", "Skil og verk"], ["frestur", "Frestir"]].map(([k, l2]) => `<button type="button" class="uchip${VF === k ? " on" : ""}" data-act="dverkf:${k}">${E(l2)}</button>`).join("");
-    const card = it => { const [lab, c, bg] = VT[it.k], av = it.menn.map(sk => `<span class="dvav" title="${E(SK.get(sk) || sk)}">${E(String(sk).slice(0, 2))}</span>`).join("");
+    const card = it => { const [lab, c, bg] = VT[it.k], av = it.menn.map(sk => window.atrAv(sk)).join("");
       return `<div class="dvc" data-act="${E(it.go)}" role="button" tabindex="0" style="border-left-color:${c}"><span class="dvt" style="color:${c}">${E(lab)}${it.t ? " · " + E(it.t) : ""}</span><b>${E(it.txt)}</b>${it.sub ? `<small>${E(it.sub)}</small>` : ""}${av ? `<div class="dvavs">${av}</div>` : it.need ? `<span class="dvwarn">Enginn skráður · opna til að bóka</span>` : ""}</div>`; };
     const cols = days.map(d => { const x = new Date(d + "T12:00:00"), xs = (R.get(d) || []).filter(it => !VF || VGRP[it.k] === VF);
       return `<section class="dvcol${d === ti ? " dvtd" : ""}"><div class="dvh">${DN[x.getDay()]} ${x.getDate()}. ${MN[x.getMonth()]}</div>${xs.map(card).join("") || `<div class="dvempty">–</div>`}</section>`; }).join("");
@@ -298,6 +309,9 @@
   .dvc:hover{box-shadow:0 2px 8px rgba(15,37,48,.08)}
   .dvt{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
   .dvc b{font-weight:500;font-size:13.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis}.dvc small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .atav{width:22px;height:22px;border-radius:50%;background:var(--ui1side,#2B3138);color:#fff;font-size:9px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;margin-left:-4px;border:2px solid var(--surface,#fff);cursor:default;position:relative}
+  .atav.busy::after{content:"";position:absolute;right:-2px;bottom:-2px;width:7px;height:7px;border-radius:50%;background:#B7791F;border:1.5px solid var(--surface,#fff)}
+  .atavs{display:inline-flex;padding-left:4px;vertical-align:middle}
   .dvavs{display:flex;padding-left:4px;margin-top:4px}.dvav{width:22px;height:22px;border-radius:50%;background:var(--ui1side,#2B3138);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;margin-left:-4px;border:2px solid var(--surface,#fff)}
   .dvwarn{margin-top:4px;align-self:flex-start;font-size:11px;color:#8A5A00;background:#FFF6E5;border:1px solid #F0D9A8;border-radius:5px;padding:1px 6px}
   @media (max-width:1023px){.dvgrid{grid-template-columns:minmax(0,1fr)}.dvhint{margin-left:0}}
