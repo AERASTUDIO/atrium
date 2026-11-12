@@ -1196,3 +1196,29 @@ body.ui1 #sitems .tab .tbid{margin-left:auto;background:#3D7BC0;color:#fff;borde
   body.pv.ui1.srail .toast{left:calc(68px + 24px)!important}
   body.srail #wcodrag{left:68px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 68px)}
 }
+
+/* 2.131.0: Í dag – Bíður mín vinstra megin, Vikan og Dagurinn hægra megin */
+body #view .uhtop.uidag{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:start}
+body #view .uidr{display:flex;flex-direction:column;gap:var(--s3,16px)}
+body #view .uidr>section{margin:0!important}
+body #view .uh3.uid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ubmc .uhch .m{font-size:12.5px;color:var(--muted)}
+.ubm{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.ubmd{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:var(--muted);opacity:.6}.ubmd.d{background:#24578A;opacity:1}.ubmd.w{background:#B7791F;opacity:1}
+.ubmx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ubmx small{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ubmx b{font-weight:400;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ubmx span{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ubm .btn{flex:none;white-space:nowrap}
+@media (max-width:1100px){body #view .uhtop.uidag,body #view .uh3.uid2{grid-template-columns:minmax(0,1fr)}}
+/* Stikan: notandinn neðst með stillingahjól til hægri */
+@media (min-width:1024px){
+  :root body.pv.ui1 #sfoot2{margin-top:auto!important;flex-direction:row!important;align-items:center!important;gap:4px!important;padding-top:12px!important}
+  :root body.pv.ui1 #sfoot2 .sfu{order:0;flex:1 1 auto;min-width:0}
+  :root body.pv.ui1 #sfoot2 .tab[data-tab="stillingar"]{order:1;flex:none;width:40px!important;height:40px;padding:0!important;justify-content:center}
+  :root body.pv.ui1 #sfoot2 .tab[data-tab="stillingar"] .tl{display:none!important}
+  :root body.pv.ui1 #sextra .sx-start{background:#24578A!important;color:#fff!important;border:0!important;min-height:40px;border-radius:10px;font-weight:500}
+  :root body.pv.ui1.srail #sfoot2{flex-direction:column!important}
+  :root body.pv.ui1.srail #sextra .sx-start{font-size:0!important;width:48px;margin:0 auto;padding:0}
+  :root body.pv.ui1.srail #sextra .sx-start::before{content:"▶";font-size:13px}
+}

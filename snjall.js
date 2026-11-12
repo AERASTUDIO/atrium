@@ -29,7 +29,7 @@
   const staffName = sk => tr(() => (STARFS().find(x => x.sk === sk) || {}).nafn, "") || sk;
   const DN = ["sun", "mán", "þri", "mið", "fim", "fös", "lau"];
   /* ---------- Stillingar (2.54.0): sjálfgefið < fyrirtækið (S.stillingar.heim) < notandinn (notandi/{netfang}.snjall) ---------- */
-  const DEF = { hlutar: ["cmd", "loka", "vidv", "hver", "pulse"], fela: [], vidv: { yfir: 105, tvib: 14, ostad: 2, skil: 3, af: [] }, loka: { af: [] } };
+  const DEF = { hlutar: ["cmd", "loka", "vidv", "hver", "pulse"], fela: ["hver", "pulse"], /* 2.131.0: Hver er hvar → Dagatal › Teymi; Rekstrarpúls valfrjáls */ vidv: { yfir: 105, tvib: 14, ostad: 2, skil: 3, af: [] }, loka: { af: [] } };
   const HL = { cmd: ["Skipanalína", "Skráðu í mæltu máli, t.d. „2 tímar á Hótel Lind í gær – teikningar“"], loka: ["Loka deginum", "Drög að tímaskráningu dagsins úr fundum, skönnunum og athugasemdum"],
     vidv: ["Viðvaranir", "Yfir áætlun, tvíbókaður búnaður, óstaðfestar afhendingar og skil án tíma"], hver: ["Hver er hvar", "Staða teymisins í dag – aðeins í tölvu"], pulse: ["Rekstrarpúls", "Óinnheimt, reikningshæft, nýting – aðeins með fjármálaaðgang, í tölvu"] };
   const VT = { yfir: "Verkefni yfir eða stefnir yfir áætlun", tvib: "Tvíbókaður búnaður", ostad: "Óstaðfest afhending", skil: "Skil nálgast og enginn tími skráður" };
@@ -273,6 +273,7 @@
     const h = ds.reduce((a, x) => a + tr(() => hoursBetween(x.fra, x.til), 0), 0);
     return `<button type="button" class="snjban" onclick="snjLokaDeginum()"><span class="snjbi">✓</span><span class="snjbx"><b>Loka deginum</b><small>${ds.length} ${ds.length === 1 ? "tillaga" : "tillögur"} að skráningu · ${H(h)} klst.${phone() ? "" : " úr fundum, skönnunum og athugasemdum"}</small></span><span class="snjbg">Fara yfir →</span></button>`;
   }
+  window.snjWarnings = () => on() && showPart("vidv") ? warnings() : [];
   function warnHTML(max = 6) {
     const ws = warnings(); if (!ws.length) return `<section class="card ucard snjc"><div class="uhch"><h3>Viðvaranir</h3></div><div class="snjempty">Ekkert sem þarf að vara við – allt á áætlun.</div></section>`;
     return `<section class="card ucard snjc"><div class="uhch"><h3>Viðvaranir <span class="m">${ws.length}</span></h3></div>${ws.slice(0, max).map(w => rowH(w.open, `<i class="snjdot l${w.lvl}"></i>`, w.title, w.sub, " l" + w.lvl)).join("")}${ws.length > max ? `<div class="snjmore">+ ${ws.length - max} í viðbót</div>` : ""}</section>`;
@@ -296,7 +297,7 @@
     const U = window.UI1V; if (!U || !U.yfirlit || U.yfirlit.__snj) return !!(U && U.yfirlit && U.yfirlit.__snj);
     const o = U.yfirlit; U.yfirlit = function () { let h = o.apply(this, arguments); if (!on()) return h;
       const O = order().filter(showPart), F = { cmd: cmdHTML, loka: bannerHTML, vidv: () => warnHTML(), hver: teamHTML, pulse: pulseHTML };
-      const top = O.filter(k => k === "cmd" || k === "loka").map(k => F[k]()).join(""), gi = O.filter(k => !["cmd", "loka"].includes(k)).map(k => F[k]()).join("");
+      const top = O.filter(k => k === "cmd" || k === "loka").map(k => F[k]()).join(""), gi = O.filter(k => !["cmd", "loka", "vidv"].includes(k)).map(k => F[k]()).join(""); /* 2.131.0: viðvaranir eru í „Bíður mín“ */
       const grid = gi ? `<div class="snjgrid">${gi}</div>` : "";
       h = h.replace('<div class="uhtop">', top + '<div class="uhtop">'); h = h.replace('<div class="uh3">', grid + '<div class="uh3">'); return h; };
     U.yfirlit.__snj = 1; return true;

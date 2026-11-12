@@ -11,7 +11,7 @@
   /* ---------- Hlutar og undirflipar ---------- */
   const by = k => SECTIONS_ALL.find(x => x.k === k);
   const H = by("heim"), V = by("verkefni"), T = by("tilbod"), B = by("bunadur"), P = by("pantanir"), TI = by("timar");
-  if (H) H.tabs = [["yfirlit", "Yfirlit"], ["hfrag", "Óklárað"], ["hfram", "Framundan"], ["hnyl", "Tilkynningar"]];
+  if (H) H.tabs = [["yfirlit", "Í dag"], ["hfrag", "Óklárað", 1], ["hfram", "Framundan", 1], ["hnyl", "Tilkynningar", 1]]; // 2.131.0: Í dag er ein síða
   if (V) V.tabs = V.tabs.map(t => t[0] === "verk" ? ["verk", "Öll verkefni"] : t[0] === "lverk" ? ["lverk", "Leiga"] : t[0] === "sverk" ? ["sverk", "Sala"] : t[0] === "undir" ? ["undir", "Undirverk", 1] : t);
   // 2.113.1: án leigu og sölu (t.d. leiðin Core) heitir hlutinn Þjónusta – hann geymir aðeins þjónustuliði tilboða
   if (B) { const l0 = B.l; Object.defineProperty(B, "l", { configurable: true, get: () => (typeof ON === "function" && !ON("leiga") && !ON("sala")) ? "Þjónusta" : l0 }); }
@@ -59,7 +59,7 @@
   { const r = secRank(), sorted = SECTIONS_ALL.slice().sort((x, y) => r(x) - r(y)); SECTIONS_ALL.length = 0; sorted.forEach(x => SECTIONS_ALL.push(x)); }
   window.secRank = secRank;
   if (T) { const i0 = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i0 > 0) T.tabs.unshift(T.tabs.splice(i0, 1)[0]); T.tabs.push(["tbyf", "Yfirlit", 1]); } // 2.70.0: Tilboð ein síða – yfirlitið efst í listanum
-  if (TI) TI.tabs.unshift(["timyf", "Yfirlit"]);
+  if (TI) { TI.tabs.push(["timyf", "Yfirlit", 1]); TI.hdrAlltaf = true; } // 2.131.0: Tímar opnast á Vikunni, flipar efst
   Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: "verkefni", tbyf: "tilbod", timyf: "timar" });
   // 2.113.2: Core (hvorki leiga né sala) – sviðsflipar og sviðsflögur (Þjónusta) falla út; listinn sjálfur er þá „allt“
   { const fl = (...k) => () => k.every(x => ON(x)) && (ON("leiga") || ON("sala")); Object.assign(window.TAB_EIN, { tverk: fl("verkefni"), tbt: fl("tilbod"), vskt: fl("vidskiptavinir"), pnt: fl("pantanir") }); }

@@ -1068,12 +1068,18 @@
     const kl = ON("timar") ? (k ? (() => { const q = findProj(k.pid); return `<section class="card ucard uklk on"><small>Klukka í gangi${q ? " · " + E([q.nr, q.stutt].filter(Boolean).join(" ")) : ""} · <button type="button" class="klink" data-act="kedit" title="Breyta upphafstíma, verkefni eða lýsingu">frá kl. ${E(hhmm(k.start))} ✎</button></small><div class="uklr"><b class="kt" data-start="${E(k.start)}">${elapsed(k)}</b><div class="uklb"><button type="button" class="btn" onclick="stopKlukka()">■ Stoppa og skrá</button><button type="button" class="btn" data-act="kedit" title="Breyta klukku">✎ Breyta</button><button type="button" class="btn uklx" data-act="kcancel" title="Hætta við – skrá ekki tímann" aria-label="Hætta við klukku">✕</button></div></div><small class="m2">${tinfo}</small></section>`; })()
       : `<section class="card ucard uklk"><small>Stimpilklukka · engin klukka í gangi</small><div class="uklr"><b>0:00:00</b><button type="button" class="btn" onclick="const v=document.getElementById('u1klp')?.value;v?doAct('kstart:'+v):(kind='tima',PREFILL={timer:true},openSheet())">▶ Byrja klukku</button></div><label class="uklp"><small>Verkefni</small><select id="u1klp"><option value="">Velja verkefni…</option>${ps.map(p => `<option value="${E(p.id)}">${E(p.nr + " " + (p.stutt || ""))}</option>`).join("")}</select></label><small class="m2">${tinfo}</small></section>`) : "";
     const ok = oklItems(), fr = framItems(7), tk = tilkItems().filter(x => !u1Seen(x));
-    const l = ORG.merki || ORG.logo || {}, src = l.ljos || l.dokk || "";
+    // 2.131.0: Í dag eins og á skjámyndunum – Bíður mín (allt sem þarf að bregðast við, einn smellur hvert) · Vikan þín · Dagurinn
+    const wn = (() => { try { return window.snjWarnings ? snjWarnings() : []; } catch (e) { return []; } })();
+    const seen = new Set(ok.map(it => it.open).filter(Boolean)), bm = [...ok.filter(it => it.dark), ...wn.filter(w => !w.open || !seen.has(w.open)).map(w => ({ k: w.lvl === 1 ? "Svara" : "Viðvörun", title: w.title, sub: w.sub, open: w.open, act: w.act, pill: /Fundarboð/.test(w.title) ? "Svara" : "Opna", dark: w.lvl === 1, warn: w.lvl > 1 })), ...ok.filter(it => !it.dark)];
+    // Hnappurinn segir hvað gerist; staðan (Ný, Seint …) fer í efstu línuna
+    const VERB = { "Ný": "Afgreiða", "Seint": "Skoða", "Svar": "Fylgja eftir", "Ástand": "Skoða", "Reikningur": "Opna", "Póstur": "Opna", "Opna": "Opna" }, PRIM = new Set(["Staðfesta", "Stofna pöntun", "Búa til", "Skrá sem pantanir", "Svara"]);
+    const verb = it => VERB[it.pill] || it.pill || "Opna", stat = it => VERB[it.pill] && !["Opna", "Póstur", "Reikningur"].includes(it.pill) ? it.pill : "";
+    const tag = it => [it.grp === "Komið fram yfir" ? "Komið fram yfir" : it.k, stat(it)].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(" · ");
+    const bmRow = it => `<div class="ubm"><i class="ubmd${it.dark ? " d" : it.warn ? " w" : ""}"></i><div class="ubmx"><small>${E(tag(it))}</small><b>${E(it.title)}</b>${it.sub ? `<span>${E(it.sub)}</span>` : ""}</div><button type="button" class="btn${PRIM.has(verb(it)) ? " primary" : ""}" ${att(it)}>${E(verb(it))}</button></div>`;
+    const bmH = `<section class="card ucard ubmc" aria-label="Bíður mín"><div class="uhch"><h3>Bíður mín${bm.length ? ` <span class="ucnt">${bm.length}</span>` : ""}</h3>${bm.length > 8 ? `<a href="#" data-act="tab:hfrag">Sjá öll ${bm.length} →</a>` : `<span class="m">Allt sem þarf að bregðast við</span>`}</div>${bm.length ? bm.slice(0, 8).map(bmRow).join("") : `<div class="uempty">Ekkert bíður þín – vel gert.</div>`}</section>`;
     return `<div class="uhead uhh"><div><div class="spsup">${E(dayTitle(today))}</div><h2 class="ptitle">${greet}${first ? ", " + E(first) : ""}</h2></div><div class="uhr"><button type="button" class="btn primary" onclick="openFab()">+ Nýtt</button></div></div>`
-      + `<div class="uhtop">${vik}${kl}</div>`
-      + `<div class="uh3">${hcard("Óklárað", ok.length, "Ekkert óklárað – vel gert.", ok, "hfrag", it => it.title + (it.sub ? " · " + it.sub : ""))}${hcard("Framundan", fr.length, "Ekkert næstu 7 daga.", fr, "hfram", it => relW(it.date) + (it.time ? " " + it.time : "") + " · " + it.title)}${hcard("Tilkynningar", tk.length, "Engar nýjar tilkynningar.", tk, "hnyl", it => it.title + (it.sub ? " · " + it.sub : ""))}</div>`
-      + dagskraHTML()
-      + (src ? `<div class="h2logo"><img src="${E(src)}" alt="${E(ORG.nafn || "")}"></div>` : `<div class="h2logo txt">${E(ORG.nafn || "")}</div>`);
+      + `<div class="uhtop uidag"><div class="uidl">${bmH}</div><div class="uidr">${vik}${dagskraHTML()}</div></div>`
+      + `<div class="uh3 uid2">${hcard("Framundan", fr.length, "Ekkert næstu 7 daga.", fr, "hfram", it => relW(it.date) + (it.time ? " " + it.time : "") + " · " + it.title)}${hcard("Tilkynningar", tk.length, "Engar nýjar tilkynningar.", tk, "hnyl", it => it.title + (it.sub ? " · " + it.sub : ""))}</div>`;
   };
   // Dagskrá dagsins neðst á Heim › Yfirlit (2.52.1): fundir, skil og viðburðir dagsins + afhendingar og skil pantana, í tímaröð
   function dagskraHTML() {
@@ -1087,7 +1093,7 @@
     });
     ag.sort((x, y) => (x.time || "99").localeCompare(y.time || "99"));
     const rows = ag.map(a => `<div class="udsr${a.late ? " late" : ""}" ${a.open ? `data-open="${E(a.open)}" role="button" tabindex="0"` : ""}><span class="udst">${E(a.time || "–")}</span><span class="udsx"><b>${E(a.title)}</b>${a.sub ? `<small>${E(a.sub)}</small>` : ""}</span><span class="r">${pill(a.kind, a.late ? "late" : "")}</span></div>`).join("");
-    return `<section class="card ucard udags"><div class="uhch"><h3>Dagskrá dagsins${ag.length ? ` <span class="m">${ag.length}</span>` : ""}</h3><a href="#" data-act="tab:dagatal">Dagatal →</a></div>${rows || `<div class="uempty">Ekkert á dagskrá í dag.</div>`}</section>`;
+    return `<section class="card ucard udags"><div class="uhch"><h3>Dagurinn${ag.length ? ` <span class="m">${ag.length}</span>` : ""}</h3><a href="#" data-act="tab:dagatal">Dagatal →</a></div>${rows || `<div class="uempty">Ekkert á dagskrá í dag.</div>`}</section>`;
   }
   // Lesnar tilkynningar (á þessu tæki)
   const SEENK = "u1seen:" + (window.ORG?.lsForskeyti || "");
