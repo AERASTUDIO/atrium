@@ -122,6 +122,9 @@
       b.onclick = () => { const on = !document.body.classList.contains("srail"); try { localStorage.setItem("atrium-stika", on ? "rail" : "full"); } catch (e) {} railSet(); }; cb.after(b); }
     railSet();
     try { window.u1Bell && u1Bell(); } catch (e) {}
+    // 2.140.0 (U2d): raðir lista sem standa beint í .splist fara saman í spjald (.uwl.u2wrap)
+    requestAnimationFrame(() => { try { document.querySelectorAll("#view .splist").forEach(sl => { const kids = [...sl.children].filter(c => c.matches(".ucols,.urow,.ugrp,.uempty") && !c.closest(".uwl,.u2wrap")); if (!kids.length) return;
+      const w = document.createElement("div"); w.className = "u2wrap"; kids[0].before(w); kids.forEach(k => w.append(k)); }); } catch (e) {} });
   }
   // 2.135.3: „+ Nýtt“ opnar val um hvað á að búa til (Skrá tíma opnar tímaskráningu beint)
   window.nyttMenu = () => { const on = k => { try { return ON(k); } catch (e) { return false; } }, mcp = (() => { try { return !!MCP; } catch (e) { return true; } })(), fj = window.can && can("fjarmal"), vett = window.isVett && isVett();

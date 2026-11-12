@@ -238,3 +238,78 @@ html body.kerfi #view .u2pf{display:flex;justify-content:space-between;margin-to
 .adrw .idr select{width:auto!important;min-width:72px;flex:none!important;margin:0!important}
 .adrw .tkx b{font-weight:600!important}
 html body.kerfi #view .u2sers{background:var(--surface)!important;box-shadow:0 1px 2px rgba(15,23,32,.06)!important}
+
+/* ---------- 2.140.0: allar síður í U2d ---------- */
+/* Haus-flipar og síur sem pillur á fölum ferli */
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.hdtabs,.seg){display:inline-flex!important;width:auto!important;flex:none!important;gap:2px!important;padding:4px!important;border-radius:999px!important;background:color-mix(in srgb,var(--ink) 6%,transparent)!important;border:0!important;box-shadow:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.hdtabs,.seg) button{flex:none!important;min-width:0!important;width:auto!important;height:34px!important;min-height:34px!important;padding:0 16px!important;border-radius:999px!important;border:0!important;background:transparent!important;font-size:13px!important;font-weight:500!important;box-shadow:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.hdtabs button[aria-selected="true"],.seg button[aria-pressed="true"],.seg button.on){background:var(--surface)!important;color:var(--ink)!important;font-weight:600!important;box-shadow:0 1px 3px rgba(15,23,32,.10)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .ultool{border-bottom:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .ultool .uchips{border-radius:999px!important;padding:4px!important;background:color-mix(in srgb,var(--ink) 6%,transparent)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .ultool .uchip{border-radius:999px!important;height:30px!important;font-weight:500!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .ultool .uchip.on{background:var(--surface)!important;color:var(--ink)!important;font-weight:600!important;box-shadow:0 1px 3px rgba(15,23,32,.10)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .uchips:not(.splist .ultool .uchips) .uchip{border-radius:999px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .uchips:not(.splist .ultool .uchips) .uchip.on{background:var(--gra)!important;color:var(--on-gra)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spfilt{border-radius:999px!important;background:var(--surface)!important;border:0!important;box-shadow:0 1px 2px rgba(15,23,32,.05),inset 0 0 0 1px var(--line)!important}
+/* Listar sem spjald */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .splist .uwl{margin:4px var(--s6,32px) 28px!important;background:var(--surface);border-radius:26px;box-shadow:var(--e1);overflow:hidden;padding:4px 0}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .splist{background:var(--bg)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .uwl .ucols{background:transparent!important;border-bottom:1px solid var(--line)!important;padding-top:14px!important;padding-bottom:10px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .uwl .ugrp{background:color-mix(in srgb,var(--ink) 3%,var(--surface))!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .uwl .urow{background:transparent!important;min-height:58px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .uwl .urow:hover{background:var(--hover)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .uwl .urow.sel{background:var(--acc-soft)!important;box-shadow:inset 3px 0 0 var(--kacc)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .uwl .urow .t{font-weight:600!important}
+  /* Opið atriði: fljótandi spjald til hægri */
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .split:not(.nodet) .spdet{margin:16px 16px 16px 0!important;border-radius:26px!important;border:0!important;box-shadow:var(--e2)!important;background:var(--surface)!important;overflow:auto}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .split:not(.nodet) .splist{border-right:0!important}
+  /* Bjallan víkur ekki fyrir tólum opins spjalds – tólin færast */
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .spdet .spx{right:84px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .spdet .spexp{right:126px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .spdet .spwin{right:168px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .spdet .spshr{right:210px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .spdet :is(.spx,.spexp,.spwin,.spshr){border-radius:50%!important;border:0!important;background:var(--hover)!important}
+}
+/* Flipar inni í opnu atriði */
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.dtabs,.vtabs) button[aria-selected="true"],html:not(#u2a):not(#u2b) body.kerfi #view :is(.dtabs,.vtabs) button.on{color:var(--ink)!important;box-shadow:inset 0 -2px 0 var(--gra)!important;font-weight:600!important}
+/* Merki (pillur) */
+html:not(#u2a):not(#u2b) body.kerfi #view .upill{font-weight:600!important}
+/* 2.140.0: samanfelld stika lagfærð */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .sgrp{display:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .sqrow{flex-direction:column!important;align-items:center!important;gap:6px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .sqrow .btn{width:44px!important;height:40px!important;min-height:40px!important;padding:0!important;font-size:0!important;gap:0!important;justify-content:center!important;display:inline-flex!important;align-items:center!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .sqrow .new svg{width:18px!important;height:18px!important;margin:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .sqrow .sqtim::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7.5V12l3 2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7.5V12l3 2'/%3E%3C/svg%3E") center/contain no-repeat}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab{position:relative!important;height:44px!important;min-height:44px!important;width:48px!important;margin:0 auto!important;gap:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab.tq svg{display:inline-block!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab .tbid{position:absolute!important;top:2px!important;right:0!important;margin:0!important;min-width:16px!important;height:16px!important;line-height:16px!important;padding:0 4px!important;font-size:9.5px!important;background:var(--kacc)!important;color:#fff!important;display:block!important;text-indent:0!important;width:auto!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab[aria-current="page"] .tbid{background:var(--kacc)!important;box-shadow:0 0 0 2px var(--gra)}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail #sfoot2{align-items:center}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side :is(.topsearch,#sextra){display:none!important}
+}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.hdtabs,.seg){min-width:0!important;max-width:max-content!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .ultool .uchips{border-radius:20px!important}
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .splist .u2wrap{margin:4px var(--s6,32px) 28px;background:var(--surface);border-radius:26px;box-shadow:var(--e1);overflow:hidden;padding:4px 0}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .split:not(.nodet) .splist .u2wrap{margin:4px 16px 24px}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .u2wrap .urow{background:transparent!important;min-height:58px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .u2wrap .urow:hover{background:var(--hover)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .u2wrap .urow.sel{background:var(--acc-soft)!important;box-shadow:inset 3px 0 0 var(--kacc)!important;border-left:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .u2wrap .ucols{background:transparent!important;padding-top:14px!important}
+}
+/* Núna-lína: blá */
+html body.kerfi :is(.dwnow,.dgrid .nowl){border-top-color:var(--kacc)!important}
+html body.kerfi .dwnow::before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--kacc)}
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view :is(.splist .mlist,.llist){margin:0 var(--s4,16px) 18px!important;background:var(--surface)!important;border-radius:22px!important;box-shadow:var(--e1)!important;overflow:hidden;border:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view :is(.splist .mlist,.llist) > *{background:transparent!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view :is(.splist .mlist,.llist) > *:hover{background:var(--hover)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .splist .mlist > [aria-current],html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .splist .mlist > .sel{background:var(--acc-soft)!important;box-shadow:inset 3px 0 0 var(--kacc)!important;border-left:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .splist .mgroup{background:transparent!important;padding-left:28px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .splist :is(.mgroup,.mlist){border:0!important}
+}
+html:not(#u2a):not(#u2b) body.kerfi #view .seg button:is([aria-current="true"],[aria-current="page"],[aria-selected="true"],.sel){background:var(--surface)!important;color:var(--ink)!important;font-weight:600!important;box-shadow:0 1px 3px rgba(15,23,32,.10)!important}
+html body.kerfi #view .usug button{background:var(--surface)!important;color:var(--kacc)!important;border:0!important;border-radius:999px!important;font-weight:600!important}
+html:not([data-theme="light"]) body.kerfi .u2bell{box-shadow:0 0 0 1px rgba(255,255,255,.12),0 8px 20px -10px rgba(0,0,0,.6)!important;background:#33404F!important}
