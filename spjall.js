@@ -27,7 +27,9 @@
   // Kveikt þegar gögn appsins eru komin (aeraStart kallar á spStart)
   window.spStart = function (db) {
     if (started || !db?.watchCol || !me()) return; started = true;
-    const notify = (prev, next) => { if (!seenFirst) return; const nyr = next.filter(m => m.af !== me() && !prev.some(p => p.id === m.id));
+    // 2.137.2: aðeins skilaboð sem berast eftir að appið opnaðist og eru ólesin – ekki gömul skilaboð við hverja endurhleðslu
+    const T0 = new Date(Date.now() - 5000).toISOString();
+    const notify = (prev, next) => { if (!seenFirst) return; const L = lesid(); const nyr = next.filter(m => m.af !== me() && !prev.some(p => p.id === m.id) && String(m.t) > T0 && String(m.t) > (L[m.ras] || ""));
       if (nyr.length && !(onPage() && nyr.every(m => m.ras === ras))) toast("Ný skilaboð frá " + nameOf(nyr[nyr.length - 1].af)); };
     db.watchCol("spjall", ["ras", "almennt"], r => { const prev = ALM; ALM = r.docs; notify(prev, ALM); seenFirst = true; refresh(); }, e => console.warn("Spjall", e));
     db.watchCol("spjall", ["adilar", me(), "array-contains"], r => { const prev = DM; DM = r.docs; notify(prev, DM); refresh(); }, e => console.warn("Spjall (bein)", e));
