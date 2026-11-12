@@ -194,7 +194,7 @@
   // Texti um greiðslu í staðfestingarpósti þegar viðskiptavinur er í staðgreiðslu og pöntun ógreidd
   window.pnGreidsluHTML = P => { if (!P || hattur(P) !== "stadgreitt" || P.greitt) return "";
     const R = tr(() => S.stillingar.reikn, {}) || {}, t = totOf(P);
-    return `<div style="margin:14px 0;padding:12px 14px;border:1px solid #E3E7EB;border-left:3px solid #24578A;border-radius:8px;background:#F5F8FB">
+    return `<div style="margin:14px 0;padding:12px 14px;border:1px solid #E3E7EB;border-left:3px solid #2B63A6;border-radius:8px;background:#F5F8FB">
       <p style="margin:0 0 6px"><b>Greiða þarf pöntunina fyrir afhendingu${t ? ` – samtals ${krI(t)} með VSK` : ""}.</b></p>
       <p style="margin:0 0 4px">Hægt er að greiða:</p>
       <ul style="margin:0 0 6px;padding-left:18px"><li>með korti í posa við afhendingu, eða</li>

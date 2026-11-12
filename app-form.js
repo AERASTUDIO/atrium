@@ -49,13 +49,19 @@ function closeSheet(){window.FAB_ONE=false; sheetwrap.hidden=true; document.body
 document.getElementById("fab").addEventListener("click",openFab);
 /* ---------- Lágmarka glugga: halda áfram að vinna í appinu og koma aftur að verkinu ---------- */
 let DOCK=[];
-const sheetHasWork=()=>!!sheet.querySelector("form textarea, form input:not([type=hidden]):not([type=checkbox]):not([type=date]), .rbox");
+/* 2.141.0: „verk í gangi“ = notandinn hefur skrifað eða valið eitthvað (ekki bara að formið hafi reiti). Autt form lokast með Escape/smelli utan;
+   form með breytingum er lágmarkað. Fókus fer aftur þangað sem hann var þegar glugginn lokast. */
+let _shDirty=false, _shFocus=null;
+["input","change"].forEach(ev=>sheet.addEventListener(ev,e=>{if(e.isTrusted&&e.target.matches?.("input,select,textarea,[contenteditable]")) _shDirty=true;},true));
+new MutationObserver(()=>{if(!sheetwrap.hidden){ if(!_shFocus){_shFocus=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;} }
+  else { _shDirty=false; let f=_shFocus; _shFocus=null; setTimeout(()=>{ if(f&&!f.isConnected){const da=f.getAttribute?.("data-act"); f=da?document.querySelector(`#view [data-act="${CSS.escape(da)}"]`):null;} if(f&&f.isConnected&&!document.querySelector(".spurn-w")&&sheetwrap.hidden) try{f.focus({preventScroll:true});}catch(e){} },60); }}).observe(sheetwrap,{attributes:true,attributeFilter:["hidden"]});
+const sheetHasWork=()=>_shDirty||!!sheet.querySelector(".rbox");
 function sheetTitle(){const h=sheet.querySelector("#sheet-h")?.textContent?.trim()||"Opið verk"; const sub=sheet.querySelector("#po-subj")?.value||sheet.querySelector("#sk-name,#f-name,#f-desc")?.value||""; return sub?h+" · "+sub:h;}
 function minimizeSheet(){if(sheetwrap.hidden||!sheet.firstChild) return; const title=sheetTitle(); const frag=document.createDocumentFragment(); while(sheet.firstChild) frag.appendChild(sheet.firstChild);
   const wide=sheet.closest(".sheet").classList.contains("wide"); DOCK.push({id:newId(),title,frag,wide,icon:frag.querySelector?.("#pocf")?"✉":frag.querySelector?.("#rkf")?"🧾":frag.querySelector?.("#skf")?"📄":"✎"});
   sheetwrap.hidden=true; sheet.closest(".sheet").classList.remove("wide"); drawDock(); render(); toast("Lágmarkað – opnaðu aftur neðst á skjánum");}
 function restoreDock(id){const i=DOCK.findIndex(x=>x.id===id); if(i<0) return; if(!sheetwrap.hidden) minimizeSheet(); const it=DOCK.splice(i,1)[0];
-  sheet.innerHTML=""; sheet.appendChild(it.frag); sheet.closest(".sheet").classList.toggle("wide",!!it.wide); sheetwrap.hidden=false; drawDock();}
+  sheet.innerHTML=""; sheet.appendChild(it.frag); _shDirty=true; sheet.closest(".sheet").classList.toggle("wide",!!it.wide); sheetwrap.hidden=false; drawDock();}
 function drawDock(){const el=document.getElementById("dock"); el.hidden=!DOCK.length; document.body.classList.toggle("hasdock",!!DOCK.length);
   el.innerHTML=DOCK.map(x=>`<div class="dchip"><button type="button" class="dopen" data-dock="${x.id}" title="Opna aftur">${x.icon} <span>${esc(x.title)}</span></button><button type="button" class="dx" data-dockx="${x.id}" aria-label="Loka ${esc(x.title)}">✕</button></div>`).join("");
   el.querySelectorAll("[data-dock]").forEach(b=>b.onclick=()=>restoreDock(b.dataset.dock));

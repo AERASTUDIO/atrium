@@ -313,3 +313,223 @@ html body.kerfi .dwnow::before{content:"";position:absolute;left:-4px;top:-5px;w
 html:not(#u2a):not(#u2b) body.kerfi #view .seg button:is([aria-current="true"],[aria-current="page"],[aria-selected="true"],.sel){background:var(--surface)!important;color:var(--ink)!important;font-weight:600!important;box-shadow:0 1px 3px rgba(15,23,32,.10)!important}
 html body.kerfi #view .usug button{background:var(--surface)!important;color:var(--kacc)!important;border:0!important;border-radius:999px!important;font-weight:600!important}
 html:not([data-theme="light"]) body.kerfi .u2bell{box-shadow:0 0 0 1px rgba(255,255,255,.12),0 8px 20px -10px rgba(0,0,0,.6)!important;background:#33404F!important}
+
+/* =====================================================================================================
+   2.141.0 – Heildarútlitsyfirferð, lota 1: hönnunartákn, letur, hnappar og reitir
+   Ein regla fyrir hvern íhlut (í stað plástra á hverjum skjá). Tákn:
+     --u-h-bar 40 (stika og haus) · --u-h-btn 36 (spjöld, listar, opið atriði) · --u-h-tool 32 (þéttar tólastikur)
+     --u-h-sm 30 (smáhnappar) · --u-h-fld 40 (reitir) · --u-h-filt 34 (síur/flipar á 4 px ferli) · --u-r-fld 12
+     --u-ring: fókushringur 3 px (blár)
+   ===================================================================================================== */
+html body.kerfi{--u-h-bar:40px;--u-h-btn:36px;--u-h-tool:32px;--u-h-sm:30px;--u-h-fld:40px;--u-h-filt:34px;--u-r-fld:12px;
+  --u-ring:0 0 0 3px color-mix(in srgb,var(--kacc) 38%,transparent);
+  --f-display:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;--f-label:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;--f-mono:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif}
+html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{--okbg:#E3F1EA;--waitbg:#FBF0DD;--redbg:#F7E3E1}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--okbg:#1E3A2E;--waitbg:#3A2E18;--redbg:#3D2321}
+/* Letur: Manrope alls staðar í appinu (eldri reglur báðu um Poppins beint) */
+html body.kerfi :is(.spurn,.fsk,.hj-tip,.dpop,.stbox,.qmiss,.ikw,.inv,kbd,.viewtitle,.foot,.pill,.nr,dl.kv dt,.dow,.clab em){font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif!important}
+
+/* ---------- Hnappar ---------- */
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) :is(.btn,.chipbtn){display:inline-flex;align-items:center;justify-content:center;gap:7px;box-sizing:border-box!important;
+  height:var(--u-h-btn)!important;min-height:var(--u-h-btn)!important;padding:0 16px!important;border-radius:999px!important;font-size:13px!important;font-weight:600!important;line-height:1!important;white-space:nowrap;
+  transition:background .18s cubic-bezier(.2,0,0,1),box-shadow .18s,transform .18s,color .18s}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) :is(.btn,.chipbtn) svg{width:16px;height:16px;flex:none}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) .btn.sm{height:var(--u-h-sm)!important;min-height:var(--u-h-sm)!important;padding:0 12px!important;font-size:12.5px!important}
+/* Haus síðu: 40 px */
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.phead,.uhead) .btn:not(.sm):not(.u2sers){height:var(--u-h-bar)!important;min-height:var(--u-h-bar)!important}
+/* Örvahnappar (‹ ›) í haus: hringlaga 40 × 40 */
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.phead,.uhead,.dtnav,.uhr) .btn:not(.primary):is([data-act$=":-1"],[data-act$=":1"]){width:var(--u-h-bar)!important;min-width:var(--u-h-bar)!important;padding:0!important;font-size:16px!important}
+/* Aðalhnappur grafít, aukahnappur svæðislitur, hætta rauð */
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) .btn.primary{background:var(--gra)!important;color:var(--on-gra)!important;border:0!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) .btn.primary:hover{background:color-mix(in srgb,var(--gra),var(--bg) 12%)!important}
+html:not(#u2a):not(#u2b) body.kerfi .spurn-w .btn:not(.primary):not(.spurn-d){background:var(--hover)!important;color:var(--ink)!important;border:0!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w) :is(.btn.danger,.spurn-b .spurn-d){background:var(--t-red)!important;color:#fff!important;border:0!important}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi :is(#view,#sheetwrap,.spurn-w) :is(.btn.danger,.spurn-b .spurn-d){background:#B13E36!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) .btn:active:not(:disabled){transform:scale(.98)}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) :is(.btn,.chipbtn,.uchip):disabled{opacity:.45!important;cursor:not-allowed!important;transform:none!important}
+/* Hópar og val (chipbtn, uchip) sem pillur */
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) :is(.chipbtn,.uchip,.utile,.uadd,.ucd,.spfoot button){border-radius:999px!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) .uchip{box-sizing:border-box;height:var(--u-h-filt)!important;min-height:var(--u-h-filt)!important;padding:0 14px!important;font-size:13px!important;display:inline-flex;align-items:center;gap:6px}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) .utile{border-radius:20px!important}
+/* Fókus: sýnilegur hringur á öllu sem tekur fókus */
+html body.kerfi :is(button,a,[role=button],[role=tab],[role=checkbox],[tabindex]:not([tabindex="-1"]),summary):focus-visible{outline:none!important;box-shadow:var(--u-ring)!important}
+html body.kerfi :is(input,select,textarea):focus-visible{outline:none!important}
+
+/* ---------- Reitir: 40 px, 12 px horn, sami rammi, blár hringur ---------- */
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]),select){
+  box-sizing:border-box!important;height:var(--u-h-fld)!important;min-height:var(--u-h-fld)!important;border-radius:var(--u-r-fld)!important;border:1px solid var(--line2)!important;background-color:var(--field)!important;color:var(--ink)!important;font-size:14px;
+  transition:border-color .15s,box-shadow .15s}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) textarea{border-radius:var(--u-r-fld)!important;border:1px solid var(--line2)!important;background-color:var(--field)!important;color:var(--ink)!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap,.spurn-w,.adrw) :is(input,select,textarea):not([type=checkbox]):not([type=radio]):focus{border-color:var(--kacc)!important;box-shadow:var(--u-ring)!important;outline:none!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) :is(input,select,textarea)[aria-invalid="true"]{border-color:var(--t-red)!important}
+/* Reitir sem eru inni í merkispillu (leit í stiku/tólastiku) hafa engan eigin ramma */
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,.side) :is(.spfilt,.topsearch) input{height:auto!important;min-height:0!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important}
+html:not(#u2a):not(#u2b) body.kerfi .spurn-i input{min-height:var(--u-h-fld)!important}
+/* Merkingar fyrir ofan reit */
+html:not(#u2a):not(#u2b) body.kerfi #sheetwrap form label:not(:has(input[type=checkbox])):not(:has(input[type=radio])){font-size:12.5px;font-weight:500;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) :is(input[type=checkbox],input[type=radio]){width:18px;height:18px;margin:0;accent-color:var(--gra);vertical-align:middle;flex:none}
+
+/* ---------- Ýmislegt ---------- */
+/* Útgáfunúmer neðst í tölvu rakst á efni (Tímar, Í dag) – það er á opnunarskjánum og í Stillingum */
+@media (min-width:1024px){html body.kerfi.pv.ui1 .foot{display:none!important}}
+/* Lykiltölur: Medium, jafnbreiðir tölustafir */
+html body.kerfi #view :is(.ll b,.utile b,.vyk b,.htile b,.ring b,.kn,.ukp b){font-weight:500!important;font-variant-numeric:tabular-nums}
+html body.kerfi :is(.sdh h1,.cal-head h2){font-weight:600!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) .dpbtn{box-sizing:border-box!important;height:var(--u-h-fld)!important;min-height:var(--u-h-fld)!important;border-radius:var(--u-r-fld)!important;border:1px solid var(--line2)!important;background:var(--field)!important}
+
+/* =====================================================================================================
+   2.141.0 – lota 2: listar, síur, flipar, leit og síðuhaus
+   ===================================================================================================== */
+/* Línur: 58 px (border-box – áður bættist innra bil ofan á lágmarkshæðina og línur urðu 79 px) */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view :is(.uwl,.u2wrap) .urow{box-sizing:border-box!important;min-height:58px!important;padding-top:8px!important;padding-bottom:8px!important;align-items:center!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view :is(.uwl,.u2wrap) .ucols{box-sizing:border-box!important;min-height:0!important;padding-top:14px!important;padding-bottom:10px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view :is(.splist .mlist,.llist) > :is(.mrow,.lrow,[data-open],button){box-sizing:border-box;min-height:56px}
+}
+/* Dálkahausar: 11 px, hástafir, bil, gráir – sama stilling og gildin */
+html:not(#u2a):not(#u2b) body.kerfi #view .ucols > *{font-size:11px!important;font-weight:600!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:var(--muted)!important}
+/* Tölur og upphæðir: jafnbreiðir tölustafir */
+html body.kerfi #view :is(.urow .m,.urow .r,.urow .n,.urow .amt,.urow .num,td.num,.kr,.upp){font-variant-numeric:tabular-nums}
+/* Hópfyrirsagnir í listum */
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.ugrp,.mgroup,.lgrp){font-size:11px!important;font-weight:600!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:var(--muted)!important}
+
+/* Tólastika lista: leit (pilla, 42 px = hæð síuferilsins), síur á einum ferli sem skrunar lárétt í stað þess að brotna í klump */
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool{align-items:center!important;row-gap:10px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool .spfilt{box-sizing:border-box!important;height:42px!important;min-height:42px!important;display:flex!important;align-items:center!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool .ultg{display:flex!important;align-items:center!important;gap:10px!important;min-width:0!important;max-width:100%!important;flex:0 1 auto!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool .uchips{box-sizing:border-box!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none;max-width:100%;min-width:0;height:42px!important;align-items:center!important;border-radius:999px!important;gap:2px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool .uchips::-webkit-scrollbar{display:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool .uchip{flex:none!important;height:var(--u-h-filt)!important;min-height:var(--u-h-filt)!important;white-space:nowrap!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool :is(select,.fsel){height:42px!important;min-height:42px!important;border-radius:999px!important;padding:0 34px 0 16px!important;background-color:var(--surface)!important;border:0!important;box-shadow:0 1px 2px rgba(15,23,32,.05),inset 0 0 0 1px var(--line)!important;font-size:13px!important;font-weight:500!important;width:auto!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ultool label:has(> select){display:inline-flex;align-items:center;gap:8px}
+/* Síur utan tólastiku (t.d. Spjall, Dagatal) sitja líka á fölum ferli */
+html:not(#u2a):not(#u2b) body.kerfi #view .ulbar{align-items:center;gap:8px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ulbar .uchip:not(.on){background:color-mix(in srgb,var(--ink) 6%,transparent)!important;color:var(--ink2)!important;border:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ulbar .uchip.on{background:var(--gra)!important;color:var(--on-gra)!important;border:0!important}
+
+/* Síðuhaus: undirtitill, fyrirsögn, flipar strax á eftir fyrirsögn og aðalhnappur lengst til hægri – allt botnjafnað */
+html:not(#u2a):not(#u2b) body.kerfi #view .phead .spsup{font-size:13px!important;color:var(--muted)!important;margin-bottom:2px}
+html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow{display:flex!important;align-items:flex-end!important;justify-content:flex-start!important;gap:12px 24px!important;flex-wrap:wrap}
+html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > .ptitle{line-height:1.15!important;margin:0!important;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > :is(.hdtabs,.seg){margin:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > :is(.btn,.hdact,.phact,.uhr,.dtnav):first-of-type:not(.ptitle){margin-left:auto!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > .ptitle + .btn,html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > :is(.hdtabs,.seg) + :is(.btn,div,label){margin-left:auto!important}
+/* Tómir listar */
+html:not(#u2a):not(#u2b) body.kerfi #view .uempty{color:var(--muted);font-size:14px}
+@media (min-width:1024px){html body.kerfi.pv.ui1:not(.onstart) #pvver{display:none!important}}
+/* Lykiltölur í opnu spjaldi brotna ekki í tvær línur */
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet :is(.ukp,.kp) b{white-space:nowrap!important;font-size:clamp(20px,1.9vw,30px)!important}
+
+/* =====================================================================================================
+   2.141.0 – lota 3: gluggar og form
+   ===================================================================================================== */
+/* Gluggi (sheet): 24 px innra bil, aðgerðir neðst til hægri – „Hætta við“ vinstra megin við aðalhnappinn */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi #sheetwrap .sheet{--shpx:24px;--shpb:24px}
+  html:not(#u2a):not(#u2b) body.kerfi #sheetwrap .actions{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #sheetwrap .actions > .btn{flex:none!important;width:auto!important;min-width:112px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #sheetwrap .actions > .btn.danger{margin-right:auto!important}
+}
+html:not(#u2a):not(#u2b) body.kerfi #sheetwrap :is(.sheetmin,.sheetx,#sheetmin){width:36px!important;height:36px!important;border-radius:50%!important;border:0!important;background:var(--hover)!important;color:var(--muted)!important;display:grid!important;place-items:center!important}
+/* Staðfestingargluggar (atrJa/atrSpyrja): sama form og spjöld */
+html:not(#u2a):not(#u2b) body.kerfi .spurn{border-radius:26px!important;border:0!important;padding:28px 28px 22px!important;box-shadow:0 30px 80px -24px rgba(15,23,32,.45),0 1px 2px rgba(15,23,32,.06)!important}
+html:not(#u2a):not(#u2b) body.kerfi .spurn-t{font-size:18px!important;font-weight:700!important;letter-spacing:-.01em}
+html:not(#u2a):not(#u2b) body.kerfi .spurn-w{background:rgba(15,23,32,.28)!important}
+html:not(#u2a):not(#u2b) body.kerfi .spurn-b{gap:8px!important;margin-top:8px!important}
+html:not(#u2a):not(#u2b) body.kerfi .spurn-b .btn{min-width:112px!important}
+@media (max-width:520px){html:not(#u2a):not(#u2b) body.kerfi .spurn{border-radius:26px 26px 0 0!important}}
+/* Fellivalmyndir, dagsetningaval og val: sama spjaldform */
+html:not(#u2a):not(#u2b) body.kerfi :is(.dpop,.stbox){border-radius:20px!important;border:0!important;box-shadow:0 20px 50px -18px rgba(15,23,32,.35),0 0 0 1px var(--line)!important}
+/* Lágmarkaðir gluggar neðst: pillur */
+html:not(#u2a):not(#u2b) body.kerfi #dock .dchip{border-radius:999px!important;overflow:hidden}
+html:not(#u2a):not(#u2b) body.kerfi #dock .dchip .dopen{background:var(--gra)!important;color:var(--on-gra)!important}
+/* Hlutar í lengri formum */
+html:not(#u2a):not(#u2b) body.kerfi #sheetwrap :is(.fsec,.fhead,h4){font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* =====================================================================================================
+   2.141.0 – lota 4: sími
+   ===================================================================================================== */
+@media (max-width:1023px){
+  /* Snertisvæði ≥ 44 px án þess að stækka hnappana sjálfa: ósýnilegt svæði utan um smáhnappa */
+  html body.kerfi :is(#avbtn,.uback,.spdet .spshr,.spdet .spx,.simsub button,.uchip,.ubox,.btn.sm,.dtnav .btn,.uhr .btn,.backrow .back,.pback){position:relative}
+  html body.kerfi :is(#avbtn,.uback,.spdet .spshr,.spdet .spx,.dtnav .btn,.uhr .btn,.backrow .back,.pback)::after{content:"";position:absolute;inset:-5px}
+  html body.kerfi :is(.simsub button,.uchip,.btn.sm)::after{content:"";position:absolute;left:-2px;right:-2px;top:-6px;bottom:-6px}
+  html body.kerfi .ubox::after{content:"";position:absolute;inset:-14px}
+  html body.kerfi #view .simsub button{min-height:44px!important}
+  /* Síur á einum ferli sem skrunar lárétt (ekki stór kringlóttur klumpur) */
+  html:not(#u2a):not(#u2b) body.kerfi #view .ultool .ultg{width:100%!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ultool .spfilt{width:100%!important}
+  /* Línur 52 px */
+  html:not(#u2a):not(#u2b) body.kerfi #view .splist .urow{box-sizing:border-box!important;min-height:52px!important}
+  /* Fyrirsagnir og lykiltölur: U2d-þyngdir líka í síma */
+  html:not(#u2a):not(#u2b) body.kerfi #view :is(.ptitle,h2.big){font-weight:600!important;letter-spacing:-.02em!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhh .ptitle{font-weight:500!important}
+}
+/* Fyrstu skref: spjald eins og önnur spjöld */
+html:not(#u2a):not(#u2b) body.kerfi #view .fsk{border:0!important;border-radius:26px!important;box-shadow:var(--e1)!important;padding:22px 24px 12px!important}
+
+/* =====================================================================================================
+   2.141.0 – lota 5: dökkt útlit, andstæður og sameiginlegir litir allra uppsetninga
+   Eldri litabreytur (brand.css / utlit.css: --accent, --hi, --b0…--b4, --t0…--t4, --raise, --late …) fá U2d-gildi,
+   svo engin uppsetning fái aðra liti inni í appinu (aðeins á innskráningu og opnunarskjá).
+   ===================================================================================================== */
+html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{
+  --accent-soft:#E7EEF8; --on-accent:#FFFFFF; --hi:#2A3441; --on-hi:#FFFFFF;
+  --b0:#EEF1F4; --b1:#E3E7EC; --b2:#D3D9E0; --b3:#5E6976; --b4:#2A3441;
+  --t0:#2A3441; --t1:#2A3441; --t2:#0F1720; --t3:#FFFFFF; --t4:#FFFFFF;
+  --ok:#5E6976; --warn:#2A3441; --crit:#B13E36; --ok-soft:#EEF1F4; --warn-soft:#E3E7EC; --crit-soft:#F7E3E1; --gray-soft:#EEF1F4;
+  --raise:#EEF1F4; --raise2:#FFFFFF; --sheet:#FFFFFF; --border2:#D3D9E0; --bar0:#E3E7EC; --late:#B13E36; --late-soft:#F7E3E1;
+  --ui1hi:#2A3441; --ui1sel:#E7EEF8; --scrim:rgba(15,23,32,.28);
+  --glass-mu:#4B5563; /* 2.141.0: smátexti í stiku nær AA (var 3,9:1) */
+  --t-amb-tx:#8A580E; --t-grn-tx:#256B4C;
+}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{
+  --accent-soft:#22344A; --on-accent:#0D1014; --hi:#E6EAEF; --on-hi:#12171D;
+  --b0:#232B34; --b1:#2A333E; --b2:#36414E; --b3:#8E99A6; --b4:#E6EAEF;
+  --t0:#C9D1DA; --t1:#E6EAEF; --t2:#F4F6F8; --t3:#12171D; --t4:#12171D;
+  --ok:#8E99A6; --warn:#C9D1DA; --crit:#E58A80; --ok-soft:#232B34; --warn-soft:#2A333E; --crit-soft:#3D2321; --gray-soft:#232B34;
+  --raise:#232B34; --raise2:#1C232B; --sheet:#1C232B; --border2:#36414E; --bar0:#2A333E; --late:#E58A80; --late-soft:#3D2321;
+  --ui1hi:#E6EAEF; --ui1sel:#22344A; --scrim:rgba(0,0,0,.5);
+  --glass-mu:#A3AEBB;
+  --t-amb-tx:#E0B060; --t-grn-tx:#79C3A0;
+}
+/* Stöðupillur: texti nær AA á mjúkum grunni */
+html:not(#u2a):not(#u2b) body.kerfi :is(.upill,.pill,.dbadge,.chip).t-amb{color:var(--t-amb-tx)!important;background:var(--waitbg)!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(.upill,.pill,.dbadge,.chip).t-grn{color:var(--t-grn-tx)!important;background:var(--okbg)!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(.upill,.pill,.dbadge,.chip).t-red{color:var(--t-red)!important;background:var(--redbg)!important}
+html:not(#u2a):not(#u2b) body.kerfi :is(.upill,.pill,.dbadge,.chip).t-blu{color:var(--kacc)!important;background:var(--acc-soft)!important}
+/* Tölur í stiku: blár á ljósum grunni */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi.pv.ui1 .side .tbid{background:var(--glass-hi)!important;color:var(--kacc)!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side .tbid{color:#9FC1EA!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side :is(.sgrp,.abn small,.tab.tq .tl){color:var(--glass-mu)!important;opacity:1!important}
+}
+/* Rauður texti fylgir þema (var fastur dökkrauður og ólæsilegur í dökku) */
+html body.kerfi #view :is(.red,.vyred,.b.red,.neg,.ured){color:var(--t-red)!important}
+/* Tillögur úr dagatali í Tímum */
+html body.kerfi #view .usug small{color:var(--kacc)!important}
+/* Dökkt: grafít-hlutir fá ljósan tón, skuggar mildir */
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .ucard.u2vik{background:#2A3441!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),var(--e1)!important}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi .spurn{background:var(--surface)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 30px 80px -24px rgba(0,0,0,.7)!important}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi .fsk-x{color:var(--ink)!important}
+html:not(#u2a):not(#u2b) body.kerfi .fsk-h .fsk-x{background:var(--hover)!important;color:var(--ink)!important}
+/* Leiðréttingar eftir mælingu (2.141.0) */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .tab.tq[aria-current="page"] .tl{color:var(--on-gra)!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] .tbid{color:var(--on-gra)!important;background:rgba(0,0,0,.10)!important}
+}
+html:not(#u2a):not(#u2b) body.kerfi :is(.ustart,.ustdark) .fsk-x.fsk-x{background:rgba(255,255,255,.12)!important;color:#E8ECF0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.spsup,.dvt){opacity:1!important}
+@media (max-width:1023px){html:not(#u2a):not(#u2b) body.kerfi #view .simsub button{min-height:44px!important;height:44px!important}}
+html:not(#u2a):not(#u2b) body.kerfi :is(#view,.side) :is(.spfilt,.topsearch) input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]){height:auto!important;min-height:0!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;padding-left:0!important}
+/* Haus með tólum (Dagatal, Tímar): tólin botnjöfnuð við fyrirsögnina, raðast frá hægri */
+html:not(#u2a):not(#u2b) body.kerfi #view .uhead{align-items:flex-end!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .uhead > .uhr{align-self:flex-end!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;row-gap:8px!important}
+/* Ekkert lárétt skrun: „til baka“-röðin (backrow) náði 8 px út fyrir skjáinn í opnu atriði */
+@media (min-width:1024px){html body.kerfi.pv.ui1 :is(#view,main){overflow-x:clip}}
+/* Samanfelld stika: tölumerki 10,5 px og læsileg í dökku */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab .tbid{font-size:10.5px!important;color:var(--on-kacc)!important}
+  html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi.pv.ui1.srail .side nav#sitems .tab .tbid{color:#fff!important}
+}
+html:not(#u2a):not(#u2b) body.kerfi #view .spsup{color:var(--muted)!important}

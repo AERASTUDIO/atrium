@@ -107,7 +107,7 @@ function dSub(u,p){
   let body="";
   if(DTAB==="yfirlit"){const pc=ak?Math.round(h/ak*100):0;
     body=`${klukkaBanner(p)}
-    <div class="kpis" style="margin-top:16px"><div class="card"><b>${ak?num(h)+" af "+num(ak):num(h)}</b><span>klst.${ak?" · "+pc+" % af áætlun":" skráðar"}</span>${ak?`<i class="ubar" style="display:block;height:6px;border-radius:3px;margin-top:8px;background:var(--line)"><i style="display:block;height:6px;border-radius:3px;width:${Math.min(100,pc)}%;background:${pc>100?"var(--t-red,#B13E36)":"var(--kacc,#24578A)"}"></i></i>`:""}</div>
+    <div class="kpis" style="margin-top:16px"><div class="card"><b>${ak?num(h)+" af "+num(ak):num(h)}</b><span>klst.${ak?" · "+pc+" % af áætlun":" skráðar"}</span>${ak?`<i class="ubar" style="display:block;height:6px;border-radius:3px;margin-top:8px;background:var(--line)"><i style="display:block;height:6px;border-radius:3px;width:${Math.min(100,pc)}%;background:${pc>100?"var(--t-red,#B13E36)":"var(--kacc,#2B63A6)"}"></i></i>`:""}</div>
       <div class="card"><b>${u.skiladagur?fmtDate(u.skiladagur):"–"}</b><span>${u.skiladagur&&u.stada!=="Done"?esc(rel(daysTo(u.skiladagur))):"skiladagur"}</span></div>
       ${tbs.length?`<div class="card tap" data-act="dtab:tilbod"><b>${esc(kr(tbSum))}</b><span>${tbs.length} ${tbs.length===1?"tilboð":"tilboð"} á undirverkinu</span></div>`:""}</div>
     ${ak&&h>ak?`<div class="msg err" style="margin-top:12px">Komið fram úr áætlun undirverksins: ${num(h)} af ${num(ak)} klst.</div>`:""}
@@ -149,7 +149,7 @@ function dTime(e){
     ["Dagur",fmtDate(e.date)],["Tími",e.fra?esc(e.fra+(e.til?"–"+e.til:"")):""],["Klst.",hrs(e.timar)],["Verkefni",p?projLink(p):esc(e.nr||"")],
     ["Undirverk",r?`<a class="plink" ${tapAttr("sub",r.u.id)}><span class="nr">${esc(r.u.nr)}</span> ${esc(subName(r.u))}</a>`:""],
     ["Þjónusta",window.svcOf?(()=>{const l=svcOf(e), pr=window.entryRate?entryRate(e,rateOf(p)):0; return esc((l?l.heiti:"")+(pr?" · "+num(pr)+" kr./klst.":"")+(e.taxti?"":" (eins og verkefnið)"));})():""],
-    ["Starfsmaður",esc(e.starfsmadur?starfName(e.starfsmadur):"")],["Tímabil",esctPer(e)],["Lýsing",esc(e.lysing||"")]])}</dl>
+    ["Starfsmaður",esc(e.starfsmadur?starfName(e.starfsmadur):"")],["Tímabil",esc(tPer(e))],["Lýsing",esc(e.lysing||"")]])}</dl>
     ${linkBtns({id:e.id},{edit:"time"})}</div>`;
 }
 function dKostn(k){

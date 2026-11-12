@@ -38,14 +38,14 @@
 }
 
 body{font-family:var(--f-display);font-weight:400;letter-spacing:0;font-feature-settings:normal}
-h1,h2,h3,.hello,h2.big,.ptitle,.cal-head h2{font-weight:300!important;letter-spacing:-.01em}
+h1,h2,h3,.hello,h2.big,.ptitle,.cal-head h2{font-weight:500!important;letter-spacing:-.01em}
 .t,.lt{font-weight:400}
 .viewtitle{font-weight:500;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .btn{font-weight:500;border-radius:12px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .nr{color:var(--muted);font-weight:400;letter-spacing:.02em}
 .card,.lrow,.agenda,.ring,.pcard,.klukka{border-radius:var(--r)}
-.kpis .card b,.date b,.ring b{font-weight:300}
+.kpis .card b,.date b,.ring b{font-weight:500}
 
 /* Lógó – litaútgáfa eftir þema (ekki breyta litum merkisins) */
 .logo{-webkit-mask:none!important;mask:none!important;background:url(icons/atrium-haus-dokk.svg) no-repeat left center/contain!important;aspect-ratio:368.59/108!important;height:30px}
@@ -89,7 +89,7 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 /* Síðuhaus með undirflipum */
 .phead{flex-direction:column;align-items:stretch!important;gap:10px}
 .phrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
-.ptitle{font-size:30px!important;font-weight:300!important;letter-spacing:-.015em}
+.ptitle{font-size:30px!important;font-weight:500!important;letter-spacing:-.015em}
 .pback{display:inline-flex;align-items:center;gap:2px;min-height:36px;color:var(--muted);font-size:14px;text-decoration:none;cursor:pointer;align-self:flex-start;margin-left:-4px}
 .pback svg{width:18px;height:18px}
 .seg{display:flex;gap:2px;background:var(--raise);border-radius:12px;padding:3px;overflow-x:auto;scrollbar-width:none}
@@ -102,7 +102,7 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 @media (min-width:1024px){.htiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .htile{appearance:none;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-height:104px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;cursor:pointer;color:var(--ink);font:inherit;transition:transform .2s var(--ease),border-color .2s}
 .htile:hover{border-color:var(--b2)}.htile:active{transform:scale(.98)}
-.htile b{font-size:30px;font-weight:300;line-height:1}
+.htile b{font-size:30px;font-weight:500;line-height:1}
 .htile span{font-size:13px;color:var(--muted)}
 .htile .hx{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
 .htile .hl{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--late-soft);color:var(--late);white-space:nowrap}
@@ -175,7 +175,7 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 .klukka,.sx-k{background:var(--hi)!important;color:var(--on-hi)!important}
 .klukka .ls,.sx-k .sx-h,.sx-k .sx-t{color:var(--on-hi)!important;opacity:.75}
 .klukka .lt,.klukka .kt,.sx-k .kt{color:var(--on-hi)!important}
-.sx-k .kt{display:block;font-size:28px;font-weight:300;letter-spacing:.01em}
+.sx-k .kt{display:block;font-size:28px;font-weight:500;letter-spacing:.01em}
 .klukka .btn,.sx-k .btn{background:transparent!important;border:1px solid color-mix(in srgb,var(--on-hi) 35%,transparent)!important;color:var(--on-hi)!important}
 .klukka .btn.primary,.sx-k .btn.primary{background:var(--on-hi)!important;color:var(--hi)!important;border-color:var(--on-hi)!important}
 .sx-k{margin:0 0 6px}

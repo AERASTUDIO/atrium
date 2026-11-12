@@ -10,8 +10,8 @@ body.kerfi{
 }
 html:not(#atrium-litir)[data-theme="light"] body.kerfi{
   --bg:#ECEFF2; --surface:#FAFBFC; --ink:#0F1720; --ink2:#3A4553; --muted:#5E6976; /* 2.122.6: dekkra svo smátexti nái WCAG AA (4,5:1) á grunninum */ --line:#DFE3E8; --line2:#CFD5DC;
-  --kacc:#24578A; --on-kacc:#FFFFFF; --acc-soft:#E6EDF4; --field:#F4F6F8; --hover:#F1F3F6;
-  --t-red:#B13E36; --t-amb:#9C6410; --t-grn:#2C7A57; --t-blu:#24578A;
+  --kacc:#2B63A6; --on-kacc:#FFFFFF; --acc-soft:#E6EDF4; --field:#F4F6F8; --hover:#F1F3F6;
+  --t-red:#B13E36; --t-amb:#9C6410; --t-grn:#2C7A57; --t-blu:#2B63A6;
   --e1:0 0 0 1px var(--line), 0 1px 2px rgba(15,23,32,.04);
   --e2:0 0 0 1px var(--line2), 0 6px 16px -6px rgba(15,23,32,.12);
   --hl:none; --sidebg:#141A21; --sideink:#C7CFD8; --sidemut:#7D8896;
@@ -41,7 +41,7 @@ html:root body.kerfi #view :is(.uhch h3,.card h3,.ucard h3){font-size:15px!impor
 html:root body.kerfi #view :is(.ush,.ush2,.viewtitle,.sdsec,.ugrp,thead th,.dow){letter-spacing:.08em!important;color:var(--muted)!important}
 html:root body.kerfi #view .ptitle{letter-spacing:-.02em!important;color:var(--ink)!important}
 /* Tölur: grannar, jafnbreiðar, eining dauf */
-html:root body.kerfi #view :is(.ukp b,.kp b){font-weight:300!important;letter-spacing:-.025em;font-variant-numeric:tabular-nums;color:var(--ink)!important}
+html:root body.kerfi #view :is(.ukp b,.kp b){font-weight:500!important;letter-spacing:-.025em;font-variant-numeric:tabular-nums;color:var(--ink)!important}
 html:root body.kerfi #view :is(.ukp small,.kp small,.ukp span,.kp span){color:var(--muted)!important;letter-spacing:.06em}
 html:root body.kerfi #view :is(td,.nr,.sdtm,.cday .n){font-variant-numeric:tabular-nums}
 /* Hreimlitur: einn blár, notaður sparlega */
@@ -69,7 +69,7 @@ html:root body.kerfi #view .ucard > .uhch{padding-bottom:14px!important;border-b
 /* ---- KPI: tákn, stór tala, lína í hreimlit ---- */
 html:root body.kerfi #view .ukps > .ukp{position:relative;display:grid!important;grid-template-columns:1fr auto;grid-template-rows:auto auto;align-items:start;overflow:hidden}
 html:root body.kerfi #view .ukps > .ukp small{grid-column:1;text-transform:none!important;letter-spacing:0!important;font-size:13px!important;color:var(--muted)!important}
-html:root body.kerfi #view .ukps > .ukp b{grid-column:1;font-size:34px!important;font-weight:300!important;margin-top:6px}
+html:root body.kerfi #view .ukps > .ukp b{grid-column:1;font-size:34px!important;font-weight:500!important;margin-top:6px}
 html:root body.kerfi #view .ukps > .ukp .gic{grid-column:2;grid-row:1/3;margin:0;width:36px;height:36px;border-radius:10px}
 html:root body.kerfi #view .ukps > .ukp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--kacc),transparent 70%);opacity:.0;transition:opacity .2s}
 html:root body.kerfi #view .ukps > .ukp:hover::after{opacity:.9}
@@ -88,13 +88,13 @@ html:root body.kerfi #view .uwkb i{background:linear-gradient(180deg,var(--kacc)
 html:root body.kerfi #view .uwkb span{color:var(--muted)}
 html:root body.kerfi #view .ubar{height:6px!important;border-radius:3px!important;background:var(--gry-s)!important}
 html:root body.kerfi #view .ubar i{background:linear-gradient(90deg,color-mix(in srgb,var(--kacc) 60%,#fff),var(--kacc))!important;border-radius:3px}
-html:root body.kerfi #view .uwk b{font-size:34px!important;font-weight:300!important}
+html:root body.kerfi #view .uwk b{font-size:34px!important;font-weight:500!important}
 /* 7 dagar: dagur sem spjald, í dag með hreimlit */
 html:root body.kerfi #view .pdsd{border-radius:10px!important;border:1px solid var(--line)!important;background:var(--surface)!important;transition:border-color .15s,box-shadow .15s}
 html:root body.kerfi #view .pdsd:hover{border-color:var(--line2)!important;box-shadow:var(--e2)}
 html:root body.kerfi #view .pdsd.today{border-color:transparent!important;background:var(--acc-soft)!important;box-shadow:inset 0 0 0 1.5px var(--kacc)!important}
 html:root body.kerfi #view .pdsd.today span{color:var(--kacc)!important;font-weight:500}
-html:root body.kerfi #view .uhead .ptitle{font-weight:300!important;font-size:28px!important}
+html:root body.kerfi #view .uhead .ptitle{font-weight:500!important;font-size:28px!important}
 /* ---- Hnappar og reitir ---- */
 html:root body.kerfi :is(#view,#sheetwrap) .btn{border-radius:9px!important;font-weight:500!important}
 html:root body.kerfi :is(#view,#sheetwrap) .btn.primary{box-shadow:none!important}
@@ -117,7 +117,7 @@ html:not(#atrium-litir) body.kerfi .side .new:hover{background:rgba(255,255,255,
 html:root body.kerfi #view .uhch h3 :is(.ucnt,.m){margin-left:8px;font-size:12px;font-weight:500;color:var(--muted);background:var(--gry-s);border-radius:999px;padding:1px 8px}
 html:root body.kerfi #view .usvc > *{position:relative}
 html:root body.kerfi #view .usvc > * .gic{position:absolute;right:20px;top:20px;margin:0;width:36px;height:36px;border-radius:10px}
-html:root body.kerfi #view .usvc > * b{font-size:34px!important;font-weight:300!important}
+html:root body.kerfi #view .usvc > * b{font-size:34px!important;font-weight:500!important}
 @media (max-width:1023px){html:root body.kerfi #view{background:none}}
 
 /* 2.103.2: Til baka er aðeins tákn (hringlaga hnappur), vinstra megin í línu við efnið – líka í síma (áður hliðrað um 40px) */
@@ -163,7 +163,7 @@ html:not(#atrium-litir) body.kerfi :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .sgrp{font-size:10.5px!important;letter-spacing:.08em!important;text-transform:uppercase;color:#6B7684!important;font-weight:500!important;padding:8px 12px 4px!important;margin:0!important;border:0!important;background:none!important;height:auto!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab:not(.tq)+.sgrp{margin-top:12px!important;padding-top:16px!important;border-top:1px solid #222C38!important;margin-left:6px!important;margin-right:6px!important;padding-left:6px!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq+.sgrp{margin-top:8px!important}
-  html:not(#atrium-litir) body.kerfi.pv.ui1 .side .tbid{background:#24578A!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side .tbid{background:#2B63A6!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] .tbid{background:#fff!important;color:#24303E!important}
   /* samanfelld: aukaliðir fá tákn aftur */
   html:not(#atrium-litir) body.kerfi.pv.ui1.srail .side nav#sitems .tab.tq svg{display:inline-block!important}

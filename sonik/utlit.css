@@ -1,6 +1,7 @@
 /* Útlit uppsetningar Sonik – litir af sonik.is: teal #2A7289, berjalitur #B2597D, ljósblár #D4F7FF, dökkur #0C2127, ljós #F2FCFF.
    Kemur á eftir brand.css og gengur framar henni. Atrium-merkið heldur sínum litum. */
-:root, :root[data-theme="dark"], :root[data-theme="dark"][data-variant]{
+/* 2.141.0: litir fyrirtækisins aðeins á innskráningu og opnunarskjá (U2d: sama útlit í öllum uppsetningum) */
+#login,#splash,.ustart.ustdark{
   --bg:#0C2127; --surface:#102C34; --ink:#E6F7FB; --muted:#8DBBC8; --line:#1A3D47;
   --accent:#7ED0E4; --accent-soft:#17414C; --on-accent:#0C2127; --hi:#7ED0E4; --on-hi:#0C2127;
   --b0:#133540; --b1:#17414C; --b2:#2A7289; --b3:#8DBBC8; --b4:#E6F7FB;
@@ -8,37 +9,12 @@
   --raise:#133540; --raise2:#17414C; --hover:#11303A; --sheet:#0F2A32; --field:#0E262D; --border2:#2A7289; --bar0:#17414C;
   --late:#E39BB8; --late-soft:#3B2230; --crit:#E39BB8;
 }
-:root[data-theme="light"], :root[data-theme="light"][data-variant]{
-  --bg:#E4EEF1; --surface:#FFFFFF; --ink:#0C2127; --muted:#436A79; --line:#D2E2E7;  /* 2.94.0: ljós útgáfa af dökka lit upphafsskjásins (#0C2127) */
-  --accent:#2A7289; --accent-soft:#D4F7FF; --on-accent:#FFFFFF; --hi:#2A7289; --on-hi:#FFFFFF;
-  --b0:#E6F6FA; --b1:#D4F0F7; --b2:#9FD0DE; --b3:#2A7289; --b4:#0C2127;
-  --t0:#2A7289; --t1:#2A7289; --t2:#0C2127; --t3:#FFFFFF; --t4:#FFFFFF;
-  --raise:#E6F6FA; --raise2:#FFFFFF; --hover:#EAF8FB; --sheet:#FFFFFF; --field:#FFFFFF; --border2:#9FD0DE; --bar0:#D4F0F7;
-  --late:#B2597D; --late-soft:#F6E6EE; --crit:#B2597D;
-}
-.fab,.btn.primary.new{background:#B2597D!important;color:#fff!important;border-color:#B2597D!important}
 #login{background:#0C2127!important;color:#E6F7FB}
 #login .login-in p{color:#8DBBC8}
 #login .btn.primary{background:#B2597D!important;color:#fff!important;border-color:#B2597D!important}
 #login #login-btn{color:#8DBBC8!important}
 
-/* Útlit C (2.51.0): áherslulitur fyrirtækisins */
-html body.kerfi{--kacc:var(--hi);--on-kacc:var(--on-hi)}
-
-/* 2.93.0: sterkari stöðulitir hjá Sonik – litaður bakgrunnur á stöðumerkjum, litir úr merki Sonik */
-body.kerfi{--t-red:#B2597D;--t-amb:#B87800;--t-blu:#2A7289;--t-grn:#1C8C5E}
-html:not([data-theme="light"]) body.kerfi{--t-red:#F08BB4;--t-amb:#F2C14E;--t-blu:#7ED0E4;--t-grn:#5FD99F}
-body.kerfi :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t-blu,.t-grn){background:color-mix(in srgb,currentColor 20%,transparent)!important;font-weight:600}
-body.kerfi :is(.upill,.pill,.dbadge).t-red{background:color-mix(in srgb,currentColor 22%,transparent)!important}
-/* lykiltölur og spjöld: táknin í lit fyrirtækisins */
-body.kerfi #view .ukp :is(svg,i){color:#2A7289}
-html:not([data-theme="light"]) body.kerfi #view .ukp :is(svg,i){color:#7ED0E4}
-body.kerfi #view .uhch h3 .ucnt{background:#B2597D;color:#fff}
-/* virkur flipi í vinstri stiku */
-body.kerfi .side .tab[aria-current="page"],body.kerfi .side .tab.on{box-shadow:inset 3px 0 0 #B2597D}
-/* 2.93.4: opnunarskjár í sama lit og innskráningin */
+/* 2.141.0: áherslu- og stöðulitir fyrirtækisins inni í appinu fjarlægðir – U2d gildir. */
 #splash{background:#0C2127!important}
 .ustart.ustdark{background:#0C2127}.ustart.ustdark .uver{color:#8DBBC8}
-
-/* 2.94.0: upphafsskjárinn birtist mjúklega (ljóst → dökkt) þegar farið er á hann */
 @media (prefers-reduced-motion: no-preference){ .ustart.ustdark{animation:ustIn .6s ease both} @keyframes ustIn{from{background:var(--bg)}to{background:#0C2127}} .ustart.ustdark .ustpair{animation:aIn .6s ease .15s both} }

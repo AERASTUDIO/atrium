@@ -113,7 +113,7 @@
     }
     if (k === "aaetl") {
       const ps = verkefni().filter(p => !isDone(p) && +p.aklst > 0);
-      return `<div class="uct"><h3>Áætlun og raun · verkefni í gangi</h3></div>` + (ps.map(p => { const r = +p.timar || 0, a = +p.aklst, over = r > a; return hbar(`<span class="m">${E(p.nr)}</span> ${E(p.stutt || p.nafn || "")}`, r, r / a * 100, over ? "#C62828" : "", `<span class="${over ? "red" : ""}">${H(r)} / ${H(a)}</span>`); }).join("") || `<div class="uempty">Engin verkefni með áætlun.</div>`);
+      return `<div class="uct"><h3>Áætlun og raun · verkefni í gangi</h3></div>` + (ps.map(p => { const r = +p.timar || 0, a = +p.aklst, over = r > a; return hbar(`<span class="m">${E(p.nr)}</span> ${E(p.stutt || p.nafn || "")}`, r, r / a * 100, over ? "#B13E36" : "", `<span class="${over ? "red" : ""}">${H(r)} / ${H(a)}</span>`); }).join("") || `<div class="uempty">Engin verkefni með áætlun.</div>`);
     }
     return "";
   }
@@ -233,7 +233,7 @@
   };  U.pantanir = pnList("Allar", ""); U.pnl = pnList("Leiga", "leiga"); U.pns = pnList("Sala", "sala"); U.pnt = pnList("Þjónusta", "vinna");
 
   // Vörulisti: Leiga (eftir forskeyti vörunúmers) og Sala (eftir flokki)
-  const freeCol = (f, tot) => { const r = tot ? f / tot : 0, t = Math.pow(1 - r, 1.6), c = [0x6B, 0x76, 0x82].map((g, i) => Math.round(g + ([0xC6, 0x28, 0x28][i] - g) * t)); return `<span class="ufree" style="color:rgb(${c.join(",")});font-weight:${r <= .25 ? 600 : 500}">${f}</span>`; };
+  const freeCol = (f, tot) => { const r = tot ? f / tot : 0, t = Math.pow(1 - r, 1.6), p = Math.round(t * 100); return `<span class="ufree" style="color:color-mix(in srgb,var(--t-red) ${p}%,var(--muted));font-weight:${r <= .25 ? 600 : 500}">${f}</span>`; };
   U.lvorur = function () {
     const api = window.salaAPI; if (!api) return "";
     const iso = isoD(today), allL = api.VR().filter(v => api.vDeild(v) === "leiga" && v.tegund !== "vinna"), f = st.vf.lvorur || "", fk = st.vf.lvorurF || "", fls = [...new Set(allL.map(v => v.flokkur).filter(Boolean))].sort((a, b) => a.localeCompare(b, "is"));
@@ -1071,8 +1071,8 @@
     const g = goal(), k = klukka(), me = ME(), a = mondayOf(today);
     const days = [...Array(7)].map((_, i) => { const x = new Date(a); x.setDate(x.getDate() + i); const di = isoD(x); return [["má", "þr", "mi", "fi", "fö", "la", "su"][i], faerslur().filter(e => (e.starfsmadur || me) === me && e.date === di).reduce((s, e) => s + (+e.timar || 0), 0), di === isoD(today)]; });
     const wk = days.reduce((s, x) => s + x[1], 0) + (k && window.liveWeekH ? liveWeekH(k.start) : 0), mx = Math.max(8, ...days.map(x => x[1]));
-    const vik = ON("timar") ? `<section class="card ucard"><div class="uhch"><h3>Vikan þín</h3><a href="#" data-act="tab:timar">Tímar →</a></div><div class="uwk"><b>${H(wk)}</b><span class="m">/ ${H(g)} klst.</span></div><div class="ubar" style="height:8px"><i style="width:${Math.min(100, wk / g * 100)}%;background:#2B3138"></i></div><div class="usl"><span>${Math.round(Math.min(1, wk / g) * 100)} % af markmiði vikunnar</span></div>`
-      + `<div class="uwkb">${days.map(([l, h, t]) => `<div><i style="height:${Math.max(h ? 6 : 0, Math.round(h / mx * 46))}px;background:${t ? "#2B3138" : "#C9D0D6"}"></i><span>${l}</span></div>`).join("")}</div></section>` : "";
+    const vik = ON("timar") ? `<section class="card ucard"><div class="uhch"><h3>Vikan þín</h3><a href="#" data-act="tab:timar">Tímar →</a></div><div class="uwk"><b>${H(wk)}</b><span class="m">/ ${H(g)} klst.</span></div><div class="ubar" style="height:8px"><i style="width:${Math.min(100, wk / g * 100)}%;background:#2A3441"></i></div><div class="usl"><span>${Math.round(Math.min(1, wk / g) * 100)} % af markmiði vikunnar</span></div>`
+      + `<div class="uwkb">${days.map(([l, h, t]) => `<div><i style="height:${Math.max(h ? 6 : 0, Math.round(h / mx * 46))}px;background:${t ? "#2A3441" : "#DFE3E8"}"></i><span>${l}</span></div>`).join("")}</div></section>` : "";
     const today2 = faerslur().filter(e => (e.starfsmadur || me) === me && e.date === isoD(today)), last = today2.slice().sort((x, y) => String(y.til || y.fra || "").localeCompare(String(x.til || x.fra || "")))[0];
     const tinfo = `Í dag: ${H(today2.reduce((s, e) => s + (+e.timar || 0), 0))} klst. skráðar${last ? " · síðast " + E((last.fra || "") + (last.til ? "–" + last.til : "")) + " " + E(last.lysing || "") : ""}`;
     const ps = verkefni().filter(p => !isDone(p)).sort((x, y) => String(y.nr).localeCompare(String(x.nr), "is", { numeric: true }));
