@@ -222,6 +222,7 @@
     R.forEach(xs => xs.sort((a, b) => String(a.t || "99").localeCompare(String(b.t || "99"))));
     return R;
   }
+  window.dtVerkItems = verkItems; window.dtVT = VT; // 2.139.0: Í dag › Vikan framundan
   function verkView() {
     const top = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Verk</h2></div><div class="uhr dtnav">${VMODE === "vika" ? `<button type="button" class="btn" data-act="dverk:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dverk:0">Þessi vika</button><button type="button" class="btn" data-act="dverk:1" aria-label="Næsta vika">›</button>` : ""}<span class="dtrng">${VMODE === "vika" ? "{RNG}" : ""}</span><span class="seg dvm"><button type="button" data-act="dverkm:vika" aria-pressed="${VMODE === "vika"}">Vika</button><button type="button" data-act="dverkm:tl" aria-pressed="${VMODE !== "vika"}">Tímalína</button></span></div></div>`;
     if (VMODE !== "vika") return top.replace("{RNG}", "") + tr(() => window.pfCalHTML(), "");

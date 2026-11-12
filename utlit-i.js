@@ -121,6 +121,7 @@
     const cb = side?.querySelector(".cobrand"); if (cb && !side.querySelector(".srailbtn")) { const b = document.createElement("button"); b.type = "button"; b.className = "srailbtn";
       b.onclick = () => { const on = !document.body.classList.contains("srail"); try { localStorage.setItem("atrium-stika", on ? "rail" : "full"); } catch (e) {} railSet(); }; cb.after(b); }
     railSet();
+    try { window.u1Bell && u1Bell(); } catch (e) {}
   }
   // 2.135.3: „+ Nýtt“ opnar val um hvað á að búa til (Skrá tíma opnar tímaskráningu beint)
   window.nyttMenu = () => { const on = k => { try { return ON(k); } catch (e) { return false; } }, mcp = (() => { try { return !!MCP; } catch (e) { return true; } })(), fj = window.can && can("fjarmal"), vett = window.isVett && isVett();
