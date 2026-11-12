@@ -240,9 +240,14 @@ const skjalCard=(x,opts={})=>{const p=opts.noProj?null:skjalProj(x); const ed=x.
   <div class="meta">${statusPill(x.stada||"Not started")}${typePill(x.tegund)}${p?`<span class="nr">${esc(p.nr)}</span><span>${esc(p.stutt)}</span>`:""}${ed?`<span>${esc(fmtDate(ed))}</span>`:""}</div></div>${CHEV}</div></div>`;};
 
 const todo=(act,o)=>`<div class="lrow tap" data-act="${act}" role="button" tabindex="0"><div class="ll">${o.lead}</div><div class="lm"><div class="lt">${esc(o.title)}</div><div class="ls">${esc(o.sub)}</div></div>${CHEV}</div>`;
+/* 2.132.0: eigin viðburðir (persona) – aðrir sjá „Upptekinn“ ef einka; heitið býr í notandi/{netfang} (aðeins eigandinn les) */
+window.EINKA=window.EINKA||{};
+const _meEm=()=>String(window.VIEWAS?.email||window.USER?.email||"").toLowerCase();
+window.fundMinn=f=>!!f&&String(f.stofnandi||"").toLowerCase()===_meEm();
+window.fundNafn=f=>!f?"":f.einka?(fundMinn(f)&&!window.VIEWAS?(window.EINKA[f.id]?.heiti||"Upptekinn"):"Upptekinn"):(f.name||"");
 function upcoming(){
   const items=[];
-  (S?.fundir||[]).filter(f=>!f.projectId||inD(findProj(f.projectId))).forEach(f=>items.push({kind:"Fundur",open:"fund:"+f.id,when:f.date,title:f.name,nr:f.verknr,extra:[hhmm(f.date)&&"kl. "+hhmm(f.date),f.stadsetning&&""+f.stadsetning].filter(Boolean),o:f}));
+  (S?.fundir||[]).filter(f=>(!f.projectId||inD(findProj(f.projectId)))&&(!f.persona||fundMinn(f))).forEach(f=>items.push({kind:f.persona?"Viðburður":"Fundur",open:"fund:"+f.id,when:f.date,title:fundNafn(f),nr:f.verknr,extra:[hhmm(f.date)&&"kl. "+hhmm(f.date),f.stadsetning&&""+f.stadsetning].filter(Boolean),o:f}));
   verkD().forEach(p=>{
     (p.undirverk||[]).filter(u=>u.stada!=="Done"&&u.skiladagur).forEach(u=>items.push({kind:"Skil undirverks",open:"sub:"+u.id,when:u.skiladagur,title:subName(u),nr:u.nr+" · "+p.stutt,extra:[],o:{...u,mappa:u.mappa||p.mappa}}));
     if(!isDone(p)){ if(p.skiladagur) items.push({kind:p.vidburdur===p.skiladagur?"Skil og viðburður":"Skil verkefnis",open:"verk:"+p.id,when:p.skiladagur,title:p.stutt,nr:p.nr,extra:[hhmm(p.skiladagur)&&"kl. "+hhmm(p.skiladagur)].filter(Boolean),o:p});

@@ -1110,7 +1110,7 @@
     });
     ag.sort((x, y) => (x.time || "99").localeCompare(y.time || "99"));
     const rows = ag.map(a => `<div class="udsr${a.late ? " late" : ""}" ${a.open ? `data-open="${E(a.open)}" role="button" tabindex="0"` : ""}><span class="udst">${E(a.time || "–")}</span><span class="udsx"><b>${E(a.title)}</b>${a.sub ? `<small>${E(a.sub)}</small>` : ""}</span><span class="r">${pill(a.kind, a.late ? "late" : "")}</span></div>`).join("");
-    return `<section class="card ucard udags"><div class="uhch"><h3>Dagurinn${ag.length ? ` <span class="m">${ag.length}</span>` : ""}</h3><a href="#" data-act="tab:dagatal">Dagatal →</a></div>${rows || `<div class="uempty">Ekkert á dagskrá í dag.</div>`}</section>`;
+    return `<section class="card ucard udags"><div class="uhch"><h3>Dagurinn${ag.length ? ` <span class="m">${ag.length}</span>` : ""}</h3><a href="#" data-act="tab:dteymi">Dagatal →</a></div>${rows || `<div class="uempty">Ekkert á dagskrá í dag.</div>`}</section>`;
   }
   // Lesnar tilkynningar (á þessu tæki)
   const SEENK = "u1seen:" + (window.ORG?.lsForskeyti || "");

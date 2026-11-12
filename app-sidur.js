@@ -119,7 +119,7 @@ function dFund(f){
   const p=fundProj(f), x=d(f.date), n=daysTo(f.date);
   const others=p?(S?.fundir||[]).filter(g=>g.id!==f.id&&fundProj(g)?.id===p.id&&daysTo(g.date)>=0).sort((a,b)=>d(a.date)-d(b.date)):[];
   return backBar()+`<div class="kicker"><span class="kind">Fundur</span>${n!==null?relPill(n):""}</div>
-  <h2 class="big" style="margin-top:6px">${esc(f.name)}</h2>${window.fbRespHTML?fbRespHTML(f):""}
+  <h2 class="big" style="margin-top:6px">${esc(window.fundNafn?fundNafn(f):f.name)}</h2>${window.fbRespHTML?fbRespHTML(f):""}
   <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([
     ["Tími",(x?DAY[x.getDay()]+" "+fmtDate(f.date):"–")+(hhmm(f.date)?" · kl. "+hhmm(f.date)+(hhmm(f.dateEnd)?"–"+hhmm(f.dateEnd):""):"")],
     ["Staður",f.stadsetning&&window.mapLink?mapLink(f.stadsetning):esc(f.stadsetning||"")],["Verkefni",p?projLink(p):(f.verknr?`<span class="nr">${esc(f.verknr)}</span>`:"")],

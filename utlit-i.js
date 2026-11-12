@@ -42,7 +42,7 @@
   if (P) { hide(P, "pantanir"); P.tabs.unshift(["pnyf", "Yfirlit"]); }
   // Verkdagatal (2.68.0): eitt sameiginlegt dagatal í Kjarna – verkefni, pantanir og búnaður (pantanir2.js) – aðskilið persónulega Dagatalinu
   // 2.130.0: eitt Dagatal – Mitt · Verk (áður Verkdagatal, pantanir2.js) · Teymi (dagteymi.js) · Fundir; flipar efst á síðunni
-  { const D = by("dagatal"); if (D) { const fu = D.tabs.find(t => t[0] === "fundir"); D.tabs = [["dagatal", "Mitt"], ["pndag", "Verk"], ["dteymi", "Teymi"], ...(fu ? [["fundir", "Fundir"]] : D.tabs.filter(t => !["dagatal", "pndag", "dteymi"].includes(t[0])))]; D.hdrAlltaf = true; } }
+  { const D = by("dagatal"); if (D) { const fu = D.tabs.find(t => t[0] === "fundir"); D.tabs = [["dteymi", "Fólk"], ["pndag", "Verk"], ["dagatal", "Mánuður", 1], ...(fu ? [["fundir", "Fundir", 1]] : D.tabs.filter(t => !["dagatal", "pndag", "dteymi"].includes(t[0])))]; /* 2.132.0: Fólk (sía: Ég · Allir · nafn) og Verk */ D.hdrAlltaf = true; } }
   // Starfsfólk (2.102.0): eigin hluti í Starfsemi (áður Spjall › Samstarfsfólk) – spjald starfsmanns (folk.js)
   { const SP = by("spjall"); if (SP && !by("folk")) { SP.tabs = SP.tabs.filter(t => t[0] !== "teymi");
     SECTIONS_ALL.push({ k: "folk", l: "Starfsfólk", ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.8 14.6c2.4.1 4.1 1.6 4.7 4.4"/></svg>', tabs: [["teymi", "Starfsfólk"]] }); } }

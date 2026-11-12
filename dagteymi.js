@@ -20,7 +20,7 @@
     return out;
   }
   const hm = x => String(x || "").slice(11, 16);
-  function atridi(p, days) {
+  function atridi(p, days, nakv) {
     const R = new Map(days.map(d => [d, []])), put = (d, it) => { if (R.has(d)) R.get(d).push(it); };
     const a = days[0], b = days[days.length - 1];
     // Fundir í Atrium – aðeins þeir sem viðkomandi stofnaði eða er boðaður á (eldri fundir án skráningar sleppa)
@@ -28,7 +28,8 @@
       const att = tr(() => fbAtt(f), []);
       if (!f.stofnandi && !att.length) { const v = f.projectId && tr(() => findProj(f.projectId), null); if (!v || !p.sk || !(v.starfsmenn || []).includes(p.sk)) return; } // eldri fundir: starfsfólk verkefnisins
       else if (!p.email || !tr(() => fundFor(f, p.email), false)) return;
-      put(d, { k: "f", t: hm(f.date), e: hm(f.dateEnd), txt: f.name || "Fundur", open: "fund:" + f.id }); });
+      const mine = f.persona && tr(() => fundMinn(f), false);
+      put(d, { k: f.persona ? "e" : "f", t: f.heilldagur ? "" : hm(f.date), e: f.heilldagur ? "" : hm(f.dateEnd), txt: tr(() => fundNafn(f), f.name) || "Fundur", open: f.persona ? "" : "fund:" + f.id, act: mine ? "dvid:" + f.id : "", lock: f.persona && f.einka }); });
     // Outlook (deilt dagatal samstarfsfólks; eigin dagatal fyrir notandann sjálfan)
     tr(() => (window.fbTeamEv ? fbTeamEv(p.email) : []), []).forEach(e => { const d = e.s.slice(0, 10); if (d < a || d > b) return;
       if ((R.get(d) || []).some(x => x.k === "f" && x.t === hm(e.s) && lc(x.txt) === lc(e.t))) return;
@@ -42,34 +43,96 @@
       (v.undirverk || []).forEach(u => { if (u.skiladagur && u.stada !== "Done" && (!u.abyrgd || u.abyrgd === p.sk)) put(String(u.skiladagur).slice(0, 10), { k: "s", t: "", txt: "Skil " + (u.nr || "") + " " + (u.heiti || u.nafn || ""), open: "sub:" + u.id }); }); });
     // Skráðir tímar (liðnir dagar og í dag): hvar viðkomandi vann, klst. á verkefni
     { const ti = iso(new Date()), sum = new Map();
-      tr(() => S.timar.faerslur, []).forEach(e => { const d = String(e.date || "").slice(0, 10); if (d < a || d > b || d > ti || (e.starfsmadur || e.sk) !== p.sk) return; const k = d + "|" + (e.verkefniId || ""); sum.set(k, (sum.get(k) || 0) + (+e.timar || 0)); });
+      tr(() => S.timar.faerslur, []).forEach(e => { const d = String(e.date || "").slice(0, 10); if (d < a || d > b || d > ti || (e.starfsmadur || e.sk) !== p.sk) return;
+        if (nakv && e.fra && e.til) { const v = e.verkefniId && tr(() => findProj(e.verkefniId), null); put(d, { k: "t", t: e.fra, e: e.til, txt: "Skráð · " + (v ? (v.nr || "") + " " + (v.stutt || "") : (e.lysing || "án verkefnis")), open: v ? "verk:" + v.id : "" }); return; }
+        const k = d + "|" + (e.verkefniId || ""); sum.set(k, (sum.get(k) || 0) + (+e.timar || 0)); });
       sum.forEach((h, k) => { const [d, pid] = k.split("|"), v = pid && tr(() => findProj(pid), null); put(d, { k: "t", t: "", txt: (Math.round(h * 10) / 10).toString().replace(".", ",") + " klst. · " + (v ? (v.nr || "") + " " + (v.stutt || "") : "án verkefnis"), open: v ? "verk:" + v.id : "" }); }); }
     // Pantanir: afhending og skil
     tr(() => window.salaAPI.PN(), []).forEach(P => { if (!p.sk || !(P.starfsmenn || []).includes(p.sk) || ["Skilað", "Lokið"].includes(P.stada)) return;
       const f0 = String(P.fra || "").slice(0, 10), t0 = String(P.til || "").slice(0, 10);
       if (f0) put(f0, { k: "p", t: hm(P.fra), txt: "Afhending " + (P.nr || ""), open: "tb:" + P.id });
       if (t0 && t0 !== f0) put(t0, { k: "p", t: hm(P.til), txt: "Skil " + (P.nr || ""), open: "tb:" + P.id }); });
-    const RO = { f: 0, o: 0, p: 0, v: 1, s: 1, t: 2 };
+    const RO = { f: 0, e: 0, o: 0, p: 0, v: 1, s: 1, t: 2 };
     R.forEach(xs => xs.sort((x, y) => RO[x.k] - RO[y.k] || String(x.t).localeCompare(String(y.t))));
     return R;
   }
 
+  /* ---------- Dagatal › Fólk (2.132.0): sía Ég · Allir · nafn. Einn → vikan með klukkutímum; Allir → hver er hvar ---------- */
+  let WHO = "me";
+  const H0 = 7, H1 = 19, PXH = 46;
+  const toMin = t => { const [h, m] = String(t || "").split(":").map(Number); return isNaN(h) ? null : h * 60 + (m || 0); };
+  function itemHTML(x) { const at = x.act ? `data-act="${E(x.act)}"` : x.open ? `href="#" data-open="${E(x.open)}"` : "";
+    const tag = x.act || x.open ? "a" : "span";
+    return `<${tag} ${at} class="dti dti-${x.k}" title="${E((x.t ? x.t + (x.e ? "–" + x.e : "") + " " : "") + x.txt)}">${x.lock ? "🔒 " : ""}${x.t ? `<b>${E(x.t)}</b> ` : ""}${E(x.txt)}</${tag}>`; }
+  function weekOne(p, days, ti) {
+    const R = atridi(p, days, true), hours = [...Array(H1 - H0 + 1)].map((_, i) => H0 + i);
+    const lbl = d => { const x = new Date(d + "T12:00:00"); return DN[x.getDay()] + " " + x.getDate() + "."; };
+    const top = days.map(d => { const xs = (R.get(d) || []).filter(x => !x.t || toMin(x.t) === null); return `<div class="dwa${d === ti ? " dtt" : ""}">${xs.map(itemHTML).join("")}</div>`; }).join("");
+    const cols = days.map(d => { const xs = (R.get(d) || []).filter(x => x.t && toMin(x.t) !== null);
+      const ev = xs.map(x => { const a = Math.max(H0 * 60, toMin(x.t)), e0 = toMin(x.e), b = Math.min(H1 * 60, e0 && e0 > a ? e0 : a + 60);
+        const st = `top:${(a - H0 * 60) / 60 * PXH}px;height:${Math.max(20, (b - a) / 60 * PXH - 3)}px`;
+        const at = x.act ? `data-act="${E(x.act)}" role="button" tabindex="0"` : x.open ? `data-open="${E(x.open)}" role="button" tabindex="0"` : "";
+        return `<div class="dwe dwe-${x.k}" style="${st}" ${at}><b>${x.lock ? "🔒 " : ""}${E(x.txt)}</b><small>${E(x.t)}${x.e ? "–" + E(x.e) : ""}</small></div>`; }).join("");
+      const now = d === ti ? (() => { const n = new Date(), m = n.getHours() * 60 + n.getMinutes(); return m >= H0 * 60 && m <= H1 * 60 ? `<i class="dwnow" style="top:${(m - H0 * 60) / 60 * PXH}px"></i>` : ""; })() : "";
+      return `<div class="dwc${d === ti ? " dtt" : ""}" data-dag="${E(d)}">${hours.slice(0, -1).map((h, i) => `<button type="button" class="dwslot" style="top:${i * PXH}px;height:${PXH}px" data-act="dvny:${E(d)}:${pad(h)}:00" aria-label="Nýr viðburður ${E(lbl(d))} kl. ${pad(h)}"></button>`).join("")}${ev}${now}</div>`; }).join("");
+    return `<div class="card dwk"><div class="dwrow dwh"><div></div>${days.map(d => `<div class="${d === ti ? "dtt" : ""}">${E(lbl(d))}</div>`).join("")}</div>
+      <div class="dwrow dwall"><div class="dwlab">Allan daginn</div>${top}</div>
+      <div class="dwrow dwbody" style="height:${(H1 - H0) * PXH}px"><div class="dwhrs">${hours.slice(0, -1).map((h, i) => `<span style="top:${i * PXH}px">${pad(h)}:00</span>`).join("")}</div>${cols}</div></div>`;
+  }
   function view() {
     try { window.fbTeamLoad && fbTeamLoad(); } catch (e) {}
     const m = monday(), days = [...Array(5)].map((_, i) => { const x = new Date(m); x.setDate(m.getDate() + i); return iso(x); });
     const ti = iso(new Date()), P = folk(), me = lc(tr(() => fbMe(), ""));
-    const lbl = d => { const x = new Date(d + "T12:00:00"); return DN[x.getDay()] + " " + x.getDate() + "."; };
     const f = new Date(days[0] + "T12:00:00"), l = new Date(days[4] + "T12:00:00");
     const rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
-    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Teymi</h2></div><div class="uhr dtnav"><button type="button" class="btn" data-act="dteymi:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dteymi:0">Þessi vika</button><button type="button" class="btn" data-act="dteymi:1" aria-label="Næsta vika">›</button><span class="dtrng">${E(rng)}</span></div></div>`;
-    const msTxt = tr(() => window.fbCalOk && fbCalOk(), false) ? "" : `<p class="hint dthint">Fundir og verk úr Atrium. Tengdu Microsoft 365 til að sjá líka Outlook-dagatöl samstarfsfólks.</p>`;
-    const head = `<div class="dtrow dth"><div class="dtp">Starfsfólk · ${P.length}</div>${days.map(d => `<div class="dtd${d === ti ? " dtt" : ""}">${E(lbl(d))}</div>`).join("")}</div>`;
+    const who = WHO === "me" ? (P.find(p => p.email && p.email === me) || { sk: tr(() => ME(), ""), nafn: "Ég", email: me }) : WHO === "*" ? null : P.find(p => (p.email || p.sk) === WHO) || null;
+    const sel = `<label class="dtwho"><span class="sr">Hvers dagatal</span><select onchange="doAct('dtwho:'+this.value)"><option value="me"${WHO === "me" ? " selected" : ""}>Ég</option><option value="*"${WHO === "*" ? " selected" : ""}>Allir</option>${P.filter(p => p.email !== me).map(p => `<option value="${E(p.email || p.sk)}"${WHO === (p.email || p.sk) ? " selected" : ""}>${E(p.nafn)}</option>`).join("")}</select></label>`;
+    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Fólk</h2></div><div class="uhr dtnav">${sel}<button type="button" class="btn" data-act="dteymi:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dteymi:0">Þessi vika</button><button type="button" class="btn" data-act="dteymi:1" aria-label="Næsta vika">›</button><span class="dtrng">${E(rng)}</span><button type="button" class="btn primary" data-act="dvny:${E(days.includes(ti) ? ti : days[0])}:09:00">+ Viðburður</button></div></div>`;
+    const msTxt = tr(() => window.fbCalOk && fbCalOk(), false) ? "" : `<p class="hint dthint">Fundir, viðburðir og verk úr Atrium. Tengdu Microsoft 365 til að sjá líka Outlook-dagatöl.</p>`;
+    const leg = `<div class="dtleg"><span><i class="dti-f"></i>Fundur</span><span><i class="dti-e"></i>Viðburður</span><span><i class="dti-o"></i>Outlook</span><span><i class="dti-v"></i>Verkefni</span><span><i class="dti-p"></i>Afhending / skil</span><span><i class="dti-s"></i>Skiladagur</span>${who ? `<span><i class="dwe-t" style="width:14px;height:10px;border-radius:3px;display:inline-block"></i>Skráðir tímar</span>` : ""}<span class="dtlh">${who ? "Smelltu á lausan tíma til að bæta við viðburði · 🔒 = aðrir sjá „Upptekinn“" : "„+“ bókar viðkomandi – Atrium varar við ef hann er upptekinn"}</span><a href="#" class="dtfl" data-act="tab:fundir">Fundalisti →</a></div>`;
+    if (who) return hdr + msTxt + leg + weekOne(who, days, ti);
+    const head = `<div class="dtrow dth"><div class="dtp">Starfsfólk · ${P.length}</div>${days.map(d => { const x = new Date(d + "T12:00:00"); return `<div class="dtd${d === ti ? " dtt" : ""}">${E(DN[x.getDay()] + " " + x.getDate() + ".")}</div>`; }).join("")}</div>`;
     const rows = P.map(p => { const R = atridi(p, days), ini = (p.sk || p.nafn.split(/\s+/).map(w => w[0] || "").join("")).slice(0, 2).toUpperCase();
-      return `<div class="dtrow"><div class="dtp"><span class="dtav">${E(ini)}</span><span class="dtn">${E(p.nafn)}${p.email && p.email === me ? " <small>(þú)</small>" : ""}</span></div>${days.map(d => { const xs = R.get(d) || [];
-        return `<div class="dtc${d === ti ? " dtt" : ""}">${xs.slice(0, 4).map(x => `<${x.open ? `a href="#" data-open="${E(x.open)}"` : "span"} class="dti dti-${x.k}" title="${E((x.t ? x.t + (x.e ? "–" + x.e : "") + " " : "") + x.txt)}">${x.t ? `<b>${E(x.t)}</b> ` : ""}${E(x.txt)}</${x.open ? "a" : "span"}>`).join("")}${xs.length > 4 ? `<span class="dtmore">+${xs.length - 4}</span>` : ""}${tr(() => MCP, true) ? `<button type="button" class="dtadd" data-act="dtbok:${E(d)}:${E(p.email || "")}" aria-label="Bóka ${E(p.nafn)} ${E(lbl(d))}">+</button>` : ""}</div>`; }).join("")}</div>`; }).join("");
-    const leg = `<div class="dtleg"><span><i class="dti-f"></i>Fundur í Atrium</span><span><i class="dti-o"></i>Outlook</span><span><i class="dti-v"></i>Verkefni</span><span><i class="dti-p"></i>Afhending / skil pöntunar</span><span><i class="dti-s"></i>Skiladagur</span><span>· Skráðir tímar</span><span class="dtlh">„+“ bókar viðkomandi – Atrium varar við ef hann er upptekinn</span></div>`;
+      return `<div class="dtrow"><div class="dtp"><span class="dtav">${E(ini)}</span><a href="#" class="dtn" data-act="dtwho:${E(p.email && p.email === me ? "me" : (p.email || p.sk))}">${E(p.nafn)}${p.email && p.email === me ? " <small>(þú)</small>" : ""}</a></div>${days.map(d => { const xs = R.get(d) || [];
+        return `<div class="dtc${d === ti ? " dtt" : ""}">${xs.slice(0, 4).map(itemHTML).join("")}${xs.length > 4 ? `<span class="dtmore">+${xs.length - 4}</span>` : ""}${tr(() => MCP, true) ? `<button type="button" class="dtadd" data-act="dtbok:${E(d)}:${E(p.email || "")}" aria-label="Bóka ${E(p.nafn)}">+</button>` : ""}</div>`; }).join("")}</div>`; }).join("");
     return hdr + msTxt + leg + `<div class="card dtgrid">${head}${rows || `<div class="empty">Ekkert starfsfólk skráð.</div>`}</div>`;
   }
+
+  /* ---------- Eigin viðburður (2.132.0): ekki tengdur verkefni; sýnileiki Allir / Upptekinn ---------- */
+  function vidbForm(d, t, id) {
+    const f = id ? (S?.fundir || []).find(x => x.id === id) : null, ek = f ? (window.EINKA?.[f.id] || {}) : {};
+    const heiti = f ? (f.einka ? ek.heiti || "" : f.name || "") : "", dd = f ? String(f.date).slice(0, 10) : d, fr = f ? (f.heilldagur ? "" : hm(f.date)) : t, tl = f ? (f.heilldagur ? "" : hm(f.dateEnd)) : (t ? pad(Math.min(23, +t.slice(0, 2) + 1)) + ":" + t.slice(3, 5) : "");
+    const einka = f ? !!f.einka : true, hd = f ? !!f.heilldagur : false;
+    sheet.innerHTML = `<h3 id="sheet-h">${f ? "Breyta viðburði" : "Nýr viðburður"}</h3><form id="vbf" novalidate>
+      <label>Heiti<input id="vb-h" required placeholder="T.d. Tannlæknir, frí, námskeið" value="${E(heiti)}"></label>
+      <div class="three"><label>Dagur<input id="vb-d" type="date" value="${E(dd)}" required></label><label>Frá<input id="vb-f" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" data-t24 value="${E(fr)}"${hd ? " disabled" : ""}></label><label>Til<input id="vb-t" type="text" inputmode="decimal" maxlength="5" placeholder="hh:mm" data-t24 value="${E(tl)}"${hd ? " disabled" : ""}></label></div>
+      <label class="chk"><input type="checkbox" id="vb-hd"${hd ? " checked" : ""}><span>Allan daginn</span></label>
+      <div class="kind" style="margin:12px 0 6px">Hvað sjá aðrir?</div>
+      <div class="smopts"><label class="chk smopt"><input type="radio" name="vb-s" value="einka"${einka ? " checked" : ""}><span><b>Bara „Upptekinn“</b><small>Heitið sést aðeins þér – það er geymt á þínu svæði sem enginn annar getur lesið</small></span></label>
+        <label class="chk smopt"><input type="radio" name="vb-s" value="allir"${einka ? "" : " checked"}><span><b>Allir sjá heitið</b><small>T.d. frí eða námskeið sem samstarfsfólk má vita af</small></span></label></div>
+      <p class="hint">Tíminn telst upptekinn þegar einhver bókar þig – Atrium varar þá við árekstri.</p>
+      <div id="f-msg"></div><div class="actions">${f ? `<button type="button" class="btn" id="vb-del" style="margin-right:auto">Eyða</button>` : ""}<button type="button" class="btn" id="vb-x">Hætta við</button><button class="btn primary" id="vb-ok">Vista</button></div></form>`;
+    sheetwrap.hidden = false; setTimeout(() => document.getElementById("vb-h")?.focus(), 50);
+    const hdc = document.getElementById("vb-hd"); hdc.onchange = () => { ["vb-f", "vb-t"].forEach(i => document.getElementById(i).disabled = hdc.checked); };
+    document.getElementById("vb-x").onclick = closeSheet;
+    if (f) document.getElementById("vb-del").onclick = async () => { if (!await atrJa(`Eyða viðburðinum „${heiti || "Upptekinn"}“?`, { ja: "Eyða", haetta: true })) return;
+      await saveSnapshot(s => { s.fundir = (s.fundir || []).filter(x => x.id !== f.id); }); if (window.EINKA?.[f.id]) { delete window.EINKA[f.id]; window.heimSaveDoc?.(); } closeSheet(); toast("Viðburði eytt"); };
+    document.getElementById("vbf").onsubmit = async e => { e.preventDefault(); const msgEl = document.getElementById("f-msg"), say = t2 => { msgEl.innerHTML = `<div class="msg err">${E(t2)}</div>`; };
+      const h = document.getElementById("vb-h").value.trim(), d2 = document.getElementById("vb-d").value, allDay = hdc.checked;
+      const nt = v => { v = String(v || "").trim().replace(/[.,]/, ":"); if (/^\d{1,2}$/.test(v)) v += ":00"; const m2 = v.match(/^(\d{1,2}):(\d{2})$/); return m2 && +m2[1] < 24 && +m2[2] < 60 ? pad(+m2[1]) + ":" + m2[2] : ""; };
+      const f1 = nt(document.getElementById("vb-f").value), t1 = nt(document.getElementById("vb-t").value), ek2 = document.querySelector('input[name="vb-s"]:checked')?.value === "einka";
+      if (!h) return say("Skrifaðu heiti."); if (!d2) return say("Veldu dag."); if (!allDay && (!f1 || !t1 || t1 <= f1)) return say("Skrifaðu tíma frá og til (t.d. 14:00–15:00), eða hakaðu við Allan daginn.");
+      const nid = f ? f.id : (typeof newId === "function" ? newId() : "v" + Date.now().toString(36)), meE = lc(tr(() => fbMe(), ""));
+      const rec = { name: ek2 ? "Upptekinn" : h, date: d2 + "T" + (allDay ? "00:00" : f1), dateEnd: d2 + "T" + (allDay ? "23:59" : t1), heilldagur: allDay || null, persona: true, einka: ek2, stofnandi: meE, attendees: [], projectId: null, stadsetning: null };
+      document.getElementById("vb-ok").disabled = true;
+      try {
+        if (ek2) { window.EINKA = { ...(window.EINKA || {}), [nid]: { heiti: h } }; } else if (window.EINKA?.[nid]) { delete window.EINKA[nid]; }
+        await saveSnapshot(s => { s.fundir = s.fundir || []; const q = s.fundir.find(x => x.id === nid); if (q) Object.assign(q, rec); else s.fundir.push({ id: nid, ...rec }); });
+        try { await window.heimSaveDoc?.(); } catch (x) {}
+        closeSheet(); toast(ek2 ? "Viðburður vistaður – aðrir sjá „Upptekinn“" : "Viðburður vistaður");
+      } catch (err) { document.getElementById("vb-ok").disabled = false; say(err?.message || String(err)); } };
+  }
+  window.vidbForm = vidbForm;
 
   /* ---------- Dagatal › Verk (2.131.2): vikan í dálkum – allt með dagsetningu úr pöntunum, verkefnum, tilboðum og reikningum ---------- */
   let VOFF = 0, VF = "", VMODE = "vika";
@@ -107,6 +170,9 @@
   }
 
   function act(k, r) {
+    if (k === "dtwho") { WHO = r.join(":") || "me"; render(); return; }
+    if (k === "dvny") { vidbForm(r[0], (r[1] || "09") + ":" + (r[2] || "00")); return; }
+    if (k === "dvid") { vidbForm(null, null, r[0]); return; }
     if (k === "dverk") { const n = +r[0]; VOFF = n === 0 ? 0 : VOFF + n; render(); return; }
     if (k === "dverkf") { VF = r[0] || ""; render(); return; }
     if (k === "dverkm") { VMODE = r[0] === "tl" ? "tl" : "vika"; render(); return; }
@@ -115,7 +181,7 @@
       setTimeout(() => { const q = document.getElementById("f-attq"); if (q && em && em !== lc(tr(() => fbMe(), ""))) { q.value = em; q.dispatchEvent(new Event("input", { bubbles: true })); q.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); }
         const t = document.getElementById("f-time"); if (t && !t.value) t.focus(); }, 60); }
   }
-  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act });
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dvny: act, dvid: act });
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { dteymi: view });
   const reg = () => { if (window.UI1V && !UI1V.dteymi) { UI1V.dteymi = view; UI1V.pndag = verkView; } };
   reg(); document.addEventListener("DOMContentLoaded", reg); setTimeout(reg, 0);
@@ -141,6 +207,29 @@
   .dtadd{position:absolute;right:4px;bottom:3px;width:22px;height:18px;border:1px dashed var(--line);border-radius:5px;background:transparent;color:var(--muted);font:500 13px/1 inherit;cursor:pointer;opacity:0}
   .dtc:hover .dtadd,.dtadd:focus{opacity:1}.dtadd:hover{border-style:solid;color:var(--ink)}
   @media (hover:none){.dtadd{opacity:.7}}
+  .dtwho select{min-height:36px;border:1px solid var(--line2,var(--line));border-radius:8px;padding:0 10px;background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px}
+  .sr{position:absolute;left:-9999px}
+  .dti-e{background:color-mix(in srgb,#7A5AB8 14%,transparent)}
+  .dtfl{margin-left:12px;font-size:12.5px}
+  .dwk{padding:0;overflow:hidden}
+  .dwrow{display:grid;grid-template-columns:56px repeat(5,minmax(0,1fr))}
+  .dwh>div{padding:10px 8px;font-size:13px;color:var(--muted);border-left:1px solid var(--line)}.dwh>div:first-child{border-left:0}.dwh .dtt{color:var(--ink);font-weight:500}
+  .dwall{border-top:1px solid var(--line);min-height:30px}.dwlab{font-size:10.5px;color:var(--muted);padding:6px 4px;line-height:1.2}
+  .dwa{border-left:1px solid var(--line);padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0}
+  .dwbody{position:relative;border-top:1px solid var(--line);overflow:hidden}
+  .dwhrs{position:relative}.dwhrs span{position:absolute;right:8px;font-size:11px;color:var(--muted);transform:translateY(-6px)}
+  .dwc{position:relative;border-left:1px solid var(--line);background:repeating-linear-gradient(180deg,transparent 0,transparent ${PXH - 1}px,var(--line) ${PXH - 1}px,var(--line) ${PXH}px)}
+  .dwslot{position:absolute;left:0;right:0;border:0;background:transparent;cursor:pointer;padding:0}.dwslot:hover{background:color-mix(in srgb,var(--kacc,#24578A) 6%,transparent)}
+  .dwe{position:absolute;left:4px;right:4px;border-radius:7px;padding:4px 8px;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;gap:1px;cursor:default;z-index:1}
+  .dwe[role=button]{cursor:pointer}.dwe b{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dwe small{font-size:11px;opacity:.8}
+  .dwe-f{background:color-mix(in srgb,var(--kacc,#24578A) 14%,var(--surface));border-left:3px solid var(--kacc,#24578A)}
+  .dwe-e{background:color-mix(in srgb,#7A5AB8 13%,var(--surface));border-left:3px solid #7A5AB8}
+  .dwe-o{background:color-mix(in srgb,var(--muted) 16%,var(--surface));border-left:3px solid var(--muted)}
+  .dwe-t{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--muted) 10%,var(--surface)) 0 6px,color-mix(in srgb,var(--muted) 16%,var(--surface)) 6px 12px);color:var(--muted);z-index:0}
+  .dtn,.dtfl{color:inherit;text-decoration:none}.dtn:hover,.dtfl:hover{text-decoration:underline}.dtfl{color:var(--kacc,#24578A)}
+  .dtnav{flex-wrap:wrap;justify-content:flex-end}.dtwho select{max-width:180px}
+  .dwe-p{background:#FFF1D6;color:#7A4E00;border-left:3px solid #B7791F}
+  .dwnow{position:absolute;left:0;right:0;border-top:2px solid #C2410C;z-index:2;pointer-events:none}
   .dvm{display:inline-flex;margin-left:12px}.dvm button{border:0;background:transparent;padding:0 12px;min-height:34px;border-radius:8px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}.dvm button[aria-pressed="true"]{background:var(--surface,#fff);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(15,37,48,.1)}
   .dvbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}.dvhint{margin-left:auto;font-size:12.5px;color:var(--muted)}
   .dvgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
