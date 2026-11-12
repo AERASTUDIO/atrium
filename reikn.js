@@ -188,7 +188,7 @@
     if (b.kredit?.stada === "bidur") return ` <span class="rkbktag">Kreditfæri…</span>`;
     const t = b.stada === "sent" ? `Í ${n}${b.nr || R.bokhaldNr ? " nr. " + (b.nr || R.bokhaldNr) : ""}` : b.stada === "drog" ? `Drög í ${n}` : b.stada === "bidur" ? `Sendist í ${n}…` : b.stada === "villa" ? `Villa frá ${n}` : "";
     return t ? ` <span class="rkbktag${b.stada === "villa" ? " villa" : b.stada === "sent" ? " ok" : ""}" title="Staða í bókhaldskerfi">${esc(t)}</span>` : ""; };
-  /* 2.119.2: útgefinn reikningur úr Payday (PDF eins og hann lítur út þar) vistaður á svæði fyrirtækisins: <ORG.od.reikningar>/<ár>/Reikningur <nr> <greiðandi>.pdf.
+  /* 2.119.2: útgefinn reikningur úr Payday (PDF eins og hann lítur út þar) vistaður á svæði fyrirtækisins: <stofa>/Bókhald/<ár>/01 Sala - útgefnir reikningar/Reikningur <nr> <greiðandi>.pdf (frá 2.131.4).
      Netþjónninn sækir PDF úr Payday (paydayPdf, aðeins fjármál); appið vistar með Microsoft-tengingu notandans. */
   const pdTried = new Set();
   async function pdSkjal(R) {
@@ -199,9 +199,11 @@
       const tok = await D.idToken(); const r = await fetch(`https://europe-west1-${proj}.cloudfunctions.net/paydayPdf?id=${encodeURIComponent(R.id)}`, { headers: { Authorization: "Bearer " + tok }, cache: "no-store" });
       if (!r.ok) throw new Error("PDF úr Payday: " + r.status + " " + (await r.text()).slice(0, 120));
       const nm = `Reikningur ${b.nr || R.bokhaldNr} ${R.kaupandi?.name || ""}`.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim() + ".pdf", ar = String(R.bokhaldDags || R.dags || "").slice(0, 4) || String(new Date().getFullYear());
-      const it = await msSaveFile(ORG.od.reikningar + "/" + ar, nm, await r.blob(), "application/pdf", true);
+      // 2.131.4: útgefnir reikningar fara í bókhaldsmöppu ársins: <stofa>/Bókhald/<ár>/01 Sala - útgefnir reikningar (ORG.od.bokhaldSala, {ar} = ár)
+      const dir = (ORG.od.bokhaldSala || (ORG.od.stofa || ORG.od.reikningar.replace(/\/Reikningar$/, "")) + "/Bókhald/{ar}/01 Sala - útgefnir reikningar").replace("{ar}", ar);
+      const it = await msSaveFile(dir, nm, await r.blob(), "application/pdf", true);
       await saveSnapshot(s => { const q = (s.reikningar || []).find(x => x.id === R.id); if (q && q.bokhald) { q.bokhald = { ...q.bokhald, skjal: { url: it.webUrl, id: it.id, nafn: nm, dags: new Date().toISOString() } }; q.pdfUrl = it.webUrl; q.pdfId = it.id; } });
-      toast(`Reikningur ${b.nr} vistaður í ${ODN()} (${ORG.od.reikningar.split("/").slice(-1)[0]} › ${ar})`);
+      toast(`Reikningur ${b.nr} vistaður í ${ODN()} (Bókhald › ${ar} › Sala)`);
     } catch (e) { console.warn("Payday PDF:", e); setTimeout(() => pdTried.delete(R.id), 10 * 60e3); }
   }
   { const seen = new Map();

@@ -112,10 +112,13 @@
     // 2.129.0: + Nýtt og Leita í einni línu; hnappur til að fella stikuna saman
     const side = el.closest(".side"), nw = side?.querySelector(".new"), ts = document.querySelector(".topsearch");
     if (side && nw && ts && !side.querySelector(".sqrow")) { const r = document.createElement("div"); r.className = "sqrow"; nw.before(r); r.append(nw, ts); }
+    { const ft = document.getElementById("sfoot2"); if (ft && !ft.querySelector(".srefbtn")) ft.insertAdjacentHTML("beforeend", `<button type="button" class="tab srefbtn" title="Endurhlaða – sækja nýjustu útgáfu og gögn" aria-label="Endurhlaða" onclick="atrEndurhlada()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>`); }
     const cb = side?.querySelector(".cobrand"); if (cb && !side.querySelector(".srailbtn")) { const b = document.createElement("button"); b.type = "button"; b.className = "srailbtn";
       b.onclick = () => { const on = !document.body.classList.contains("srail"); try { localStorage.setItem("atrium-stika", on ? "rail" : "full"); } catch (e) {} railSet(); }; cb.after(b); }
     railSet();
   }
+  // 2.131.4: endurhlaða – nýjasta útgáfa (service worker) og gögn
+  window.atrEndurhlada = async () => { try { const r = await navigator.serviceWorker?.getRegistration(); await r?.update(); } catch (e) {} location.reload(); };
   // Samanfelld stika (2.129.0): sjálfkrafa undir 1280 px nema notandinn hafi valið annað
   function railSet() { let pref = ""; try { pref = localStorage.getItem("atrium-stika") || ""; } catch (e) {}
     const on = wideScr() && (pref === "rail" || (!pref && !matchMedia("(min-width:1280px)").matches)); document.body.classList.toggle("srail", on);

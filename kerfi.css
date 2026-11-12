@@ -1223,3 +1223,10 @@ body #view .uh3.uid2{grid-template-columns:repeat(2,minmax(0,1fr))}
   :root body.pv.ui1.srail #sextra .sx-start::before{content:"▶";font-size:13px}
 }
 .ubm{cursor:pointer;border-radius:8px;margin:0 -8px;padding-left:8px;padding-right:8px}.ubm:hover{background:color-mix(in srgb,var(--line) 45%,transparent)}
+/* 2.131.4: endurhlaða-hnappur neðst við hlið stillingahjólsins */
+.srefbtn{display:none}
+@media (min-width:1024px){
+  :root body.pv.ui1 #sfoot2 .srefbtn{display:flex;order:1;flex:none;width:40px!important;height:40px;padding:0!important;justify-content:center;align-items:center}
+  :root body.pv.ui1 #sfoot2 .tab[data-tab="stillingar"]{order:2}
+}
+@media (min-width:1024px){:root body.pv.ui1 #sfoot2 .sfu{overflow:hidden;gap:10px}:root body.pv.ui1 #sfoot2 .sfu span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
