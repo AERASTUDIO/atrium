@@ -9,20 +9,20 @@ body.kerfi{
   --e1:0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,.05); --e2:0 0 0 1px var(--line2), 0 8px 20px -8px rgba(0,0,0,.25); --hl:none;
 }
 html:not(#atrium-litir)[data-theme="light"] body.kerfi{
-  --bg:#F2F4F6; --surface:#FFFFFF; --ink:#0F1720; --ink2:#3A4553; --muted:#5E6976; /* 2.122.6: dekkra svo smátexti nái WCAG AA (4,5:1) á grunninum */ --line:#E3E7EB; --line2:#D2D8DE;
-  --kacc:#24578A; --on-kacc:#FFFFFF; --acc-soft:#EAF0F6; --field:#F8F9FA; --hover:#F6F8FA;
+  --bg:#ECEFF2; --surface:#FAFBFC; --ink:#0F1720; --ink2:#3A4553; --muted:#5E6976; /* 2.122.6: dekkra svo smátexti nái WCAG AA (4,5:1) á grunninum */ --line:#DFE3E8; --line2:#CFD5DC;
+  --kacc:#24578A; --on-kacc:#FFFFFF; --acc-soft:#E6EDF4; --field:#F4F6F8; --hover:#F1F3F6;
   --t-red:#B13E36; --t-amb:#9C6410; --t-grn:#2C7A57; --t-blu:#24578A;
   --e1:0 0 0 1px var(--line), 0 1px 2px rgba(15,23,32,.04);
   --e2:0 0 0 1px var(--line2), 0 6px 16px -6px rgba(15,23,32,.12);
   --hl:none; --sidebg:#141A21; --sideink:#C7CFD8; --sidemut:#7D8896;
 }
 html:not(#atrium-litir):not([data-theme="light"]) body.kerfi{
-  --bg:#0D1014; --surface:#14191F; --ink:#E7ECF1; --ink2:#B6C0CB; --muted:#8792A0; --line:rgba(255,255,255,.065); --line2:rgba(255,255,255,.11);
-  --kacc:#7DAFE0; --on-kacc:#0D1014; --acc-soft:rgba(125,175,224,.10); --field:#0F1318; --hover:#181E25;
+  --bg:#171C23; --surface:#1F262E; --ink:#E7ECF1; --ink2:#B6C0CB; --muted:#8792A0; --line:rgba(255,255,255,.065); --line2:rgba(255,255,255,.11);
+  --kacc:#7DAFE0; --on-kacc:#0D1014; --acc-soft:rgba(125,175,224,.10); --field:#1A2027; --hover:#242C35;
   --t-red:#E58A80; --t-amb:#E0B060; --t-grn:#79C3A0; --t-blu:#7DAFE0;
   --e1:0 0 0 1px var(--line), 0 1px 0 rgba(0,0,0,.4);
   --e2:0 0 0 1px var(--line2), 0 10px 24px -8px rgba(0,0,0,.6);
-  --hl:inset 0 1px 0 rgba(255,255,255,.035); --sidebg:#0A0D10; --sideink:#C7CFD8; --sidemut:#6F7A87;
+  --hl:inset 0 1px 0 rgba(255,255,255,.035); --sidebg:#11161C; --sideink:#C7CFD8; --sidemut:#6F7A87;
 }
 /* Grunnur: einlitur flötur með örfínni dýpt efst */
 html:root body.kerfi{background:var(--bg)!important}
