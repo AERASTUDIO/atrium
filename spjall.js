@@ -59,7 +59,7 @@
   const homeAct = k => { const [t] = k.split(":"), id = k.slice(k.indexOf(":") + 1);
     if (t === "tb") return "u1go:" + ((window.salaAPI?.PN?.() || []).some(P => P.id === id) ? "pantanir" : "ltilbod") + ":" + k;
     return "u1go:" + ({ verk: "verk", sub: "verk", fund: "dteymi", reikn: "trk", skjal: "skjol", vsk: "vsk", vara: "lvorur" }[t] || "yfirlit") + ":" + k; };
-  const refCard = r => `<a href="#" class="spref" data-act="${esc(homeAct(r.k))}"><small>${esc(r.teg || REFT[r.k.split(":")[0]] || "Tengill")}</small><b>${esc(r.heiti || "")}</b>${r.sub ? `<span>${esc(r.sub)}</span>` : ""}<i aria-hidden="true">Opna →</i></a>`;
+  const refCard = r => r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="spref spfile"><small>${esc(r.teg || "Skrá")}</small><b>${esc(r.heiti || "")}</b>${r.sub ? `<span>${esc(r.sub)}</span>` : ""}<i aria-hidden="true">Opna í SharePoint ↗</i></a>` : `<a href="#" class="spref" data-act="${esc(homeAct(r.k))}"><small>${esc(r.teg || REFT[r.k.split(":")[0]] || "Tengill")}</small><b>${esc(r.heiti || "")}</b>${r.sub ? `<span>${esc(r.sub)}</span>` : ""}<i aria-hidden="true">Opna →</i></a>`;
   window.spRefInfo = k => { const [t] = String(k || "").split(":"), id = String(k).slice(String(k).indexOf(":") + 1), tr = f => { try { return f(); } catch (e) { return null; } };
     if (t === "verk") { const p = tr(() => findProj(id)); return p && { heiti: (p.nr || "") + " " + (p.stutt || p.nafn || ""), sub: p.vidskiptavinur || "" }; }
     if (t === "sub") { const r = tr(() => findSub(id)); return r && { heiti: (r.u.nr || "") + " " + tr(() => subName(r.u)), sub: "Í " + (r.p.nr || "") + " " + (r.p.stutt || "") }; }
@@ -98,17 +98,35 @@
     (S?.fundir || []).filter(f => !f.persona).sort((a, b) => String(b.date).localeCompare(String(a.date))).forEach(f => K.push("fund:" + f.id));
     (S?.reikningar || []).forEach(r => K.push("reikn:" + r.id)); (S?.skjol || []).filter(x => x.snid).forEach(x => K.push("skjal:" + x.id)); (S?.vidskiptavinir || []).forEach(c => K.push("vsk:" + c.id));
     return K.map(k => ({ k, i: spRefInfo(k) })).filter(x => x.i); }
-  function pick() {
-    const all = deilanleg(), o = otherOf(ras);
-    sheet.innerHTML = `<h3 id="sheet-h">Deila í spjalli · ${esc(ras === "almennt" ? "# Almennt" : nameOf(o))}</h3><div class="sppk"><input id="sppq" type="search" placeholder="Leita – verkefni, undirverk, tilboð, pöntun, fundur, reikningur, skjal…" autocomplete="off" aria-label="Leita"><div class="sppl" id="sppl"></div></div><div class="actions"><button type="button" class="btn" id="spp-x">Hætta við</button></div>`;
+  function pick(tabk) {
+    const all = deilanleg(), o = otherOf(ras), sp = tabk === "sp", msOk = (() => { try { return !!(window.MS && MS.on() && window.odG); } catch (e) { return false; } })();
+    sheet.innerHTML = `<h3 id="sheet-h">Deila í spjalli · ${esc(ras === "almennt" ? "# Almennt" : nameOf(o))}</h3>
+      <div class="seg sppt" role="tablist"><button type="button" role="tab" aria-selected="${!sp}" data-spt="">Í Atrium</button><button type="button" role="tab" aria-selected="${sp}" data-spt="sp">Skrá úr ${esc(window.ODN ? ODN() : "SharePoint")}</button></div>
+      <div class="sppk"><input id="sppq" type="search" placeholder="${sp ? "Leita að skrá eftir heiti…" : "Leita – verkefni, undirverk, tilboð, pöntun, fundur, reikningur, skjal…"}" autocomplete="off" aria-label="Leita"><div class="sppl" id="sppl"></div></div><div class="actions"><button type="button" class="btn" id="spp-x">Hætta við</button></div>`;
     sheetwrap.hidden = false; const q = document.getElementById("sppq"), L = document.getElementById("sppl");
-    const draw = () => { const w = fold(q.value).split(/\s+/).filter(Boolean), xs = all.filter(x => !w.length || w.every(t => fold([x.i.teg || REFT[x.k.split(":")[0]], x.i.heiti, x.i.sub].join(" ")).includes(t))).slice(0, 40);
-      L.innerHTML = xs.length ? xs.map(x => `<button type="button" class="spref sppi" data-k="${esc(x.k)}"><small>${esc(x.i.teg || REFT[x.k.split(":")[0]] || "")}</small><b>${esc(x.i.heiti)}</b>${x.i.sub ? `<span>${esc(x.i.sub)}</span>` : ""}</button>`).join("") : `<div class="empty">Ekkert fannst.</div>`; };
+    sheet.querySelectorAll("[data-spt]").forEach(b => b.onclick = () => pick(b.dataset.spt));
+    const card = (k, teg, heiti, sub, extra = "") => `<button type="button" class="spref sppi" data-k="${esc(k)}"${extra}><small>${esc(teg)}</small><b>${esc(heiti)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}</button>`;
+    let FS = [], tmr = null, seq = 0;
+    const draw = () => {
+      if (sp) {
+        if (!msOk) { L.innerHTML = `<div class="empty">Tengdu Microsoft 365 (Stillingar) til að deila skrám úr ${esc(window.ODN ? ODN() : "SharePoint")}.</div>`; return; }
+        const v = q.value.trim(); if (v.length < 2) { L.innerHTML = `<div class="empty">Skrifaðu a.m.k. tvo stafi til að leita.</div>`; return; }
+        clearTimeout(tmr); L.innerHTML = `<div class="empty">Leita…</div>`; const my = ++seq;
+        tmr = setTimeout(async () => { try { const j = await odG(`/me/drive/root/search(q='${encodeURIComponent(v.replace(/'/g, "''"))}')?$select=id,name,webUrl,file,folder,parentReference,lastModifiedDateTime&$top=30`); if (my !== seq) return;
+          FS = (j.value || []).filter(x => x.file); const path = x => String(x.parentReference?.path || "").replace(/^.*?root:\/?/, "").replace(/\//g, " › ");
+          L.innerHTML = FS.length ? FS.map((x, i) => card("f" + i, "Skrá", x.name, path(x) || "")).join("") : `<div class="empty">Engin skrá fannst.</div>`; }
+          catch (e) { if (my === seq) L.innerHTML = `<div class="empty">Leit tókst ekki: ${esc(e?.message || e)}</div>`; } }, 300);
+        return; }
+      const w = fold(q.value).split(/\s+/).filter(Boolean), xs = all.filter(x => !w.length || w.every(t => fold([x.i.teg || REFT[x.k.split(":")[0]], x.i.heiti, x.i.sub].join(" ")).includes(t))).slice(0, 40);
+      L.innerHTML = xs.length ? xs.map(x => card(x.k, x.i.teg || REFT[x.k.split(":")[0]] || "", x.i.heiti, x.i.sub)).join("") : `<div class="empty">Ekkert fannst.</div>`; };
     q.oninput = draw; draw(); setTimeout(() => q.focus(), 50);
     document.getElementById("spp-x").onclick = closeSheet;
-    L.onclick = async e => { const b = e.target.closest(".sppi"); if (!b) return; const k = b.dataset.k, info = spRefInfo(k), el = document.getElementById("sptxt"), texti = (el?.value || "").trim();
+    L.onclick = async e => { const b = e.target.closest(".sppi"); if (!b) return; const k = b.dataset.k, el = document.getElementById("sptxt"), texti = (el?.value || "").trim();
+      let ref;
+      if (k.startsWith("f")) { const x = FS[+k.slice(1)]; if (!x) return; ref = { k: "sp:" + x.id, teg: "Skrá", heiti: x.name, sub: String(x.parentReference?.path || "").replace(/^.*?root:\/?/, "").replace(/\//g, " › "), url: x.webUrl, drive: x.parentReference?.driveId || null, id: x.id }; }
+      else { const info = spRefInfo(k); ref = { k, teg: info.teg || REFT[k.split(":")[0]] || "", heiti: info.heiti, sub: info.sub || "" }; }
       const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");
-      const d = { id, ras, adilar: o ? [me(), o].map(s => s.toLowerCase()).sort() : [], af: me(), nafn: window.USER?.nafn || me(), texti, ref: { k, teg: info.teg || REFT[k.split(":")[0]] || "", heiti: info.heiti, sub: info.sub || "" }, t: new Date().toISOString() };
+      const d = { id, ras, adilar: o ? [me(), o].map(s => s.toLowerCase()).sort() : [], af: me(), nafn: window.USER?.nafn || me(), texti, ref, t: new Date().toISOString() };
       closeSheet(); if (el) { el.value = ""; el.style.height = ""; }
       try { await DB.commit([{ path: "spjall/" + id, data: d }]); } catch (err) { if (el) el.value = texti; toast("Tókst ekki að deila: " + (err?.code || err?.message || "villa")); } };
   }
