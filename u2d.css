@@ -501,7 +501,7 @@ html:not(#u2a):not(#u2b) body.kerfi :is(.upill,.pill,.dbadge,.chip).t-blu{color:
 /* Tölur í stiku: blár á ljósum grunni */
 @media (min-width:1024px){
   html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi.pv.ui1 .side .tbid{background:var(--glass-hi)!important;color:var(--kacc)!important}
-  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side .tbid{color:#9FC1EA!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side .tbid{color:var(--u-key-ac,#9FC1EA)!important}
   html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side :is(.sgrp,.abn small,.tab.tq .tl){color:var(--glass-mu)!important;opacity:1!important}
 }
 /* Rauður texti fylgir þema (var fastur dökkrauður og ólæsilegur í dökku) */
@@ -509,7 +509,7 @@ html body.kerfi #view :is(.red,.vyred,.b.red,.neg,.ured){color:var(--t-red)!impo
 /* Tillögur úr dagatali í Tímum */
 html body.kerfi #view .usug small{color:var(--kacc)!important}
 /* Dökkt: grafít-hlutir fá ljósan tón, skuggar mildir */
-html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .ucard.u2vik{background:#2A3441!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),var(--e1)!important}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .ucard.u2vik{background:var(--u-key)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),var(--e1)!important}
 html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi .spurn{background:var(--surface)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 30px 80px -24px rgba(0,0,0,.7)!important}
 html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi .fsk-x{color:var(--ink)!important}
 html:not(#u2a):not(#u2b) body.kerfi .fsk-h .fsk-x{background:var(--hover)!important;color:var(--ink)!important}
@@ -725,3 +725,63 @@ html:not(#u2a):not(#u2b) body.kerfi #view .smst.st-drog{background:var(--surface
   html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .split:not(.nodet) .splist .ucols.uf5 > span:nth-child(n+3 of :not(.fvck)):not(.r){display:none!important}
 }
 html:not(#u2a):not(#u2b) body.kerfi #view .spfoot{flex-wrap:nowrap!important;overflow:hidden}
+
+/* 2.143.0: Leit og síur í línu við fyrirsögn, undirflokka og lista (tólastikan hafði 12 px aukaspássíu) */
+html:not(#u2a):not(#u2b) body.kerfi #view .splist > .ultool{margin-left:0!important;margin-right:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist > .ultool + .rlbar,html:not(#u2a):not(#u2b) body.kerfi #view .splist > .rlbar{margin-top:0!important}
+
+
+/* =====================================================================================================
+   2.143.0 – Litaútfærslur (Stillingar › Útlit): Grafít (sjálfgefið) · Fjörður · Sjór · Lyng · Leir.
+   Byggðar á litum U2d (grafít, blár og flokkalitirnir). Breyta aðeins aðallit (virkur liður, aðalhnappar, bjalla,
+   lykilspjald) og áherslulit (tölur, tenglar, framvinda). Stöðulitir og grunnur haldast. Allar ná AA.
+   ===================================================================================================== */
+html body.kerfi{--u-key:#2A3441;--u-key-ac:#9FC1EA;--u-key-bar:#7FB0E6}
+html body.kerfi #view .ucard.u2vik{background:var(--u-key)!important}
+html body.kerfi #view .u2vl{color:var(--u-key-ac)!important}
+html body.kerfi #view .u2bars .on i{background:var(--u-key-bar)!important}
+@media (min-width:1024px){html body.kerfi.pv.ui1 .u2bell{background:var(--u-key)!important}}
+html body.kerfi .abrand .abt{background:var(--u-key)!important}
+html[data-litur="blar"]:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{--gra:#24578A;--on-gra:#FFFFFF;--kacc:#2B63A6;--accent:#2B63A6;--acc-soft:#E5EDF7;--hi:#24578A;--ui1hi:#24578A;--ui1sel:#E5EDF7;--u-key:#24578A;--u-key-ac:#9FC1EA;--u-key-bar:#9FC1EA;--b4:#24578A;--t0:#24578A;--t1:#24578A}
+html[data-litur="blar"]:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--gra:#8DB4E2;--on-gra:#12171D;--kacc:#8DB4E2;--accent:#8DB4E2;--acc-soft:#22344A;--hi:#8DB4E2;--ui1hi:#8DB4E2;--ui1sel:#22344A;--u-key:#1F3B5C;--u-key-ac:#8DB4E2;--u-key-bar:#8DB4E2;--b4:#8DB4E2}
+html[data-litur="sjor"]:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{--gra:#255F56;--on-gra:#FFFFFF;--kacc:#2A7064;--accent:#2A7064;--acc-soft:#E1F0EC;--hi:#255F56;--ui1hi:#255F56;--ui1sel:#E1F0EC;--u-key:#255F56;--u-key-ac:#9ED8CC;--u-key-bar:#9ED8CC;--b4:#255F56;--t0:#255F56;--t1:#255F56}
+html[data-litur="sjor"]:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--gra:#7FC7B8;--on-gra:#12171D;--kacc:#7FC7B8;--accent:#7FC7B8;--acc-soft:#1C3833;--hi:#7FC7B8;--ui1hi:#7FC7B8;--ui1sel:#1C3833;--u-key:#1D3F39;--u-key-ac:#7FC7B8;--u-key-bar:#7FC7B8;--b4:#7FC7B8}
+html[data-litur="lyng"]:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{--gra:#4E4389;--on-gra:#FFFFFF;--kacc:#5E52A6;--accent:#5E52A6;--acc-soft:#ECE9F7;--hi:#4E4389;--ui1hi:#4E4389;--ui1sel:#ECE9F7;--u-key:#4E4389;--u-key-ac:#C9C1F0;--u-key-bar:#C9C1F0;--b4:#4E4389;--t0:#4E4389;--t1:#4E4389}
+html[data-litur="lyng"]:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--gra:#B3A8E8;--on-gra:#12171D;--kacc:#B3A8E8;--accent:#B3A8E8;--acc-soft:#2D2947;--hi:#B3A8E8;--ui1hi:#B3A8E8;--ui1sel:#2D2947;--u-key:#2F2A55;--u-key-ac:#B3A8E8;--u-key-bar:#B3A8E8;--b4:#B3A8E8}
+html[data-litur="leir"]:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{--gra:#7A4A22;--on-gra:#FFFFFF;--kacc:#9A5A26;--accent:#9A5A26;--acc-soft:#F6ECE2;--hi:#7A4A22;--ui1hi:#7A4A22;--ui1sel:#F6ECE2;--u-key:#7A4A22;--u-key-ac:#F0C49C;--u-key-bar:#F0C49C;--b4:#7A4A22;--t0:#7A4A22;--t1:#7A4A22}
+html[data-litur="leir"]:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--gra:#E2A877;--on-gra:#12171D;--kacc:#E2A877;--accent:#E2A877;--acc-soft:#3D2D1F;--hi:#E2A877;--ui1hi:#E2A877;--ui1sel:#3D2D1F;--u-key:#4A2F1A;--u-key-ac:#E2A877;--u-key-bar:#E2A877;--b4:#E2A877}
+html:not([data-theme="light"]) body.kerfi .u2bell{background:var(--u-key)!important}
+/* Val í Stillingum */
+html body.kerfi .u2lit{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:18px 0 10px}
+html body.kerfi .u2litb{display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 14px;border:0;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:600 13.5px Manrope,system-ui,sans-serif;text-align:left;cursor:pointer;transition:box-shadow .18s,transform .18s}
+html body.kerfi .u2litb:hover{transform:translateY(-1px)}
+html body.kerfi .u2litb[aria-checked="true"]{box-shadow:inset 0 0 0 2px var(--gra)}
+html body.kerfi .u2litb small{display:block;font-size:11px;font-weight:500;color:var(--muted)}
+html body.kerfi .u2lits{display:flex;flex:none}
+html body.kerfi .u2lits i{width:22px;height:22px;border-radius:50%;box-shadow:0 0 0 2px var(--surface)}
+html body.kerfi .u2lits i + i{margin-left:-7px}
+
+/* 2.143.0: opið atriði á enn dekkra spjaldi (grár texti dekktur inni í því svo hann nái AA) */
+html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{--u-det:#DCE1E7}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--u-det:#0F1318}
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi.pv.ui1 #view .split:not(.nodet) .spdet{--muted:#525C68}
+}
+@media (max-width:1023px){
+  /* Fyrirsögn opins atriðis brotnar milli orða, ekki inni í orði */
+  html:not(#u2a):not(#u2b) body.kerfi #view :is(.ptitle,h2.big){word-break:normal!important;overflow-wrap:break-word!important;hyphens:manual;font-size:clamp(24px,7.2vw,30px)!important}
+  /* Opið atriði á dekkra grunni líka í síma */
+  html:not(#u2a):not(#u2b) body.kerfi.simi1 #view .spdet,html:not(#u2a):not(#u2b) body.kerfi #view .spdet{background:var(--u-det)!important}
+  html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi #view .spdet{--muted:#525C68}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet :is(.ukp,.kp,.card,.ucard,.llist,.mlist,.u2wrap,.rbox){background:var(--surface)!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet :is(.dtabs,.vtabs,.backrow,.udh,.udh2){background:transparent!important}
+}
+@media (max-width:1023px){
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet,html:not(#u2a):not(#u2b) body.kerfi #view .spdet *{word-break:normal!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet{overflow-wrap:break-word}
+  /* Aðgerðastika neðst í opnu atriði: jafnháar pillur, aukahnappar með ramma */
+  html:not(#u2a):not(#u2b) body.kerfi #view .simact{background:var(--bg)!important;border-top:0!important;box-shadow:0 -8px 20px -16px rgba(15,23,32,.35)}
+  html:not(#u2a):not(#u2b) body.kerfi #view .simact .btn{height:44px!important;min-height:44px!important;font-size:13.5px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .simact .btn:not(.primary){background:var(--surface)!important;box-shadow:inset 0 0 0 1px var(--line)!important;color:var(--ink)!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .simact .btn.primary{flex:2 1 0!important}
+}

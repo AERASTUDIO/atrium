@@ -3,7 +3,7 @@
    sömu víðværu breytum og hlaðast í þeirri röð sem index.html telur þær upp. */
 /* Stillingar skiptast í undirsíður (v1.2). Kaflarnir koma úr vStillingarAll() og er raðað á síður eftir fyrirsögn. */
 window.STSUB=null;
-const STPAGES={utlit:{l:"Útlit",d:"Ljóst, dökkt eða sjálfvirkt",s:["Útlit"]},ms:{l:"Microsoft 365",d:"Outlook, Teams og SharePoint",s:["Microsoft 365"]},sig:{l:"Undirskrift í pósti",d:"Neðst í tölvupósti úr appinu",s:["Undirskrift í pósti"]},amin:{l:"Áminningar",d:"Áminningar um tímaskráningu",s:["Áminningar"]},
+const STPAGES={utlit:{l:"Útlit",d:"Ljóst, dökkt eða sjálfvirkt · litir",s:["Útlit"]},ms:{l:"Microsoft 365",d:"Outlook, Teams og SharePoint",s:["Microsoft 365"]},sig:{l:"Undirskrift í pósti",d:"Neðst í tölvupósti úr appinu",s:["Undirskrift í pósti"]},amin:{l:"Áminningar",d:"Áminningar um tímaskráningu",s:["Áminningar"]},
   folk:{l:"Fólk",d:"Notendur, hlutverk og starfsmenn",s:["Notendur","Starfsmenn"],adm:1},fyrir:{l:"Reikningar og fyrirtæki",d:"Seljandi, tímagjald, VSK og vinnuvika",s:["Reikningar","Vinnuvika"],adm:1},
   adgangur:{l:"Aðgangsstýring",d:"Hver sér hvað, notendur, skoða sem og nýlegar breytingar",s:[],adm:1,fn:()=>window.vAdgangur?vAdgangur():""},
   einingar:{l:"Einingar",d:"Hvaða hlutar appsins eru í notkun hjá fyrirtækinu",s:[],adm:1,fn:()=>vEiningar()+(window.fskSynaHTML?fskSynaHTML():"")},
@@ -16,7 +16,7 @@ const mrow=(act,label,opts={})=>`<button type="button" class="mrow" ${act.starts
 function vStillingar(){const sub=window.STSUB&&STPAGES[STSUB]; 
   if(sub&&(!sub.adm||can("stillingar"))){if(sub.fn) return sub.fn(); const m=stChunks(); return sub.s.map(t=>m[t]||"").join("")||'<div class="empty">Ekkert hér.</div>';}
   const msOn=window.MS&&MS.on?MS.on():false;
-  const me=["utlit","ms","sig","amin",...(STPAGES.snjheim&&window.ON&&ON("snjall")?["snjheim"]:[]),...(STPAGES.tilk?["tilk"]:[])].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]:k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
+  const me=["utlit","ms","sig","amin",...(STPAGES.snjheim&&window.ON&&ON("snjall")?["snjheim"]:[]),...(STPAGES.tilk?["tilk"]:[])].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="utlit"?({auto:"Sjálfvirkt",light:"Ljóst",dark:"Dökkt"})[THEME]+(typeof LITUR!=="undefined"&&LITUR!=="grafit"?" · "+LITIR_U2[LITUR][0]:""):k==="ms"?(msOn?"Tengt":"Ekki tengt"):""})).join("");
   const co=can("stillingar")?["adgangur","folk","einingar",...(STPAGES.askrift&&window.leidNu?.()?["askrift"]:[]),...(STPAGES.snjfyr&&window.ON&&ON("snjall")?["snjfyr"]:[]),...(STPAGES.pferli&&window.ON&&ON("pferli")?["pferli"]:[]),...(STPAGES.vgreind&&window.ON&&ON("vgreind")?["vgreind"]:[]),...(STPAGES.innfl&&window.ON&&ON("innflutningur")?["innfl"]:[]),"fyrir","vstill",...(window.ON&&(ON("leiga")||ON("sala"))?["tilbod",...(STPAGES.snidmat?["snidmat"]:[])]:[]),"prufa"].map(k=>mrow("stsub:"+k,STPAGES[k].l,{d:STPAGES[k].d,v:k==="folk"&&window.nuUsers?String(nuUsers().filter(u=>u.virkur).length):""})).join(""):"";
   return `<div class="mgroup">Ég</div><div class="mlist">${me}</div>${co?`<div class="mgroup">Fyrirtækið</div><div class="mlist">${co}</div>`:""}
   <div class="mgroup">Gögn og persónuvernd</div><div class="mlist">${STPAGES.personuvernd?mrow("stsub:personuvernd",STPAGES.personuvernd.l,{d:STPAGES.personuvernd.d}):""}${can("stillingar")?mrow("js:syncNow()","Sækja afrit af gögnum",{d:"JSON-skrá með öllum gögnum appsins (aðeins admin – inniheldur persónuupplýsingar)",noch:1}):""}</div>`;}
@@ -36,6 +36,8 @@ function vStillingarAll(){
   ${window.nuAccountHTML?nuAccountHTML():""}
   <div class="viewtitle">Útlit</div><div class="stat-row">${[["auto","Sjálfvirkt"],["light","Ljóst"],["dark","Dökkt"]].map(([k,l])=>`<button type="button" class="chipbtn" data-act="theme:${k}" aria-pressed="${THEME===k}">${l}</button>`).join("")}</div>
   <p class="hint">Sjálfvirkt: ljóst á tölvu, dökkt í síma. Líka hægt að skipta með hnappinum efst til hægri.</p>
+  <div class="u2lit" role="radiogroup" aria-label="Litir">${Object.entries(LITIR_U2).map(([k,[n,p,a]])=>`<button type="button" class="u2litb" role="radio" data-act="litur:${k}" aria-checked="${LITUR===k}"><span class="u2lits" aria-hidden="true"><i style="background:${p}"></i><i style="background:${a}"></i></span><span class="u2litn">${n}${k==="grafit"?" <small>sjálfgefið</small>":""}</span></button>`).join("")}</div>
+  <p class="hint">Litirnir gilda fyrir þig á þessu tæki – aðalhnappa, virkan lið í stiku, lykilspjaldið Vikan þín, bjölluna og bláu smáatriðin. Stöðulitir (grænn, gulbrúnn, rauður) breytast ekki.</p>
   ${window.msStillingarHTML?msStillingarHTML():""}
   ${window.poSigSettingsHTML?poSigSettingsHTML():""}
   ${adm&&window.rkStillingarHTML?rkStillingarHTML():""}

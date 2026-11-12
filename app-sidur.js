@@ -242,6 +242,7 @@ function doAct(act,el){const [k,...r]=act.split(":");
   if(k==="edit"){openEdit(r[0],r.slice(1).join(":")); return;}
   if(k==="del"){deleteItem(r[0],r.slice(1).join(":")); return;}
   if(k==="theme"){setTheme(r[0]); return;}
+  if(k==="litur"){setLitur(r[0]); return;}
   if(k==="variant"){setVariant(r[0],r[1]); return;}
   if(k==="ics"){downloadIcs(r.join(":")); return;}
   if(k==="notif"){enableNotifs(); return;}
