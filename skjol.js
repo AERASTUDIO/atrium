@@ -41,8 +41,8 @@
     if (!xs.length) h += `<div class="empty" style="margin-top:16px">Engin skjöl passa við síuna.</div>`;
     return h;
   };
-  window.skDocsFor = pid => { const g = docs().filter(x => x.projectId === pid).sort((a, b) => String(b.breytt || b.stofnad || "").localeCompare(String(a.breytt || a.stofnad || "")));
-    return `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Skjöl${g.length ? " · " + g.length : ""}${MCP ? `<a class="plink" data-act="sknew:${esc(pid)}" style="margin-left:auto">+ Skjal</a>` : ""}</div>${g.length ? llist(g.map(row)) : ""}`; };
+  window.skDocsFor = (pid, uid) => { const g = docs().filter(x => x.projectId === pid && (!uid || x.undirverkId === uid)).sort((a, b) => String(b.breytt || b.stofnad || "").localeCompare(String(a.breytt || a.stofnad || "")));
+    return `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Skjöl${g.length ? " · " + g.length : ""}${MCP ? `<a class="plink" data-act="sknew:${esc(pid)}${uid ? ":" + esc(uid) : ""}" style="margin-left:auto">+ Skjal</a>` : ""}</div>${g.length ? llist(g.map(row)) : ""}`; };
 
   /* ---------- Staður (sameiginlegt í „nýtt“ og „flokka“) ---------- */
   const placeHTML = (stadur, pid, mappa) => `
@@ -60,6 +60,7 @@
   const readPlace = () => { const v = val("sk-stad"); return v.startsWith("verk:") ? { stadur: "verk", projectId: v.slice(5), mappa: val("sk-mappa") } : v === "stofa" ? { stadur: "stofa", projectId: null, mappa: val("sk-mappa") } : { stadur: "oflokkad", projectId: null, mappa: null }; };
 
   /* ---------- Nýtt skjal ---------- */
+  let UNDIR = null; // 2.133.0: nýtt skjal úr undirverki fær undirverkId
   function openNew(pid) {
     let snid = "word";
     const ctx = pid || (DETAIL?.startsWith("verk:") ? DETAIL.slice(5) : null);
@@ -87,7 +88,7 @@
         if (url && !/^https:\/\//i.test(url)) return msg("Slóðin þarf að byrja á https://", "err");
         btn.disabled = true; btn.textContent = "Bý til…";
         try {
-          const id = newId(), now = new Date().toISOString(), rec = { id, name, snid, url: url || null, odId: null, ...pl, stofnad: now, breytt: now };
+          const id = newId(), now = new Date().toISOString(), rec = { id, name, snid, url: url || null, odId: null, ...pl, ...(UNDIR && pl.projectId && findSub(UNDIR)?.p?.id === pl.projectId ? { undirverkId: UNDIR } : {}), stofnad: now, breytt: now }; UNDIR = null;
           if (OFFICE(snid)) { const dir = await dirOf(pl.stadur, pl.projectId, pl.mappa); const it = await msNewOffice(dir, name, SN[snid].ext, val("sk-tpl") || null); rec.url = it.webUrl; rec.odId = it.id; rec.name = it.name.replace(/\.[^.]+$/, ""); rec.slod = dir; }
           await saveSnapshot(s => { (s.skjol = s.skjol || []).push(rec); });
           toast(OFFICE(snid) ? `${SN[snid].l}-skjal búið til` : "Vistað í skjalalista"); closeSheet(); openDetail("skjal:" + id);
@@ -134,7 +135,7 @@
   window.skAct = async function (k, r) {
     const id = r.join(":");
     if (k === "skf") { fSnid = id; render(); return; }
-    if (k === "sknew") { openNew(id || null); return; }
+    if (k === "sknew") { UNDIR = r[1] || null; openNew(r[0] || null); return; }
     if (k === "skflokka") { openMove(id); return; }
     if (k === "skren") { const x = findD(id); if (!x) return;
       if (!OFFICE(x.snid)) { const n = await atrSpyrja("Breyta tengli", x.name, { label: "Heiti" }); if (n == null) return; const u = await atrSpyrja("Breyta tengli", x.url || "", { label: "Slóð (https://…)", type: "url" }); if (u == null) return;

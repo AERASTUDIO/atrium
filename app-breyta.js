@@ -32,6 +32,7 @@ function openEdit(type,id){
   if(type==="sub"){const r=findSub(id); if(!r) return; const u=r.u; title="Breyta undirverki";
     f=`<label>Heiti<input id="e-name" value="${esc(subName(u))}" required></label><p class="hint">Verknúmerið <b class="nr">${esc(u.nr)}</b> helst óbreytt.</p>
     <div class="two"><label>Staða<select id="e-status">${USTAT.map(s=>opt(s,STL[s],u.stada)).join("")}</select></label><label>Skiladagur<input id="e-date" type="date" value="${dOnly(u.skiladagur)}"></label></div>
+    <div class="two"><label>Áætlun (klst.)<input id="e-akl" type="text" inputmode="decimal" value="${esc(u.aklst!=null?String(u.aklst).replace(".",","):"")}" placeholder="T.d. 12"></label><label>Ábyrgð<select id="e-ab"><option value="">Enginn</option>${STARFS().map(x=>`<option value="${esc(x.sk)}"${u.abyrgd===x.sk?" selected":""}>${esc(x.nafn||x.sk)}</option>`).join("")}</select></label></div>
     <label>Sérmappa (slóð)<input id="e-mappa" type="url" value="${esc(u.serMappa||"")}" placeholder="Tómt = mappa verkefnisins"></label>
     <label>Lýsing<textarea id="e-lys">${esc(u.lysing||"")}</textarea></label>`;}
   if(type==="fund"){const fd=findFund(id); if(!fd) return; const p=fundProj(fd); title="Breyta fundi";
@@ -106,7 +107,7 @@ async function saveEdit(type,id){
     }
     if(type==="sub"){const {u,p}=findSub(id); const name=val("e-name"), mp=val("e-mappa"); if(!name) return msg("Heiti vantar.","err"); if(!urlOk(mp)) return msg("Sérmappa þarf að vera slóð sem byrjar á https://","err");
       const st=val("e-status"), dt=val("e-date"); busy();
-      await saveSnapshot(s=>{const [q,w]=sFindU(s,id); if(w) Object.assign(w,{heiti:u.nr+" "+name,stada:st,skiladagur:dt||null,serMappa:mp||null,mappa:mp||q?.mappa||null,lysing:val("e-lys")||null});});
+      await saveSnapshot(s=>{const [q,w]=sFindU(s,id); if(w) Object.assign(w,{heiti:u.nr+" "+name,stada:st,skiladagur:dt||null,serMappa:mp||null,mappa:mp||q?.mappa||null,lysing:val("e-lys")||null,aklst:(v=>v>0?v:null)(parseFloat(String(val("e-akl")||"").replace(",","."))),abyrgd:val("e-ab")||null});});
     }
     if(type==="fund"){const name=val("e-name"),dt=val("e-date"),tm=val("e-time"),place=val("e-place"),link=val("e-link"),fg=val("e-fg"),pid=val("e-proj");
       if(!name||!dt) return msg("Heiti og dagur verða að vera útfyllt.","err"); if(!urlOk(link)||!urlOk(fg)) return msg("Slóðir þurfa að byrja á https://","err");

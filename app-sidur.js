@@ -96,22 +96,31 @@ function dVerk(p){
 }
 let showAllTimes=false;
 function dSub(u,p){
+  // 2.133.0: undirverk með sama vægi og verkefni – áætlun, ábyrgð, skjöl og tilboð (reikningur fer áfram á verkefnið)
   const m=u.serMappa||u.mappa||p.mappa, tl=faerslur().filter(e=>e.undirverkId?e.undirverkId===u.id:e.nr===u.nr).sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
-  const others=(p.undirverk||[]).filter(x=>x.id!==u.id);
-  const tabs=[["yfirlit","Yfirlit"],["timar","Tímar",tl.length?num(sumT(tl)):""],["stillingar","Stillingar"]].filter(t=>t[0]!=="timar"||ON("timar")); fixTab(tabs);
+  const others=(p.undirverk||[]).filter(x=>x.id!==u.id), h=sumT(tl), ak=+u.aklst||0, ab=u.abyrgd?(STARFS().find(x=>x.sk===u.abyrgd)?.nafn||u.abyrgd):"";
+  const tbs=window.tbUndir?tbUndir(u.id):[], nDoc=(S?.skjol||[]).filter(x=>x.undirverkId===u.id&&x.snid).length, tbSum=tbs.reduce((a,T)=>a+(window.salaAPI?.netOf?salaAPI.netOf(T):0),0);
+  const tabs=[["yfirlit","Yfirlit"],["timar","Tímar",tl.length?num(h):""],["skrar","Skjöl",nDoc||""],["tilbod","Tilboð",tbs.length||""],["stillingar","Stillingar"]]
+    .filter(t=>t[0]==="timar"?ON("timar"):t[0]==="tilbod"?!!window.tbUndirTab&&!!window.tbOK&&tbOK():t[0]==="skrar"?ON("skjol")||!!m:true); fixTab(tabs);
   const head=backBar()+`<div class="kicker"><span class="nr">${esc(u.nr)}</span>${statusPill(u.stada)}${u.skiladagur&&u.stada!=="Done"?relPill(daysTo(u.skiladagur)):""}</div>
-  <h2 class="big" style="margin-top:6px">${esc(subName(u))}</h2><p class="sub" style="margin-bottom:0">Undirverk í ${projLink(p)}</p>`+dtabs(tabs);
+  <h2 class="big" style="margin-top:6px">${esc(subName(u))}</h2><p class="sub" style="margin-bottom:0">Undirverk í ${projLink(p)}${ab?" · ábyrgð: "+esc(ab):""}</p>`+dtabs(tabs);
   let body="";
-  if(DTAB==="yfirlit") body=`${klukkaBanner(p)}
-    <div class="kpis" style="margin-top:16px"><div class="card"><b>${num(u.timar)}</b><span>klst. skráðar</span></div><div class="card"><b>${u.skiladagur?fmtDate(u.skiladagur):"–"}</b><span>${u.skiladagur&&u.stada!=="Done"?esc(rel(daysTo(u.skiladagur))):"skiladagur"}</span></div></div>
-    ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button>${m?`<a class="btn" href="${esc(m)}" target="_blank" rel="noopener">Mappa</a>`:""}</div>`:""}
+  if(DTAB==="yfirlit"){const pc=ak?Math.round(h/ak*100):0;
+    body=`${klukkaBanner(p)}
+    <div class="kpis" style="margin-top:16px"><div class="card"><b>${ak?num(h)+" af "+num(ak):num(h)}</b><span>klst.${ak?" · "+pc+" % af áætlun":" skráðar"}</span>${ak?`<i class="ubar" style="display:block;height:6px;border-radius:3px;margin-top:8px;background:var(--line)"><i style="display:block;height:6px;border-radius:3px;width:${Math.min(100,pc)}%;background:${pc>100?"var(--t-red,#B13E36)":"var(--kacc,#24578A)"}"></i></i>`:""}</div>
+      <div class="card"><b>${u.skiladagur?fmtDate(u.skiladagur):"–"}</b><span>${u.skiladagur&&u.stada!=="Done"?esc(rel(daysTo(u.skiladagur))):"skiladagur"}</span></div>
+      ${tbs.length?`<div class="card tap" data-act="dtab:tilbod"><b>${esc(kr(tbSum))}</b><span>${tbs.length} ${tbs.length===1?"tilboð":"tilboð"} á undirverkinu</span></div>`:""}</div>
+    ${ak&&h>ak?`<div class="msg err" style="margin-top:12px">Komið fram úr áætlun undirverksins: ${num(h)} af ${num(ak)} klst.</div>`:""}
+    ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button>${m?`<a class="btn" href="${esc(m)}" target="_blank" rel="noopener">Mappa</a>`:""}<button type="button" class="btn" data-act="edit:sub:${esc(u.id)}">Breyta</button></div>`:""}
     ${u.yfirlit?`<div class="viewtitle">Staðan</div><div class="card" style="font-size:14.5px">${esc(u.yfirlit)}</div>`:""}
     ${textCard("Lýsing",u.lysing)}
-    ${others.length?`<div class="viewtitle">Önnur undirverk í verkefninu</div>${llist(others.map(subRowL))}`:""}`;
+    ${others.length?`<div class="viewtitle">Önnur undirverk í verkefninu</div>${llist(others.map(subRowL))}`:""}`;}
   if(DTAB==="timar") body=timesPage(tl,"kstart:"+esc(p.id));
+  if(DTAB==="skrar") body=(m?`<div class="links"><a class="btn" href="${esc(m)}" target="_blank" rel="noopener">Opna ${u.serMappa?"möppu undirverksins":"möppu verkefnisins"} ↗</a></div>`:"")+(window.skDocsFor?skDocsFor(p.id,u.id):"")+`<p class="hint" style="margin-top:10px">Skjöl sem eru búin til hér tengjast undirverkinu. Öll skjöl verkefnisins eru á síðu verkefnisins.</p>`;
+  if(DTAB==="tilbod") body=window.tbUndirTab?tbUndirTab(p,u):"";
   if(DTAB==="stillingar") body=`<div class="viewtitle">Staða</div>${statRow("sub",u.id,USTAT,u.stada,STL)}
     <div class="viewtitle" style="margin-top:6px">Upplýsingar</div>${settingsCard([
-      ["Verknúmer",`<span class="nr">${esc(u.nr)}</span>`],["Heiti",esc(subName(u))],["Skiladagur",u.skiladagur?fmtDate(u.skiladagur):""],["Verkefni",projLink(p)],
+      ["Verknúmer",`<span class="nr">${esc(u.nr)}</span>`],["Heiti",esc(subName(u))],["Skiladagur",u.skiladagur?fmtDate(u.skiladagur):""],["Áætlun",ak?num(ak)+" klst.":""],["Ábyrgð",esc(ab)],["Verkefni",projLink(p)],
       ["Mappa",m?`<a class="plink" href="${esc(m)}" target="_blank" rel="noopener">${u.serMappa?"Sérmappa":"Mappa verkefnis"}</a>`:""]],linkBtns({...u,mappa:null},{edit:"sub"}))}`;
   return head+`<div class="dbody">${body}</div>`;
 }

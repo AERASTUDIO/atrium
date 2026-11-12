@@ -1230,3 +1230,11 @@ body #view .uh3.uid2{grid-template-columns:repeat(2,minmax(0,1fr))}
   :root body.pv.ui1 #sfoot2 .tab[data-tab="stillingar"]{order:2}
 }
 @media (min-width:1024px){:root body.pv.ui1 #sfoot2 .sfu{overflow:hidden;gap:10px}:root body.pv.ui1 #sfoot2 .sfu span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+/* 2.133.0: undirverk sem spjöld á verkefnasíðu */
+.uvcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin:4px 0 8px}
+.uvc{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);text-decoration:none;cursor:pointer;min-width:0}
+.uvc:hover{border-color:var(--line2,var(--line));box-shadow:0 2px 8px rgba(15,23,32,.06)}
+.uvct{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.uvct b{font-weight:500;font-size:14px;line-height:1.3}
+.uvc small.nr{margin-top:-4px;font-size:11.5px}
+.uvcp{display:block;height:5px;border-radius:3px;background:var(--line)}.uvcp i{display:block;height:5px;border-radius:3px;background:var(--kacc,#24578A)}
+.uvcm{font-size:12px;color:var(--muted)}

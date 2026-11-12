@@ -74,10 +74,10 @@
     render(); if (editorOpen()) openEditor(true);
   }
   // notandi/{netfang} geymir líka stillingar Snjall-Heim (snjall.js, 2.54.0) – allt skjalið skrifað í einu svo hvorugt þurrkist út
-  window.heimSaveDoc = () => { if (!DBREF || !me()) return; const d = { breytt: new Date().toISOString() }; if (PREF) d.heim = PREF; const sj = window.__snjPref?.(); if (sj) d.snjall = sj; if (window.EINKA && Object.keys(window.EINKA).length) d.einka = window.EINKA; /* 2.132.0: heiti einkaviðburða */
+  window.heimSaveDoc = () => { if (!DBREF || !me()) return; if (!window.__notandiLesid) return new Promise(r => setTimeout(() => r(window.heimSaveDoc()), 800)); /* 2.132.1: aldrei skrifa skjalið áður en það hefur verið lesið (annars þurrkast einkaviðburðir út) */ const d = { breytt: new Date().toISOString() }; if (PREF) d.heim = PREF; const sj = window.__snjPref?.(); if (sj) d.snjall = sj; if (window.EINKA && Object.keys(window.EINKA).length) d.einka = window.EINKA; /* 2.132.0: heiti einkaviðburða */
     return DBREF.set("notandi/" + me(), d).catch(e => console.warn("Heim-stilling", e)); };
   window.heimStart = db => { DBREF = db; if (!me() || !db?.watch) return;
-    db.watch("notandi/" + me(), s => { try { window.snjFromDoc?.(s.exists ? s.data() : null); } catch (e) {} try { const ek = s.exists ? s.data()?.einka : null; if (ek && JSON.stringify(ek) !== JSON.stringify(window.EINKA || {})) { window.EINKA = ek; (window.renderData || render)(); } } catch (e) {} const h = s.exists ? s.data()?.heim : null; if (h && JSON.stringify(h) !== JSON.stringify(PREF)) { PREF = h; try { localStorage.setItem(LSK, JSON.stringify(h)); } catch (e) {} if (typeof tab !== "undefined" && tab === "yfirlit") (window.renderData || render)(); } }, () => {}); };
+    db.watch("notandi/" + me(), s => { window.__notandiLesid = true; try { window.snjFromDoc?.(s.exists ? s.data() : null); } catch (e) {} try { const ek = s.exists ? s.data()?.einka : null; if (ek && JSON.stringify(ek) !== JSON.stringify(window.EINKA || {})) { window.EINKA = ek; (window.renderData || render)(); } } catch (e) {} const h = s.exists ? s.data()?.heim : null; if (h && JSON.stringify(h) !== JSON.stringify(PREF)) { PREF = h; try { localStorage.setItem(LSK, JSON.stringify(h)); } catch (e) {} if (typeof tab !== "undefined" && tab === "yfirlit") (window.renderData || render)(); } }, () => {}); };
 
   function flyti() {
     const c = cur(), ic = k => (typeof EI !== "undefined" && EI[k]) || "";

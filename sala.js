@@ -322,6 +322,8 @@
   }
 
   /* ---------- Tilboð: nýtt ---------- */
+  // 2.133.0: tilboð má tengja undirverki (undirverkId) – reikningur fer samt á verkefnið
+  const undirOpts = (p, sel) => `<option value="">Ekkert undirverk – verkefnið allt</option>` + (p?.undirverk || []).filter(u => u.stada !== "Done" || u.id === sel).map(u => `<option value="${esc(u.id)}"${u.id === sel ? " selected" : ""}>${esc(u.heiti || u.nr)}</option>`).join("");
   function tbForm(D, pre) { // pre (2.12.0): { verkefniId } – nýtt tilboð úr Tilboð-flipa verkefnis
     const PP = pre?.verkefniId ? findProj(pre.verkefniId) : null;
     // 2.62.0: verkefni má velja í forminu (líka úr Tilboð-valmynd); tímabil tilboðs er sjálfgefið sömu dagar og verkefnið
@@ -330,7 +332,7 @@
     const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), M = D === "blandad", L = D !== "sala" && (!M || ON("leiga")), SV = M && !L; // SV (2.22.0): þjónustutilboð – Leiga ekki virk
     sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${M ? "tilboð" : L ? "leigutilboð" : "sölutilboð"}</h3>${byrjaHTML()}<form id="tbf" novalidate>
       <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" value="${esc(PP?.stutt || "")}" placeholder="${L ? "T.d. Árshátíð" : SV ? "T.d. Ljósahönnun – anddyri" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
-      ${verkefni().length ? `<label>Verkefni<select id="tb-verk"><option value="">Ekkert verkefni</option>${verkefni().filter(p => !isDone(p) || (PP && p.id === PP.id)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(p => `<option value="${esc(p.id)}"${PP && p.id === PP.id ? " selected" : ""}>${esc(p.nafn || p.nr)}</option>`).join("")}</select></label>` : ""}
+      ${verkefni().length ? `<label>Verkefni<select id="tb-verk"><option value="">Ekkert verkefni</option>${verkefni().filter(p => !isDone(p) || (PP && p.id === PP.id)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(p => `<option value="${esc(p.id)}"${PP && p.id === PP.id ? " selected" : ""}>${esc(p.nafn || p.nr)}</option>`).join("")}</select></label><label id="tb-undir-l"${(PP?.undirverk || []).length ? "" : " hidden"}>Undirverk<select id="tb-undir">${undirOpts(PP, pre?.undirverkId)}</select></label>` : ""}
       ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
       <label>${L || SV ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" data-stadur placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
@@ -342,6 +344,7 @@
     document.getElementById("tb-client").addEventListener("change", e => { const v = findVsk(e.target.value); if (v) { if (!val("tb-teng") && v.tengilidur) document.getElementById("tb-teng").value = v.tengilidur; if (!val("tb-net") && v.netfang) document.getElementById("tb-net").value = v.netfang; } });
     // Val á verkefni fyllir í heiti, viðskiptavin og tímabil (ef reitirnir eru tómir eða enn með gildi fyrra verkefnis)
     let lastPD = PD, lastH = PP?.stutt || "";
+    document.getElementById("tb-verk")?.addEventListener("change", e => { const pu = findProj(e.target.value), ul = document.getElementById("tb-undir-l"); if (ul) { ul.hidden = !(pu?.undirverk || []).length; document.getElementById("tb-undir").innerHTML = undirOpts(pu, null); } });
     document.getElementById("tb-verk")?.addEventListener("change", e => { const p = findProj(e.target.value), d = pD(p), set = (id, v, old) => { const el = document.getElementById(id); if (el && (!el.value || el.value === old)) el.value = v || ""; };
       if (p) { set("tb-heiti", p.stutt || "", lastH); const cs = document.getElementById("tb-client"); if (cs && (p.vskId || p.vkId) && !cs.value) { cs.value = p.vskId || p.vkId; cs.dispatchEvent(new Event("change")); } }
       if (L) { set("tb-fra", d.fra, lastPD.fra); set("tb-til", d.til, lastPD.til); }
@@ -358,7 +361,7 @@
         const cl = await pickVsk("tb", "client", "Viðskiptavinur"), id = gid(), n = +c[nK(D)] || 1001, nr = DL[D].pre + n;
         const T = { id, nr, heiti, deild: D, vskId: cl?.id || null, vidskiptavinur: cl?.name || null,
           tengilidur: val("tb-teng") || null, netfang: val("tb-net") || null, stadsetning: val("tb-stad") || null, fra, til, gildir: val("tb-gildir") || null, dags: d0,
-          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: (document.getElementById("tb-verk") ? val("tb-verk") : PP?.id) || null , ...pendPost() };
+          stada: "Drög", utgafa: 1, eldri: [], afsl: 0, athugasemd: null, linur: [], verkefniId: (document.getElementById("tb-verk") ? val("tb-verk") : PP?.id) || null, undirverkId: (document.getElementById("tb-verk") ? val("tb-verk") && val("tb-undir") : pre?.undirverkId) || null, ...pendPost() };
         if (pre?.vara) { const v = findV(pre.vara); if (v) T.linur = [{ ...lineFrom(v, T), magn: +pre.magn || 1 }]; } // „+ Á tilboð“ af vöruspjaldi (2.30.0)
         applyBase(T, getB());
         await saveSnapshot(s => { (s.tilbod = s.tilbod || []).push(T); s.stillingar = s.stillingar || {}; s.stillingar.tilbod = { ...(s.stillingar.tilbod || {}), [nK(D)]: n + 1 }; });
@@ -1064,7 +1067,7 @@
           try { tab = "pantanir"; } catch (e) {} openDetail("tb:" + id); }).catch(e => toast(errText(e))); return; }
     if (k === "tbs") { TS[r[0]] = r.slice(1).join(":"); render(); return; }
     if (k === "tbf") { TL.f = r[0] || ""; render(); return; }
-    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : r[0] === "blandad" ? "blandad" : "leiga"; if (D === "blandad") { tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; } if (!VRd(D).length && !await atrJa(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
+    if (k === "tbnew") { const D = r[0] === "sala" ? "sala" : r[0] === "blandad" ? "blandad" : "leiga"; if (D === "blandad") { tbForm(D, r[1] ? { verkefniId: r[1], undirverkId: r[2] || null } : null); return; } if (!VRd(D).length && !await atrJa(`${D === "leiga" ? "Búnaðarlistinn" : "Vörulistinn"} er tómur – línur má samt skrá sem sérlínur. Halda áfram?`)) return; tbForm(D, r[1] ? { verkefniId: r.slice(1).join(":") } : null); return; }
     if (k === "tbed") { const [op, id] = r;
       if (op === "start") { const T = findT(id); if (laest(T) || (T?.bidur && !isP(T))) { toast("Samþykkt tilboð er læst – breyttu " + (pontunAf(T) ? "pöntun " + pontunAf(T).nr : "því með nýrri útgáfu") + "."); return; } if (T) { EDT = structuredClone(T); window._tbOpen = {}; render(); window.scrollTo({ top: 0 }); } return; }
       if (op === "cancel") { if (!await atrJa("Hætta við breytingar á tilboðinu?")) return; EDT = null; render(); return; }
@@ -1152,6 +1155,8 @@ toast("Staða: " + st + (isP(T0) && LDELIV.includes(st) && L?.linur?.length ? " 
     const btns = MCP ? `<div class="links">${Ds.map(D => `<button type="button" class="btn primary" data-act="tbnew:${D}:${esc(p.id)}">+ ${D === "leiga" ? "Leigutilboð" : "Sölutilboð"}</button>`).join("")}</div>` : "";
     return btns + (tbFor(T => T.verkefniId === p.id) || `<div class="empty" style="margin-top:16px">Engin tilboð tengd þessu verkefni.</div>`); };
   // Tilboð viðskiptavinar (á síðu viðskiptavinar), báðar deildir
+  window.tbUndir = uid => TB().filter(T => T.undirverkId === uid && tbOnD(T));
+  window.tbUndirTab = (p, u) => { if (!window.ON || !tbOK()) return ""; return (MCP ? `<div class="links"><button type="button" class="btn primary" data-act="tbnew:blandad:${esc(p.id)}:${esc(u.id)}">+ Tilboð á undirverkið</button></div>` : "") + (tbFor(T => T.undirverkId === u.id) || `<div class="empty" style="margin-top:16px">Engin tilboð tengd þessu undirverki. Tilboð verkefnisins eru á síðu verkefnisins.</div>`); };
   window.tbFor = pred => { if (!window.ON || !tbOK()) return ""; const xs = TB().filter(T => tbOnD(T) && pred(T)).sort((a, b) => String(b.dags || "").localeCompare(String(a.dags || ""))); return xs.length ? `<div class="viewtitle">Tilboð · ${xs.length}</div>${llist(xs.map(tbRow))}` : ""; };
   // Skrá viðbætur í kjarnann (sjá app-sidur.js: VIEWS_EXT, DETAIL_EXT, ACT_EXT, FAB_EXT)
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { ltilbod: () => vTilbod("leiga"), lvorur: () => vVorur("leiga"), stilbod: () => vTilbod("sala"), svorur: () => vVorur("sala"), vvinna: () => vVinna(), pantanir: () => vPantanir(), vutl: () => vUtleiga() });
