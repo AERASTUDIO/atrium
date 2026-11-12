@@ -292,7 +292,12 @@ function render(){
   if(!scPend){scPend=scSnap(v)||{}; queueMicrotask(()=>{const ss=scPend; scPend=null; if(ss.prev) scRestore(document.getElementById("view"),ss);});} /* eftir allar umbúðir (Útlit I o.fl.) */
   v.innerHTML=(window.viewAsBanner?viewAsBanner():"")+(det||pageHead()+(window.deildMob?deildMob(tab):"")+({yfirlit:()=>(window.ORG?.pakkaval&&window.vHeim2?vHeim2():vYfirlit("heim")),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolFyr?vSkjolFyr():(window.vSkjolNy?vSkjolNy():""),skjolmin:()=>window.vSkjolMin?vSkjolMin():"",skjolnyl:()=>window.vSkjolNyl?vSkjolNyl():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||window.VIEWS_EXT?.[tab]||(()=>vYfirlit("heim")))()); drawSync();
   // Hreyfing aðeins þegar skipt er um síðu – ekki þegar gögn uppfærast
-  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==render._k){const dv=!!DETAIL&&!String(render._k||"").includes("|"+DETAIL+"|"); render._k=key; v.classList.remove("anim","slide"); void v.offsetWidth; v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide"); clearTimeout(render._a); render._a=setTimeout(()=>v.classList.remove("anim","slide"),900);}
+  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==render._k){const dv=!!DETAIL&&!String(render._k||"").includes("|"+DETAIL+"|"); render._k=key;
+    /* 2.124.0: sama hluta (t.d. Stillingar eða listi með spjaldi við hliðina) – aðeins spjaldið fær stutta hreyfingu, listinn stendur kyrr. Áður hreyfðist allur skjárinn við hvern smell (hikst). */
+    const samiFlipi=render._t===tab; render._t=tab; const split=document.body.classList.contains("hassplit");
+    v.classList.remove("anim","slide","anim-det"); void v.offsetWidth;
+    if(samiFlipi&&(split||window.STSUB||DETAIL)) v.classList.add("anim-det"); else {v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide");}
+    clearTimeout(render._a); render._a=setTimeout(()=>v.classList.remove("anim","slide","anim-det"),600);}
   document.getElementById("foot").textContent=S.uppfaert?"Síðast breytt "+fmtDate(S.uppfaert)+(hhmm(S.uppfaert)?" kl. "+hhmm(S.uppfaert):""):"";
 }
 /* 2.120.0: Gögn sem berast (Firestore, aðrir notendur, sjálfvirk drög) teikna skjáinn aftur án þess að trufla notandann:
