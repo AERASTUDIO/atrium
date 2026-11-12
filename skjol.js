@@ -16,6 +16,11 @@
 
   const badge = x => { const s = SN[x.snid] || SN.tengill; return `<span class="dbadge" style="--dc:${s.c}">${s.b}</span>`; };
   const where = x => x.stadur === "stofa" ? "Stofa" + (x.mappa ? " › " + x.mappa : "") : x.stadur === "verk" ? ((findProj(x.projectId)?.nr || "Verkefni") + (x.mappa ? " › " + x.mappa : "")) : "Óflokkað";
+  // 2.135.1: skjal úr undirverki með sérmöppu fer í sérmöppuna (slóðin leyst í gegnum Graph /shares); annars mappa verkefnisins
+  const undirDir = async uid => { try { const u = findSub(uid)?.u, url = u?.serMappa; if (!url || !window.MS?.g) return null;
+      const enc = "u!" + btoa(unescape(encodeURIComponent(url))).replace(/=+$/, "").replace(/\//g, "_").replace(/\+/g, "-");
+      const it = await MS.g(`/shares/${enc}/driveItem?$select=name,folder,parentReference`); if (!it?.folder) return null;
+      const pp = String(it.parentReference?.path || "").replace(/^.*?root:\/?/, ""); return decodeURIComponent((pp ? pp + "/" : "") + it.name); } catch (e) { console.warn("Sérmappa undirverks", e); return null; } };
   const dirOf = async (stadur, pid, mappa) => {
     if (stadur === "stofa") return ORG.od.stofa + "/" + (mappa || "Skjöl");
     if (stadur === "verk") { const p = findProj(pid); const pre = (mappa || "02").slice(0, 2); return await msProjSub(p, /^\d\d$/.test(pre) ? pre : "__", mappa || "02 Vinnuskjöl"); }
@@ -89,7 +94,7 @@
         btn.disabled = true; btn.textContent = "Bý til…";
         try {
           const id = newId(), now = new Date().toISOString(), rec = { id, name, snid, url: url || null, odId: null, ...pl, ...(UNDIR && pl.projectId && findSub(UNDIR)?.p?.id === pl.projectId ? { undirverkId: UNDIR } : {}), stofnad: now, breytt: now }; UNDIR = null;
-          if (OFFICE(snid)) { const dir = await dirOf(pl.stadur, pl.projectId, pl.mappa); const it = await msNewOffice(dir, name, SN[snid].ext, val("sk-tpl") || null); rec.url = it.webUrl; rec.odId = it.id; rec.name = it.name.replace(/\.[^.]+$/, ""); rec.slod = dir; }
+          if (OFFICE(snid)) { const dir = (rec.undirverkId && await undirDir(rec.undirverkId)) || await dirOf(pl.stadur, pl.projectId, pl.mappa); const it = await msNewOffice(dir, name, SN[snid].ext, val("sk-tpl") || null); rec.url = it.webUrl; rec.odId = it.id; rec.name = it.name.replace(/\.[^.]+$/, ""); rec.slod = dir; }
           await saveSnapshot(s => { (s.skjol = s.skjol || []).push(rec); });
           toast(OFFICE(snid) ? `${SN[snid].l}-skjal búið til` : "Vistað í skjalalista"); closeSheet(); openDetail("skjal:" + id);
         } catch (e) { btn.disabled = false; btn.textContent = "Búa til"; msg(esc(e?.message || "Villa"), "err"); }
