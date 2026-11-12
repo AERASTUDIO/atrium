@@ -92,10 +92,10 @@
   function repBody(k, es, lab) {
     const tot = es.reduce((s, e) => s + (+e.timar || 0), 0) || 1;
     if (k === "hvert") {
-      const g = {}; es.forEach(e => { const p = findProj(e.verkefniId), key = st.grp === "verk" ? (p ? p.nr + " " + (p.stutt || p.nafn || "") : "Innra") : st.grp === "vfl" ? (!p ? "Innra" : svidOf(p).includes("Þjónusta") ? ((p.thjonusta || [])[0] || "Þjónusta – án verkflokks") : svidOf(p)[0]) : svidOf(p)[0]; g[key] = (g[key] || 0) + (+e.timar || 0); });
+      const g = {}; es.forEach(e => { const p = findProj(e.verkefniId), key = st.grp === "verk" ? (p ? p.nr + " " + (p.stutt || p.nafn || "") : "Innra") : st.grp === "vfl" ? (!p ? "Innra" : !window.vflOn() ? ((window.rlName && rlName(p)) || "Án undirflokks") : svidOf(p).includes("Þjónusta") ? ((p.thjonusta || [])[0] || "Þjónusta – án verkflokks") : svidOf(p)[0]) : svidOf(p)[0]; g[key] = (g[key] || 0) + (+e.timar || 0); });
       const C = { "Þjónusta": "#1F5A96", "Leiga": "#5E86B3", "Sala": "#5E86B3", "Innra": "#9DB7D3" };
       st.hvRows = Object.entries(g).sort((a, b) => b[1] - a[1]).map(([n, h]) => [n, h, Math.round(h / tot * 100)]); st.hvLab = lab;
-      return `<div class="uct"><h3>Hvert fer tíminn · ${E(lab)} · allir</h3><span style="display:flex;gap:6px"><button type="button" class="btn sm" data-act="u1xl:">Excel</button><button type="button" class="btn sm primary" onclick="window.print()">PDF</button></span></div>${chips([["svid", "Eftir sviði"], ["vfl", "Eftir verkflokki"], ["verk", "Eftir verkefni"]], st.grp, "u1grp")}` + (Object.entries(g).sort((a, b) => b[1] - a[1]).map(([n, h]) => hbar(E(n), h, h / tot * 100, C[n])).join("") || `<div class="uempty">Engir tímar á tímabilinu.</div>`);
+      return `<div class="uct"><h3>Hvert fer tíminn · ${E(lab)} · allir</h3><span style="display:flex;gap:6px"><button type="button" class="btn sm" data-act="u1xl:">Excel</button><button type="button" class="btn sm primary" onclick="window.print()">PDF</button></span></div>${chips([["svid", "Eftir sviði"], ["vfl", window.vflOn() ? "Eftir verkflokki" : "Eftir undirflokki"], ["verk", "Eftir verkefni"]], st.grp, "u1grp")}` + (Object.entries(g).sort((a, b) => b[1] - a[1]).map(([n, h]) => hbar(E(n), h, h / tot * 100, C[n])).join("") || `<div class="uempty">Engir tímar á tímabilinu.</div>`);
     }
     if (k === "skylda") {
       const [a, b] = range(), wd = workdays(a, b);
