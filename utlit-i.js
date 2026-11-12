@@ -111,6 +111,7 @@
     el.innerHTML = h;
     // 2.129.0: + Nýtt og Leita í einni línu; hnappur til að fella stikuna saman
     const side = el.closest(".side"), nw = side?.querySelector(".new"), ts = document.querySelector(".topsearch");
+    if (nw && !nw.__ny) { nw.__ny = 1; nw.removeAttribute("onclick"); nw.onclick = e => { e.preventDefault(); window.nyttMenu(); }; }
     if (side && nw && ts && !side.querySelector(".sqrow")) { const r = document.createElement("div"); r.className = "sqrow"; nw.before(r); r.append(nw); r.after(ts); }
     // 2.135.0: eins og á skjámyndinni – „+ Nýtt“ og „Skrá tíma“ hlið við hlið, leitin í sér línu (klukka í gangi kemur í stað Skrá tíma)
     { const r = side?.querySelector(".sqrow"); if (r) { r.querySelector(".sqtim")?.remove(); const st = document.querySelector("#sextra .sx-start"); if (st) { st.remove(); r.insertAdjacentHTML("beforeend", `<button type="button" class="btn sqtim" onclick="kind='tima';PREFILL=null;openSheet()">Skrá tíma</button>`); } } }
@@ -119,6 +120,26 @@
       b.onclick = () => { const on = !document.body.classList.contains("srail"); try { localStorage.setItem("atrium-stika", on ? "rail" : "full"); } catch (e) {} railSet(); }; cb.after(b); }
     railSet();
   }
+  // 2.135.3: „+ Nýtt“ opnar val um hvað á að búa til (Skrá tíma opnar tímaskráningu beint)
+  window.nyttMenu = () => { const on = k => { try { return ON(k); } catch (e) { return false; } }, mcp = (() => { try { return !!MCP; } catch (e) { return true; } })(), fj = window.can && can("fjarmal"), vett = window.isVett && isVett();
+    const I = p => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+    const X = [
+      ["Verkefni", "Nýtt verkefni fyrir viðskiptavin", I('<path d="M3.5 7h17v12.5h-17zM8 7V4.5h8V7"/>'), "kind='verk';PREFILL=null;openSheet()", !vett],
+      ["Tilboð", "Leiga, sala eða þjónusta", I('<path d="M6 3.5h9l3.5 3.5v13.5H6z"/><path d="M9 11h6M9 14.5h6"/>'), "FAB_EXT.ltilbod()", !vett && window.tbOK && tbOK() && window.FAB_EXT?.ltilbod],
+      ["Pöntun", "Afhending og skil", I('<path d="M5 7.5h14l-1.3 11a1.5 1.5 0 0 1-1.5 1.3H7.8a1.5 1.5 0 0 1-1.5-1.3z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/>'), "FAB_EXT.pantanir()", on("pantanir") && window.FAB_EXT?.pantanir],
+      ["Undirverk", "Hluti af verkefni", I('<path d="M5 5h14v4H5zM8 13h11v4H8z"/><path d="M5 9v6h3"/>'), "kind='undir';PREFILL=null;openSheet()", on("undirverk") && !vett],
+      ["Tími", "Skrá unna tíma", I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'), "kind='tima';PREFILL=null;openSheet()", on("timar")],
+      ["Fundur", "Með þátttakendum og fundarboði", I('<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), "kind='fund';PREFILL=null;openSheet()", on("fundir") && !vett],
+      ["Á dagatal", "Bóka starfsmann eða verk sem er til", I('<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M12 13v4M10 15h4"/>'), "window.bokForm&&bokForm(isoDay(new Date()),'09:00','')", !!window.bokForm && !vett],
+      ["Viðburður", "Eigið – t.d. tannlæknir, frí", I('<circle cx="12" cy="12" r="8.5"/><path d="M9 12l2 2 4-4"/>'), "window.vidbForm&&vidbForm(isoDay(new Date()),'09:00')", !!window.vidbForm],
+      ["Viðskiptavinur", "Fyrirtæki eða einstaklingur", I('<path d="M4 20.5V5.5h9v15M13 10h7v10.5H2.5"/>'), "kind='vsk';PREFILL=null;openSheet()", !vett],
+      ["Reikningur", "Úr óreikningsfærðum tímum", I('<rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M3.5 10h17"/>'), "doAct('rknew:')", on("reikningar") && fj],
+      ["Skjal", "Word, Excel eða tengill", I('<path d="M6 3.5h9l3.5 3.5v13.5H6z"/>'), "window.skOpenNew&&skOpenNew(null)", on("skjol") && window.skOpenNew],
+      ["Póstur", "Nýr tölvupóstur", I('<path d="M3.5 6h17v12h-17zM3.5 6l8.5 7 8.5-7"/>'), "window.poCompose&&poCompose({})", on("postur") && window.poCompose]
+    ].filter(x => x[4] && mcp);
+    sheet.innerHTML = `<h3 id="sheet-h">Búa til</h3><div class="nymenu">${X.map(([t, d, ic, js]) => `<button type="button" class="nyit" data-js="${esc(js)}">${ic}<span><b>${esc(t)}</b><small>${esc(d)}</small></span></button>`).join("")}</div><div class="actions"><button type="button" class="btn" onclick="closeSheet()">Hætta við</button></div>`;
+    sheetwrap.hidden = false; sheet.querySelector(".nyit")?.focus();
+    sheet.querySelectorAll(".nyit").forEach(b => b.onclick = () => { closeSheet(); setTimeout(() => { try { (new Function(b.dataset.js))(); } catch (e) { console.warn(e); } }, 30); }); };
   // 2.131.4: endurhlaða – nýjasta útgáfa (service worker) og gögn
   window.atrEndurhlada = async () => { try { const r = await navigator.serviceWorker?.getRegistration(); await r?.update(); } catch (e) {} location.reload(); };
   // Samanfelld stika (2.129.0): sjálfkrafa undir 1280 px nema notandinn hafi valið annað

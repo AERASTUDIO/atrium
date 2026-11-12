@@ -1280,3 +1280,9 @@ body.pv.ui1 .spshr:hover{color:var(--ink)}
   :root body.pv.ui1.srail .side .sqrow .sqtim::before{content:"▶";font-size:13px}
 }
 @media (min-width:1024px){:root body.pv.ui1 #sextra:not(:has(.sx-k)){display:none!important}}
+/* 2.135.3: + Nýtt – val um hvað á að búa til */
+.nymenu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 8px}
+.nyit{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.nyit:hover,.nyit:focus-visible{border-color:var(--kacc,#24578A);background:color-mix(in srgb,var(--kacc,#24578A) 5%,var(--surface))}
+.nyit svg{flex:none;color:var(--kacc,#24578A)}.nyit span{display:flex;flex-direction:column;min-width:0}.nyit b{font-weight:500;font-size:14px}.nyit small{font-size:12px;color:var(--muted)}
+@media (max-width:600px){.nymenu{grid-template-columns:minmax(0,1fr)}}
