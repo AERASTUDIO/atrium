@@ -9,6 +9,9 @@
   const iso = x => x.getFullYear() + "-" + pad(x.getMonth() + 1) + "-" + pad(x.getDate());
   const DN = ["Sun", "Mán", "Þri", "Mið", "Fim", "Fös", "Lau"], MN = ["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ágú", "sep", "okt", "nóv", "des"];
   let OFF = 0; // vikur frá þessari
+  /* 2.144.0: Dagatal sýnir alla vikuna (mán–sun) sjálfgefið; „Mán–fös“ felur helgina. Val á tæki (localStorage aera-dtdagar). */
+  let ND = (() => { try { return localStorage.getItem("aera-dtdagar") === "5" ? 5 : 7; } catch (e) { return 7; } })();
+  const ndBtn = () => `<button type="button" class="btn dtnd" data-act="dtdagar:${ND === 7 ? 5 : 7}" aria-pressed="${ND === 7}" title="${ND === 7 ? "Fela helgina" : "Sýna helgina"}">${ND === 7 ? "Mán–sun" : "Mán–fös"}</button>`;
   const monday = () => { const t = new Date(); t.setHours(12, 0, 0, 0); t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + OFF * 7); return t; };
   const tr = (f, d) => { try { return f(); } catch (e) { return d; } };
 
@@ -84,14 +87,15 @@
       <div class="dwrow dwbody" style="height:${(H1 - H0) * PXH}px"><div class="dwhrs">${hours.slice(0, -1).map((h, i) => `<span style="top:${i * PXH}px">${pad(h)}:00</span>`).join("")}</div>${cols}</div></div>`;
   }
   function view() {
+    document.documentElement.style.setProperty("--dtn", ND);
     try { window.fbTeamLoad && fbTeamLoad(); } catch (e) {}
-    const m = monday(), days = [...Array(5)].map((_, i) => { const x = new Date(m); x.setDate(m.getDate() + i); return iso(x); });
+    const m = monday(), days = [...Array(ND)].map((_, i) => { const x = new Date(m); x.setDate(m.getDate() + i); return iso(x); });
     const ti = iso(new Date()), P = folk(), me = lc(tr(() => fbMe(), ""));
-    const f = new Date(days[0] + "T12:00:00"), l = new Date(days[4] + "T12:00:00");
+    const f = new Date(days[0] + "T12:00:00"), l = new Date(days[days.length - 1] + "T12:00:00");
     const rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
     const who = WHO === "me" ? (P.find(p => p.email && p.email === me) || { sk: tr(() => ME(), ""), nafn: "Ég", email: me }) : WHO === "*" ? null : P.find(p => (p.email || p.sk) === WHO) || null;
     const sel = `<label class="dtwho"><span class="sr">Hvers dagatal</span><select onchange="doAct('dtwho:'+this.value)"><option value="me"${WHO === "me" ? " selected" : ""}>Ég</option><option value="*"${WHO === "*" ? " selected" : ""}>Allir</option>${P.filter(p => p.email !== me).map(p => `<option value="${E(p.email || p.sk)}"${WHO === (p.email || p.sk) ? " selected" : ""}>${E(p.nafn)}</option>`).join("")}</select></label>`;
-    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Fólk</h2></div><div class="uhr dtnav">${sel}<button type="button" class="btn" data-act="dteymi:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dteymi:0">Þessi vika</button><button type="button" class="btn" data-act="dteymi:1" aria-label="Næsta vika">›</button><span class="dtrng">${E(rng)}</span><button type="button" class="btn${who ? "" : " primary"}" data-act="dtbok:${E(days.includes(ti) ? ti : days[0])}:${who ? E(who.email || "") : ""}">${who ? "Verk á dagatal" : "+ Setja á dagatal"}</button><button type="button" class="btn${who ? " primary" : ""}" data-act="dvny:${E(days.includes(ti) ? ti : days[0])}:09:00${who && who.email && who.email !== me ? ":" + E(who.email) : ""}"${who ? "" : ' hidden'}>${who && who.email && who.email !== me ? "+ Bóka " + E(String(who.nafn).split(" ")[0]) : "+ Viðburður"}</button>${!who ? "" : ""}</div></div>`;
+    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Fólk</h2></div><div class="uhr dtnav">${sel}${ndBtn()}<button type="button" class="btn" data-act="dteymi:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dteymi:0">Þessi vika</button><button type="button" class="btn" data-act="dteymi:1" aria-label="Næsta vika">›</button><span class="dtrng">${E(rng)}</span><button type="button" class="btn${who ? "" : " primary"}" data-act="dtbok:${E(days.includes(ti) ? ti : days[0])}:${who ? E(who.email || "") : ""}">${who ? "Verk á dagatal" : "+ Setja á dagatal"}</button><button type="button" class="btn${who ? " primary" : ""}" data-act="dvny:${E(days.includes(ti) ? ti : days[0])}:09:00${who && who.email && who.email !== me ? ":" + E(who.email) : ""}"${who ? "" : ' hidden'}>${who && who.email && who.email !== me ? "+ Bóka " + E(String(who.nafn).split(" ")[0]) : "+ Viðburður"}</button>${!who ? "" : ""}</div></div>`;
     const msTxt = tr(() => window.fbCalOk && fbCalOk(), false) ? "" : `<p class="hint dthint">Fundir, viðburðir og verk úr Atrium. Tengdu Microsoft 365 til að sjá líka Outlook-dagatöl.</p>`;
     const leg = `<div class="dtleg"><span><i class="dti-f"></i>Fundur</span><span><i class="dti-e"></i>Viðburður</span><span><i class="dti-o"></i>Outlook</span><span><i class="dti-v"></i>Verkefni</span><span><i class="dti-p"></i>Afhending / skil</span><span><i class="dti-s"></i>Skiladagur</span>${who ? `<span><i class="dwe-t" style="width:14px;height:10px;border-radius:3px;display:inline-block"></i>Skráðir tímar</span>` : ""}<span class="dtlh">${who ? "Smelltu á lausan tíma til að bæta við viðburði · 🔒 = aðrir sjá „Upptekinn“" : "„+“ bókar viðkomandi – Atrium varar við ef hann er upptekinn"}</span><a href="#" class="dtfl" data-act="tab:fundir">Fundalisti →</a></div>`;
     if (who) return hdr + msTxt + leg + weekOne(who, days, ti);
@@ -224,11 +228,12 @@
   }
   window.dtVerkItems = verkItems; window.dtVT = VT; // 2.139.0: Í dag › Vikan framundan
   function verkView() {
-    const top = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Verk</h2></div><div class="uhr dtnav">${VMODE === "vika" ? `<button type="button" class="btn" data-act="dverk:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dverk:0">Þessi vika</button><button type="button" class="btn" data-act="dverk:1" aria-label="Næsta vika">›</button>` : ""}<span class="dtrng">${VMODE === "vika" ? "{RNG}" : ""}</span><span class="seg dvm"><button type="button" data-act="dverkm:vika" aria-pressed="${VMODE === "vika"}">Vika</button><button type="button" data-act="dverkm:tl" aria-pressed="${VMODE !== "vika"}">Tímalína</button></span></div></div>`;
+    document.documentElement.style.setProperty("--dtn", ND);
+    const top = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Verk</h2></div><div class="uhr dtnav">${VMODE === "vika" ? `${ndBtn()}<button type="button" class="btn" data-act="dverk:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dverk:0">Þessi vika</button><button type="button" class="btn" data-act="dverk:1" aria-label="Næsta vika">›</button>` : ""}<span class="dtrng">${VMODE === "vika" ? "{RNG}" : ""}</span><span class="seg dvm"><button type="button" data-act="dverkm:vika" aria-pressed="${VMODE === "vika"}">Vika</button><button type="button" data-act="dverkm:tl" aria-pressed="${VMODE !== "vika"}">Tímalína</button></span></div></div>`;
     if (VMODE !== "vika") return top.replace("{RNG}", "") + tr(() => window.pfCalHTML(), "");
     const t = new Date(); t.setHours(12, 0, 0, 0); t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + VOFF * 7);
-    const days = [...Array(5)].map((_, i) => { const x = new Date(t); x.setDate(t.getDate() + i); return iso(x); }), ti = iso(new Date());
-    const f = new Date(days[0] + "T12:00:00"), l = new Date(days[4] + "T12:00:00"), rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
+    const days = [...Array(ND)].map((_, i) => { const x = new Date(t); x.setDate(t.getDate() + i); return iso(x); }), ti = iso(new Date());
+    const f = new Date(days[0] + "T12:00:00"), l = new Date(days[days.length - 1] + "T12:00:00"), rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
     const R = verkItems(days), SK = new Map(tr(() => STARFS(), []).map(x => [x.sk, x.nafn]));
     const chips = [["", "Allt"], ["afh", "Afhendingar og leiga"], ["skil", "Skil og verk"], ["frestur", "Frestir"]].map(([k, l2]) => `<button type="button" class="uchip${VF === k ? " on" : ""}" data-act="dverkf:${k}">${E(l2)}</button>`).join("");
     const card = it => { const [lab, c, bg] = VT[it.k], av = it.menn.map(sk => window.atrAv(sk)).join("");
@@ -239,6 +244,7 @@
   }
 
   function act(k, r) {
+    if (k === "dtdagar") { ND = +r[0] === 5 ? 5 : 7; try { localStorage.setItem("aera-dtdagar", String(ND)); } catch (e) {} render(); return; }
     if (k === "dtwho") { WHO = r.join(":") || "me"; render(); return; }
     if (k === "dvny") { if (r[3]) bokForm(r[0], (r[1] || "09") + ":" + (r[2] || "00"), r.slice(3).join(":")); else vidbForm(r[0], (r[1] || "09") + ":" + (r[2] || "00")); return; }
     if (k === "dvid") { vidbForm(null, null, r[0]); return; }
@@ -248,7 +254,7 @@
     if (k === "dteymi") { const n = +r[0]; OFF = n === 0 ? 0 : OFF + n; render(); return; }
     if (k === "dtbok") { const [d, em] = r; bokForm(d, "09:00", em || ""); return; }
   }
-  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dvny: act, dvid: act });
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dtdagar: act, dvny: act, dvid: act });
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { dteymi: view });
   const reg = () => { if (window.UI1V && !UI1V.dteymi) { UI1V.dteymi = view; UI1V.pndag = verkView; } };
   reg(); document.addEventListener("DOMContentLoaded", reg); setTimeout(reg, 0);
@@ -259,7 +265,7 @@
   .dthint{margin:4px 0 10px}
   .dtleg{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:12.5px;color:var(--muted);margin:2px 0 12px}.dtleg span{display:inline-flex;align-items:center;gap:6px}.dtleg i{width:14px;height:10px;border-radius:3px;display:inline-block}.dtleg .dtlh{margin-left:auto}
   .dtgrid{padding:0;overflow:auto}
-  .dtrow{display:grid;grid-template-columns:200px repeat(5,minmax(120px,1fr));border-top:1px solid var(--line);min-height:64px}
+  .dtrow{display:grid;grid-template-columns:200px repeat(var(--dtn,5),minmax(104px,1fr));border-top:1px solid var(--line);min-height:64px}
   .dtrow.dth{border-top:0;min-height:0;font-size:13px;color:var(--muted)}.dth>div{padding:10px 10px}
   .dtp{display:flex;align-items:center;gap:10px;padding:8px 12px;min-width:0}.dtn{font-size:13.5px;line-height:1.3;min-width:0}.dtn small{color:var(--muted)}
   .dtav{width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:var(--gra,#2A3441);color:var(--on-gra,#fff);font-size:11px;display:flex;align-items:center;justify-content:center}
@@ -282,7 +288,7 @@
   .dti-e{background:color-mix(in srgb,#7A5AB8 14%,transparent)}
   .dtfl{margin-left:12px;font-size:12.5px}
   .dwk{padding:0;overflow:hidden}
-  .dwrow{display:grid;grid-template-columns:56px repeat(5,minmax(0,1fr))}
+  .dwrow{display:grid;grid-template-columns:56px repeat(var(--dtn,5),minmax(0,1fr))}
   .dwh>div{padding:10px 8px;font-size:13px;color:var(--muted);border-left:1px solid var(--line)}.dwh>div:first-child{border-left:0}.dwh .dtt{color:var(--ink);font-weight:500}
   .dwall{border-top:1px solid var(--line);min-height:30px}.dwlab{font-size:10.5px;color:var(--muted);padding:6px 4px;line-height:1.2}
   .dwa{border-left:1px solid var(--line);padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -302,7 +308,7 @@
   .dwnow{position:absolute;left:0;right:0;border-top:2px solid #C2410C;z-index:2;pointer-events:none}
   .dvm{display:inline-flex;margin-left:12px}.dvm button{border:0;background:transparent;padding:0 12px;min-height:34px;border-radius:8px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}.dvm button[aria-pressed="true"]{background:var(--surface,#fff);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(15,37,48,.1)}
   .dvbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}.dvhint{margin-left:auto;font-size:12.5px;color:var(--muted)}
-  .dvgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+  .dvgrid{display:grid;grid-template-columns:repeat(var(--dtn,5),minmax(0,1fr));gap:12px;align-items:start}
   .dvcol{background:color-mix(in srgb,var(--line) 55%,transparent);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:120px}
   .dvcol.dvtd{background:color-mix(in srgb,var(--hi,#2B63A6) 10%,transparent)}.dvcol.dvtd .dvh{color:var(--hi,#2B63A6);font-weight:600}
   .dvh{font-size:13.5px;padding:2px 4px 4px}.dvempty{color:var(--muted);font-size:12px;padding:4px}
@@ -316,7 +322,7 @@
   .dvavs{display:flex;padding-left:4px;margin-top:4px}.dvav{width:22px;height:22px;border-radius:50%;background:var(--gra,#2A3441);color:var(--on-gra,#fff);font-size:9px;display:inline-flex;align-items:center;justify-content:center;margin-left:-4px;border:2px solid var(--surface,#fff)}
   .dvwarn{margin-top:4px;align-self:flex-start;font-size:11px;color:#8A5A00;background:#FBF0DD;border:1px solid #F0D9A8;border-radius:5px;padding:1px 6px}
   @media (max-width:1023px){.dvgrid{grid-template-columns:minmax(0,1fr)}.dvhint{margin-left:0}}
-  @media (max-width:1023px){.dtrow{grid-template-columns:120px repeat(5,minmax(96px,1fr))}.dtleg .dtlh{margin-left:0}}
+  @media (max-width:1023px){.dtrow{grid-template-columns:120px repeat(var(--dtn,5),minmax(96px,1fr))}.dtleg .dtlh{margin-left:0}}
   `;
   document.head.appendChild(css);
 })();
