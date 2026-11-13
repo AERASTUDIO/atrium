@@ -1432,3 +1432,19 @@ html:not(#u2a):not(#u2b) body.kerfi #view.u2solo > .udh2{background:transparent!
 }
 html:not(#u2a):not(#u2b) body.kerfi #view .udh2 .ptitle{word-break:normal!important;overflow-wrap:break-word!important;hyphens:manual}
 @media (max-width:1023px){ html:not(#u2a):not(#u2b) body.kerfi #view:not(:has(.split)) > .udh2{padding-right:0!important} }
+
+/* ===== 2.145.15 – Haus síðna: yfirfyrirsögn, titill og hausflipar alltaf á sama stað (tölva) =====
+   Yfirlitssíður (.uhead) voru 17 px neðar en listasíður (.phead) og flipar í Dagatali féllu saman í fellival – nú eins alls staðar. */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhead.hdhead{align-items:flex-start!important;flex-wrap:wrap;row-gap:14px}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhead.hdhead > :first-child{flex:1 1 auto;min-width:0}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhead.hdhead > .uhr{align-self:flex-start!important;margin-top:30px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhead.hdhead > .uhr.dtnav{flex:1 1 100%;order:3;margin-top:0!important;justify-content:flex-start!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhead.hdhead > .uhr.dtnav .btn.primary{margin-left:auto}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs.u2folded{display:flex!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs + .u2fold{display:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs{flex:0 0 auto!important;min-width:0!important;height:50px;box-sizing:border-box}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs button{flex:0 0 auto!important;min-width:84px!important;padding:0 16px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdhead .phrow.hashd{min-height:50px}
+}
+@media (min-width:1024px){ html:not(#u2a):not(#u2b) body.kerfi #view .splist > .spsup:has(+ .phead.hdhead){display:none!important} }

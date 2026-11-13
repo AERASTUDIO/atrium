@@ -234,7 +234,8 @@
       if (to && LIST.has(to) && (!window.tabOn || tabOn(to))) { window.u2RetTab = tab; window.u2RetFor = to; tab = to; } }
     else if (window.u2RetTab) { if (tab !== window.u2RetFor) window.u2RetTab = window.u2RetFor = null; else if (!DETAIL) { tab = window.u2RetTab; window.u2RetTab = window.u2RetFor = null; } }
     if (!desk() || !S || !LIST.has(tab)) {
-      document.body.classList.remove("hassplit", "spfull"); _render();
+      document.body.classList.remove("hassplit", "spfull");
+      { const u = desk() && S && !DETAIL && !!window.UI1V?.[tab]; window.__u1skip = u; try { _render(); } finally { window.__u1skip = false; } }
       if (desk() && S && !DETAIL && window.UI1V?.[tab]) { v.innerHTML = UI1V[tab](); return; }
       // 2.145.14: atriði sem opnast á heilli síðu (t.d. Skjal, Verðskrá úr Skjölum) fá sama haus og spjöldin
       if (desk() && S && DETAIL) { try { v.classList.add("u2solo"); fixDet(v); } catch (e) {} } else v.classList.remove("u2solo");
@@ -261,9 +262,11 @@
     let det = "";
     const dk = String(DETAIL || ""), dkk = dk.split(":")[0], dki = dk.slice(dkk.length + 1);
     const vp = !DETAIL ? null : dkk === "vara" && window.u1VaraPanel ? u1VaraPanel(dki) : window.UI1D?.[dkk] ? UI1D[dkk](dki) : null;
-    if (vp) { DETAIL_K = DETAIL; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); det = vp; }
-    else if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; _render(); DETAIL = k; drawMenu(); }
-    else { full = false; _render(); }
+    // 2.145.15: þegar nýja útlitið teiknar listann (UI1V) er gamli listinn ekki smíðaður (__u1skip)
+    const sk = r => { window.__u1skip = !!window.UI1V?.[tab]; try { r(); } finally { window.__u1skip = false; } };
+    if (vp) { DETAIL_K = DETAIL; const k = DETAIL; DETAIL = null; sk(_render); DETAIL = k; drawMenu(); det = vp; }
+    else if (DETAIL) { _render(); det = v.innerHTML; const k = DETAIL; DETAIL = null; sk(_render); DETAIL = k; drawMenu(); }
+    else { full = false; sk(_render); }
     // Ekkert valið (2.36.0): listinn nær yfir allan skjáinn með fleiri dálkum; spjaldið birtist fyrst þegar atriði er valið (ekki í Pósti)
     const wide = !DETAIL && tab !== "postur"; window.u1Wide = wide && wideScr();
     const list = window.UI1V?.[tab] ? UI1V[tab]() : v.innerHTML, sup = window.UI1V?.[tab] ? "" : SUPER();

@@ -51,5 +51,5 @@
   };
   wrap(); document.addEventListener("DOMContentLoaded", wrap); setTimeout(wrap, 0);
   // útlit I teiknar suma lista eftir á (t.d. leit) – fylgjast líka með breytingum
-  new MutationObserver(() => { try { inject(); } catch (e) {} }).observe(document.documentElement, { childList: true, subtree: true });
+  { let q = 0; new MutationObserver(() => { if (q) return; q = requestAnimationFrame(() => { q = 0; try { inject(); } catch (e) {} }); }).observe(document.documentElement, { childList: true, subtree: true }); }   // 2.145.15: einu sinni á ramma
 })();

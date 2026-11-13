@@ -34,7 +34,15 @@
   let _ogK = null, _ogT = new Set();
   const ogiltirTimar = () => { const og = reikningar().filter(r => r.stada === "Ógilt"), k = og.map(r => r.id + ":" + (r.timaIds || []).length).join(); if (k !== _ogK) { _ogK = k; _ogT = new Set(og.flatMap(r => r.timaIds || []).map(String)); } return _ogT; };
   window.timiRukka = e => { if (!e || e.reikningur) return false; if (e.vett && !e.stadfest) return false; /* 2.100.0: óstaðfestir vettvangstímar */ if (e.id && ogiltirTimar().has(String(e.id))) return true; const p = e.verkefniId ? findProj(e.verkefniId) : null; return window.innheimtaOf(p) === "timar" ? !e.ekkiRk : e.rukka === true; };
-  const obilled = pid => ({ es: faerslur().filter(e => keyOf(e) === (pid || NONE) && !e.reikningur && window.timiRukka(e) && e.id && !isTmp(e.id)), ks: kostn().filter(k => keyOf(k) === (pid || NONE) && !k.reikningur) });
+  /* 2.145.15: flokkað einu sinni eftir verkefni í stað þess að sía allar færslur fyrir hvert verkefni (var verkefni × færslur) */
+  let _obK = null, _obM = null;
+  const obIdx = () => { const F = faerslur(), K = S?.kostnadur, R = S?.reikningar, V = S?.verkefni, C = S?.stillingar;
+    if (_obK && _obK[0] === F && _obK[1] === K && _obK[2] === R && _obK[3] === V && _obK[4] === C && _obK[5] === window.VIEWAS) return _obM;
+    const M = new Map(), g = k => M.get(k) || (M.set(k, { es: [], ks: [] }), M.get(k));
+    F.forEach(e => { if (!e.reikningur && e.id && !isTmp(e.id) && window.timiRukka(e)) g(keyOf(e)).es.push(e); });
+    kostn().forEach(k => { if (!k.reikningur) g(keyOf(k)).ks.push(k); });
+    _obK = [F, K, R, V, C, window.VIEWAS]; _obM = M; return M; };
+  const obilled = pid => { const x = obIdx().get(pid || NONE); return { es: x ? x.es.slice() : [], ks: x ? x.ks.slice() : [] }; };
   // Öll verkefni (og „án verkefnis“) sem eiga eitthvað óreikningsfært
   const openGroups = () => [...verkefni().map(p => p.id), NONE].map(k => ({ k, p: k === NONE ? null : findProj(k), ...obilled(k === NONE ? null : k) })).filter(g => g.es.length || g.ks.length);
   window.rkUnbilled = obilled;

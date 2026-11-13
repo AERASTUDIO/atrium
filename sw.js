@@ -1,13 +1,14 @@
 // Þjónustuskrifta (service worker): geymir appið á tækinu svo það opnist hratt og virki án nets.
 // Hækkaðu VERSION þegar eitthvað breytist, þá sækja tækin nýju útgáfuna.
-const VERSION = "atrium-2.145.14"; // sama og APP_VERSION í app.html
+const VERSION = "atrium-2.145.15"; // sama og APP_VERSION í app.html
 const SHELL = ["./", "index.html", "app.css", "app-grunnur.js", "app-listar.js", "app-skyrslur.js", "app-sidur.js", "app-stillingar.js", "app-form.js", "app-breyta.js", "fyrstuskref.js", "u2fall.js", "u2sel.js", "verkyfir.js", "u2rada.js", "fonts/Manrope-Regular.ttf", "fonts/Manrope-Medium.ttf", "fonts/Manrope-SemiBold.ttf", "hjalp.js", "firebase.js", "firebase-config.js", "xlsx.js", "skjalagerd.js", "icons/doc-logo.png", "ms.js", "ms-app.js", "fundabod.js", "rlinur.js", "vettvangur.js", "vett-ui.js", "velja.js", "folk.js", "hausflipar.js", "askrift.js", "verdskra.js", "reikn.js", "spurn.js", "sala.js", "bunadarlisti.js", "prufugogn.js", "deildir.js", "heim2.js", "skjol.js", "postur.js", "spjall.js", "heim.js", "skjalasafn.js", "adgangur.js", "notendur.js", "vista.js", "personuvernd.js", "utlit-i.js", "ui1-skjair.js", "dagteymi.js", "gogn.js", "kjarni.js", "demo.js", "qr.js", "qr.css", "simi.js", "snjall.js", "pantanir2.js", "innflutningur.js", "lif.js", "tilkynningar.js", "verkplus.js", "simi.css", "simi-ui1.css", "kerfi.css", "fagun.css", "u2d.css", "fonts/web/Manrope-400.woff2", "fonts/web/Manrope-500.woff2", "fonts/web/Manrope-600.woff2", "fonts/web/Manrope-700.woff2", "fagun.js", "dagval.js", "fjolval.js", "snidmat.js", "stadur.js", "lib/jsqr.js", "lib/zxing.js",
   "aera/index.html", "aera/fyrirtaeki.js", "aera/manifest.webmanifest", "sonik/index.html", "sonik/fyrirtaeki.js", "sonik/manifest.webmanifest", "sonik/utlit.css", "sonik/merki-ljos.svg", "sonik/merki-dokk.svg", "aera/icon-192.png?v=2", "aera/apple-touch-icon.png?v=2", "sonik/icon-192.png?v=2", "sonik/apple-touch-icon.png?v=2", "party/index.html", "demo/index.html", "demo/fyrirtaeki.js", "demo/manifest.webmanifest", "dev/index.html", "dev/fyrirtaeki.js", "dev/manifest.webmanifest", "party/fyrirtaeki.js", "party/manifest.webmanifest", "party/utlit.css", "party/merki.png", "party/icon-192.png?v=2", "party/apple-touch-icon.png?v=2",
   "icons/atrium-icon-192.png", "icons/atrium-icon-512.png", "icons/atrium-icon-maskable-512.png", "icons/atrium-apple-touch-icon.png", "icons/atrium-favicon.svg", "icons/atrium-haus-ljos.svg", "icons/atrium-haus-dokk.svg", "icons/atrium-ordmerki-dokk.svg", "icons/sig-logo.png", "icons/atrium-merki-ljos.svg", "icons/atrium-merki-dokk.svg", "icons/atrium-merki-lina.svg",
   "brand.css", "fonts/web/Manrope-400.woff2", "fonts/web/Manrope-500.woff2", "fonts/web/Manrope-600.woff2", "fonts/web/Manrope-700.woff2", "lib/qrcode.js", "icons/logo-ljos.svg", "icons/logo-dokk.svg", "icons/ordmerki-dokk.svg"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // 2.145.15: sótt framhjá HTTP-skyndiminni vafrans svo ný útgáfa fái örugglega nýjar skrár
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll([...new Set(SHELL)].map(u => new Request(u, { cache: "reload" })))   /* 2.145.15: tvítekningar í SHELL (letrið) létu uppsetninguna mistakast – þjónustuskriftan settist aldrei upp */).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
@@ -19,9 +20,13 @@ self.addEventListener("fetch", e => {
   const lib = url.hostname === "www.gstatic.com"; // Firebase-söfnin (letrið er hýst í appinu frá 2.44.0)
   if (!own && !lib) return; // Firebase-gögn og innskráning fara alltaf beint á netið
   if (own) {
-    // Netið fyrst (nýjasta útgáfan), annars geymda útgáfan
-    e.respondWith(fetch(req, { cache: "no-cache" }).then(r => { if (r.ok) { const c = r.clone(); caches.open(VERSION).then(x => x.put(req, c)); } return r; })
-      .catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || (req.mode === "navigate" && caches.match(new URL("index.html", req.url).href)) || caches.match("index.html"))));
+    // 2.145.15: geymda útgáfan fyrst (appið opnast strax, líka á hægu neti) – ný útgáfa kemur með nýrri sw.js (VERSION), sem sækir allt upp á nýtt og endurhleður appið.
+    // Áður: netið fyrst fyrir hverja skrá (~80 fyrirspurnir við hverja opnun), sem gerði opnun hæga á farsímaneti.
+    // sw.js sjálf, fyrirtaeki.js og manifest eru alltaf sótt af netinu fyrst.
+    const net = () => fetch(req, { cache: "no-cache" }).then(r => { if (r.ok) { const c = r.clone(); caches.open(VERSION).then(x => x.put(req, c)); } return r; });
+    const cached = () => caches.open(VERSION).then(c => c.match(req, { ignoreSearch: true })).then(r => r || (req.mode === "navigate" ? caches.open(VERSION).then(c => c.match(new URL("index.html", req.url).href)) : null));
+    if (/\/(sw\.js|fyrirtaeki\.js|manifest\.webmanifest)$/.test(url.pathname) || url.pathname.includes("/__")) e.respondWith(net().catch(() => cached()));
+    else e.respondWith(cached().then(r => r || net()).catch(() => net()));
   } else {
     // Söfn og letur breytast ekki: geymda útgáfan fyrst
     e.respondWith(caches.match(req).then(r => r || fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(VERSION).then(x => x.put(req, c)); } return n; })));

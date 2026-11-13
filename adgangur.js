@@ -89,7 +89,7 @@
   window.viewAsAct = function (r) {
     const email = lc(r.join(":"));
     if (!email) { VIEWAS = null; toast("Skoðunarham lokið"); }
-    else { if (!can("notendur")) return; const u = nuUsers().find(x => lc(x.email) === email); if (!u) return; VIEWAS = { email: u.email, nafn: u.nafn, sk: u.sk, hlutverk: u.hlutverk }; toast("Þú skoðar nú appið sem " + u.nafn); }
+    else { if (!(window.ROLES?.[window.USER?.hlutverk]?.notendur ?? can("notendur"))) return; /* 2.145.15: raunverulegt hlutverk – ekki þess sem skoðað er sem (annars var ekki hægt að skipta beint yfir á annan) */ const u = nuUsers().find(x => lc(x.email) === email); if (!u) return; VIEWAS = { email: u.email, nafn: u.nafn, sk: u.sk, hlutverk: u.hlutverk }; toast("Þú skoðar nú appið sem " + u.nafn); }
     if (typeof drawMenu === "function") drawMenu();
     doAct("tab:yfirlit");
   };
