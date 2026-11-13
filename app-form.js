@@ -52,7 +52,7 @@ let DOCK=[];
 /* 2.141.0: „verk í gangi“ = notandinn hefur skrifað eða valið eitthvað (ekki bara að formið hafi reiti). Autt form lokast með Escape/smelli utan;
    form með breytingum er lágmarkað. Fókus fer aftur þangað sem hann var þegar glugginn lokast. */
 let _shDirty=false, _shFocus=null;
-["input","change"].forEach(ev=>sheet.addEventListener(ev,e=>{if(e.isTrusted&&e.target.matches?.("input,select,textarea,[contenteditable]")) _shDirty=true;},true));
+["input","change"].forEach(ev=>sheet.addEventListener(ev,e=>{if((e.isTrusted||e.u2user)&&e.target.matches?.("input,select,textarea,[contenteditable]")) _shDirty=true;},true));
 new MutationObserver(()=>{if(!sheetwrap.hidden){ if(!_shFocus){_shFocus=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;} }
   else { _shDirty=false; let f=_shFocus; _shFocus=null; setTimeout(()=>{ if(f&&!f.isConnected){const da=f.getAttribute?.("data-act"); f=da?document.querySelector(`#view [data-act="${CSS.escape(da)}"]`):null;} if(f&&f.isConnected&&!document.querySelector(".spurn-w")&&sheetwrap.hidden) try{f.focus({preventScroll:true});}catch(e){} },60); }}).observe(sheetwrap,{attributes:true,attributeFilter:["hidden"]});
 const sheetHasWork=()=>_shDirty||!!sheet.querySelector(".rbox");

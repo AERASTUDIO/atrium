@@ -465,10 +465,14 @@
   document.addEventListener("click", e => { const b = e.target.closest(".side .cobrand, .side .logo, .side .abrand"); if (!b || !document.body.classList.contains("ui1") || !wideScr()) return; e.preventDefault(); e.stopImmediatePropagation(); DETAIL = null; window.STSUB = null; tab = "upphaf"; render(); }, true);
   // Til baka (2.38.0): saga yfir skjái og spjöld sem opnuð eru (flipi, atriði, undirflipi, stillingasíða); ← Til baka, Alt+← og bakhnappur músar
   const NAV = []; let navLast = null, navBusy = false;
+  // 2.144.1: liður í stiku (eða merkið) opnar upphafssíðu hlutans – sagan hreinsast, enginn „Til baka“ þar
+  let navRoot = false;
+  document.addEventListener("click", e => { if (e.target.closest?.("#sitems .tab, .side .abrand")) navRoot = true; }, true);
   const navNow = () => ({ tab, o: DETAIL || null, d: (typeof DTAB !== "undefined" && DETAIL ? DTAB : null) || null, st: window.STSUB || null });
   const navKey = x => x ? [x.tab, x.o, x.d, x.st].join("|") : "";
   const navTrack = () => { if (!desk() || !document.body.classList.contains("ui1")) return; const n = navNow();
     if (navBusy) { navBusy = false; navLast = n; return; }
+    if (navRoot) { navRoot = false; NAV.length = 0; navLast = n; return; }
     // Hliðarskref (2.47.2) fara ekki í söguna: að skipta um svið/undirflipa innan sama hluta (Leiga · Sala · Þjónusta …)
     // eða um flipa á sama spjaldi. „Til baka“ fer þá þangað sem hlutinn eða spjaldið var opnað frá (t.d. Meira eða listinn).
     // Frá yfirliti hluta (t.d. Pantanir › Yfirlit) er ekki hliðarskref (2.63.2): „Til baka“ fer aftur á yfirlitið

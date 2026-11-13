@@ -845,3 +845,85 @@ html body.kerfi .u2stkp b:nth-of-type(1){top:6px}html body.kerfi .u2stkp b:nth-o
 /* 2.144.0: merki í stiku – Atrium-merkið sem línuteikning (wireframe), enginn flísargrunnur; tekur lit textans */
 html body.kerfi .abrand .abt{background:none!important;box-shadow:none!important;width:36px;height:36px}
 html body.kerfi .abrand .abt i{width:30px;height:30px;background:var(--ink)!important;-webkit-mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat;mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat}
+/* 2.144.1: efsti hluti stikunnar (merkið) á aðeins dekkri borða – skilur hann frá liðunum */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .abrand{margin:-20px -14px 2px!important;padding:20px 58px 16px 20px!important;border-radius:28px 28px 0 0!important;background:rgba(15,23,32,.06)!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side .abrand{background:rgba(0,0,0,.24)!important}
+  html[data-stika="litud"]:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .side .abrand{background:rgba(0,0,0,.2)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 .srailbtn{top:24px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side .abrand{margin:-18px -12px 4px!important;padding:16px 0 10px!important;width:calc(100% + 24px)}
+}
+/* 2.144.1: tómt hliðarspjald („Veldu atriði úr listanum“) – Atrium-merkið í hringjum í stað kassateikningar */
+html body.kerfi .spempty.u2emp{display:grid;place-items:center;height:100%;min-height:320px}
+html body.kerfi .u2empi{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;max-width:300px}
+html body.kerfi .u2empo{position:relative;width:132px;height:132px;margin-bottom:14px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--surface) 85%,transparent) 0 38%,transparent 39%),
+             radial-gradient(circle,transparent 0 52%,color-mix(in srgb,var(--ink) 13%,transparent) 52.5% 53.3%,transparent 53.8%),
+             radial-gradient(circle,transparent 0 69%,color-mix(in srgb,var(--ink) 7%,transparent) 69.5% 70.3%,transparent 70.8%)}
+html body.kerfi .u2empo::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:var(--kacc);top:16%;right:17%;box-shadow:0 0 0 4px color-mix(in srgb,var(--kacc) 18%,transparent)}
+html body.kerfi .u2empo i{width:44px;height:44px;background:color-mix(in srgb,var(--ink) 55%,transparent);-webkit-mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat;mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat}
+html body.kerfi .u2empi b{font:600 16px/1.3 Manrope,system-ui,sans-serif;color:var(--ink)}
+html body.kerfi .u2empi > span:not([class]){font-size:14px;color:var(--muted)}
+html body.kerfi .u2keys{margin-top:14px;display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+html body.kerfi .u2keys kbd{min-width:22px;height:22px;padding:0 6px;display:inline-grid;place-items:center;border-radius:7px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line),0 1px 0 var(--line);font:600 11px/1 Manrope,system-ui,sans-serif;color:var(--ink)}
+html body.kerfi .u2keys kbd + kbd{margin-left:0}
+html body.kerfi .u2keys kbd:nth-of-type(3){margin-left:8px}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes u2float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  html body.kerfi .u2empo i{animation:u2float 5s ease-in-out infinite}
+}
+@media (hover:none){html body.kerfi .u2keys{display:none}}
+/* 2.144.1: fellivöl (u2sel.js) – spjald í U2d-útliti með leit í stað innbyggða listans */
+.u2pop{position:fixed;z-index:10050;display:flex;flex-direction:column;overflow:hidden;padding:6px;border-radius:16px;background:var(--surface,#fff);color:var(--ink,#0F1720);
+  box-shadow:0 0 0 1px var(--line,#DFE3E8),0 18px 40px -12px rgba(15,23,32,.28),0 4px 12px -6px rgba(15,23,32,.14);font-family:Manrope,system-ui,sans-serif;
+  animation:u2popin .16s cubic-bezier(.2,0,0,1)}
+@keyframes u2popin{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}
+.u2pop:focus{outline:none}
+.u2ss{display:flex;align-items:center;gap:8px;height:38px;margin:0 0 6px;padding:0 12px;border-radius:11px;background:var(--hover,#EEF1F4);color:var(--muted,#5E6976);flex:none}
+.u2ss input{all:unset;flex:1;min-width:0;font:500 14px Manrope,system-ui,sans-serif;color:var(--ink,#0F1720)}
+.u2ss input::placeholder{color:var(--muted,#5E6976)}
+.u2sl{overflow-y:auto;overscroll-behavior:contain;min-height:0;scrollbar-width:thin}
+.u2so{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:38px;padding:8px 12px;border-radius:10px;font-size:14px;font-weight:500;line-height:1.3;cursor:pointer}
+.u2so.hi{background:var(--hover,#EEF1F4)}
+.u2so.sel{font-weight:700}
+.u2so svg{flex:none;color:var(--kacc,#2B63A6)}
+.u2so.dis{opacity:.45;cursor:default}
+.u2sg{padding:12px 12px 4px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#5E6976)}
+.u2sg:first-child{padding-top:4px}
+.u2se{padding:18px 12px;text-align:center;font-size:13.5px;color:var(--muted,#5E6976)}
+html body.kerfi select.u2selon{box-shadow:var(--u-ring)!important}
+.u2sd{height:1px;margin:6px 8px;background:var(--line,#DFE3E8)}
+/* 2.144.1: klukka í gangi í stiku – læsilegur texti, grænn stöðutónn, stopp-hnappur fyrir miðju */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k{grid-template-columns:8px minmax(0,1fr) auto!important;align-items:center!important;column-gap:10px!important;padding:8px 8px 8px 14px!important;
+    background:color-mix(in srgb,var(--ok,#2C7A57) 11%,var(--surface))!important;border:0!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ok,#2C7A57) 28%,transparent)!important;border-radius:18px!important;color:var(--ink)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k::before{background:#2C7A57!important;box-shadow:0 0 0 3px rgba(44,122,87,.22)!important;animation:u2puls 2s ease-in-out infinite}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .kt{color:var(--ink)!important;opacity:1!important;font:700 15px/1.25 Manrope,system-ui,sans-serif!important;font-variant-numeric:tabular-nums!important;letter-spacing:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-t{color:var(--muted)!important;opacity:1!important;font-size:11.5px!important;font-weight:500!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb{align-items:center!important;gap:2px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .btn.primary{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;min-height:34px!important;padding:0!important;border-radius:50%!important;
+    background:var(--gra)!important;color:var(--on-gra)!important;font-size:0!important;line-height:0!important;text-indent:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .btn.primary::before{content:""!important;width:10px!important;height:10px!important;margin:0!important;border-radius:2.5px!important;background:currentColor!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .btn.primary > *{display:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .sx-kx{display:grid!important;place-items:center!important;width:28px!important;height:28px!important;min-height:28px!important;border-radius:50%!important;background:transparent!important;color:var(--muted)!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .sx-kx:hover{background:var(--glass-hi)!important;color:var(--ink)!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 #sextra .sx-k{background:color-mix(in srgb,#4CC38A 12%,var(--surface))!important;box-shadow:inset 0 0 0 1px rgba(76,195,138,.3)!important}
+  html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 #sextra .sx-k::before{background:#4CC38A!important;box-shadow:0 0 0 3px rgba(76,195,138,.2)!important}
+  html[data-stika="litud"]:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k{background:rgba(255,255,255,.1)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)!important}
+  html[data-stika="litud"]:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k::before{background:#6FD3A2!important}
+  html[data-stika="litud"]:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-t{color:rgba(255,255,255,.7)!important}
+}
+@keyframes u2puls{0%,100%{box-shadow:0 0 0 3px rgba(44,122,87,.22)}50%{box-shadow:0 0 0 6px rgba(44,122,87,.06)}}
+@media (prefers-reduced-motion:reduce){html body.kerfi #sextra .sx-k::before{animation:none!important}}
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .sx-ke{display:grid!important;place-items:center!important;width:30px!important;height:30px!important;min-height:30px!important;padding:0!important;border-radius:50%!important;background:transparent!important;color:var(--muted)!important;border:0!important;box-shadow:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .sx-ke:hover{background:var(--glass-hi)!important;color:var(--ink)!important}
+  html[data-stika="litud"]:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb :is(.sx-ke,.sx-kx){color:rgba(255,255,255,.75)!important}
+}
+html body.kerfi:not(.pv) .sx-k .sx-ke,html body.kerfi .klukka .sx-ke{display:none}
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .btn.primary{position:relative!important;color:transparent!important;overflow:hidden}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #sextra .sx-k .sx-kb .btn.primary::before{position:absolute!important;inset:0!important;margin:auto!important;background:var(--on-gra)!important}
+}
+html body .u2pop .u2so{min-height:36px!important;height:auto!important;padding:8px 12px!important;margin:0!important}
+.u2pop,.u2pop *{box-sizing:border-box}

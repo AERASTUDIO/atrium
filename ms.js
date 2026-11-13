@@ -114,10 +114,17 @@
     const headers = { Authorization: "Bearer " + at, ...(opt.headers || {}) };
     let body = opt.body;
     if (body && !(body instanceof Blob) && !(body instanceof Uint8Array) && typeof body !== "string") { body = JSON.stringify(body); headers["Content-Type"] = "application/json"; }
-    const r = await fetch(path.startsWith("http") ? path : "https://graph.microsoft.com/v1.0" + path, { method: opt.method || "GET", headers, body });
+    // 2.144.1: Microsoft svarar stundum 502/503/504/429 í augnablik – lestur (GET) er reyndur aftur allt að þrisvar (Retry-After virt)
+    const url = path.startsWith("http") ? path : "https://graph.microsoft.com/v1.0" + path, meth = opt.method || "GET";
+    let r;
+    for (let i = 0; ; i++) {
+      r = await fetch(url, { method: meth, headers, body });
+      if (!(meth === "GET" && [429, 502, 503, 504].includes(r.status) && i < 3)) break;
+      const ra = +r.headers.get("Retry-After"); await new Promise(res => setTimeout(res, Math.min(8000, ra > 0 ? ra * 1000 : 600 * 2 ** i)));
+    }
     if (r.status === 204) return null;
     const j = await r.json().catch(() => null);
-    if (!r.ok) { const e = new Error(j?.error?.message || ("Villa " + r.status)); e.status = r.status; e.code = j?.error?.code; throw e; }
+    if (!r.ok) { const e = new Error([502, 503, 504].includes(r.status) ? `Microsoft svarar ekki í augnablikinu (villa ${r.status}). Reyndu aftur eftir smá stund.` : (j?.error?.message || ("Villa " + r.status))); e.status = r.status; e.code = j?.error?.code; throw e; }
     return j;
   }
 

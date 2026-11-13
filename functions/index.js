@@ -684,6 +684,36 @@ if (process.env.BOKHALD === "payday") {
       await ref.update({ bokhald: { ...B, kredit: { ...B.kredit, stada: "villa", villa: String(e.message || e).slice(0, 400), dags: now() } } });
     }
   };
+  /* 2.144.1: greiðslustaða úr Payday – reikningur sem er greiddur í Payday (status PAID) verður „Greitt“ í Atrium.
+     Keyrt sjálfkrafa (paydayGreidslur, á 2 klst. fresti kl. 8–20 virka daga) og þegar beðið er um það á reikningnum
+     (bokhald.greidsla = { stada:"bidur", beidni }). Atrium skrifar aldrei greiðslu í Payday – aðeins lesið. */
+  const PD_PAID_DAGS = inv => String(inv?.paidDate || inv?.paymentDate || "").slice(0, 10);
+  const pdGreidsla = async (pd, ref, R) => {
+    const B = R.bokhald || {}, now = new Date().toISOString();
+    const g = await pd("GET", "/invoices/" + encodeURIComponent(B.pid));
+    if (!g.ok) throw new Error("Payday svaraði " + g.status + " við leit að reikningnum: " + pdErr(g));
+    const st = String(g.data?.status || "").toUpperCase();
+    if (st === "PAID") {
+      const d = PD_PAID_DAGS(g.data) || now.slice(0, 10);
+      await ref.update({ stada: "Greitt", greitt: d, greittPayday: true, bokhald: { ...B, pstada: st, greidsla: { stada: "greitt", dags: now, greitt: d } } });
+      return "greitt";
+    }
+    if (B.pstada !== st || B.greidsla?.stada === "bidur" || B.greidsla?.stada === "villa") await ref.update({ bokhald: { ...B, pstada: st || B.pstada || null, greidsla: { stada: "ogreitt", dags: now } } });
+    return st || "?";
+  };
+  const pdGreidslaEv = async (ev, a) => {
+    const ref = ev.data.after.ref, B = a.bokhald;
+    try { if (!B.pid) throw new Error("Reikningurinn finnst ekki í Payday."); await pdGreidsla(pdApi(await pdToken()), ref, a); }
+    catch (e) { logger.error("pdGreidsla", e); await ref.update({ bokhald: { ...B, greidsla: { ...B.greidsla, stada: "villa", villa: String(e.message || e).slice(0, 400), dags: new Date().toISOString() } } }); }
+  };
+  exports.paydayGreidslur = onSchedule({ schedule: "17 8-20/2 * * 1-5", timeZone: TZ, secrets: [PD_ID, PD_SECRET], timeoutSeconds: 300 }, async () => {
+    const sn = await db.collection("reikningar").where("bokhald.kerfi", "==", "payday").get();
+    const opin = []; sn.forEach(d => { const R = d.data(); if (R.bokhald?.pid && R.bokhald?.stada === "sent" && R.stada !== "Greitt" && R.stada !== "Ógilt" && !R.ogilt) opin.push([d.ref, R]); });
+    if (!opin.length) return;
+    const pd = pdApi(await pdToken()); let n = 0;
+    for (const [ref, R] of opin) { try { if (await pdGreidsla(pd, ref, R) === "greitt") n++; } catch (e) { logger.warn("paydayGreidslur", ref.id, String(e.message || e)); } }
+    logger.info("paydayGreidslur", { athugad: opin.length, greitt: n });
+  });
   exports.bokhaldPayday = onDocumentWritten({ document: "reikningar/{id}", secrets: [PD_ID, PD_SECRET], timeoutSeconds: 120 }, async ev => {
     const a = ev.data?.after?.exists ? ev.data.after.data() : null, b = ev.data?.before?.exists ? ev.data.before.data() : null;
     if (!a || a.bokhald?.kerfi !== "payday") return;
@@ -691,6 +721,8 @@ if (process.env.BOKHALD === "payday") {
        Payday gefur út kreditreikning); drögin verða ógild og tímar, kostnaður og pantanir aftur óreikningsfærð */
     const K = a.bokhald.kredit;
     if (K?.stada === "bidur" && !(b?.bokhald?.kredit?.stada === "bidur" && b.bokhald.kredit.beidni === K.beidni)) return pdKredit(ev, a);
+    const GA = a.bokhald.greidsla;
+    if (GA?.stada === "bidur" && !(b?.bokhald?.greidsla?.stada === "bidur" && b.bokhald.greidsla.beidni === GA.beidni)) return pdGreidslaEv(ev, a);
     const ES = a.bokhald.endursenda;
     if (ES?.stada === "bidur" && !(b?.bokhald?.endursenda?.stada === "bidur" && b.bokhald.endursenda.beidni === ES.beidni)) return pdEndursenda(ev, a);
     if (a.bokhald?.stada !== "bidur" || (b?.bokhald?.stada === "bidur" && b.bokhald.beidni === a.bokhald.beidni)) return;

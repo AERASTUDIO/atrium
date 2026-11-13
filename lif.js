@@ -75,6 +75,9 @@
     root.querySelectorAll(".uempty:not([data-le]), .spempty:not([data-le])").forEach(el => {
       el.dataset.le = "1"; const inCard = !!el.closest(".card,.ucard,.udags,.snjc,.hcard") && !el.closest(".pdwrap");
       if (inCard) { el.classList.add("lifes"); el.insertAdjacentHTML("afterbegin", svg(I.check, 16)); return; }
+      // 2.144.1: tómt hliðarspjald – Atrium-merkið sem línuteikning í mjúkum hringjum, texti og flýtilyklar
+      if (el.classList.contains("spempty")) { const t = el.textContent.trim(); el.classList.add("u2emp");
+        el.innerHTML = `<div class="u2empi"><span class="u2empo" aria-hidden="true"><i></i></span><b>Ekkert opið</b><span>${t.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c])}</span><span class="u2keys" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> fletta <kbd>Enter</kbd> opna</span></div>`; return; }
       el.classList.add("life"); el.insertAdjacentHTML("afterbegin", EMPTY_ART);
       const a = ADD[tab]; if (a && tr(() => !!MCP, false) && el.classList.contains("uempty") && !el.querySelector("button")) el.insertAdjacentHTML("beforeend", `<div class="lifea"><button type="button" class="btn primary sm" data-act="fabnew:${a[0]}">${a[1]}</button></div>`);
     });

@@ -58,12 +58,16 @@
         const qs = `/messages?$search=${encodeURIComponent('"' + q.replace(/"/g, "") + '"')}&$top=40&${SEL}`;
         const [a, b] = await Promise.all([MS.g("/me" + qs).then(x => x.value || []), SHB ? MS.g(SHB + qs).then(x => (noteBox(x.value, SHB), x.value || [])).catch(() => []) : []]);
         const seen = new Set(a.map(m => m.id)); j = { value: a.concat(b.filter(m => !seen.has(m.id))).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime))) }; }
-      else j = await MS.g(`${await folderPath()}?$top=30&$orderby=receivedDateTime%20desc&${SEL}`);
+      else { const fp = await folderPath();
+        // 2.144.1: ef Microsoft svarar 5xx við röðuðum lista er reynt aftur án $orderby (pósthólf skila nýjasta fyrst sjálfgefið)
+        try { j = await MS.g(`${fp}?$top=30&$orderby=receivedDateTime%20desc&${SEL}`); }
+        catch (e5) { if (!(e5.status >= 500)) throw e5; j = await MS.g(`${fp}?$top=25&${SEL}`); (j.value || []).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime))); } }
       noteConv(j.value); noteBox(j.value, curBox); list = more ? (list || []).concat(j.value || []) : (j.value || []); next = j["@odata.nextLink"] || null;
     } catch (e) { err = curBox !== "/me" && (e.status === 403 || e.status === 404 || /denied|scope/i.test(e.message)) ? `Þú hefur ekki aðgang að ${SH} enn. Admin veitir aðgang í Exchange (Full Access) og appið þarf heimildina Mail.Read.Shared – tengstu Microsoft aftur eftir það.` : e.message; if (!more) list = []; }
     loading = false; render();
   }
   const reset = () => { list = null; next = null; };
+  window.poReload = () => { reset(); err = null; load(false); };
 
   /* ---------- Listi ---------- */
   const flagged = m => m.flag?.flagStatus === "flagged";
@@ -154,7 +158,7 @@
       ${q ? `<div class="posrch">Leitarniðurstöður fyrir „${esc(q)}“ <button type="button" class="chipbtn sm" data-act="poclr:">Hreinsa leit</button></div>` : ""}
       ${window.ORG?.utlit === "I" && !MS.can("Mail.ReadWrite") ? `<div class="uwarn info" style="margin-top:10px"><i></i><span><b>Ný heimild:</b> til að merkja lesið, flagga, færa og eyða þarf appið að fá að breyta pósti (Mail.ReadWrite). Tengstu Microsoft aftur og samþykktu.</span><button type="button" class="btn" onclick="MS.login().then(()=>{toast('Tengt – heimild samþykkt');render()}).catch(e=>toast(e.message))">Tengjast aftur</button></div>` : ""}
       ${q ? "" : foldBar()}
-      ${err ? `<div class="msg err" style="margin-top:10px">${esc(err)}</div>` : ""}
+      ${err ? `<div class="msg err" style="margin-top:10px">${esc(err)} <button type="button" class="btn sm" style="margin-left:6px" onclick="this.disabled=true;window.poReload&&poReload()">Reyna aftur</button></div>` : ""}
       ${list == null || (loading && !list?.length) ? `<div class="empty" style="margin-top:16px">Sæki pósta…</div>` : shown().length ? `<div class="llist" style="margin-top:8px">${grouped().map(([m, n]) => row(m, n)).join("")}</div>${next ? `<button type="button" class="btn" data-act="pomore:" style="width:100%;margin-top:10px">${loading ? "Sæki…" : "Sækja fleiri"}</button>` : ""}` : `<div class="empty" style="margin-top:16px">${q ? "Ekkert fannst." : filt ? "Engir póstar passa við síuna." : "Engir póstar í möppunni."}</div>`}
       <p class="hint" style="margin-top:10px">Pósturinn er lesinn og sendur beint í gegnum Outlook (sendir póstar vistast í Sent).</p>`;
   };
