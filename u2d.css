@@ -1407,3 +1407,28 @@ html:not(#u2a):not(#u2b) body.kerfi #view .splist .phead .phrow > .pnew{flex:non
 @media (min-width:1024px){
   html:not(#u2a):not(#u2b) body.kerfi:not(.simidet) #view :is(.pback,.uback):not(.spdet *){display:none!important}
 }
+
+/* 2.145.14 – Lykiltölur í spjöldum: langur texti styttist (t.d. Hvar á fundi) */
+html:not(#u2a):not(#u2b) body.kerfi #view .kpis > .card > b{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Atriði á heilli síðu (Skjal, Verðskrá): sama haus og spjöldin, efni í hámarksbreidd */
+html:not(#u2a):not(#u2b) body.kerfi #view.u2solo{max-width:1100px}
+html:not(#u2a):not(#u2b) body.kerfi #view.u2solo > .udh2{margin:8px 0 18px}
+html:not(#u2a):not(#u2b) body.kerfi #view.u2solo .card{border:0!important;border-radius:22px!important;box-shadow:0 1px 2px rgba(15,23,32,.04),0 14px 30px -22px rgba(15,23,32,.28)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ukps > .ukp{min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .ukps > .ukp > b{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html:not(#u2a):not(#u2b) body.kerfi #view .ukps > .ukp > b:has(a){font-size:20px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view.u2solo > .udh2{background:transparent!important;padding:10px 0 6px!important;box-shadow:none!important}
+/* 2.145.14 – Sími: línutöflur (reikningar, pantanir, tilboð) – lýsing í fullri línu, tölur undir; Verðskrá án VSK-dálks */
+@media (max-width:1023px){
+  html:not(#u2a):not(#u2b) body.kerfi #view .utb .utbr{grid-template-columns:repeat(4,minmax(0,1fr))!important;row-gap:2px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .utb .utbr > :first-child{grid-column:1/-1;font-weight:500}
+  html:not(#u2a):not(#u2b) body.kerfi #view .utb .utbr.h > :first-child{display:none}
+  html:not(#u2a):not(#u2b) body.kerfi #view .vstab tr > :nth-child(3){display:none}
+  html:not(#u2a):not(#u2b) body.kerfi #view .vstab :is(th,td){padding:8px 6px!important;font-size:12.5px}
+  html:not(#u2a):not(#u2b) body.kerfi #view .vstab tr > :first-child{min-width:130px}
+}
+@media (max-width:1023px){
+  html:not(#u2a):not(#u2b) body.kerfi #view:not(:has(.split)) > :is(.udh2,.kicker,h2.big,p.sub,.dtabs,.uback){margin-left:16px!important;margin-right:16px!important}
+}
+html:not(#u2a):not(#u2b) body.kerfi #view .udh2 .ptitle{word-break:normal!important;overflow-wrap:break-word!important;hyphens:manual}
+@media (max-width:1023px){ html:not(#u2a):not(#u2b) body.kerfi #view:not(:has(.split)) > .udh2{padding-right:0!important} }

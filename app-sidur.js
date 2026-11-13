@@ -108,7 +108,7 @@ function dSub(u,p){
   if(DTAB==="yfirlit"){const pc=ak?Math.round(h/ak*100):0;
     body=`${klukkaBanner(p)}
     <div class="kpis" style="margin-top:16px"><div class="card"><b>${ak?num(h)+" af "+num(ak):num(h)}</b><span>klst.${ak?" · "+pc+" % af áætlun":" skráðar"}</span>${ak?`<i class="ubar" style="display:block;height:6px;border-radius:3px;margin-top:8px;background:var(--line)"><i style="display:block;height:6px;border-radius:3px;width:${Math.min(100,pc)}%;background:${pc>100?"var(--t-red,#B13E36)":"var(--kacc,#2B63A6)"}"></i></i>`:""}</div>
-      <div class="card"><b>${u.skiladagur?fmtDate(u.skiladagur):"–"}</b><span>${u.skiladagur&&u.stada!=="Done"?esc(rel(daysTo(u.skiladagur))):"skiladagur"}</span></div>
+      <div class="card"><b>${u.skiladagur?fmtDate(u.skiladagur):"–"}</b><span>${u.skiladagur&&u.stada!=="Done"&&Math.abs(daysTo(u.skiladagur))<=14?"Skil · "+esc(rel(daysTo(u.skiladagur))):"Skil"}</span></div>
       ${tbs.length?`<div class="card tap" data-act="dtab:tilbod"><b>${esc(kr(tbSum))}</b><span>${tbs.length} ${tbs.length===1?"tilboð":"tilboð"} á undirverkinu</span></div>`:""}</div>
     ${ak&&h>ak?`<div class="msg err" style="margin-top:12px">Komið fram úr áætlun undirverksins: ${num(h)} af ${num(ak)} klst.</div>`:""}
     ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button>${m?`<a class="btn" href="${esc(m)}" target="_blank" rel="noopener">Mappa</a>`:""}<button type="button" class="btn" data-act="edit:sub:${esc(u.id)}">Breyta</button></div>`:""}
