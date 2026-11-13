@@ -73,12 +73,53 @@
   const GRP = { postur: "Samskipti", spjall: "Samskipti", vidsk: "Skrár", bunadur: "Skrár", folk: "Skrár", skjol: "Skrár" };
   // Tala í stikunni = eitthvað bíður þín (sama og í Óklárað), aldrei fjöldi opinna atriða. Heim sýnir summuna.
   const BK = { "Tilboð": "tilbod", "Pöntun": "pantanir", "Verkefni": "verkefni", "Lager": "bunadur", "Póstur": "postur" };
+  // 2.144.6: atriði sem eru komin fram yfir teljast þar sem þau eiga heima (reikningur → Reikningar, tilboð/pöntun → þar), ekki öll á Verkefni
+  const bKey = i => { const o = String(i.open || ""), t = o.split(":")[0];
+    if (i.grp === "Komið fram yfir" && t) { if (t === "reikn") return "fjarmal"; if (t === "tb") return (window.salaAPI?.PN?.() || []).some(P => P.id === o.slice(3)) ? "pantanir" : "tilbod"; if (t === "fund") return ""; }
+    return i.k === "Fjármál" ? (i.dark ? "fjarmal" : "") : BK[i.k]; };
   let bMemo = null, bS = null, bT = 0;
   const bidur = () => { if (bMemo && bS === S && Date.now() - bT < 3000) return bMemo; const c = {};
-    try { (window.oklItems ? oklItems({ stika: 1 }) : []).forEach(i => { const k = i.k === "Fjármál" ? (i.dark ? "fjarmal" : "") : BK[i.k]; if (k) c[k] = (c[k] || 0) + 1; });
+    try { (window.oklItems ? oklItems({ stika: 1 }) : []).forEach(i => { const k = bKey(i); if (k) c[k] = (c[k] || 0) + 1; });
       const sp = window.spBidur ? +spBidur() || 0 : window.spUnread ? +spUnread() || 0 : 0; if (sp) c.spjall = sp; /* 2.142.0: ólesin skilaboð + ósvöruð bein samtöl */ } catch (e) {}
     c.heim = Object.values(c).reduce((a, n) => a + n, 0); bMemo = c; bS = S; bT = Date.now(); return c; };
   window.stikaBidur = bidur;
+  /* 2.144.6: hvað liggur að baki tölunni í stikunni – spjald við hlið liðarins (hover/fókus) með því sem bíður og hlekk á hvert atriði */
+  const BLAB = { heim: "Allt sem bíður þín", tilbod: "Tilboð sem bíða þín", pantanir: "Pantanir sem bíða þín", verkefni: "Verkefni sem bíða þín", bunadur: "Lager – bíður skoðunar", postur: "Póstur", fjarmal: "Fjármál", spjall: "Spjall" };
+  // Sami heimastaður og í Bíður mín (2.131.1): línan opnar atriðið þar sem það á heima
+  const bDest = i => { const o = String(i.open || ""), t = o.split(":")[0], id = o.slice(o.indexOf(":") + 1), E2 = x => String(x).replace(/"/g, "&quot;"), g = tb => `data-act="u1go:${tb}:${E2(o)}" role="button" tabindex="0"`;
+    if (t === "verk" || t === "sub") return g("verk"); if (t === "tb") return g((window.salaAPI?.PN?.() || []).some(P => P.id === id) ? "pantanir" : "ltilbod");
+    if (t === "reikn") return g("trk"); if (t === "vara") return g("lvorur"); if (t === "fund") return g("dagatal");
+    if (t === "oreikn") return `data-act="u1kpf:trk:oreikn" role="button" tabindex="0"`; if (o) return `data-open="${E2(o)}" role="button" tabindex="0"`;
+    return `data-act="${E2(i.act || "")}" role="button" tabindex="0"`; };
+  let bpop = null, bpT = 0, bpFor = null;
+  const bpClose = () => { clearTimeout(bpT); bpT = 0; bpop?.remove(); bpop = null; bpFor = null; };
+  function bpShow(tabEl) {
+    const sec = SECTIONS.find(x => x.tabs[0][0] === tabEl.dataset.tab); if (!sec) return; const k = sec.k, n = (bidur()[k] || 0); if (!n) return;
+    let its = []; try { its = (window.oklItems ? oklItems({ stika: 1 }) : []).filter(i => k === "heim" ? bKey(i) : bKey(i) === k); } catch (e) {}
+    const sp = window.spBidur ? +spBidur() || 0 : 0;
+    const E = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const row = i => `<div class="bpr${i.dark ? " late" : ""}" ${bDest(i)}><span class="bpx"><b>${E(i.title)}</b>${i.sub ? `<small>${E(i.sub)}</small>` : ""}</span>${i.pill ? `<span class="bpp">${E(i.pill)}</span>` : ""}</div>`;
+    let h = its.slice(0, 8).map(row).join("");
+    if ((k === "spjall" || k === "heim") && sp) h += `<div class="bpr" data-act="tab:spjall" role="button" tabindex="0"><span class="bpx"><b>${sp} ${sp === 1 ? "samtal bíður" : "samtöl bíða"} svars</b><small>Ólesin skilaboð eða ósvöruð bein skilaboð</small></span><span class="bpp">Spjall</span></div>`;
+    if (its.length > 8) h += `<div class="bpmore">+ ${its.length - 8} í viðbót – sjá Bíður mín í Í dag</div>`;
+    if (!h) return;
+    bpClose(); bpFor = tabEl;
+    bpop = document.createElement("div"); bpop.className = "u2bpop"; bpop.setAttribute("role", "dialog"); bpop.setAttribute("aria-label", BLAB[k] || sec.l);
+    bpop.innerHTML = `<div class="bph"><span>${E(BLAB[k] || sec.l + " – bíður þín")}</span><b>${n}</b></div><div class="bpl">${h}</div>`;
+    document.body.appendChild(bpop);
+    const r = tabEl.getBoundingClientRect(), side = tabEl.closest(".side")?.getBoundingClientRect() || r, H = bpop.offsetHeight;
+    bpop.style.left = (side.right + 10) + "px"; bpop.style.top = Math.max(12, Math.min(innerHeight - H - 12, r.top - 10)) + "px";
+    bpop.addEventListener("mouseenter", () => clearTimeout(bpT));
+    bpop.addEventListener("mouseleave", () => { bpT = setTimeout(bpClose, 220); });
+    bpop.addEventListener("click", e => { const a = e.target.closest("[data-act],[data-open]"); if (!a) return; e.preventDefault(); bpClose();
+      if (a.dataset.act) doAct(a.dataset.act, a); else if (a.dataset.open) openDetail(a.dataset.open); });
+    bpop.addEventListener("keydown", e => { if (e.key === "Escape") { bpClose(); tabEl.focus(); } if (e.key === "Enter") { const a = e.target.closest("[data-act],[data-open]"); if (a) a.click(); } });
+  }
+  document.addEventListener("mouseover", e => { const t = e.target.closest?.("#sitems .tab"); if (!t || t === bpFor) return; if (!t.querySelector(".tbid")) return;
+    clearTimeout(bpT); bpT = setTimeout(() => bpShow(t), bpop ? 60 : 380); });
+  document.addEventListener("mouseout", e => { const t = e.target.closest?.("#sitems .tab"); if (!t || t.contains(e.relatedTarget) || e.relatedTarget?.closest?.(".u2bpop")) return; clearTimeout(bpT); if (bpop) bpT = setTimeout(bpClose, 220); });
+  document.addEventListener("focusin", e => { const t = e.target.closest?.("#sitems .tab"); if (t && t.querySelector(".tbid") && e.target.matches(":focus-visible")) { clearTimeout(bpT); bpT = setTimeout(() => bpShow(t), 250); } else if (bpop && !e.target.closest(".u2bpop")) bpClose(); });
+  document.addEventListener("click", e => { if (bpop && !e.target.closest(".u2bpop")) bpClose(); }, true);
   const vlSynd = () => { try { return ON("leiga") || ON("sala"); } catch (e) { return true; } };  // Vörulisti í stikunni aðeins með Leigu eða Sölu
   // Símaútlit I (2.46.0, ORG.simi === "I"): síminn notar sama útlit og tölvan (listi og spjald, simi-ui1.css + simi.css);
   // wideScr() = raunverulegur breiður skjár, desk() = tölvuútlitið er í notkun

@@ -972,3 +972,20 @@ html body.kerfi .spmed.vid i::after{content:"";position:absolute;left:21px;top:1
 html body.kerfi .spb.spbm{background:none!important;padding:0!important;box-shadow:none!important}
 html body.kerfi .spb .spmed{width:280px}
 html body.kerfi .spb:not(.spbm) .spmed{margin-bottom:2px}
+/* 2.144.6: spjald sem útskýrir töluna í stikunni */
+.u2bpop{position:fixed;z-index:10040;width:340px;max-height:min(520px,calc(100vh - 24px));display:flex;flex-direction:column;padding:8px;border-radius:20px;background:var(--surface,#fff);color:var(--ink,#0F1720);font-family:Manrope,system-ui,sans-serif;
+  box-shadow:0 0 0 1px var(--line,#DFE3E8),0 22px 44px -16px rgba(15,23,32,.3);animation:u2bpin .18s cubic-bezier(.2,0,0,1)}
+@keyframes u2bpin{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.u2bpop,.u2bpop *{box-sizing:border-box}
+.u2bpop .bph{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px 10px}
+.u2bpop .bph span{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#5E6976)}
+.u2bpop .bph b{min-width:22px;height:22px;padding:0 7px;display:inline-grid;place-items:center;border-radius:999px;background:var(--gra,#2A3441);color:var(--on-gra,#fff);font-size:11.5px;font-variant-numeric:tabular-nums}
+.u2bpop .bpl{overflow-y:auto;overscroll-behavior:contain}
+.u2bpop .bpr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;cursor:pointer}
+.u2bpop .bpr:hover,.u2bpop .bpr:focus-visible{background:var(--hover,#EEF1F4);outline:none}
+.u2bpop .bpx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.u2bpop .bpx b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u2bpop .bpx small{font-size:12px;color:var(--muted,#5E6976);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u2bpop .bpp{flex:none;height:24px;padding:0 10px;display:inline-grid;place-items:center;border-radius:999px;background:var(--waitbg,#F6EEDF);color:var(--t-amb-tx,#8A580E);font-size:11.5px;font-weight:600}
+.u2bpop .bpr.late .bpp{background:var(--redbg,#F7E5E3);color:var(--t-red,#B13E36)}
+.u2bpop .bpmore{padding:8px 10px 4px;font-size:12px;color:var(--muted,#5E6976)}
