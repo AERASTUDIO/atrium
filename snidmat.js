@@ -138,7 +138,7 @@
     mm.insertAdjacentHTML("afterbegin", `<button type="button" data-sn="save:${E(id)}">Vista sem sniðmát…</button><button type="button" data-sn="tilbod:${E(id)}">Nýtt tilboð út frá þessu</button>${pn ? `<button type="button" data-sn="pontun:${E(id)}">Ný pöntun út frá þessu</button>` : ""}<hr class="snhr">`);
   }
   document.addEventListener("click", e => {
-    const b = e.target.closest("button[data-sn]"); if (!b) return; e.preventDefault(); e.stopPropagation(); b.closest("details")?.removeAttribute("open");
+    const b = e.target.closest("button[data-sn]"); if (!b || !/^(save|tilbod|pontun|del|ren|teg):/.test(b.dataset.sn)) return; e.preventDefault(); /* 2.147.4: aðeins eigin hnappar – Nýtt skjal notar líka data-sn (word, excel …) */ e.stopPropagation(); b.closest("details")?.removeAttribute("open");
     const [op, id] = b.dataset.sn.split(":");
     if (op === "save") return save(id);
     if (op === "tilbod" || op === "pontun") return window.snFrom(id, op);
