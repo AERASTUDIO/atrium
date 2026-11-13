@@ -1201,3 +1201,13 @@ html body.kerfi .vs3x:hover{background:color-mix(in srgb,var(--ink) 8%,transpare
 html body.kerfi .vs3fmore{align-self:flex-start;margin-top:2px}
 html body.kerfi .vs3r3 > .vs3cm{max-height:640px}
 html body.kerfi .vs3cm .vs3cmb{overflow-y:auto;scrollbar-width:thin;padding-right:2px}
+/* 2.145.3: Sundurliðun afkomu rennur niður undir spjöldunum (engin hopp) */
+html body.kerfi .vs3afkbox:not(.open):not(:has(.vplearn,.vpauk)){display:none}
+html body.kerfi .vs3afkbox .vpwrap{display:flex;flex-direction:column;gap:16px;margin:0}
+html body.kerfi .vs3afkbox:not(.open) .vpafk:not(.vplearn):not(.vpauk){display:none}
+html body.kerfi .vs3afkbox.open .vpafk:not(.vplearn):not(.vpauk){animation:vs3down .34s cubic-bezier(.2,0,0,1)}
+html body.kerfi .vs3afkbox .vpafk{border:0!important;border-radius:26px!important;background:var(--surface)!important;box-shadow:0 2px 4px rgba(15,23,32,.03),0 18px 40px -20px rgba(15,23,32,.22);padding:18px 22px!important}
+@keyframes vs3down{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+html body.kerfi .vs3afkb::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;vertical-align:2px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg);transition:transform .2s}
+html body.kerfi [data-vs3afk][aria-expanded="true"] .vs3afkb::after{transform:rotate(-135deg);vertical-align:-1px}
+html body.kerfi [data-vs3afk][aria-expanded="true"]{box-shadow:inset 0 0 0 1.5px var(--kacc),0 12px 30px -18px rgba(15,23,32,.2)}

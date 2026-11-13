@@ -89,6 +89,9 @@
   }
 
   /* ---------- Spjaldið sett saman ---------- */
+  let afkOpen = false;   // sundurliðun afkomu opin/lokuð – helst þegar spjaldið teiknast aftur
+  document.addEventListener("click", e => { const t = e.target.closest?.("[data-vs3afk]"); if (!t) return; e.preventDefault(); e.stopPropagation(); afkOpen = !afkOpen;
+    t.setAttribute("aria-expanded", afkOpen); document.querySelectorAll(".vs3afkbox").forEach(b => b.classList.toggle("open", afkOpen)); }, true);
   window.u2VerkS3 = function (el, p) {
     const body = el.querySelector(".dbody"); if (!body || body.querySelector(".vs3")) return;
     const api = window.salaAPI, sts = stillOf().filter(x => !x.falin || x.n === p.stada), idx = sts.findIndex(x => x.n === p.stada);
@@ -119,7 +122,7 @@
     const tiles = `<div class="vs3tiles">`
       + tile(IC.clock, "Tímar", `${H1(hours)} klst.${live ? ' <span class="vs3live">● í gangi</span>' : ""}`, aklst ? `${pc} % af ${H1(aklst)} klst.` : ED() ? '<span class="vs3a">+ Setja áætlun</span>' : "Engin áætlun", 'data-act="dtab:timar" title="Sjá tímafærslur verkefnisins"', aklst ? `<span class="vs3bar${pc > 100 ? " over" : pc >= 80 ? " near" : ""}"><i style="width:${Math.min(100, pc)}%"></i></span>` : "")
       + (tr(() => ON("undirverk"), true) ? tile(IC.list, "Undirverk", `${ou.length}${(p.undirverk || []).length > ou.length ? ` <span class="vs3sm">af ${(p.undirverk || []).length}</span>` : ""}`, ED() ? '<span class="vs3a">+ Undirverk</span>' : "", 'data-act="dtab:undir"') : "")
-      + (af ? tile(IC.bars, "Framlegð", E(KR(af.fr)), (af.pct == null ? "" : Math.round(af.pct * 100) + " % · ") + '<span class="vs3a">Sundurliðun</span>', 'onclick="const m=document.querySelector(\'.vs3more\');m&&m.classList.toggle(\'vs3afk\');m&&m.classList.contains(\'vs3afk\')&&m.querySelector(\'.vpafk\')?.scrollIntoView({behavior:\'smooth\',block:\'center\'})" title="Sýna eða fela sundurliðun afkomu"')
+      + (af ? tile(IC.bars, "Framlegð", E(KR(af.fr)), (af.pct == null ? "" : Math.round(af.pct * 100) + " % · ") + '<span class="vs3a vs3afkb">Sundurliðun</span>', `data-vs3afk="1" aria-expanded="${afkOpen}" title="Sýna eða fela sundurliðun afkomu"`)
         : FIN() && ih === "timar" ? tile(IC.bars, "Óreikningsfært", E(KR(unb)), unb ? '<span class="vs3a">Búa til reikning</span>' : "Ekkert óreikningsfært", unb ? `data-act="rknew:${E(p.id)}"` : 'data-act="tab:trk"') : "")
       + `</div>`;
     // Tilboð og pantanir
@@ -145,7 +148,7 @@
     // Athugasemdir og póstur
     const cmC = `<section class="vs3c vs3cm"><div class="vs3h">${hd("Athugasemdir og saga")}</div><div class="vs3cmb"></div></section>`;
     // Á verkinu (annað af gamla yfirlitinu)
-    const moreC = `<section class="vs3more"></section>`;
+    const moreC = `<div class="vs3afkbox${afkOpen ? " open" : ""}"><div class="vs3afkin"><div class="ukps vs3anch" hidden></div></div></div><section class="vs3more"></section>`;
     const wrap = document.createElement("div"); wrap.className = "vs3";
     wrap.innerHTML = steps + `<div class="vs3r1">${next(p, ctx)}${staffC}</div>` + tiles + moreC + `<div class="vs3r3">${tpC}${fC}${cmC}</div>`;
     // Færa hluta inn
@@ -154,8 +157,7 @@
     const addG = (k, title) => { const g = groups[k]; if (!g) return; const s = document.createElement("div"); s.className = "vs3g"; g.forEach(n => s.append(n)); const t = s.querySelector(".viewtitle"); if (t && title) t.textContent = title; more.append(s); };
     if (uvy) more.append(uvy);
     if (budget && aklst && pc >= 80) more.prepend(budget);
-    vpw.forEach(n => more.append(n));
-    if (!more.querySelector(".vpwrap")) more.insertAdjacentHTML("beforeend", `<div class="ukps vs3anch" hidden></div>`);   // verkplus.js setur Afkomu á eftir .ukps
+    { const ab = wrap.querySelector(".vs3afkin"); vpw.forEach(n => ab.append(n)); }   // Afkoma (verkplus.js setur hana á eftir .ukps – hér rétt undir spjöldunum)
     addG("soon"); if (p.yfirlit) addG("stada", "Staðan"); addG("lys");
     Object.keys(groups).filter(k => k.startsWith("other:")).forEach(k => addG(k));
     // 2.145.2: Athugasemdir og saga – athugasemdir notenda og það sem appið skráir sjálft (tímar, staða, tilboð, reikningar, fundir), nýjast efst
