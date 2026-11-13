@@ -927,3 +927,11 @@ html body.kerfi:not(.pv) .sx-k .sx-ke,html body.kerfi .klukka .sx-ke{display:non
 }
 html body .u2pop .u2so{min-height:36px!important;height:auto!important;padding:8px 12px!important;margin:0!important}
 .u2pop,.u2pop *{box-sizing:border-box}
+/* 2.144.3: tóma táknið smíðað úr hringjum (ekki litastigum) – alltaf nákvæmlega fyrir miðju */
+html body.kerfi .u2empo{background:none!important;box-sizing:border-box;border:1px solid color-mix(in srgb,var(--ink) 7%,transparent)}
+html body.kerfi .u2empo::before{content:"";position:absolute;inset:17px;border-radius:50%;border:1px solid color-mix(in srgb,var(--ink) 13%,transparent)}
+html body.kerfi .u2empo i{position:relative;width:72px!important;height:72px!important;border-radius:50%;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--surface) 85%,transparent)!important;-webkit-mask:none!important;mask:none!important;animation:none!important}
+html body.kerfi .u2empo i::before{content:"";width:40px;height:40px;background:color-mix(in srgb,var(--ink) 55%,transparent);
+  -webkit-mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat;mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat}
+@media (prefers-reduced-motion:no-preference){html body.kerfi .u2empo i::before{animation:u2float 5s ease-in-out infinite}}
