@@ -1270,3 +1270,25 @@ html body.kerfi #view .u2pA .u2pf > span{white-space:nowrap}
   html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab:not([hidden]):not([style*="none"]){display:flex!important;align-items:center!important;justify-content:center!important}
   html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab svg{display:block!important;margin:0!important}
 }
+
+/* 2.145.7 – Stillingar: allar undirsíður með sama spjaldaútliti */
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet :is(.snjset,.fklist,.sigprev,.pmx,.llist){background:var(--surface,#fff)!important;border:0!important;border-radius:22px!important;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,32,.04),0 14px 34px -22px rgba(15,23,32,.28)!important}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet :is(.snjset,.fklist,.pmx){margin-bottom:18px}
+/* Einingar: listinn í sömu línu og spjöldin, línur með innri spássíu */
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .llist{margin:0 0 22px!important;padding:0!important}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .llist .lrow{margin:0!important;padding:12px 18px!important;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important;background:transparent}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .llist .lrow:first-child{border-top:0!important}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .llist .lrow:hover{background:var(--hover,#EEF1F4)}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .llist .lrow .lt{font-size:14.5px;font-weight:600}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .llist .lrow .ls{font-size:12px}
+/* Réttindatafla: dálkar eftir fjölda hlutverka */
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .pmr{padding:10px 18px}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .pmh{background:var(--hover,#EEF1F4)}
+/* Verkefnastillingar o.fl.: samfelldar .cfgrow-línur verða eitt spjald */
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .cfgrow{background:var(--surface,#fff);padding:10px 18px!important;margin:0!important;border:0;border-top:1px solid var(--line)}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet :not(.cfgrow)+.cfgrow{border-top:0;border-radius:22px 22px 0 0;margin-top:6px!important}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet .cfgrow:not(:has(+.cfgrow)){border-radius:0 0 22px 22px;margin-bottom:14px!important;box-shadow:0 14px 34px -22px rgba(15,23,32,.28)}
+html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet :not(.cfgrow)+.cfgrow:not(:has(+.cfgrow)){border-radius:22px}
+/* Rofar: einn litur (grafít) í öllum stillingum */
+html:not(#u2a):not(#u2b) body.pv.ui1 :is(.snjsw,.usw,.hsw) input:checked+i{background:var(--hi,#2A3441)!important}
+html:not(#u2a):not(#u2b) body.pv.ui1 :is(.snjsw,.usw,.hsw) input:checked+i::after{background:#fff!important}

@@ -100,7 +100,9 @@
     const soft = () => document.querySelectorAll(`[data-open="post:${CSS.escape(id)}"]`).forEach(r => r.classList.toggle("unread", !v));
     if (quiet) soft(); else render();
     try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { isRead: v } }); if (FOLDERS?.wk?.[fold]) FOLDERS.wk[fold].unreadItemCount = Math.max(0, unreadOf(fold) + (v ? -1 : 1)); if (!quiet) render(); }
-    catch (e) { upd(id, m => { m.isRead = before; }); render(); if (!quiet) permErr(e) ? needRW() : toast(e.message); } }
+    catch (e) { upd(id, m => { m.isRead = before; }); AUTO.delete(id); render(); if (!quiet) permErr(e) ? needRW() : toast(e.message); else if (!AUTOERR) { AUTOERR = 1; toast(permErr(e) ? "Gat ekki merkt póst lesinn – appið vantar skrifaðgang að póstinum" : "Gat ekki merkt póst lesinn – reyni aftur næst"); } } }
+  const AUTO = new Set(); let AUTOERR = 0;
+  const soft2 = cv => { if (!cv) return; (list || []).filter(x => x.conversationId === cv).forEach(x => document.querySelectorAll(`[data-open="post:${CSS.escape(x.id)}"]`).forEach(r => r.classList.toggle("unread", (list || []).some(y => y.conversationId === cv && y.isRead === false)))); };
   async function setFlag(id, on) { upd(id, m => { m.flag = { flagStatus: on ? "flagged" : "notFlagged" }; }); render();
     try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { flag: { flagStatus: on ? "flagged" : "notFlagged" } } }); }
     catch (e) { upd(id, m => { m.flag = { flagStatus: on ? "notFlagged" : "flagged" }; }); render(); permErr(e) ? needRW() : toast(e.message); } }
@@ -201,7 +203,10 @@
     const m = MSG[id]; if (!m) { loadMsg(id); return backBar() + `<div class="empty" style="margin-top:20px">Sæki póst…</div>`; }
     setTimeout(() => forsaekja(id), 300);
     if (m._err) return backBar() + `<div class="msg err">${esc(m._err)}</div>`;
-    if (window.ORG?.utlit === "I" && m.isRead === false && !m._auto && MCP) { m._auto = 1; setTimeout(() => setRead(id, true, true), 1200); }
+    // 2.145.7: þegar póstur er opnaður merkjast líka ólesnir póstar í sama þræði (listinn sýnir þráðinn sem ólesinn ef einhver póstur í honum er ólesinn)
+    if (window.ORG?.utlit === "I" && MCP) { const cv = m.conversationId || (list || []).find(x => x.id === id)?.conversationId;
+      const ids = [...new Set([...(m.isRead === false ? [id] : []), ...(list || []).filter(x => x.isRead === false && cv && x.conversationId === cv).map(x => x.id)])].filter(x => !AUTO.has(x));
+      if (ids.length) { ids.forEach(x => AUTO.add(x)); setTimeout(() => Promise.all(ids.map(x => setRead(x, true, true))).then(() => { soft2(cv); rr(); }), 1200); } }
     const L = linked(id), p = L && findProj(L.verkefniId), g = !L && window.msGuessProj ? findProj(msGuessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address)) : null, atts = ATT[id] || [];
     const html = m.body?.contentType === "html" ? m.body.content : `<pre style="white-space:pre-wrap;font:inherit">${esc(m.body?.content || "")}</pre>`;
     const doc = `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>body{font:14px/1.5 -apple-system,Segoe UI,Inter,sans-serif;color:#14181c;background:#fff;margin:14px;word-wrap:break-word}img{max-width:100%;height:auto}table{max-width:100%}</style></head><body>${html}</body></html>`;

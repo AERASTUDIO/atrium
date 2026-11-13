@@ -54,7 +54,7 @@
     const mine = (u, arr) => (arr || []).filter(x => lc(x.eigandi) === lc(u.email) || (!x.eigandi && u.sk && x.starfsmadur === u.sk));
     const edits = u => ch.filter(c => lc(c.af) === lc(u.email)).length;
 
-    const matrix = `<div class="pmx" role="table" aria-label="Réttindi hlutverka">
+    const matrix = `<div class="pmx" role="table" aria-label="Réttindi hlutverka" style="--pmn:${roles.length}">
       <div class="pmr pmh" role="row"><span role="columnheader">Gögn</span>${roles.map(r => `<span role="columnheader">${esc(roleName(r))}</span>`).join("")}</div>
       ${PERMS.map(([l, k, p]) => `<div class="pmr" role="row"><span role="cell"><b>${esc(l)}</b><small>${esc(k)}</small></span>${roles.map(r => `<span role="cell"><i class="pp ${CLS[p[r] || "—"]}">${esc(TXT[p[r] || "—"])}</i></span>`).join("")}</div>`).join("")}</div>`;
 
