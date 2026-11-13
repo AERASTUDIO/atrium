@@ -88,7 +88,7 @@
     const tiles = `<div class="vs3tiles">`
       + tile(IC.clock, "Tímar", `${H1(hours)} klst.${live ? ' <span class="vs3live">● í gangi</span>' : ""}`, aklst ? `${pc} % af ${H1(aklst)} klst.` : ED() ? '<span class="vs3a">+ Setja áætlun</span>' : "Engin áætlun", 'data-act="dtab:timar" title="Sjá tímafærslur verkefnisins"', aklst ? `<span class="vs3bar${pc > 100 ? " over" : pc >= 80 ? " near" : ""}"><i style="width:${Math.min(100, pc)}%"></i></span>` : "")
       + (tr(() => ON("undirverk"), true) ? tile(IC.list, "Undirverk", `${ou.length}${(p.undirverk || []).length > ou.length ? ` <span class="vs3sm">af ${(p.undirverk || []).length}</span>` : ""}`, ED() ? '<span class="vs3a">+ Undirverk</span>' : "", 'data-act="dtab:undir"') : "")
-      + (af ? tile(IC.bars, "Framlegð", E(KR(af.fr)), af.pct == null ? E(af.grunnur) : Math.round(af.pct * 100) + " %", 'onclick="document.querySelector(\'.vs3more .vpafk\')?.scrollIntoView({behavior:\'smooth\',block:\'center\'})"')
+      + (af ? tile(IC.bars, "Framlegð", E(KR(af.fr)), (af.pct == null ? "" : Math.round(af.pct * 100) + " % · ") + '<span class="vs3a">Sundurliðun</span>', 'onclick="const m=document.querySelector(\'.vs3more\');m&&m.classList.toggle(\'vs3afk\');m&&m.classList.contains(\'vs3afk\')&&m.querySelector(\'.vpafk\')?.scrollIntoView({behavior:\'smooth\',block:\'center\'})" title="Sýna eða fela sundurliðun afkomu"')
         : FIN() && ih === "timar" ? tile(IC.bars, "Óreikningsfært", E(KR(unb)), unb ? '<span class="vs3a">Búa til reikning</span>' : "Ekkert óreikningsfært", unb ? `data-act="rknew:${E(p.id)}"` : 'data-act="tab:trk"') : "")
       + `</div>`;
     // Tilboð og pantanir
@@ -104,11 +104,13 @@
     // Skrár
     const fr = window.msRecent ? tr(() => msRecent(p), { st: "none" }) : { st: "none" };
     let fBody;
-    if (fr.st === "ok") fBody = (fr.files.length ? `<div class="vs3fs">${fr.files.slice(0, 4).map(f => `<button type="button" class="vs3f" data-act="msprev:${E(f.id)}" data-pfid="${E(f.id)}" draggable="true"><span class="vs3ft2">${E(typeOf(f.name))}</span><span class="vs3fn">${E(f.name)}</span><small>${E(when(f.lastModifiedDateTime))}</small></button>`).join("")}</div>` : `<div class="vs3e"><b>Mappan er tóm</b><small>Dragðu skrár hingað eða veldu úr tölvunni</small></div>`)
-      + (fr.up ? `<div class="vs3dz" data-upk="${E(fr.k)}"><input type="file" id="up-file" multiple hidden><span>Dragðu skrár hingað</span><label for="up-file" class="vs3b g sm">${IC.up}Velja skrár</label><div class="uplist" id="up-list"></div></div>` : "");
+    const fold = (fr.folders || []).length ? `<div class="vs3fo">${fr.folders.map(d => `<a class="vs3fd${d.n ? "" : " tom"}" ${d.link}${fr.up ? ` data-updir="${E(d.name)}"` : ""} title="${E(d.name)}${d.n ? " · " + d.n + " atriði" : " · tóm mappa"}${fr.up ? " – dragðu skrár hingað" : ""}">${IC.folder}<span>${E(d.name)}</span>${d.n ? `<small>${d.n}</small>` : ""}</a>`).join("")}</div>` : "";
+    if (fr.st === "ok") fBody = (fr.files.length ? `<div class="vs3fs">${fr.files.slice(0, 5).map(f => `<button type="button" class="vs3f" data-act="msprev:${E(f.id)}" data-pfid="${E(f.id)}" draggable="true"><span class="vs3ft2">${E(typeOf(f.name))}</span><span class="vs3fn">${E(f.name)}</span><small>${E(when(f.lastModifiedDateTime))}</small></button>`).join("")}</div>` : `<div class="vs3e"><b>Engar skrár enn</b><small>${(fr.folders || []).length ? `${fr.folders.length} möppur eru tilbúnar – dragðu skrár á möppu til að vista þær þar` : "Dragðu skrár hingað eða veldu úr tölvunni"}</small></div>`)
+      + fold
+      + (fr.up ? `<div class="vs3dz"><input type="file" id="up-file" multiple hidden><span>Dragðu skrár hingað (í möppu verkefnisins) eða á möppu hér fyrir ofan</span><label for="up-file" class="vs3b g sm">${IC.up}Velja skrár</label><div class="uplist" id="up-list"></div></div>` : "");
     else if (fr.st === "load") fBody = `<div class="vs3e"><small>Sæki skrár…</small></div>`;
     else fBody = `<div class="vs3e"><b>${fr.st === "err" ? "Gat ekki sótt skrárnar" : "Skrár verkefnisins"}</b><small>${fr.st === "err" ? E(fr.err || "") : "Opnaðu Skrár til að sjá möppu verkefnisins"}</small></div>`;
-    const fC = tr(() => ON("skjol") || ON("onedrive"), false) ? card("vs3fl", hd("Skrár", `${fr.link ? `<a class="vs3a" ${fr.link}>Opna möppu ↗</a>` : ""}<a href="#" class="vs3a" data-act="dtab:skrar">Allar →</a>`), (fr.where ? `<div class="vs3m">${IC.folder}${E(fr.where)}</div>` : "") + fBody) : "";
+    const fC = tr(() => ON("skjol") || ON("onedrive"), false) ? card("vs3fl" + (fr.st === "ok" && fr.up ? '" data-upk="' + E(fr.k) : ""), hd("Skrár", `${fr.link ? `<a class="vs3a" ${fr.link}>Opna möppu ↗</a>` : ""}<a href="#" class="vs3a" data-act="dtab:skrar">Allar →</a>`), (fr.where ? `<div class="vs3m vs3wh">${E(fr.where)}</div>` : "") + fBody) : "";
     // Athugasemdir og póstur
     const cmC = `<section class="vs3c vs3cm"><div class="vs3h">${hd("Athugasemdir og póstur")}</div><div class="vs3cmb"></div></section>`;
     // Á verkinu (annað af gamla yfirlitinu)
@@ -135,6 +137,17 @@
     body.append(wrap); klb.forEach(n => body.prepend(n));
     if (!more.children.length || [...more.children].every(c => c.hidden)) more.classList.add("tom");
     if (steps) el.querySelector(".udh2 .ustsel")?.classList.add("vs3hide");
+  };
+
+  /* ---------- Aðrir flipar verkefnis: línur í spjaldi, tómt sem snyrtilegt spjald ---------- */
+  window.u2VerkTab = function (el) {
+    const body = el.querySelector(".dbody"); if (!body || body.classList.contains("vs3tab")) return; body.classList.add("vs3tab");
+    let grp = null;
+    [...body.children].forEach(n => {
+      if (n.matches(".usrow, .utl, a.utl, .lrow")) { if (!grp) { grp = document.createElement("section"); grp.className = "vs3lc"; n.before(grp); } grp.append(n); }
+      else grp = null;
+    });
+    body.querySelectorAll(":scope > .empty").forEach(e => e.classList.add("vs3emp"));
   };
 
   /* ---------- Byrja án tilboðs ---------- */

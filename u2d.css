@@ -1106,3 +1106,75 @@ html body.kerfi .vs3cmb > .hint{margin:0;font-size:12px}
 @media (min-width:0){html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .spdet .vs3cmb .cmbox textarea{background-color:transparent!important}}
 html:not(#u2a):not(#u2b) body.kerfi #view .vs3nx h3{font-size:22px!important;font-weight:600!important;color:#FFFFFF!important;margin:0!important}
 html body.kerfi .vs3st button.sk{color:color-mix(in srgb,var(--muted) 70%,transparent);text-decoration:line-through}
+/* 2.145.1: raða lista með smelli á dálkaheiti (u2rada.js) */
+html body.kerfi #view .ucols > [data-u2s]{cursor:pointer;user-select:none;border-radius:6px;transition:color .15s}
+html body.kerfi #view .ucols > [data-u2s]:hover{color:var(--ink)}
+html body.kerfi #view .ucols > [data-u2s]:focus-visible{outline:none;box-shadow:var(--u-ring)}
+html body.kerfi #view .ucols > :is(.u2s-asc,.u2s-desc){color:var(--ink)!important}
+html body.kerfi #view .ucols > :is(.u2s-asc,.u2s-desc)::after{content:"";display:inline-block;width:0;height:0;margin-left:6px;vertical-align:2px;border-left:4px solid transparent;border-right:4px solid transparent}
+html body.kerfi #view .ucols > .u2s-asc::after{border-bottom:5px solid var(--kacc)}
+html body.kerfi #view .ucols > .u2s-desc::after{border-top:5px solid var(--kacc)}
+/* ---------- 2.145.1: verkefnisspjald snyrt ---------- */
+/* Klukkuborðinn: læsilegur texti á grafít */
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody > .klukka{background:var(--u-key,#2A3441)!important;color:#FFFFFF!important;border-radius:22px!important;padding:14px 16px 14px 22px!important;margin:16px 0 0!important;gap:16px!important;box-shadow:0 18px 40px -22px rgba(15,23,32,.5)}
+html:not(#u2a):not(#u2b) body.kerfi #view .klukka .lt{color:#FFFFFF!important;font-weight:600!important;font-size:14.5px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .klukka :is(.ls,.klink){color:rgba(255,255,255,.72)!important;font-size:12.5px!important;opacity:1!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .klukka .klink{background:none!important;border:0!important;padding:0!important;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+html:not(#u2a):not(#u2b) body.kerfi #view .klukka .kt{color:#FFFFFF!important;font-size:28px!important;font-weight:500!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .klukka .kbtns .btn{height:38px!important;min-height:38px!important;border:0!important;border-radius:999px!important;background:rgba(255,255,255,.14)!important;color:#FFFFFF!important;padding:0 16px!important;font-size:13.5px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .klukka .kbtns .btn.primary{background:#FFFFFF!important;color:var(--u-key,#2A3441)!important;font-weight:700!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .klukka .kbtns .btn:not(.primary){width:38px!important;padding:0!important;justify-content:center}
+/* Meira loft */
+html body.kerfi .vs3{gap:24px}
+html body.kerfi .vs3r1,html body.kerfi .vs3r3,html body.kerfi .vs3tiles{gap:24px}
+html body.kerfi .vs3c{padding:22px 24px}
+/* Afkoma: aðeins þegar smellt er á Framlegð */
+html body.kerfi .vs3more:not(.vs3afk) .vpafk:not(.vplearn):not(.vpauk){display:none}
+html body.kerfi .vs3more:not(:has(> :not(.vpwrap):not(.vs3anch))):not(:has(.vplearn,.vpauk)):not(.vs3afk){display:none}
+html body.kerfi .vs3more .vpafk{border:0!important;border-radius:26px!important;background:var(--surface)!important;box-shadow:0 2px 4px rgba(15,23,32,.03),0 18px 40px -20px rgba(15,23,32,.22);padding:18px 22px!important}
+/* Neðsta röð hærri */
+html body.kerfi .vs3r3 > .vs3c{min-height:380px}
+html body.kerfi .vs3wh{font-size:12px;line-height:1.4}
+html body.kerfi .vs3fo{display:flex;flex-wrap:wrap;gap:6px}
+html body.kerfi .vs3fd{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:999px;background:var(--hover);color:var(--ink);font-size:12.5px;font-weight:600;text-decoration:none;max-width:100%}
+html body.kerfi .vs3fd span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi .vs3fd svg{flex:none;color:var(--muted)}
+html body.kerfi .vs3fd small{font-size:11px;color:var(--muted);font-weight:600}
+html body.kerfi .vs3fd.tom{color:var(--muted);font-weight:500}
+html body.kerfi .vs3fd:hover{background:color-mix(in srgb,var(--ink) 9%,var(--hover))}
+html body.kerfi .vs3fd.upon{background:var(--acc-soft,#EEF3FA);box-shadow:inset 0 0 0 1.5px var(--kacc);color:var(--ink)}
+html body.kerfi .vs3fl.upon .vs3dz{border-color:var(--kacc);background:var(--acc-soft,#EEF3FA)}
+html body.kerfi .vs3dz > span{line-height:1.4}
+/* Aðrir flipar: línur í spjaldi */
+html body.kerfi .dbody.vs3tab{padding-top:4px}
+html body.kerfi .dbody.vs3tab > .ush2{margin:16px 0 10px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc{background:var(--surface);border-radius:22px;box-shadow:0 2px 4px rgba(15,23,32,.03),0 18px 40px -20px rgba(15,23,32,.22);padding:6px;margin:0 0 18px;display:flex;flex-direction:column}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc > *{margin:0!important;border:0!important;border-bottom:1px solid var(--hover)!important;border-radius:14px!important;box-shadow:none!important;background:transparent!important;min-height:54px;padding-left:14px!important;padding-right:14px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc > :last-child{border-bottom:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc > :is(a,[data-act],[role=button],.usrow):hover{background:var(--hover)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc > .usrow{display:grid;align-items:center}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc > .utl{display:flex;align-items:center;gap:12px}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc > .utl .ic{flex:none;width:32px;height:32px;border-radius:10px;background:var(--hover);display:grid;place-items:center;font-style:normal;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .vs3lc > .utl .utlr{margin-left:auto;display:flex;align-items:center;gap:10px;flex-direction:row!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .empty.vs3emp{margin:16px 0!important;padding:34px 20px!important;border-radius:22px!important;border:1.5px dashed var(--line2,#DFE3E8)!important;background:transparent!important;text-align:center;color:var(--muted);font-size:14px}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .links{margin:16px 0 4px!important;display:flex;gap:8px;flex-wrap:wrap}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .viewtitle{margin:18px 0 8px!important}
+/* Skrár-flipinn: möppur sem snyrtilegar línur */
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold{border-bottom:1px solid var(--hover)}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold:last-child{border-bottom:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow{display:flex!important;align-items:center!important;gap:12px;min-height:54px;padding:8px 16px 8px 14px!important;margin:0!important;border:0!important;border-radius:14px!important;box-shadow:none!important;background:transparent!important;list-style:none;cursor:pointer}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow::-webkit-details-marker{display:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow::before{content:"";flex:none;width:32px;height:32px;border-radius:10px;background:var(--hover) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235E6976' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8A1.5 1.5 0 0 1 20.5 9v8A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17z'/%3E%3C/svg%3E") center/16px no-repeat}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow:hover{background:var(--hover)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow .lm{flex:1;min-width:0;display:flex!important;flex-direction:row!important;align-items:baseline;gap:10px}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow .lt{font-size:14.5px;font-weight:600}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow .ls{font-size:12px;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > summary.lrow::after{content:"";flex:none;width:8px;height:8px;border-right:1.75px solid var(--muted);border-bottom:1.75px solid var(--muted);transform:rotate(-45deg);margin-left:4px;transition:transform .18s}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold[open] > summary.lrow::after{transform:rotate(45deg)}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody .llist details.fold > .fitems{padding:0 0 6px 46px}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody > .klukka .kbtns .btn.btn:not(.primary):not(#u2c){background:rgba(255,255,255,.14)!important;color:#FFFFFF!important;box-shadow:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb .llist *{box-shadow:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb .llist .lrow{background:var(--hover)!important;border:0!important;border-radius:14px!important;margin:0 0 6px!important;min-height:0!important;padding:10px 12px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb :is(.pothr,.pothr *, .llist){box-shadow:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb .pothr{background:none!important;padding:0!important;margin:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody.vs3tab > .empty.vs3emp{border-color:color-mix(in srgb,var(--ink) 16%,transparent)!important}

@@ -47,7 +47,7 @@ function dVerk(p){
   const tl=faerslur().filter(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr)).sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
   const pending=(S?.odBidrod||[]).some(b=>b.verkefniId===p.id), fold=projFolder(p);
   const nFiles=fold?(fold.atridi||[]).filter(x=>x.s>0).length:0;
-  const tabs=[["yfirlit","Yfirlit"],["undir","Undirverk",openS.length||""],["fundir","Fundir",upF.length||""],["skrar","Skrár",nFiles||""],["timar","Tímar",tl.length?num(sumT(tl)):""],["tilbod","Tilboð",window.tbCountFor?tbCountFor(p.id)||"":""],["pantanir","Pantanir",window.pnCountFor?pnCountFor(p.id)||"":""],["stillingar","Stillingar"]]
+  const tabs=[["yfirlit","Yfirlit"],["undir","Undirverk",openS.length||""],["fundir","Fundir",upF.length||""],["skrar","Skrár",nFiles||""],["timar","Tímar",Math.round(sumT(tl))?num(Math.round(sumT(tl))):""],["tilbod","Tilboð",window.tbCountFor?tbCountFor(p.id)||"":""],["pantanir","Pantanir",window.pnCountFor?pnCountFor(p.id)||"":""],["stillingar","Stillingar"]]
     .filter(t=>t[0]==="pantanir"?!!window.pnProjTab&&!!window.pnCountFor&&ON("pantanir"):t[0]==="tilbod"?!!window.tbProjTab&&!!window.tbOK&&tbOK():({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]?ON(({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]):t[0]!=="skrar"||ON("skjol")||ON("onedrive"));
   fixTab(tabs);
   const head=backBar()+`<div class="kicker"><span class="nr">${esc(p.nr)}</span>${statusPill(p.stada)}${p.skiladagur&&!isDone(p)?relPill(daysTo(p.skiladagur)):""}${svcTags(p)}${taxtiTxt(p)?`<span class="pill ptaxti" title="Þjónusta og tímagjald úr verðskrá">${esc(taxtiTxt(p))}</span>`:""}</div>

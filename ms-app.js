@@ -127,7 +127,8 @@
     if (!t) { loadTree(k); return { st: "load", k, link, where }; }
     if (t.st !== "ok") return { st: t.st === "err" ? "err" : "load", err: t.err, k, link, where };
     const files = [...t.items, ...t.items.flatMap(i => i.kids || [])].filter(i => !i.folder).sort((a, b) => String(b.lastModifiedDateTime || "").localeCompare(String(a.lastModifiedDateTime || "")));
-    return { st: "ok", k, files, up: company(), link, where };
+    const folders = t.items.filter(i => i.folder).map(i => ({ name: i.name, n: (i.kids || []).filter(x => !x.folder).length + (i.kids || []).filter(x => x.folder).length, link: odLink(i) }));
+    return { st: "ok", k, files, folders, up: company(), link, where };
   };
   window.msSkrar = function (p) {
     const head = (extra = "") => `<div class="viewtitle" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>Skrár í ${ODN()}</span><span style="display:flex;gap:12px">${extra}</span></div>`;
