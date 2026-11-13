@@ -5,7 +5,7 @@
 async function quickStatus(type,id,st,btn){
   const row=btn.closest(".stat-row"); row?.querySelectorAll("button").forEach(b=>b.disabled=true);
   try{
-    await saveSnapshot(s=>{if(type==="verk"){const p=sFindP(s,id); if(p) p.stada=st;} else if(type==="skjal"){const x=(s.skjol||[]).find(x=>x.id===id); if(x){x.stada=st;x.breytt=new Date().toISOString();}} else {const [,u]=sFindU(s,id); if(u) u.stada=st;}});
+    await saveSnapshot(s=>{if(type==="verk"){const p=sFindP(s,id); if(p&&p.stada!==st){const was=p.stada; p.stada=st; (p.saga=p.saga||[]).push({d:new Date().toISOString(),sk:typeof ME==="function"?ME():"",k:"st",t:"breytti stöðu úr „"+(was||"–")+"“ í „"+st+"“"}); if(p.saga.length>200) p.saga=p.saga.slice(-200);}} else if(type==="skjal"){const x=(s.skjol||[]).find(x=>x.id===id); if(x){x.stada=st;x.breytt=new Date().toISOString();}} else {const [,u]=sFindU(s,id); if(u) u.stada=st;}});
     toast("Staða uppfærð: "+(STL[st]||st));
   }catch(e){toast(errText(e)); row?.querySelectorAll("button").forEach(b=>b.disabled=false);}
 }
@@ -96,7 +96,7 @@ async function saveEdit(type,id){
       busy(); const cl=await pickVsk("e","client","Viðskiptavinur"), vk=null;
       const extra={vskId:cl?.id||null,vkId:vk?.id||null,...snap};
       const dl=window.deildVal?deildVal("e-deild"):undefined;
-      await saveSnapshot(s=>{const q=sFindP(s,id); if(q&&dl!==undefined) q.deild=dl; if(q) Object.assign(q,{stutt:name,nafn:p.nr+" "+name,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,mappa:mp||null,aklst:parseFloat(String(val("e-aklst")).replace(",","."))||null,...(document.getElementById("e-innh")?{innheimta:val("e-innh")||null}:{}),tilbod:parseInt(String(val("e-tilbod")).replace(/\D/g,""))||null,...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null,timagjald:parseKr(val("e-gjald"))||null}:{}),...(document.getElementById("e-rl")?{rlina:val("e-rl")||null}:{}),...extra});});
+      await saveSnapshot(s=>{const q=sFindP(s,id); if(q&&dl!==undefined) q.deild=dl; if(q&&q.stada!==st){(q.saga=q.saga||[]).push({d:new Date().toISOString(),sk:typeof ME==="function"?ME():"",k:"st",t:"breytti stöðu úr „"+(q.stada||"–")+"“ í „"+st+"“"});} if(q) Object.assign(q,{stutt:name,nafn:p.nr+" "+name,stada:st,vidskiptavinur:cl?.name||null,verkkaupi:vk?.name||null,thjonusta:thj,mappa:mp||null,aklst:parseFloat(String(val("e-aklst")).replace(",","."))||null,...(document.getElementById("e-innh")?{innheimta:val("e-innh")||null}:{}),tilbod:parseInt(String(val("e-tilbod")).replace(/\D/g,""))||null,...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null,timagjald:parseKr(val("e-gjald"))||null}:{}),...(document.getElementById("e-rl")?{rlina:val("e-rl")||null}:{}),...extra});});
     }
     if(type==="vsk"){const old=findVsk(id); const {c}=readVskForm("e",true);
       const dup=vskList().find(x=>!sameId(x.id,id)&&x.name.toLowerCase()===c.name.toLowerCase()); if(dup) return msg(`${esc(dup.name)} er þegar á listanum.`,"err");

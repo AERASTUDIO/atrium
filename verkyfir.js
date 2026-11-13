@@ -57,6 +57,37 @@
     return `<section class="vs3c vs3nx"><div class="vs3k"><span>Næsta skref</span><em>${E(ihL)}</em></div><h3>${E(t)}</h3>${d ? `<p>${E(d)}</p>` : ""}${B.length || link ? `<div class="vs3bs">${B.join("")}${link}</div>` : ""}</section>`;
   }
 
+  /* ---------- Saga verkefnisins (2.145.2) ---------- */
+  const who = sk => sk ? tr(() => starfName(sk), sk).split(" ")[0] : "";
+  const dt = x => { if (!x) return ""; const s0 = String(x); return s0.length <= 10 ? s0 + "T12:00:00" : s0; };
+  function events(p) {
+    const ev = [], api = window.salaAPI;
+    (p.athugasemdir || []).forEach(c => ev.push({ d: c.d, k: "cm", sk: c.sk, t: c.t, id: c.id }));
+    (p.saga || []).forEach(x => ev.push({ d: x.d, k: x.k || "st", sk: x.sk, t: x.t }));
+    if (p.stofnad_t) ev.push({ d: p.stofnad_t, k: "new", t: "Verkefnið stofnað" });
+    tr(() => faerslur(), []).filter(e => e.verkefniId === p.id && !e.live).forEach(e => { const u = e.undirverkId ? (p.undirverk || []).find(x => x.id === e.undirverkId) : null;
+      ev.push({ d: dt(e.date + (e.til ? "T" + e.til + ":00" : e.fra ? "T" + e.fra + ":00" : "")), k: "time", sk: e.starfsmadur, t: `skráði ${H1(e.timar)} klst.${e.lysing ? " – " + tr(() => cleanLys(e.lysing), e.lysing) : ""}${u ? " · " + tr(() => subName(u), u.heiti || "") : ""}` }); });
+    tr(() => kostn(), []).filter(k => k.verkefniId === p.id).forEach(k => ev.push({ d: dt(k.date), k: "kostn", sk: k.starfsmadur, t: `skráði kostnað${k.lysing ? " – " + k.lysing : ""}${FIN() ? " · " + KR(+k.upphaed || 0) : ""}` }));
+    if (api) [...tr(() => api.TB(), []), ...tr(() => api.PN(), [])].filter(T => T.verkefniId === p.id).forEach(T => { const nm = (T.pontun ? "Pöntun " : "Tilboð ") + (T.nr || "");
+      if (T.dags) ev.push({ d: dt(T.dags), k: "tb", t: `${nm} búið til`, open: "tb:" + T.id });
+      if (T.sent) ev.push({ d: dt(T.sent), k: "tb", t: `${nm} sent${T.sentTil ? " til " + T.sentTil : ""}`, open: "tb:" + T.id });
+      if (T.bidur?.dags) ev.push({ d: dt(T.bidur.dags), k: "ok", t: `${T.bidur.nafn || "Viðskiptavinur"} samþykkti ${nm}`, open: "tb:" + T.id }); });
+    (S?.reikningar || []).filter(R => R.stada !== "Ógilt" && (R.verkefniIds || [R.verkefniId]).includes(p.id)).forEach(R => { if (!FIN()) return;
+      ev.push({ d: dt(R.dags), k: "rk", t: `Reikningur ${R.bokhald?.nr || R.nr || ""} gefinn út · ${KR(+R.net || 0)}`, open: "reikn:" + R.id });
+      if (R.stada === "Greitt" && R.greitt) ev.push({ d: dt(R.greitt), k: "ok", t: `Reikningur ${R.bokhald?.nr || R.nr || ""} greiddur`, open: "reikn:" + R.id }); });
+    (S?.fundir || []).filter(f => tr(() => fundProj(f)?.id, null) === p.id && !f.persona && String(f.date || "") <= new Date().toISOString()).forEach(f => ev.push({ d: f.date, k: "fund", t: `Fundur: ${tr(() => fundNafn(f), f.name || "")}`, open: "fund:" + f.id }));
+    return ev.filter(x => x.d).sort((a, b) => String(b.d).localeCompare(String(a.d)));
+  }
+  const EIC = { time: "◷", st: "●", new: "+", tb: "▤", ok: "✓", rk: "kr", fund: "◎", kostn: "−" };
+  function feedHTML(p) {
+    const ev = events(p); if (!ev.length) return `<p class="vs3m">Ekkert enn. Appið skráir hér tíma, stöðubreytingar, tilboð, reikninga og fundi – og athugasemdir ykkar.</p>`;
+    const when2 = d => { const x = new Date(d); return tr(() => fmtDate(d), String(d).slice(0, 10)) + (String(d).length > 10 && !/T12:00:00/.test(String(d)) ? " kl. " + String(x.getHours()).padStart(2, "0") + ":" + String(x.getMinutes()).padStart(2, "0") : ""); };
+    const row = (x, i) => x.k === "cm"
+      ? `<div class="vs3cmi${i >= 12 ? " more" : ""}"><div class="vs3cmh"><b>${E(tr(() => starfName(x.sk), x.sk || ""))}</b><span>${E(when2(x.d))}</span>${ED() ? `<button type="button" class="vs3x" data-act="cmdel:${E(p.id)}:${E(x.id)}" aria-label="Eyða athugasemd">✕</button>` : ""}</div><div class="vs3cmt">${E(x.t)}</div></div>`
+      : `<div class="vs3ev k-${x.k}${i >= 12 ? " more" : ""}"${x.open ? ` data-open="${E(x.open)}" role="button" tabindex="0"` : ""}><span class="vs3evi" aria-hidden="true">${EIC[x.k] || "•"}</span><span class="vs3evt">${x.sk ? `<b>${E(who(x.sk))}</b> ` : ""}${E(x.t)}</span><span class="vs3evd">${E(when2(x.d))}</span></div>`;
+    return `<div class="vs3feed">${ev.slice(0, 60).map(row).join("")}</div>${ev.length > 12 ? `<a href="#" class="vs3a vs3fmore">Sýna eldra (${Math.min(ev.length, 60) - 12})</a>` : ""}`;
+  }
+
   /* ---------- Spjaldið sett saman ---------- */
   window.u2VerkS3 = function (el, p) {
     const body = el.querySelector(".dbody"); if (!body || body.querySelector(".vs3")) return;
@@ -112,7 +143,7 @@
     else fBody = `<div class="vs3e"><b>${fr.st === "err" ? "Gat ekki sótt skrárnar" : "Skrár verkefnisins"}</b><small>${fr.st === "err" ? E(fr.err || "") : "Opnaðu Skrár til að sjá möppu verkefnisins"}</small></div>`;
     const fC = tr(() => ON("skjol") || ON("onedrive"), false) ? card("vs3fl" + (fr.st === "ok" && fr.up ? '" data-upk="' + E(fr.k) : ""), hd("Skrár", `${fr.link ? `<a class="vs3a" ${fr.link}>Opna möppu ↗</a>` : ""}<a href="#" class="vs3a" data-act="dtab:skrar">Allar →</a>`), (fr.where ? `<div class="vs3m vs3wh">${E(fr.where)}</div>` : "") + fBody) : "";
     // Athugasemdir og póstur
-    const cmC = `<section class="vs3c vs3cm"><div class="vs3h">${hd("Athugasemdir og póstur")}</div><div class="vs3cmb"></div></section>`;
+    const cmC = `<section class="vs3c vs3cm"><div class="vs3h">${hd("Athugasemdir og saga")}</div><div class="vs3cmb"></div></section>`;
     // Á verkinu (annað af gamla yfirlitinu)
     const moreC = `<section class="vs3more"></section>`;
     const wrap = document.createElement("div"); wrap.className = "vs3";
@@ -127,10 +158,13 @@
     if (!more.querySelector(".vpwrap")) more.insertAdjacentHTML("beforeend", `<div class="ukps vs3anch" hidden></div>`);   // verkplus.js setur Afkomu á eftir .ukps
     addG("soon"); if (p.yfirlit) addG("stada", "Staðan"); addG("lys");
     Object.keys(groups).filter(k => k.startsWith("other:")).forEach(k => addG(k));
-    const cmb = wrap.querySelector(".vs3cmb"); (groups.cm || []).filter(n => !n.classList.contains("viewtitle")).forEach(n => cmb.append(n)); (groups.post || []).forEach(n => cmb.append(n));
-    const ta = cmb.querySelector("#cm-new"); if (ta) { ta.rows = 1; ta.placeholder = "Skrifa athugasemd…"; const b = cmb.querySelector('[data-act^="cmadd:"]'); if (b) b.textContent = "Senda"; }
-    const cmbox = cmb.querySelector(".cmbox"); if (cmbox) cmb.append(cmbox);   // skrifreitur neðst, eins og í spjalli
-    if (!cmb.children.length) cmb.innerHTML = `<p class="vs3m">Ekkert enn.</p>`;
+    // 2.145.2: Athugasemdir og saga – athugasemdir notenda og það sem appið skráir sjálft (tímar, staða, tilboð, reikningar, fundir), nýjast efst
+    const cmb = wrap.querySelector(".vs3cmb");
+    const cmbox = (groups.cm || []).find(n => n.classList?.contains("cmbox"));
+    if (cmbox) { const ta = cmbox.querySelector("#cm-new"); if (ta) { ta.rows = 1; ta.placeholder = "Skrifa athugasemd…"; } const b = cmbox.querySelector('[data-act^="cmadd:"]'); if (b) b.textContent = "Senda"; cmb.append(cmbox); }
+    cmb.insertAdjacentHTML("beforeend", feedHTML(p));
+    (groups.post || []).forEach(n => cmb.append(n));
+    cmb.querySelector(".vs3fmore")?.addEventListener("click", e => { e.preventDefault(); cmb.querySelector(".vs3feed")?.classList.add("all"); e.currentTarget.remove(); });
     // Gömlu hnapparnir (+ Tími, + Undirverk, + Fundur) og fyrsti hluti (staða, klukka) víkja; klukkuborðinn helst efst
     pre.forEach(n => { if (n !== uvy && !n.classList.contains("klukka") && !n.classList.contains("vpwrap")) n.remove(); });
     Object.values(groups).flat().forEach(n => { if (n.isConnected && !wrap.contains(n)) n.remove(); });
@@ -158,7 +192,7 @@
       atrJa(`Hefja verkið án tilboðs?\nStaðan verður „${to}“${setIh ? " og verkið verður reikningsfært eftir skráðum tímum (Tímavinna)" : ""}. Þú getur búið til tilboð síðar.`, { ja: "Hefja verkið" }).then(ok => {
         if (!ok) return;
         saveSnapshot(s => { const q = (s.verkefni || []).find(v => v.id === p.id); if (!q) return; q.stada = to; if (setIh) q.innheimta = "timar";
-          const nid = "vs3-" + p.id + "-" + to; (q.athugasemdir = q.athugasemdir || []); if (!q.athugasemdir.some(c => c.id === nid)) q.athugasemdir.push({ id: nid, t: `Hóf verkið án tilboðs – staðan varð „${to}“${setIh ? ", innheimta Tímavinna" : ""}.`, d: new Date().toISOString(), sk: tr(() => ME(), "") }); })
+          (q.saga = q.saga || []).push({ d: new Date().toISOString(), sk: tr(() => ME(), ""), k: "st", t: `hóf verkið án tilboðs – staðan varð „${to}“${setIh ? ", innheimta Tímavinna" : ""}` }); })
           .then(() => toast(`Verkið hafið án tilboðs${setIh ? " · tímavinna" : ""}`));
       });
     }
