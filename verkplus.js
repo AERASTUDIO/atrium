@@ -59,6 +59,7 @@
     } else if (ih === "timar" && pct != null && tekjur > 0) spa = { same: true, pct };
     return { h, tekjur, kostnadur, vinna, utl, auk, fr, pct, spa, ih, grunnur, noKv };
   }
+  window.vpAfkoma = p => (G() && FIN() ? afkoma(p) : null);   // 2.145.0: notað í Framlegð-spjaldi verkefnisyfirlits (verkyfir.js)
   const tone = pc => pc == null ? "" : pc < 0 ? "t-red" : pc < 0.15 ? "t-amb" : "t-grn";
   const pctS = pc => pc == null ? "–" : Math.round(pc * 100) + " %";
   function afkHTML(p) {

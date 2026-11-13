@@ -368,6 +368,7 @@
       if (ct !== null && ct !== undefined) { const body = el.querySelector(".dbody"); if (body) body.innerHTML = ct; }
       if (nav) { if (DTAB !== "stillingar") nav.querySelector('[data-act="dtab:stillingar"]')?.remove(); const by = k => nav.querySelector(`[data-act="dtab:${k}"]`); const f = by("fundir"); if (f) { const nth = (S?.thraedir || []).filter(t => t.verkefniId === p?.id).length + (S?.postar || []).filter(t => t.verkefniId === p?.id).length, dc = f.querySelector(".dc"), nf = +(dc?.textContent || 0); f.firstChild.textContent = "Samskipti "; if (dc) dc.textContent = nf + nth; else if (nth) f.insertAdjacentHTML("beforeend", `<span class="dc">${nth}</span>`); }
         ["yfirlit", "undir", "fundir", "tilbod", "pantanir", "timar", "skrar", "stillingar"].map(by).filter(Boolean).forEach(b => nav.append(b)); }
+      if ((!DTAB || DTAB === "yfirlit") && p && window.u2VerkS3) { try { u2VerkS3(el, p); } catch (e) { console.warn("verkyfir", e); } }   // 2.145.0: Yfirlit í útliti S3
     }
     if (kind === "vsk" && window.u1VskTabs) {
       const r = u1VskTabs(id);

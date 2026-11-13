@@ -989,3 +989,120 @@ html body.kerfi .spb:not(.spbm) .spmed{margin-bottom:2px}
 .u2bpop .bpp{flex:none;height:24px;padding:0 10px;display:inline-grid;place-items:center;border-radius:999px;background:var(--waitbg,#F6EEDF);color:var(--t-amb-tx,#8A580E);font-size:11.5px;font-weight:600}
 .u2bpop .bpr.late .bpp{background:var(--redbg,#F7E5E3);color:var(--t-red,#B13E36)}
 .u2bpop .bpmore{padding:8px 10px 4px;font-size:12px;color:var(--muted,#5E6976)}
+
+/* ---------- 2.145.0: Verkefni › Yfirlit (S3 – ferill og næsta skref, verkyfir.js) ---------- */
+html body.kerfi .dbody:has(> .vs3){container-type:inline-size}
+html body.kerfi .vs3{display:flex;flex-direction:column;gap:20px;margin-top:16px}
+html body.kerfi .vs3 *{box-sizing:border-box}
+html body.kerfi .vs3c{background:var(--surface);border-radius:26px;box-shadow:0 2px 4px rgba(15,23,32,.03),0 18px 40px -20px rgba(15,23,32,.22);padding:20px 22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+html body.kerfi .vs3h{display:flex;align-items:center;gap:8px;min-height:22px}
+html body.kerfi .vs3h h3{margin:0;font-size:16px;font-weight:700;color:var(--ink)}
+html body.kerfi .vs3dot{width:6px;height:6px;border-radius:50%;background:var(--kacc);flex:none}
+html body.kerfi .vs3h .vs3a:first-of-type{margin-left:auto}
+html body.kerfi .vs3a{font-size:13px;font-weight:600;color:var(--kacc);text-decoration:none;cursor:pointer;white-space:nowrap}
+html body.kerfi .vs3a:hover{text-decoration:underline}
+html body.kerfi .vs3m{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+html body.kerfi .vs3m a{color:var(--kacc);font-weight:600}
+/* Stöðustika */
+html body.kerfi .vs3st{list-style:none;margin:0;padding:5px;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:4px;background:color-mix(in srgb,var(--ink) 7%,transparent);border-radius:999px}
+html body.kerfi .vs3st button{width:100%;height:38px;padding:0 10px;border:0;border-radius:999px;background:transparent;display:flex;align-items:center;justify-content:center;gap:7px;font:600 13px/1 Manrope,system-ui,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi .vs3st button:hover{background:color-mix(in srgb,var(--surface) 60%,transparent);color:var(--ink)}
+html body.kerfi .vs3st button.dn{color:var(--t-grn-tx,#2C7A57)}
+html body.kerfi .vs3st button.on{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 2px 8px rgba(15,23,32,.1)}
+html body.kerfi .vs3st button.on i{width:8px;height:8px;border-radius:50%;background:var(--kacc);flex:none}
+html body.kerfi .vs3st button:focus-visible{box-shadow:var(--u-ring)}
+html body.kerfi .udh2 .ustsel.vs3hide{display:none!important}
+/* Næsta skref + starfsfólk */
+html body.kerfi .vs3r1{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px}
+html body.kerfi .vs3nx{background:var(--u-key,#2A3441)!important;color:#FFFFFF;gap:10px;padding:24px 26px}
+html body.kerfi .vs3nx .vs3k{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html body.kerfi .vs3nx .vs3k span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+html body.kerfi .vs3nx .vs3k em{font-style:normal;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;background:rgba(255,255,255,.12);font-size:11.5px;font-weight:600;color:rgba(255,255,255,.86)}
+html body.kerfi .vs3nx h3{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em;line-height:1.25;color:#FFFFFF}
+html body.kerfi .vs3nx p{margin:0;font-size:14px;line-height:1.55;color:rgba(255,255,255,.74);max-width:620px}
+html body.kerfi .vs3bs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+html body.kerfi .vs3b{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border:0;border-radius:999px;font:600 13.5px/1 Manrope,system-ui,sans-serif;cursor:pointer;white-space:nowrap;text-decoration:none}
+html body.kerfi .vs3b.w{background:#FFFFFF;color:var(--u-key,#2A3441);font-weight:700}
+html body.kerfi .vs3nx .vs3b.g{background:rgba(255,255,255,.12);color:#FFFFFF}
+html body.kerfi .vs3nx .vs3b.g:hover{background:rgba(255,255,255,.2)}
+html body.kerfi .vs3c:not(.vs3nx) .vs3b.g{background:var(--hover);color:var(--ink);height:34px;font-size:13px}
+html body.kerfi .vs3c:not(.vs3nx) .vs3b.g:hover{background:color-mix(in srgb,var(--ink) 10%,var(--hover))}
+html body.kerfi .vs3b.sm{height:32px;padding:0 13px;font-size:12.5px}
+html body.kerfi .vs3b:focus-visible{box-shadow:var(--u-ring);outline:none}
+html body.kerfi .vs3lk{margin-left:auto;font-size:13px;font-weight:600;color:var(--u-key-ac,#9FC1EA);text-decoration:none}
+html body.kerfi .vs3sfb{display:flex;flex-direction:column;gap:8px}
+html body.kerfi .vs3sfb .staffrow{display:flex;flex-direction:column;gap:8px;margin:0}
+html body.kerfi .vs3sf .vs3m{margin-top:auto}
+/* Lykilspjöld */
+html body.kerfi .vs3tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+html body.kerfi .vs3t{display:flex;align-items:center;gap:14px;min-height:76px;padding:14px 18px;border:0;border-radius:22px;background:var(--surface);box-shadow:0 2px 4px rgba(15,23,32,.03),0 12px 30px -18px rgba(15,23,32,.2);font-family:Manrope,system-ui,sans-serif;color:var(--ink);text-align:left;cursor:pointer;transition:transform .18s cubic-bezier(.2,0,0,1),box-shadow .18s}
+html body.kerfi .vs3t:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(15,23,32,.04),0 18px 36px -18px rgba(15,23,32,.28)}
+html body.kerfi .vs3t:focus-visible{box-shadow:var(--u-ring);outline:none}
+html body.kerfi .vs3ti{flex:none;width:40px;height:40px;border-radius:12px;background:var(--hover);display:grid;place-items:center;color:var(--kacc)}
+html body.kerfi .vs3tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+html body.kerfi .vs3tx small{font-size:12px;color:var(--muted)}
+html body.kerfi .vs3tx b{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+html body.kerfi .vs3sm{font-size:13px;font-weight:500;color:var(--muted)}
+html body.kerfi .vs3live{font-size:11.5px;font-weight:600;color:var(--t-grn-tx,#2C7A57)}
+html body.kerfi .vs3ts{flex:none;font-size:12.5px;color:var(--muted);text-align:right;max-width:46%}
+html body.kerfi .vs3bar{display:block;height:5px;border-radius:3px;background:var(--hover);margin-top:6px;overflow:hidden}
+html body.kerfi .vs3bar i{display:block;height:100%;border-radius:3px;background:var(--kacc)}
+html body.kerfi .vs3bar.near i{background:#9C6410}html body.kerfi .vs3bar.over i{background:var(--t-red,#B13E36)}
+/* Á verkinu */
+html body.kerfi .vs3more{display:flex;flex-direction:column;gap:14px}
+html body.kerfi .vs3more.tom{display:none}
+html body.kerfi .vs3more > .uvy,html body.kerfi .vs3more > .vs3g,html body.kerfi .vs3more > .budget{background:var(--surface);border-radius:26px;box-shadow:0 2px 4px rgba(15,23,32,.03),0 18px 40px -20px rgba(15,23,32,.22);padding:16px 22px;margin:0}
+html body.kerfi .vs3more > .uvy:empty{display:none}
+html body.kerfi .vs3more .vs3g > .viewtitle:first-child{margin-top:0}
+html body.kerfi .vs3more .vpwrap{margin:0}
+/* Neðsta röð */
+html body.kerfi .vs3r3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+html body.kerfi .vs3rs{display:flex;flex-direction:column}
+html body.kerfi .vs3r{display:flex;align-items:center;gap:10px;width:100%;padding:9px 6px;border:0;border-bottom:1px solid var(--hover);background:none;font-family:Manrope,system-ui,sans-serif;color:var(--ink);text-align:left;cursor:pointer;border-radius:10px}
+html body.kerfi .vs3r:last-child{border-bottom:0}
+html body.kerfi .vs3r:hover{background:var(--hover)}
+html body.kerfi .vs3rt{flex:1;min-width:0;display:flex;flex-direction:column}
+html body.kerfi .vs3rt b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi .vs3rt small{font-size:12px;color:var(--muted)}
+html body.kerfi .vs3rv{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+html body.kerfi .vs3p{flex:none;height:22px;padding:0 9px;display:inline-grid;place-items:center;border-radius:999px;background:var(--hover);color:var(--muted);font-size:11.5px;font-weight:600;white-space:nowrap}
+html body.kerfi .vs3p.ok{background:var(--okbg,#E3F1EA);color:var(--t-grn-tx,#2C7A57)}
+html body.kerfi .vs3p.wait{background:var(--waitbg,#FBF0DD);color:var(--t-amb-tx,#8A580E)}
+html body.kerfi .vs3p.red{background:var(--redbg,#F7E5E3);color:var(--t-red,#B13E36)}
+html body.kerfi .vs3e{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:var(--hover)}
+html body.kerfi .vs3e b{font-size:14px;font-weight:600}
+html body.kerfi .vs3e small{font-size:12px;color:var(--muted)}
+html body.kerfi .vs3ft{margin-top:auto;padding-top:10px;border-top:1px solid var(--hover);display:flex;justify-content:space-between;gap:10px;font-size:12.5px}
+html body.kerfi .vs3ft span:first-child{color:var(--muted)}
+html body.kerfi .vs3ft span:last-child{font-weight:600;text-align:right}
+html body.kerfi .vs3fs{display:flex;flex-direction:column}
+html body.kerfi .vs3f{display:flex;align-items:center;gap:10px;width:100%;padding:7px 6px;border:0;border-bottom:1px solid var(--hover);border-radius:10px;background:none;font-family:Manrope,system-ui,sans-serif;color:var(--ink);text-align:left;cursor:pointer}
+html body.kerfi .vs3f:last-child{border-bottom:0}
+html body.kerfi .vs3f:hover{background:var(--hover)}
+html body.kerfi .vs3ft2{flex:none;width:32px;height:30px;border-radius:9px;background:var(--hover);display:grid;place-items:center;font-size:9.5px;font-weight:700;color:var(--muted)}
+html body.kerfi .vs3fn{flex:1;min-width:0;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi .vs3f small{font-size:12px;color:var(--muted);white-space:nowrap}
+html body.kerfi .vs3dz{margin-top:auto;display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:10px 12px;border-radius:16px;border:1.5px dashed var(--line2,#DFE3E8)}
+html body.kerfi .vs3dz > span{flex:1;font-size:12.5px;color:var(--muted)}
+html body.kerfi .vs3dz .uplist{flex-basis:100%}
+html body.kerfi .vs3dz .uplist:empty{display:none}
+html body.kerfi .upwrap.upon .vs3dz,html body.kerfi .vs3dz.upon{border-color:var(--kacc);background:var(--acc-soft,#EEF3FA)}
+html body.kerfi .vs3cm .vs3cmb{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+html body.kerfi .vs3cmb .cm{margin:0;padding:10px 12px;border-radius:14px;background:var(--hover);border:0}
+html body.kerfi .vs3cmb .viewtitle{margin:6px 0 0;font-size:11px}
+html body.kerfi .vs3cmb .cmbox{margin-top:auto;display:flex;align-items:center;gap:8px;padding:4px 4px 4px 14px;border-radius:999px;background:var(--hover);border:0}
+html body.kerfi .vs3cmb .cmbox textarea{flex:1;min-height:36px!important;height:36px;max-height:120px;padding:8px 0!important;border:0!important;background:transparent!important;box-shadow:none!important;resize:none;font:500 14px/1.4 Manrope,system-ui,sans-serif}
+html body.kerfi .vs3cmb .cmbox .btn{height:34px!important;min-height:34px!important;padding:0 16px!important;align-self:center!important}
+/* Mjórra spjald */
+@container (max-width:1000px){html body.kerfi .vs3r3{grid-template-columns:1fr 1fr} html body.kerfi .vs3r3 > .vs3cm{grid-column:1 / -1}}
+@container (max-width:760px){html body.kerfi .vs3r1,html body.kerfi .vs3r3{grid-template-columns:1fr} html body.kerfi .vs3st{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto;scrollbar-width:none;border-radius:22px}}
+html body.kerfi .spdet:has(.vs3st) .udh2 .ustsel{display:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb .cmbox{flex-direction:row!important;align-items:center!important;margin-top:auto;gap:8px;padding:4px 4px 4px 16px!important;border-radius:999px!important;background:var(--hover)!important;border:0!important;box-shadow:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb .cmbox textarea{flex:1;min-width:0;min-height:36px!important;height:36px!important;padding:8px 0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;resize:none;outline:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb .cmbox .btn{flex:none;height:34px!important;min-height:34px!important;padding:0 16px!important;align-self:center!important;margin:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb :is(.llist,.u2wrap){box-shadow:none!important;background:none!important;padding:0!important;margin:0!important;border-radius:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3cmb .llist :is(.lrow,.pothr){box-shadow:none!important;border-radius:12px!important}
+html body.kerfi .vs3cmb > .hint{margin:0;font-size:12px}
+@media (min-width:0){html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .spdet .vs3cmb .cmbox textarea{background-color:transparent!important}}
+html:not(#u2a):not(#u2b) body.kerfi #view .vs3nx h3{font-size:22px!important;font-weight:600!important;color:#FFFFFF!important;margin:0!important}
+html body.kerfi .vs3st button.sk{color:color-mix(in srgb,var(--muted) 70%,transparent);text-decoration:line-through}

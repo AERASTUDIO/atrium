@@ -118,6 +118,17 @@
     return `<div class="lrow fl tap" data-act="msprev:${esc(it.id)}" data-pfid="${esc(it.id)}" draggable="true" role="button" tabindex="0"><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typeOf(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr" ${odLink(it)} aria-label="${odMode() === "tolva" ? "Opna í tölvunni" : "Opna í OneDrive"}" onclick="event.stopPropagation()">${ICON.ext}</a></div>`;
   }
 
+  // 2.145.0: nýjustu skrár í möppu verkefnisins (fyrir Skrár-spjaldið á Yfirliti – verkyfir.js)
+  let vkAsk = 0;
+  window.msRecent = function (p) {
+    if (!VK) { if (VKerr) return { st: "err", err: VKerr }; if (Date.now() - vkAsk > 15000) { vkAsk = Date.now(); verkMoppur().then(render, render); } return { st: "load" }; }
+    const k = keyOf(p); if (!k) return { st: "none" };
+    const t = TREE[k], link = odLink({ ...VK[k], folder: {} }, ORG.od.verkefni + "/" + (VK[k].name || k)), where = ODN() + " · " + String(ORG.od.verkefni || "").split("/").pop() + " › " + (VK[k].name || k);
+    if (!t) { loadTree(k); return { st: "load", k, link, where }; }
+    if (t.st !== "ok") return { st: t.st === "err" ? "err" : "load", err: t.err, k, link, where };
+    const files = [...t.items, ...t.items.flatMap(i => i.kids || [])].filter(i => !i.folder).sort((a, b) => String(b.lastModifiedDateTime || "").localeCompare(String(a.lastModifiedDateTime || "")));
+    return { st: "ok", k, files, up: company(), link, where };
+  };
   window.msSkrar = function (p) {
     const head = (extra = "") => `<div class="viewtitle" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>Skrár í ${ODN()}</span><span style="display:flex;gap:12px">${extra}</span></div>`;
     if (!VK) {
