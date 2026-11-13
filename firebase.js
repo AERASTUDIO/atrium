@@ -3,7 +3,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import { getAuth, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch }
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch, getDocs, getDocsFromCache, getDocsFromServer }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { firebaseConfig, MS_TENANT, MS_DOMAIN, ADMIN, LEGACY_EMAILS } from "./firebase-config.js";
 
@@ -138,6 +138,13 @@ onAuthStateChanged(auth, async user => {
       return onSnapshot(q, { includeMetadataChanges: true },
         s => cb({ docs: s.docs.map(d => d.data()), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);
     },
+    // 2.145.16: allt safnið lesið einu sinni (ekki í beinni). Úr geymslu á tækinu ef hún er nýrri en maxAge (ms), annars af netþjóni.
+    async getColOnce(name, { maxAge = 7 * 864e5, key } = {}) {
+      const k = "atr-col-" + (key || name), t = +(localStorage.getItem(k) || 0), q = collection(fs, name);
+      if (Date.now() - t < maxAge) { try { const c = await getDocsFromCache(q); if (!c.empty) return { docs: c.docs.map(d => d.data()), fromCache: true }; } catch (e) {} }
+      const sv = await getDocsFromServer(q); try { localStorage.setItem(k, String(Date.now())); } catch (e) {}
+      return { docs: sv.docs.map(d => d.data()), fromCache: false };
+    },
     // 2.94.4: endurnýja innskráningarlykil (notað ef fyrsta lestur fær permission-denied rétt eftir innskráningu)
     async refresh() { try { await auth.currentUser?.getIdToken(true); } catch (e) {} },
     // 2.119.2: innskráningarlykill fyrir köll á Cloud Functions (t.d. reikningur úr Payday)
@@ -154,8 +161,14 @@ onAuthStateChanged(auth, async user => {
 if ("serviceWorker" in navigator) {
   const hadController = !!navigator.serviceWorker.controller;
   let reloading = false;
+  /* 2.145.16: ný útgáfa endurhleður appið ekki lengur sjálf eftir á (það olli tvöfaldri endurhleðslu: endurhlaða → 5–10 s → aftur).
+     Ef notandinn bað um endurhleðslu (smellti á merkið) og ný útgáfa var að sækjast er beðið eftir henni og hlaðið einu sinni.
+     Annars birtist lítil tilkynning með „Endurhlaða“ og nýja útgáfan tekur gildi næst þegar appið er opnað. */
+  window.__swWantReload = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (!hadController || reloading) return; reloading = true; location.reload();
+    if (!hadController || reloading) return;
+    if (window.__swWantReload) { reloading = true; location.reload(); return; }
+    try { (window.toast || (() => {}))("Ný útgáfa af appinu er komin", () => { reloading = true; location.reload(); }, "Endurhlaða"); } catch (e) {}
   });
   navigator.serviceWorker.register(new URL("sw.js", document.baseURI).href, { updateViaCache: "none" }).then(reg => {
     const check = () => reg.update().catch(() => {});

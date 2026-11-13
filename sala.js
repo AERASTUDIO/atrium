@@ -159,7 +159,7 @@
   function vVinna() {
     const xs = VR().filter(v => v.tegund === "vinna").slice().sort((a, b) => String(a.nr || "").localeCompare(String(b.nr || ""), "is", { numeric: true }) || String(a.heiti).localeCompare(String(b.heiti), "is"));
     // 2.22.0 (pakkaval): ein síða fyrir allar þjónustur – liðir verðskrár (tímagjald á verkefnum, tímum og tilboðum) og vinna með verði á einingu
-    const vl = PV() && window.ON && ON("verdskra") && window.VERD ? (VERD().lidir || []) : [];
+    const vl = PV() && window.ON && ON("verdskra") && window.VERD && (!window.vsSja || vsSja()) ? (VERD().lidir || []) : [];
     const vs = vl.length ? `<div class="viewtitle">Tímagjald · ${vl.length}</div>${llist(vl.map(x => `<div class="lrow tap" ${tapAttr("verdskra", "aera")}><div class="lm"><div class="lt">${esc(x.heiti)}</div><div class="ls">${esc([x.sjalfgefid ? "Sjálfgefið" : "", x.almennt ? "Tímar án verkefnis" : "", (x.verkefni || []).length ? "Verkefni " + x.verkefni.join(", ") : ""].filter(Boolean).join(" · ") || "Tímagjald")}</div></div><div class="lr"><span class="lc">${esc(krs(x.verd))}/klst.</span></div></div>`))}` : "";
     return `<p class="hint" style="margin:16px 0 10px">${PV() ? "Þjónustur sem eru seldar á tilboðum og tímagjald á verkefnum. Tímagjaldið er breytt í verðskránni (smelltu á lið); vinna á einingarverði (t.d. tæknimaður, akstur) er skráð með „+ Nýtt“." : "Vinna og þjónusta sem er seld á tilboðum, t.d. tæknimaður, uppsetning eða akstur – verð á einingu (klst., ferð, km)."}</p>` + vs
       + (xs.length ? (vs ? `<div class="viewtitle" style="margin-top:18px">Vinna og þjónusta · ${xs.length}</div>` : "") + grpList(xs, VFL) : vs ? "" : `<div class="empty">Engin vinna eða þjónusta skráð.${MCP ? " Bættu við með „+ Nýtt“." : ""}</div>`);

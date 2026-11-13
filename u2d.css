@@ -1443,8 +1443,14 @@ html:not(#u2a):not(#u2b) body.kerfi #view .udh2 .ptitle{word-break:normal!import
   html:not(#u2a):not(#u2b) body.kerfi #view .uhead.hdhead > .uhr.dtnav .btn.primary{margin-left:auto}
   html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs.u2folded{display:flex!important}
   html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs + .u2fold{display:none!important}
-  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs{flex:0 0 auto!important;min-width:0!important;height:50px;box-sizing:border-box}
-  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs button{flex:0 0 auto!important;min-width:84px!important;padding:0 16px!important}
-  html:not(#u2a):not(#u2b) body.kerfi #view .hdhead .phrow.hashd{min-height:50px}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs{flex:0 0 auto!important;min-width:0!important;height:42px;padding:3px!important;gap:2px!important;box-sizing:border-box}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdtabs button{flex:0 0 auto!important;min-width:84px!important;padding:0 16px!important;min-height:36px!important;height:36px}
+  html:not(#u2a):not(#u2b) body.kerfi #view .hdhead .phrow.hashd{min-height:46px}
 }
 @media (min-width:1024px){ html:not(#u2a):not(#u2b) body.kerfi #view .splist > .spsup:has(+ .phead.hdhead){display:none!important} }
+
+/* 2.145.16 – Langir listar: vafrinn reiknar aðeins út línur sem sjást (hinar fá áætlaða hæð þar til skrunað er að þeim) */
+#view :is(.urow,.lrow,.u2pA,.vrow,.trow){content-visibility:auto;contain-intrinsic-size:auto 56px}
+#view .u2hid{display:none!important}
+#view .u2more{display:block;margin:14px auto 6px;height:40px;padding:0 22px;border:0;border-radius:999px;background:var(--surface,#fff);color:var(--ink,#0F1720);font:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,32,.06),0 10px 24px -18px rgba(15,23,32,.35)}
+#view .u2more:hover{background:var(--hover,#EEF1F4)}

@@ -230,10 +230,12 @@ const db = {
   async tx(path, fn) { const out = fn(structuredClone(store[path] || {})); await this.set(path, out); return out; },
   async commit(list) { list.forEach(o => { if (o.del) delete store[o.path]; else store[o.path] = structuredClone(o.data); }); [...new Set(list.map(o => o.path))].forEach(notify); },
   watch(path, cb) { (watchers[path] = watchers[path] || []).push(cb); setTimeout(() => cb(snap(path)), 0); return () => {}; },
+  // 2.145.16: sama viðmót og firebase.js (allt safnið lesið einu sinni)
+  async getColOnce(name) { return { docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])), fromCache: true }; },
   watchCol(name, filter, cb, onErr) {
     const fj = ["admin", "bokari"].includes(user.hlutverk), own = name === "timar" || name === "kostnadur";
     const f = () => { if (own && !fj && !(filter && filter[0] === "eigandi" && filter[1] === email)) return onErr && onErr({ code: "permission-denied" });
-      cb({ docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])).filter(d => !filter || (filter[2] === "array-contains" ? (d[filter[0]] || []).includes(filter[1]) : d[filter[0]] === filter[1])), pending: false, fromCache: false }); };
+      cb({ docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])).filter(d => !filter || (filter[2] === "array-contains" ? (d[filter[0]] || []).includes(filter[1]) : filter[2] === ">=" ? d[filter[0]] >= filter[1] : filter[2] === "<" ? d[filter[0]] < filter[1] : d[filter[0]] === filter[1])), pending: false, fromCache: false }); };
     (colw[name] = colw[name] || []).push(f); setTimeout(f, 0); return () => {};
   }
 };

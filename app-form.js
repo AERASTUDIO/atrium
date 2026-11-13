@@ -4,8 +4,8 @@
 /* ---------- Bæta við ---------- */
 let kind="tima";
 const sheetwrap=document.getElementById("sheetwrap"), sheet=document.getElementById("sheet");
-function toast(t,undo){const el=document.getElementById("toast");el.textContent=t;
-  if(undo){const b=document.createElement("button"); b.type="button"; b.className="undo"; b.textContent="Afturkalla"; b.onclick=()=>{el.hidden=true; undo();}; el.append(" ",b);}
+function toast(t,undo,lbl){const el=document.getElementById("toast");el.textContent=t; /* 2.145.16: lbl = texti á hnappi (sjálfgefið „Afturkalla“) */
+  if(undo){const b=document.createElement("button"); b.type="button"; b.className="undo"; b.textContent=lbl||"Afturkalla"; b.onclick=()=>{el.hidden=true; undo();}; el.append(" ",b);}
   el.hidden=false;clearTimeout(toast.t); /* 2.120.5: lengri skilaboð (t.d. villur) standa lengur; músin yfir heldur þeim */ const ms=undo?7000:Math.min(9000,Math.max(3200,String(t||"").length*65)); const hide=()=>{toast.t=setTimeout(()=>el.hidden=true,ms);}; el.onmouseenter=()=>clearTimeout(toast.t); el.onmouseleave=()=>{clearTimeout(toast.t); hide();}; hide();}
 /* ---------- Eyða ---------- */
 async function deleteItem(type,id){
@@ -328,7 +328,7 @@ function saveSplit(mut){
   const me=USER?.email||""; GOGN.stamp(prev,cur,me,ownerOf);
   const clean=fsClean(cur); S=clean; rendS();
   const fail=e=>{saveErr=e; if(S===clean){S=prev; render();} toast("Vistun mistókst – breytingin fór ekki upp. ("+(e?.code||e?.message||"villa")+")");};
-  const ops=GOGN.ops(prev,clean,me);
+  const ops=GOGN.ops(prev,clean,me); try{window.timarOldOps?.(ops);}catch(e){} /* 2.145.16: eldri tímafærslur eru ekki í beinni hlustun */
   if(ops.length) DB.commit(ops).catch(fail);
   if(!GOGN.restChanged(prev,clean)) return;
   const restOf=c=>{const r=fsClean(GOGN.rest(c)); r.skipting=2; r.uppfaert=new Date().toISOString(); return r;};

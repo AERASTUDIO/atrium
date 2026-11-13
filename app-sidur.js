@@ -179,7 +179,7 @@ function detailHTML(){
   const i=DETAIL.indexOf(":"), t=DETAIL.slice(0,i), id=DETAIL.slice(i+1);
   if(t==="skjal"){const x=findSkjal(id); return x&&(x.snid&&window.dSkjalNy?dSkjalNy(x):dSkjal(x));}
   if(t==="vsk"){const c=findVsk(id); return c&&dVsk(c);}
-  if(t==="verdskra") return window.dVerdskra?dVerdskra():null;
+  if(t==="verdskra") return window.dVerdskra&&(!window.vsSja||vsSja())?dVerdskra():null;
   if(t==="verk"){const p=findProj(id); return p&&dVerk(p);}
   if(t==="sub"){const r=findSub(id); return r&&dSub(r.u,r.p);}
   if(t==="fund"){const f=findFund(id); return f&&dFund(f);}
@@ -352,7 +352,8 @@ function goHome(){DETAIL=null; DTAB="yfirlit"; tab="yfirlit"; try{history.replac
   // Endurhlaða appið: athuga fyrst hvort ný útgáfa sé komin, svo sækja allt upp á nýtt
   document.querySelectorAll("header .brand h1, .side .logo").forEach(el=>el.classList.add("reloading"));
   const go=()=>location.reload(); const t=setTimeout(go,1500);
-  if("serviceWorker" in navigator) navigator.serviceWorker.getRegistration().then(r=>r?.update()).catch(()=>{}).finally(()=>{clearTimeout(t); setTimeout(go,150);}); else {clearTimeout(t); go();}}
+  /* 2.145.16: ef ný útgáfa er að sækjast er beðið eftir henni (controllerchange í firebase.js hleður þá einu sinni) – ekki endurhlaðið tvisvar */
+  if("serviceWorker" in navigator) navigator.serviceWorker.getRegistration().then(async r=>{ await r?.update(); const w=r?.installing||r?.waiting; if(w&&navigator.serviceWorker.controller){ clearTimeout(t); window.__swWantReload=true; toast?.("Sæki nýja útgáfu…"); setTimeout(go,20000); return "bida"; } }).catch(()=>{}).then(x=>{ if(x==="bida") return; clearTimeout(t); setTimeout(go,150); }); else {clearTimeout(t); go();}}
 document.querySelectorAll("header .brand h1, .side .logo").forEach(el=>{el.setAttribute("role","link"); el.setAttribute("tabindex","0"); el.setAttribute("title","Yfirlit"); el.style.cursor="pointer";
   el.addEventListener("click",goHome); el.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault(); goHome();}});});
 /* ---------- Dagatalsskrá (.ics) og tilkynningar ---------- */

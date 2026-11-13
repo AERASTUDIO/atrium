@@ -565,9 +565,12 @@
   const fld = x => String(x || "").toLowerCase().replace(/ð/g, "d").replace(/þ/g, "th").replace(/æ/g, "ae").replace(/ö/g, "o").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const ALM = new Set(["innra", "almennt", "fundur", "vikufundur", "skrifstofa", "vinna", "verkefni", "undirbuningur", "uppsetning", "yfirferd", "samskipti", "klst", "timar", "annad", "almenn"]);
   const ord = x => fld(x).split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !ALM.has(w));
+  /* 2.145.16: orð hvers verkefnis reiknuð einu sinni (ekki fyrir hverja færslu) – Reikningar opnuðust hægt með mörgum „Innra“-færslum */
+  let _pwK = null, _pwM = null;
+  const pwIdx = () => { const V = verkefni(); if (_pwK === V) return _pwM; _pwK = V; _pwM = new Map(V.map(p => [p, new Set(ord([p.nafn, p.stutt, p.vidskiptavinur, p.verkkaupi].join(" ")))])); return _pwM; };
   window.timiTillaga = e => { if (!e || (e.verkefniId && findProj(e.verkefniId))) return null; const w = new Set(ord(String(e.lysing || "").replace(/\(\s*[\d.,]+\s*klst\.?\)/i, "")));
     if (!w.size) return null; let best = null, bs = 0;
-    verkefni().forEach(p => { const pw = new Set(ord([p.nafn, p.stutt, p.vidskiptavinur, p.verkkaupi].join(" "))); let n = 0; w.forEach(x => { if (pw.has(x)) n++; }); const sc = n + (p.lokid || p.stada === "Lokið" ? 0 : .5) * (n > 0);
+    const PW = pwIdx(); verkefni().forEach(p => { const pw = PW.get(p) || new Set(); let n = 0; w.forEach(x => { if (pw.has(x)) n++; }); const sc = n + (p.lokid || p.stada === "Lokið" ? 0 : .5) * (n > 0);
       if (n && sc > bs) { bs = sc; best = p; } });
     return best; };
   window.timarAnVerk = () => { const fra = isoDay(new Date(Date.now() - 120 * 864e5)); return faerslur().filter(e => !e.reikningur && String(e.date || "") >= fra && !(e.verkefniId && findProj(e.verkefniId))); };

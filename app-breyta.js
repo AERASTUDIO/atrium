@@ -195,6 +195,16 @@ window.aeraStart=function(db){
   const startSplit=()=>{ if(mode==="split") return; mode="split"; window.SPLIT=true; window.__DB=db; /* 2.56.0: pöntunarsíða (pantanir2.js) */ const fj=window.can&&can("fjarmal"); if(window.spStart) spStart(db); if(window.heimStart) heimStart(db);
     for(const c of GOGN.COLS){ if(c.k==="reikningar"&&!fj&&!window.AERA_DEMO){P.cols[c.k]=[]; P.ready.add(c.k); continue;} // 2.94.2: reikningar aðeins fyrir fjármál (admin, bókari)
     const vt=c.k==="pantanir"&&USER?.hlutverk==="vettvangur"&&!window.AERA_DEMO; // 2.98.0: vettvangur les aðeins sínar pantanir
+    /* 2.145.16: tímafærslur (fjármál – allar færslur): síðustu 13 mánuðir í beinni; eldri lesnar einu sinni úr geymslu á tækinu (af netþjóni í mesta lagi vikulega).
+       Sparar lestur og flýtir opnun þegar færslum fjölgar. Breytingar á eldri færslum héðan eru settar beint inn (onOps). */
+    if(c.k==="timar"&&fj&&db.getColOnce){ const d0=new Date(); d0.setMonth(d0.getMonth()-13,1); const cut=d0.toISOString().slice(0,10);
+      const T={rec:null,old:null}; window.__timarCut=cut;
+      const merge=()=>{ if(!T.rec||!T.old) return; const m=new Map(); T.old.forEach(x=>{ if(x&&x.id&&!(x.date>=cut)) m.set(x.id,x); }); T.rec.forEach(x=>m.set(x.id,x)); P.cols.timar=[...m.values()]; P.ready.add("timar"); rebuild(); };
+      window.timarOldOps=ops=>{ if(!T.old) return; let ch=false; ops.forEach(o=>{ if(!o.path.startsWith("timar/")) return; const id=o.path.slice(6), i=T.old.findIndex(x=>x.id===id);
+        if(o.del){ if(i>=0){ T.old.splice(i,1); ch=true; } } else if(!(o.data?.date>=cut)){ if(i>=0) T.old[i]=o.data; else T.old.push(o.data); ch=true; } else if(i>=0){ T.old.splice(i,1); ch=true; } }); if(ch) merge(); };
+      db.getColOnce("timar").then(r=>{ T.old=r.docs; merge(); }).catch(e=>{ console.warn("Eldri tímafærslur",e); T.old=[]; merge(); });
+      db.watchCol("timar",["date",cut,">="],r=>{T.rec=r.docs; P.pend.timar=r.pending; merge(); if(!r.fromCache&&window.msTick) msTick();},e=>{console.warn("Safn timar",e); T.rec=T.rec||[]; merge();});
+      continue; }
     db.watchCol(c.k, c.eigandi&&!fj?["eigandi",USER.email]:vt?["menn",USER.email,"array-contains"]:null,
       r=>{P.cols[c.k]=r.docs; P.pend[c.k]=r.pending; P.ready.add(c.k); rebuild(); if(!r.fromCache&&window.msTick) msTick();},
       e=>{console.warn("Safn "+c.k,e); P.cols[c.k]=P.cols[c.k]||[]; P.ready.add(c.k); rebuild();}); }
