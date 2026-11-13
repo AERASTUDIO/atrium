@@ -529,6 +529,7 @@
     if (navLast && navKey(n) !== navKey(navLast)) { if (n.tab === "upphaf") NAV.length = 0; else if (!lateral) { NAV.push(navLast); if (NAV.length > 60) NAV.shift(); } }
     navLast = n; };
   const navBtn = () => { document.querySelectorAll("#view .uback:not(.simback)").forEach(x => x.remove()); if (!NAV.length || tab === "upphaf" || !desk()) return;
+    if (!DETAIL && !NAV[NAV.length - 1].o) return;   // 2.145.13: ekki „Til baka“ þegar aðeins er flett milli flipa
     const prev = NAV[NAV.length - 1], lab = (secOf(prev.tab)?.tabs || []).find(t => t[0] === prev.tab)?.[1] || "";
     const btn = `<button type="button" class="uback" data-ui1="back" title="Til baka${lab ? " – " + esc(lab) : ""} (Alt+←)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Til baka</button>`;
     if (document.querySelector("#view .backrow .back, #view .pback, #view .simback")) return;   // 2.88.2: skjárinn hefur þegar sinn „Til baka“ – ekki tvo
