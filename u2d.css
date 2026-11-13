@@ -1264,3 +1264,9 @@ html body.kerfi #view .u2pq button.dk{background:var(--gra);color:var(--on-gra)}
 html:not(#u2a):not(#u2b) body.kerfi #view .u2pA .u2pf{justify-content:flex-start!important;flex-wrap:nowrap!important}
 html body.kerfi #view .u2pA .u2pf > span{white-space:nowrap}
 @media (hover:hover){html body.kerfi #view .u2pA:is(:hover,:focus-within) .u2pf .atavs{display:none}}
+
+/* 2.145.6 – Mjó stika: allir liðir miðjaðir, líka þeir sem JS birtir með style.display="block" (Póstur, Viðskiptavinir) */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab:not([hidden]):not([style*="none"]){display:flex!important;align-items:center!important;justify-content:center!important}
+  html:not(#u2a):not(#u2b) body.kerfi.pv.ui1.srail .side nav#sitems .tab svg{display:block!important;margin:0!important}
+}
