@@ -135,7 +135,7 @@ function rikari(g) {
   const plan = { JJ: [p1, p2, p3, p10, p9], GG: [p3, p7, p8, p2, p11], HS: [p1, p12, p11], OK: [p9, p7, p3, p11], SB: [] };
   const lys = { p1: ["Teiknivinna", "Módelvinna", "Fundur með viðskiptavini"], p2: ["Lagfæringar", "Yfirferð"], p3: ["Keyrsluplan og ljósateikning", "Sviðsteikning", "Samskipti við viðburðastjóra"], p7: ["Teikning loftahátalara", "Lagnaleiðir", "Mælingar á staðnum"],
     p8: ["Undirbúningur búnaðar", "Prófun skjávarpa"], p9: ["Mánaðarskoðun", "Uppfærsla hugbúnaðar", "Bilanagreining"], p10: ["Tilboðsgerð", "Vettvangsskoðun"], p11: ["Uppsetning", "Keyrsla", "Niðurtaka"], p12: ["Undirbúningur"] };
-  const INN = ["Innra – skrifstofa", "Innra – lagerumsjón", "Innra – námskeið", "Innra – vikufundur"];
+  const INN = ["Skrifstofa", "Lagerumsjón", "Námskeið", "Vikufundur"];
   let sd = 3; const rnd = () => (sd = (sd * 9301 + 49297) % 233280) / 233280;
   const keep = g.faerslur.filter(e => e.date >= day(0)).length ? [] : [];
   g.faerslur.length = 0; keep.forEach(e => g.faerslur.push(e));
