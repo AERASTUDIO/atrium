@@ -40,7 +40,7 @@
   function refresh() {
     if (onPage()) { const m = msgs(ras); if (m.length) setLesid(ras, m[m.length - 1].t); }
     if (typeof drawMenu === "function") drawMenu();
-    if (onPage()) { const box = document.getElementById("spmsgs"); if (box) { const at = box.scrollHeight - box.scrollTop - box.clientHeight < 60; box.innerHTML = msgList(); if (at) box.scrollTop = box.scrollHeight; spChans(); return; } render(); }
+    if (onPage()) { const box = document.getElementById("spmsgs"); if (box) { const at = box.scrollHeight - box.scrollTop - box.clientHeight < 60; box.innerHTML = msgList(); if (at) box.scrollTop = box.scrollHeight; spChans(); thumbs(); return; } render(); }
   }
   const spChans = () => { const el = document.getElementById("spchans"); if (el) el.innerHTML = chanList(); };
 
@@ -57,14 +57,26 @@
     const xs = msgs(ras).slice(-200); if (!xs.length) return `<div class="empty">Engin skilaboð ennþá. ${ras === "almennt" ? "Skrifaðu fyrstu skilaboðin til teymisins." : "Byrjaðu samtalið."}</div>`;
     let last = "", lastAf = "";
     return xs.map(m => { const dag = String(m.t).slice(0, 10), mine = m.af === me(), sep = dag !== last ? `<div class="spday">${esc(dayTitle(new Date(m.t)))}</div>` : "", head = sep || m.af !== lastAf; last = dag; lastAf = m.af;
-      return sep + `<div class="spm${mine ? " me" : ""}">${head && !mine ? `<div class="spn">${esc(m.nafn || nameOf(m.af))}</div>` : ""}<div class="spb">${m.texti ? esc(m.texti).replace(/\n/g, "<br>").replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>') : ""}${m.ref?.k ? refCard(m.ref) : ""}</div><div class="spt">${esc(when(m.t))}${mine ? ` · <button type="button" class="klink" data-act="spdel:${esc(m.id)}">eyða</button>` : ""}</div></div>`; }).join("");
+      return sep + `<div class="spm${mine ? " me" : ""}">${head && !mine ? `<div class="spn">${esc(m.nafn || nameOf(m.af))}</div>` : ""}<div class="spb${!m.texti && m.ref?.url && isMed(m.ref) ? " spbm" : ""}">${m.texti ? esc(m.texti).replace(/\n/g, "<br>").replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>') : ""}${m.ref?.k ? refCard(m.ref) : ""}</div><div class="spt">${esc(when(m.t))}${mine ? ` · <button type="button" class="klink" data-act="spdel:${esc(m.id)}">eyða</button>` : ""}</div></div>`; }).join("");
   }
   /* ---------- Deila (2.134.0): verkefni, undirverk, fundir, tilboð, pantanir, reikningar, skjöl og viðskiptavinir í spjalli ---------- */
   const REFT = { verk: "Verkefni", sub: "Undirverk", fund: "Fundur", tb: "Tilboð", reikn: "Reikningur", skjal: "Skjal", vsk: "Viðskiptavinur", vara: "Vara" };
   const homeAct = k => { const [t] = k.split(":"), id = k.slice(k.indexOf(":") + 1);
     if (t === "tb") return "u1go:" + ((window.salaAPI?.PN?.() || []).some(P => P.id === id) ? "pantanir" : "ltilbod") + ":" + k;
     return "u1go:" + ({ verk: "verk", sub: "verk", fund: "dteymi", reikn: "trk", skjal: "skjol", vsk: "vsk", vara: "lvorur" }[t] || "yfirlit") + ":" + k; };
-  const refCard = r => r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="spref spfile"><small>${esc(r.teg || "Skrá")}</small><b>${esc(r.heiti || "")}</b>${r.sub ? `<span>${esc(r.sub)}</span>` : ""}<i aria-hidden="true">Opna í SharePoint ↗</i></a>` : `<a href="#" class="spref" data-act="${esc(homeAct(r.k))}"><small>${esc(r.teg || REFT[r.k.split(":")[0]] || "Tengill")}</small><b>${esc(r.heiti || "")}</b>${r.sub ? `<span>${esc(r.sub)}</span>` : ""}<i aria-hidden="true">Opna →</i></a>`;
+  /* 2.144.5: viðhengi úr tölvunni – myndir og myndbönd með forskoðun (smámynd úr SharePoint), aðrar skrár sem spjald */
+  const isMed = r => /^(image|video)\//.test(r.mime || "");
+  const medCard = r => `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="spmed${/^video/.test(r.mime) ? " vid" : ""}" title="${esc(r.heiti || "")}"><img alt="${esc(r.heiti || "")}" data-spth="${esc((r.drive || "") + "|" + (r.id || ""))}"${THU[(r.drive || "") + "|" + (r.id || "")] ? ` src="${esc(THU[(r.drive || "") + "|" + (r.id || "")])}"` : ""}>${/^video/.test(r.mime) ? '<i aria-hidden="true"></i>' : ""}</a>`;
+  const TH = {}, THU = {};
+  async function thumbs() {
+    const els = [...document.querySelectorAll("#spmsgs img[data-spth]:not([src])")]; if (!els.length || !window.MS?.g) return;
+    for (const im of els) { const key = im.dataset.spth; const [d, id] = key.split("|"); if (!d || !id) continue;
+      try { if (!TH[key]) TH[key] = MS.g(`/drives/${d}/items/${id}/thumbnails/0/large`).then(j => j?.url || ""); const u = await TH[key]; if (u) THU[key] = u;
+        if (u) { im.src = u; im.onload = () => { const b = document.getElementById("spmsgs"); if (b && b.scrollHeight - b.scrollTop - b.clientHeight < 400) b.scrollTop = b.scrollHeight; }; } else im.closest(".spmed")?.classList.add("noth"); }
+      catch (e) { delete TH[key]; im.closest(".spmed")?.classList.add("noth"); } } }
+  window.spThumbs = thumbs;
+  const fileIcon = r => /pdf/.test(r.mime || "") ? "PDF" : (String(r.heiti || "").split(".").pop() || "").toUpperCase().slice(0, 4);
+  const refCard = r => r.url && isMed(r) ? medCard(r) : r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="spref spfile"><small>${esc(r.teg || "Skrá")}</small><b>${esc(r.heiti || "")}</b>${r.sub ? `<span>${esc(r.sub)}</span>` : ""}<i aria-hidden="true">${r.upp ? esc(fileIcon(r)) + " · " : ""}Opna í SharePoint ↗</i></a>` : `<a href="#" class="spref" data-act="${esc(homeAct(r.k))}"><small>${esc(r.teg || REFT[r.k.split(":")[0]] || "Tengill")}</small><b>${esc(r.heiti || "")}</b>${r.sub ? `<span>${esc(r.sub)}</span>` : ""}<i aria-hidden="true">Opna →</i></a>`;
   window.spRefInfo = k => { const [t] = String(k || "").split(":"), id = String(k).slice(String(k).indexOf(":") + 1), tr = f => { try { return f(); } catch (e) { return null; } };
     if (t === "verk") { const p = tr(() => findProj(id)); return p && { heiti: (p.nr || "") + " " + (p.stutt || p.nafn || ""), sub: p.vidskiptavinur || "" }; }
     if (t === "sub") { const r = tr(() => findSub(id)); return r && { heiti: (r.u.nr || "") + " " + tr(() => subName(r.u)), sub: "Í " + (r.p.nr || "") + " " + (r.p.stutt || "") }; }
@@ -139,12 +151,45 @@
     if (typeof DB === "undefined" || !DB?.commit) return `<div class="empty">Spjall er ekki í boði í þessari útgáfu gagnanna.</div>`;
     const m = msgs(ras); if (m.length) setLesid(ras, m[m.length - 1].t);
     const o = otherOf(ras), ou = o && userBy(o);
-    setTimeout(() => { const b = document.getElementById("spmsgs"); if (b) b.scrollTop = b.scrollHeight; if (typeof drawMenu === "function") drawMenu(); }, 0);
+    setTimeout(() => { const b = document.getElementById("spmsgs"); if (b) b.scrollTop = b.scrollHeight; if (typeof drawMenu === "function") drawMenu(); thumbs(); }, 0);
     return `<div class="spwrap"><nav class="spchans" id="spchans" aria-label="Rásir">${chanList()}</nav>
       <section class="spconv"><div class="sphead"><b>${ras === "almennt" ? "# Almennt" : esc(ou?.nafn || o)}</b>${o ? `<span>${esc(o)}${ou?.sidast ? " · síðast inni " + esc(fmtDate(ou.sidast)) : ""}</span>` : `<span>${users().length} í teyminu</span>`}</div>
-      <div class="spmsgs" id="spmsgs" aria-live="polite">${msgList()}</div>
-      <form id="spform" class="spform"><button type="button" class="btn spatt" data-act="sppick:" title="Deila verkefni, fundi, tilboði …" aria-label="Deila atriði úr Atrium"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><textarea id="sptxt" rows="1" placeholder="Skrifa skilaboð…" aria-label="Skilaboð" maxlength="4000"></textarea><button class="btn primary" type="submit">Senda</button></form></section></div>`;
+      <div class="spmsgs" id="spmsgs" aria-live="polite">${msgList()}</div><div id="spup" class="spup" aria-live="polite"></div><div class="spdrop" aria-hidden="true"><span>Slepptu til að senda í ${ras === "almennt" ? "# Almennt" : esc(ou?.nafn || o)}</span></div>
+      <form id="spform" class="spform"><button type="button" class="btn spatt" data-act="sppick:" title="Deila verkefni, fundi, tilboði …" aria-label="Deila atriði úr Atrium"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><label class="btn spatt spclip" title="Hengja við myndir, myndbönd eða skrár úr tölvunni (eða draga inn / líma)" aria-label="Hengja við skrár úr tölvunni"><input type="file" id="spfile" multiple hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 11.5l-8.2 8.2a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg></label><textarea id="sptxt" rows="1" placeholder="Skrifa skilaboð…" aria-label="Skilaboð" maxlength="4000"></textarea><button class="btn primary" type="submit">Senda</button></form></section></div>`;
   };
+  async function attach(files) {
+    files = [...(files || [])].filter(f => f && f.size >= 0); if (!files.length) return;
+    let msOk = false; try { msOk = !!(window.MS && MS.on() && window.odUpOne); } catch (e) {}
+    if (!msOk) { toast("Tengdu Microsoft 365 (Stillingar) til að senda skrár í spjalli."); return; }
+    const big = files.find(f => f.size > 250 * 1048576); if (big) { toast(big.name + " er stærri en 250 MB."); return; }
+    const el = document.getElementById("sptxt"), texti = (el?.value || "").trim(), R = ras, o = otherOf(R), now = new Date();
+    if (el) { el.value = ""; el.style.height = ""; }
+    const dir = `${odRoot()}/Spjall/${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const box = () => document.getElementById("spup");
+    const rows = files.map(f => ({ n: f.name || "mynd.png", s: f.size, p: 0, err: "" }));
+    const paint = () => { const b = box(); if (b) b.innerHTML = rows.filter(r => r.p < 1 || r.err).map(r => `<div class="spupr${r.err ? " err" : ""}"><span>${esc(r.n)}</span><b>${r.err ? "Mistókst: " + esc(r.err) : Math.round(r.p * 100) + "%"}</b><i style="width:${Math.round((r.err ? 1 : r.p) * 100)}%"></i></div>`).join(""); };
+    paint();
+    for (let i = 0; i < files.length; i++) { const f = files[i], row = rows[i];
+      let name = f.name; if (!name || name === "image.png") name = `Mynd ${now.toISOString().slice(0, 19).replace(/[T:]/g, "-")}${i ? "-" + i : ""}.${(f.type.split("/")[1] || "png").replace("jpeg", "jpg")}`;
+      try {
+        const it = await odUpOne(true, dir + "/" + name, f, p => { row.p = p; paint(); });
+        const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");
+        const mime = it?.file?.mimeType || f.type || "";
+        const ref = { k: "sp:" + it.id, teg: /^image/.test(mime) ? "Mynd" : /^video/.test(mime) ? "Myndband" : "Skrá", heiti: it.name || name, sub: kbs(f.size), url: it.webUrl, drive: it.parentReference?.driveId || null, id: it.id, mime, upp: true };
+        await DB.commit([{ path: "spjall/" + id, data: { id, ras: R, adilar: o ? [me(), o].map(x => x.toLowerCase()).sort() : [], af: me(), nafn: window.USER?.nafn || me(), texti: i === 0 ? texti : "", ref, t: new Date().toISOString() } }]);
+        row.p = 1;
+      } catch (e) { row.err = e?.message || "villa"; if (i === 0 && texti && el && !el.value) el.value = texti; }
+      paint();
+    }
+    setTimeout(() => { if (!rows.some(r => r.err)) { const b = box(); if (b) b.innerHTML = ""; } }, 400);
+  }
+  const kbs = n => n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1).replace(".", ",") + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+  document.addEventListener("change", e => { if (e.target.id === "spfile") { attach(e.target.files); e.target.value = ""; } });
+  document.addEventListener("paste", e => { if (e.target.id !== "sptxt") return; const fs = [...(e.clipboardData?.files || [])]; if (fs.length) { e.preventDefault(); attach(fs); } });
+  const hasF = e => [...(e.dataTransfer?.types || [])].includes("Files");
+  ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { const c = e.target.closest?.(".spconv"); if (!c || !hasF(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; c.classList.add("spdon"); }));
+  document.addEventListener("dragleave", e => { const c = e.target.closest?.(".spconv"); if (c && !c.contains(e.relatedTarget)) c.classList.remove("spdon"); });
+  document.addEventListener("drop", e => { const c = e.target.closest?.(".spconv"); if (!c || !hasF(e)) return; e.preventDefault(); c.classList.remove("spdon"); attach(e.dataTransfer.files); });
   async function send() {
     const el = document.getElementById("sptxt"), texti = (el?.value || "").trim(); if (!texti) return;
     const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");

@@ -159,8 +159,8 @@
   function upZone(k, subs) {
     if (subs.length && !["", ...subs].includes(UPSUB)) UPSUB = "";
     return `<div class="updrop"><input type="file" id="up-file" multiple hidden>
-      <div class="updz"><span class="upic" aria-hidden="true">↑</span><div><b class="updesk">Dragðu skrár hingað eða <label for="up-file" class="plink">veldu skrár</label></b><b class="upmob"><label for="up-file" class="plink">Veldu skrár til að hlaða upp</label></b>
-      ${subs.length ? `<span class="upto">Vistast í <select id="up-dir" aria-label="Mappa">${["", ...subs].map(n => `<option value="${esc(n)}"${n === UPSUB ? " selected" : ""}>${n ? esc(n) : "Möppu verkefnisins"}</option>`).join("")}</select></span>` : `<span class="upto">Vistast í möppu verkefnisins</span>`}</div></div>
+      <div class="updz"><span class="upic" aria-hidden="true">↑</span><div><b class="updesk">Dragðu skrár hingað</b><b class="upmob"><label for="up-file" class="plink">Veldu skrár til að hlaða upp</label></b>
+      ${subs.length ? `<span class="upto">Vistast í <select id="up-dir" aria-label="Mappa">${["", ...subs].map(n => `<option value="${esc(n)}"${n === UPSUB ? " selected" : ""}>${n ? esc(n) : "Möppu verkefnisins"}</option>`).join("")}</select></span>` : `<span class="upto">Vistast í möppu verkefnisins</span>`}</div><label for="up-file" class="btn sm updzb">Velja skrár úr tölvu</label></div>
       <div class="uplist" id="up-list">${upList(k)}</div></div>`;
   }
   function upPaint(k) { const el = document.getElementById("up-list"); if (el && el.closest("[data-upk]")?.dataset.upk === k) el.innerHTML = upList(k); }

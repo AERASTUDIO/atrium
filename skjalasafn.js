@@ -75,7 +75,7 @@
     return `<div class="odwrap" data-odk="${key}"><div class="odbar"><span class="odsrc" title="Hvar skjölin eru geymd">${SRC}</span><nav class="crumbs" aria-label="Slóð">${crumbs}</nav><span class="odbtns"><button type="button" class="btn sm" data-act="odmk:${key}">+ Ný mappa</button><label class="btn sm primary odupl"><input type="file" multiple hidden data-odfile="${key}">Hlaða upp</label><button type="button" class="mini" data-act="odref:${key}" aria-label="Uppfæra" title="Uppfæra">↻</button>${window.odIsLocal && odIsLocal() ? `<a class="plink" ${odLink({ folder: {}, webUrl: "" }, s.path.join("/"), s.sp)}>Opna í tölvunni</a>` : ""}</span></div>
       ${hint ? `<p class="hint" style="margin:0 0 8px">${hint}</p>` : ""}
       ${s.err ? `<div class="msg err">${esc(s.err)}</div>` : ""}
-      <div class="oddz" aria-hidden="true"><span>↑</span>Dragðu skrár hingað til að hlaða þeim upp í <b>${esc(s.path[s.path.length - 1])}</b> – eða á möppu í listanum. Dragðu skrá á möppu (eða í slóðina efst) til að færa hana.</div>
+      <div class="oddz"><span aria-hidden="true">↑</span><div class="oddzt">Dragðu skrár hingað til að hlaða þeim upp í <b>${esc(s.path[s.path.length - 1])}</b> – eða á möppu í listanum. Dragðu skrá á möppu (eða í slóðina efst) til að færa hana.</div><label class="btn sm oddzb"><input type="file" multiple hidden data-odfile="${key}">Velja skrár úr tölvu</label></div>
       ${upRows(key)}
       ${s.items == null ? `<div class="empty">Sæki…</div>` : s.items.length ? llist([rows]) : `<div class="empty">Mappan er tóm. Dragðu skrár hingað eða veldu „Hlaða upp“.</div>`}</div>`;
   }
@@ -87,6 +87,9 @@
     const q = UPQ[key] || []; if (!q.length) return "";
     return `<div class="uplist">${q.map(r => `<div class="upr${r.err ? " err" : ""}"><span class="upn">${esc(r.n)}</span><span class="ups">${r.err ? "Mistókst: " + esc(r.err) : r.p >= 1 ? "✓ " + esc(r.to) : kbs(r.s) + " · " + Math.round(r.p * 100) + "%"}</span><span class="upbar"><i style="width:${Math.round((r.err ? 1 : r.p) * 100)}%"></i></span></div>`).join("")}</div>`;
   }
+  // 2.144.5: hlaða einni skrá upp á drif fyrirtækisins (sp=true) eða OneDrive notandans – notað af spjalli
+  window.odUpOne = (sp, path, file, onp) => upOne(sp && window.odG ? odG : MS.g, path, file, onp || (() => {}));
+  window.odRoot = () => ROOT();
   async function upOne(g, path, file, onp) {
     if (file.size <= 4194304) { const it = await g(`/me/drive/root:/${encP(path)}:/content?@microsoft.graph.conflictBehavior=rename`, { method: "PUT", body: file, headers: { "Content-Type": file.type || "application/octet-stream" } }); onp(1); return it; }
     const ses = await g(`/me/drive/root:/${encP(path)}:/createUploadSession`, { method: "POST", body: { item: { "@microsoft.graph.conflictBehavior": "rename" } } });

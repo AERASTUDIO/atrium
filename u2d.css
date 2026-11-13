@@ -935,3 +935,40 @@ html body.kerfi .u2empo i{position:relative;width:72px!important;height:72px!imp
 html body.kerfi .u2empo i::before{content:"";width:40px;height:40px;background:color-mix(in srgb,var(--ink) 55%,transparent);
   -webkit-mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat;mask:url(icons/atrium-merki-lina.svg) center/contain no-repeat}
 @media (prefers-reduced-motion:no-preference){html body.kerfi .u2empo i::before{animation:u2float 5s ease-in-out infinite}}
+/* 2.144.5: hnappur „Velja skrár úr tölvu“ í dropzone (Skjöl og verkefnaspjald) */
+html body.kerfi #view .oddz{justify-content:flex-start;text-align:left}
+html body.kerfi #view .oddz .oddzt{flex:1;min-width:0}
+html body.kerfi #view .oddz .oddzb,html body.kerfi #view .updz .updzb{flex:none;margin-left:auto;cursor:pointer;white-space:nowrap}
+html body.kerfi #view .updz{display:flex;align-items:center;gap:12px}
+html body.kerfi #view .updz > div{flex:1;min-width:0}
+@media (max-width:600px){html body.kerfi #view .updz .updzb{display:none}}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.oddz .oddzb,.updz .updzb){display:inline-flex!important;align-items:center;gap:8px;height:36px!important;padding:0 16px!important;border-radius:999px!important;
+  background:var(--surface)!important;color:var(--ink)!important;font-weight:600!important;box-shadow:0 0 0 1px var(--line),0 4px 12px -6px rgba(15,23,32,.25)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.oddz .oddzb,.updz .updzb)::before{content:"";width:16px;height:16px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V4M7.5 8.5 12 4l4.5 4.5M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V4M7.5 8.5 12 4l4.5 4.5M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15'/%3E%3C/svg%3E") center/contain no-repeat}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.oddz .oddzb,.updz .updzb):hover{background:var(--gra)!important;color:var(--on-gra)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.oddz .oddzb,.updz .updzb){flex-direction:row!important;flex-wrap:nowrap!important;line-height:1!important}
+/* 2.144.5: viðhengi í spjalli – bréfaklemma, draga inn, líma; myndir og myndbönd sem forskoðun */
+html body.kerfi .spconv{position:relative}
+html body.kerfi .spclip{cursor:pointer}
+html body.kerfi .spdrop{display:none;position:absolute;inset:8px;z-index:5;border-radius:22px;border:2px dashed var(--kacc);background:color-mix(in srgb,var(--surface) 88%,transparent);align-items:center;justify-content:center;font-weight:600;color:var(--ink);pointer-events:none}
+html body.kerfi .spconv.spdon .spdrop{display:flex}
+html body.kerfi .spup{display:flex;flex-direction:column;gap:6px;padding:0 14px}
+html body.kerfi .spup:empty{display:none}
+html body.kerfi .spupr{position:relative;display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:12px;background:var(--hover);font-size:12.5px;overflow:hidden}
+html body.kerfi .spupr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi .spupr b{font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+html body.kerfi .spupr i{position:absolute;left:0;bottom:0;height:2px;background:var(--kacc);transition:width .2s}
+html body.kerfi .spupr.err b{color:var(--t-red,#B13E36)}
+html body.kerfi .spmed{position:relative;display:block;margin-top:6px;max-width:min(320px,100%);border-radius:16px;overflow:hidden;background:var(--hover);box-shadow:0 0 0 1px var(--line)}
+html body.kerfi .spm.me .spmed{margin-left:auto}
+html body.kerfi .spmed img{display:block;width:100%;height:auto;min-height:120px;max-height:360px;object-fit:cover}
+html body.kerfi .spmed img:not([src]){aspect-ratio:4/3}
+html body.kerfi .spmed.noth img{display:none}
+html body.kerfi .spmed.noth::after{content:attr(title);display:block;padding:14px;font-size:13px;color:var(--ink)}
+html body.kerfi .spmed.vid i{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;background:rgba(15,23,32,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+html body.kerfi .spmed.vid i::after{content:"";position:absolute;left:21px;top:16px;border-style:solid;border-width:10px 0 10px 16px;border-color:transparent transparent transparent #fff}
+html body.kerfi .spb.spbm{background:none!important;padding:0!important;box-shadow:none!important}
+html body.kerfi .spb .spmed{width:280px}
+html body.kerfi .spb:not(.spbm) .spmed{margin-bottom:2px}
