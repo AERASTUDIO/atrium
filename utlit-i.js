@@ -103,7 +103,8 @@
       const on = x === cur && tab !== "leit" && tab !== "stillingar";
       h += `<button type="button" class="tab${GRP[x.k] ? " tq" : ""}" data-tab="${x.tabs[0][0]}"${on ? ' aria-current="page"' : ""} aria-label="${esc(x.l)}${BD[x.k] ? " – " + BD[x.k] + " bíða þín" : ""}">${x.ic}<span class="tl">${esc(x.l)}</span>${BD[x.k] ? `<span class="tbid">${BD[x.k]}</span>` : ""}</button>`;
       const vis = x.tabs.filter(t => !t[2]);
-      if (on && vis.length > 1 && !x.hdr) {   // 2.104.0: hausflipa-hlutar sýna flipana efst á síðunni (hausflipar.js), ekki hér
+      if (false && on && vis.length > 1 && !x.hdr) {   // 2.144.4: undirliðir ekki lengur í stiku – flipar í haus síðunnar sýna þá
+         // 2.104.0: hausflipa-hlutar sýna flipana efst á síðunni (hausflipar.js), ekki hér
         const act = vis.some(t => t[0] === tab) ? tab : x.tabs.some(t => t[0] === tab && t[2] === 2) ? (vis.find(t => t[0] === "vsk" || t[0] === "ltilbod") || vis[0])[0] : vis[0][0];
         h += `<div class="tsubs">${vis.map(([k, l]) => `<button type="button" class="tab tsub" data-tab="${k}"${k === act ? ' aria-current="true"' : ""}>${esc(["Leiga", "Sala", "Þjónusta"].includes(l) && window.svidHeiti ? svidHeiti(l) : l)}</button>`).join("")}</div>`;
       }
