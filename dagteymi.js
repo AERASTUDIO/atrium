@@ -8,11 +8,32 @@
   const pad = n => String(n).padStart(2, "0");
   const iso = x => x.getFullYear() + "-" + pad(x.getMonth() + 1) + "-" + pad(x.getDate());
   const DN = ["Sun", "Mán", "Þri", "Mið", "Fim", "Fös", "Lau"], MN = ["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ágú", "sep", "okt", "nóv", "des"];
-  let OFF = 0; // vikur frá þessari
+  /* 2.147.3: Fólk og Verk – Dagur · Vika · Mánuður (val á tæki: aera-dtsyn). Akkeri = dagsetning sem sýnin miðast við. */
+  const DNL = ["sunnudagur", "mánudagur", "þriðjudagur", "miðvikudagur", "fimmtudagur", "föstudagur", "laugardagur"], MNF = ["janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", "ágúst", "september", "október", "nóvember", "desember"];
+  const dd = s => new Date(s + "T12:00:00"), today = () => iso(new Date());
+  const SYN0 = (() => { try { const v = localStorage.getItem("aera-dtsyn"); return ["d", "v", "m"].includes(v) ? v : "v"; } catch (e) { return "v"; } })();
+  let FM = SYN0, FA = today();
+  function span(mode, a) { const x = dd(a);
+    if (mode === "d") return [a];
+    if (mode === "v") { x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return [...Array(ND)].map((_, i) => { const y = new Date(x); y.setDate(x.getDate() + i); return iso(y); }); }
+    const f = new Date(x.getFullYear(), x.getMonth(), 1, 12), l = new Date(x.getFullYear(), x.getMonth() + 1, 0, 12), y = new Date(f), out = []; y.setDate(1 - ((f.getDay() + 6) % 7));
+    while (y <= l || (y.getDay() + 6) % 7 !== 0) { out.push(iso(y)); y.setDate(y.getDate() + 1); } return out; }
+  function shift(mode, a, n) { if (!n) return today(); const x = dd(a);
+    if (mode === "m") { x.setDate(1); x.setMonth(x.getMonth() + n); } else x.setDate(x.getDate() + n * (mode === "d" ? 1 : 7)); return iso(x); }
+  function rngTxt(mode, days, a) { const x = dd(a);
+    if (mode === "d") return DN[x.getDay()].toLowerCase() + " " + x.getDate() + ". " + MN[x.getMonth()] + " " + x.getFullYear();
+    if (mode === "m") return MNF[x.getMonth()].replace(/^./, c => c.toUpperCase()) + " " + x.getFullYear();
+    const f = dd(days[0]), l = dd(days[days.length - 1]); return f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear(); }
+  const navH = (p, mode, rng) => `${mode !== "d" ? ndBtn() : ""}<button type="button" class="btn" data-act="${p}:-1" aria-label="${mode === "d" ? "Fyrri dagur" : mode === "m" ? "Fyrri mánuður" : "Fyrri vika"}">‹</button><button type="button" class="btn" data-act="${p}:0">Í dag</button><button type="button" class="btn" data-act="${p}:1" aria-label="${mode === "d" ? "Næsti dagur" : mode === "m" ? "Næsti mánuður" : "Næsta vika"}">›</button><span class="dtrng">${E(rng)}</span>`;
+  const synH = (v, mode, tl) => `<span class="seg dvm">${[["d", "Dagur"], ["v", "Vika"], ["m", "Mánuður"], ...(tl ? [["tl", "Tímalína"]] : [])].map(([k, l]) => `<button type="button" data-act="dtsyn:${v}:${k}" aria-pressed="${mode === k}"${k === "tl" ? ' title="Pantanir og búnaður sem stikur yfir margar vikur"' : ""}>${l}</button>`).join("")}</span>`;
+  // Mánaðartafla: vikur mán–sun (mán–fös ef helgin er falin); smellur á dagsetningu opnar Dag
+  function monthGrid(v, days, a, cell) { const mo = dd(a).getMonth(), ti = today(), cols = ND === 5 ? [0, 1, 2, 3, 4] : [0, 1, 2, 3, 4, 5, 6], WD = ["Mán", "Þri", "Mið", "Fim", "Fös", "Lau", "Sun"];
+    const ds = days.filter(d => cols.includes((dd(d).getDay() + 6) % 7));
+    return `<div class="card dmg" style="--dmn:${cols.length}"><div class="dmrow dmhd">${cols.map(i => `<div>${WD[i]}</div>`).join("")}</div><div class="dmrow">${ds.map(d => `<div class="dmc${dd(d).getMonth() !== mo ? " dmo" : ""}${d === ti ? " dtt" : ""}"><button type="button" class="dmn" data-act="dtday:${v}:${d}" aria-label="Opna ${E(DNL[dd(d).getDay()] + " " + dd(d).getDate() + ". " + MNF[dd(d).getMonth()])}">${dd(d).getDate()}</button>${cell(d)}</div>`).join("")}</div></div>`; }
+  const more = (xs, n, f) => xs.slice(0, n).map(f).join("") + (xs.length > n ? `<span class="dmmore">+${xs.length - n}</span>` : "");
   /* 2.144.0: Dagatal sýnir alla vikuna (mán–sun) sjálfgefið; „Mán–fös“ felur helgina. Val á tæki (localStorage aera-dtdagar). */
   let ND = (() => { try { return localStorage.getItem("aera-dtdagar") === "5" ? 5 : 7; } catch (e) { return 7; } })();
   const ndBtn = () => `<button type="button" class="btn dtnd" data-act="dtdagar:${ND === 7 ? 5 : 7}" aria-pressed="${ND === 7}" title="${ND === 7 ? "Fela helgina" : "Sýna helgina"}">${ND === 7 ? "Mán–sun" : "Mán–fös"}</button>`;
-  const monday = () => { const t = new Date(); t.setHours(12, 0, 0, 0); t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + OFF * 7); return t; };
   const tr = (f, d) => { try { return f(); } catch (e) { return d; } };
 
   function folk() {
@@ -87,17 +108,17 @@
       <div class="dwrow dwbody" style="height:${(H1 - H0) * PXH}px"><div class="dwhrs">${hours.slice(0, -1).map((h, i) => `<span style="top:${i * PXH}px">${pad(h)}:00</span>`).join("")}</div>${cols}</div></div>`;
   }
   function view() {
-    document.documentElement.style.setProperty("--dtn", ND);
     try { window.fbTeamLoad && fbTeamLoad(); } catch (e) {}
-    const m = monday(), days = [...Array(ND)].map((_, i) => { const x = new Date(m); x.setDate(m.getDate() + i); return iso(x); });
-    const ti = iso(new Date()), P = folk(), me = lc(tr(() => fbMe(), ""));
-    const f = new Date(days[0] + "T12:00:00"), l = new Date(days[days.length - 1] + "T12:00:00");
-    const rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
+    const days = span(FM, FA); document.documentElement.style.setProperty("--dtn", FM === "m" ? 7 : days.length);
+    const ti = today(), P = folk(), me = lc(tr(() => fbMe(), "")), rng = rngTxt(FM, days, FA), d0 = days.includes(ti) ? ti : FM === "m" ? FA.slice(0, 8) + "01" : days[0];
     const who = WHO === "me" ? (P.find(p => p.email && p.email === me) || { sk: tr(() => ME(), ""), nafn: "Ég", email: me }) : WHO === "*" ? null : P.find(p => (p.email || p.sk) === WHO) || null;
     const sel = `<label class="dtwho"><span class="sr">Hvers dagatal</span><select onchange="doAct('dtwho:'+this.value)"><option value="me"${WHO === "me" ? " selected" : ""}>Ég</option><option value="*"${WHO === "*" ? " selected" : ""}>Allir</option>${P.filter(p => p.email !== me).map(p => `<option value="${E(p.email || p.sk)}"${WHO === (p.email || p.sk) ? " selected" : ""}>${E(p.nafn)}</option>`).join("")}</select></label>`;
-    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Fólk</h2></div><div class="uhr dtnav">${sel}${ndBtn()}<button type="button" class="btn" data-act="dteymi:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dteymi:0">Þessi vika</button><button type="button" class="btn" data-act="dteymi:1" aria-label="Næsta vika">›</button><span class="dtrng">${E(rng)}</span><button type="button" class="btn${who ? "" : " primary"}" data-act="dtbok:${E(days.includes(ti) ? ti : days[0])}:${who ? E(who.email || "") : ""}">${who ? "Verk á dagatal" : "+ Setja á dagatal"}</button><button type="button" class="btn${who ? " primary" : ""}" data-act="dvny:${E(days.includes(ti) ? ti : days[0])}:09:00${who && who.email && who.email !== me ? ":" + E(who.email) : ""}"${who ? "" : ' hidden'}>${who && who.email && who.email !== me ? "+ Bóka " + E(String(who.nafn).split(" ")[0]) : "+ Viðburður"}</button>${!who ? "" : ""}</div></div>`;
+    const hdr = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Fólk</h2></div><div class="uhr dtnav">${sel}${synH("f", FM)}${navH("dteymi", FM, rng)}<button type="button" class="btn${who ? "" : " primary"}" data-act="dtbok:${E(d0)}:${who ? E(who.email || "") : ""}">${who ? "Verk á dagatal" : "+ Setja á dagatal"}</button><button type="button" class="btn${who ? " primary" : ""}" data-act="dvny:${E(d0)}:09:00${who && who.email && who.email !== me ? ":" + E(who.email) : ""}"${who ? "" : ' hidden'}>${who && who.email && who.email !== me ? "+ Bóka " + E(String(who.nafn).split(" ")[0]) : "+ Viðburður"}</button>${!who ? "" : ""}</div></div>`;
     const msTxt = tr(() => window.fbCalOk && fbCalOk(), false) ? "" : `<p class="hint dthint">Fundir, viðburðir og verk úr Atrium. Tengdu Microsoft 365 til að sjá líka Outlook-dagatöl.</p>`;
     const leg = `<div class="dtleg"><span><i class="dti-f"></i>Fundur</span><span><i class="dti-e"></i>Viðburður</span><span><i class="dti-o"></i>Outlook</span><span><i class="dti-v"></i>Verkefni</span><span><i class="dti-p"></i>Afhending / skil</span><span><i class="dti-s"></i>Skiladagur</span>${who ? `<span><i class="dwe-t" style="width:14px;height:10px;border-radius:3px;display:inline-block"></i>Skráðir tímar</span>` : ""}<span class="dtlh">${who ? "Smelltu á lausan tíma til að bæta við viðburði · 🔒 = aðrir sjá „Upptekinn“" : "„+“ bókar viðkomandi – Atrium varar við ef hann er upptekinn"}</span><a href="#" class="dtfl" data-act="tab:fundir">Fundalisti →</a></div>`;
+    if (FM === "m") { const W = who ? [who] : P, RS = W.map(p => [p, atridi(p, days)]);
+      const ini = p => (p.sk || String(p.nafn).split(/\s+/).map(w => w[0] || "").join("")).slice(0, 2).toUpperCase();
+      return hdr + msTxt + leg + monthGrid("f", days, FA, d => { const xs = []; RS.forEach(([p, R]) => (R.get(d) || []).forEach(x => { if (!who && x.k === "t") return; xs.push(who ? x : { ...x, txt: ini(p) + " · " + x.txt }); })); return more(xs, who ? 4 : 3, itemHTML); }); }
     if (who) return hdr + msTxt + leg + weekOne(who, days, ti);
     const head = `<div class="dtrow dth"><div class="dtp">Starfsfólk · ${P.length}</div>${days.map(d => { const x = new Date(d + "T12:00:00"); return `<div class="dtd${d === ti ? " dtt" : ""}">${E(DN[x.getDay()] + " " + x.getDate() + ".")}</div>`; }).join("")}</div>`;
     const rows = P.map(p => { const R = atridi(p, days), ini = (p.sk || p.nafn.split(/\s+/).map(w => w[0] || "").join("")).slice(0, 2).toUpperCase();
@@ -207,7 +228,7 @@
   window.bokForm = bokForm;
 
   /* ---------- Dagatal › Verk (2.131.2): vikan í dálkum – allt með dagsetningu úr pöntunum, verkefnum, tilboðum og reikningum ---------- */
-  let VOFF = 0, VF = "", VMODE = "vika";
+  let VA = today(), VF = "", VMODE = SYN0;
   const VT = { ut: ["Leiga út", "#2C7A57", "#E3F1EA"], inn: ["Leiga inn", "#2C7A57", "#E3F1EA"], afh: ["Afhending", "#9C6410", "#FBF0DD"], skilp: ["Skil pöntunar", "#9C6410", "#FBF0DD"],
     skil: ["Skil", "#2B63A6", "#EAF0F6"], hefst: ["Hefst", "#2B63A6", "#EAF0F6"], vidb: ["Viðburður", "#2B63A6", "#EAF0F6"], frestur: ["Frestur", "#5E6976", "#F1F3F5"], gjd: ["Gjalddagi", "#5E6976", "#F1F3F5"] };
   const VGRP = { ut: "afh", inn: "afh", afh: "afh", skilp: "afh", skil: "skil", hefst: "skil", vidb: "skil", frestur: "frestur", gjd: "frestur" };
@@ -228,19 +249,19 @@
   }
   window.dtVerkItems = verkItems; window.dtVT = VT; // 2.139.0: Í dag › Vikan framundan
   function verkView() {
-    document.documentElement.style.setProperty("--dtn", ND);
-    const top = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Verk</h2></div><div class="uhr dtnav">${VMODE === "vika" ? `${ndBtn()}<button type="button" class="btn" data-act="dverk:-1" aria-label="Fyrri vika">‹</button><button type="button" class="btn" data-act="dverk:0">Þessi vika</button><button type="button" class="btn" data-act="dverk:1" aria-label="Næsta vika">›</button>` : ""}<span class="dtrng">${VMODE === "vika" ? "{RNG}" : ""}</span><span class="seg dvm"><button type="button" data-act="dverkm:vika" aria-pressed="${VMODE === "vika"}">Vika</button><button type="button" data-act="dverkm:tl" aria-pressed="${VMODE !== "vika"}">Tímalína</button></span></div></div>`;
-    if (VMODE !== "vika") return top.replace("{RNG}", "") + tr(() => window.pfCalHTML(), "");
-    const t = new Date(); t.setHours(12, 0, 0, 0); t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + VOFF * 7);
-    const days = [...Array(ND)].map((_, i) => { const x = new Date(t); x.setDate(t.getDate() + i); return iso(x); }), ti = iso(new Date());
-    const f = new Date(days[0] + "T12:00:00"), l = new Date(days[days.length - 1] + "T12:00:00"), rng = f.getDate() + "." + (f.getMonth() !== l.getMonth() ? " " + MN[f.getMonth()] : "") + "–" + l.getDate() + ". " + MN[l.getMonth()] + " " + l.getFullYear();
+    const tl = VMODE === "tl", days = tl ? [] : span(VMODE, VA), ti = today();
+    document.documentElement.style.setProperty("--dtn", VMODE === "m" || tl ? 7 : days.length);
+    const top = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Verk</h2></div><div class="uhr dtnav">${synH("v", VMODE, true)}${tl ? "" : navH("dverk", VMODE, rngTxt(VMODE, days, VA))}</div></div>`;
+    if (tl) return top + `<p class="hint dthint">Tímalína: pantanir og búnaður sem stikur yfir margar vikur – sýnir hvað er úti hvenær og hvort búnaður skarast.</p>` + tr(() => window.pfCalHTML(), "");
     const R = verkItems(days), SK = new Map(tr(() => STARFS(), []).map(x => [x.sk, x.nafn]));
     const chips = [["", "Allt"], ["afh", "Afhendingar og leiga"], ["skil", "Skil og verk"], ["frestur", "Frestir"]].map(([k, l2]) => `<button type="button" class="uchip${VF === k ? " on" : ""}" data-act="dverkf:${k}">${E(l2)}</button>`).join("");
     const card = it => { const [lab, c, bg] = VT[it.k], av = it.menn.map(sk => window.atrAv(sk)).join("");
       return `<div class="dvc" data-act="${E(it.go)}" role="button" tabindex="0" style="border-left-color:${c}"><span class="dvt" style="color:${c}">${E(lab)}${it.t ? " · " + E(it.t) : ""}</span><b>${E(it.txt)}</b>${it.sub ? `<small>${E(it.sub)}</small>` : ""}${av ? `<div class="dvavs">${av}</div>` : it.need ? `<span class="dvwarn">Enginn skráður · opna til að bóka</span>` : ""}</div>`; };
     const cols = days.map(d => { const x = new Date(d + "T12:00:00"), xs = (R.get(d) || []).filter(it => !VF || VGRP[it.k] === VF);
       return `<section class="dvcol${d === ti ? " dvtd" : ""}"><div class="dvh">${DN[x.getDay()]} ${x.getDate()}. ${MN[x.getMonth()]}</div>${xs.map(card).join("") || `<div class="dvempty">–</div>`}</section>`; }).join("");
-    return top.replace("{RNG}", E(rng)) + `<div class="ulbar dvbar">${chips}<span class="m dvhint">Allt með dagsetningu í pöntunum, verkefnum, tilboðum og reikningum</span></div><div class="dvgrid">${cols}</div>`;
+    const bar = `<div class="ulbar dvbar">${chips}<span class="m dvhint">Allt með dagsetningu í pöntunum, verkefnum, tilboðum og reikningum</span></div>`;
+    if (VMODE === "m") return top + bar + monthGrid("v", days, VA, d => more((R.get(d) || []).filter(it => !VF || VGRP[it.k] === VF), 4, it => { const [lab, c] = VT[it.k]; return `<a href="#" class="dmi" data-act="${E(it.go)}" style="border-left-color:${c}" title="${E(lab + (it.t ? " " + it.t : "") + " · " + it.txt + (it.sub ? " · " + it.sub : ""))}">${it.t ? `<b>${E(it.t)}</b> ` : ""}${E(it.txt)}</a>`; }));
+    return top + bar + `<div class="dvgrid${VMODE === "d" ? " dvday" : ""}">${cols}</div>`;
   }
 
   function act(k, r) {
@@ -248,13 +269,15 @@
     if (k === "dtwho") { WHO = r.join(":") || "me"; render(); return; }
     if (k === "dvny") { if (r[3]) bokForm(r[0], (r[1] || "09") + ":" + (r[2] || "00"), r.slice(3).join(":")); else vidbForm(r[0], (r[1] || "09") + ":" + (r[2] || "00")); return; }
     if (k === "dvid") { vidbForm(null, null, r[0]); return; }
-    if (k === "dverk") { const n = +r[0]; VOFF = n === 0 ? 0 : VOFF + n; render(); return; }
+    if (k === "dverk") { VA = shift(VMODE, VA, +r[0]); render(); return; }
+    if (k === "dtsyn") { const m = r[1]; if (r[0] === "v") VMODE = m; else FM = m; if (m !== "tl") try { localStorage.setItem("aera-dtsyn", m); } catch (e) {} render(); return; }
+    if (k === "dtday") { if (r[0] === "v") { VMODE = "d"; VA = r[1]; } else { FM = "d"; FA = r[1]; } render(); return; }
     if (k === "dverkf") { VF = r[0] || ""; render(); return; }
-    if (k === "dverkm") { VMODE = r[0] === "tl" ? "tl" : "vika"; render(); return; }
-    if (k === "dteymi") { const n = +r[0]; OFF = n === 0 ? 0 : OFF + n; render(); return; }
+    if (k === "dverkm") { VMODE = r[0] === "tl" ? "tl" : "v"; render(); return; }
+    if (k === "dteymi") { FA = shift(FM, FA, +r[0]); render(); return; }
     if (k === "dtbok") { const [d, em] = r; bokForm(d, "09:00", em || ""); return; }
   }
-  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dtdagar: act, dvny: act, dvid: act });
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dtdagar: act, dvny: act, dvid: act, dtsyn: act, dtday: act });
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { dteymi: view });
   const reg = () => { if (window.UI1V && !UI1V.dteymi) { UI1V.dteymi = view; UI1V.pndag = verkView; } };
   reg(); document.addEventListener("DOMContentLoaded", reg); setTimeout(reg, 0);
@@ -263,6 +286,17 @@
   css.textContent = `
   .dtnav{display:flex;align-items:center;gap:6px}.dtnav .btn{min-height:36px;padding:0 12px}.dtrng{margin-left:8px;font-size:15px;white-space:nowrap}
   .dthint{margin:4px 0 10px}
+  .dmg{padding:0;overflow:hidden}.dmrow{display:grid;grid-template-columns:repeat(var(--dmn,7),minmax(0,1fr));margin-left:-1px}
+  .dmhd>div{padding:12px 10px 8px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .dmc{min-height:112px;border-top:1px solid var(--line);border-left:1px solid var(--line);padding:6px 6px 8px;display:flex;flex-direction:column;gap:3px;min-width:0}
+  .dmc.dmo{background:color-mix(in srgb,var(--line) 30%,transparent)}.dmc.dmo>*{opacity:.55}.dmc.dtt{background:color-mix(in srgb,var(--hi,#2B63A6) 7%,transparent)}
+  .dmn{align-self:flex-start;border:0;background:none;min-width:26px;height:26px;padding:0 6px;border-radius:999px;font:inherit;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}.dmn:hover{background:var(--hover)}
+  .dmc.dtt .dmn{background:var(--hi,#2B63A6);color:#fff}
+  .dmi{display:block;font-size:12px;line-height:1.35;padding:2px 6px;border-left:3px solid;border-radius:5px;background:var(--hover);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);text-decoration:none;cursor:pointer}.dmi b{font-weight:600}
+  .dmc .dti{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .dmmore{font-size:11px;color:var(--muted);padding-left:6px}
+  .dvgrid.dvday{grid-template-columns:minmax(0,640px)}
+  @media (max-width:1023px){.dmc{min-height:72px;padding:4px 3px}.dmi,.dmc .dti{font-size:10.5px;padding:1px 4px}.dmhd>div{padding:10px 4px 6px;text-align:center}.dmn{font-size:12px;min-width:22px;height:22px}}
   .dtleg{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:12.5px;color:var(--muted);margin:2px 0 12px}.dtleg span{display:inline-flex;align-items:center;gap:6px}.dtleg i{width:14px;height:10px;border-radius:3px;display:inline-block}.dtleg .dtlh{margin-left:auto}
   .dtgrid{padding:0;overflow:auto}
   .dtrow{display:grid;grid-template-columns:200px repeat(var(--dtn,5),minmax(104px,1fr));border-top:1px solid var(--line);min-height:64px}
