@@ -1211,3 +1211,16 @@ html body.kerfi .vs3afkbox .vpafk{border:0!important;border-radius:26px!importan
 html body.kerfi .vs3afkb::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;vertical-align:2px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg);transition:transform .2s}
 html body.kerfi [data-vs3afk][aria-expanded="true"] .vs3afkb::after{transform:rotate(-135deg);vertical-align:-1px}
 html body.kerfi [data-vs3afk][aria-expanded="true"]{box-shadow:inset 0 0 0 1.5px var(--kacc),0 12px 30px -18px rgba(15,23,32,.2)}
+/* 2.145.4: Vikan framundan – tómur dagur segir það */
+html body.kerfi .u2wc .u2we{margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.4}
+html body.kerfi .u2wc.on .u2we{color:var(--kacc);font-weight:600}
+html body.kerfi .u2wc.past:not(.on){opacity:.62}
+/* 2.145.4: skýrsluflísar (Tímar › Skýrslur) – spjöld, ekki pillur */
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile{display:flex!important;flex-direction:column;align-items:flex-start!important;justify-content:center;gap:4px;min-height:78px!important;height:auto!important;padding:14px 18px!important;border:0!important;border-radius:20px!important;background:var(--surface)!important;box-shadow:0 0 0 1px var(--line),0 8px 20px -16px rgba(15,23,32,.25)!important;text-align:left!important;white-space:normal!important;transition:transform .18s cubic-bezier(.2,0,0,1),box-shadow .18s}
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile:hover{transform:translateY(-2px);box-shadow:0 0 0 1px var(--line),0 16px 30px -16px rgba(15,23,32,.3)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile b{font-size:14.5px!important;font-weight:700!important;line-height:1.3;color:var(--ink)}
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile small{font-size:12px!important;line-height:1.35;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile.on{background:var(--gra)!important;box-shadow:0 12px 26px -14px rgba(15,23,32,.45)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile.on b{color:var(--on-gra)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile.on small{color:color-mix(in srgb,var(--on-gra) 72%,transparent)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .utiles{gap:14px!important}
