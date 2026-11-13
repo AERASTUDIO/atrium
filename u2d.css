@@ -314,8 +314,7 @@ html:not(#u2a):not(#u2b) body.kerfi #view .seg button:is([aria-current="true"],[
 html body.kerfi #view .usug button{background:var(--surface)!important;color:var(--kacc)!important;border:0!important;border-radius:999px!important;font-weight:600!important}
 html:not([data-theme="light"]) body.kerfi .u2bell{box-shadow:0 0 0 1px rgba(255,255,255,.12),0 8px 20px -10px rgba(0,0,0,.6)!important;background:#33404F!important}
 
-/* =====================================================================================================
-   2.141.0 – Heildarútlitsyfirferð, lota 1: hönnunartákn, letur, hnappar og reitir
+/* ==============================================================================================   2.141.0 – Heildarútlitsyfirferð, lota 1: hönnunartákn, letur, hnappar og reitir
    Ein regla fyrir hvern íhlut (í stað plástra á hverjum skjá). Tákn:
      --u-h-bar 40 (stika og haus) · --u-h-btn 36 (spjöld, listar, opið atriði) · --u-h-tool 32 (þéttar tólastikur)
      --u-h-sm 30 (smáhnappar) · --u-h-fld 40 (reitir) · --u-h-filt 34 (síur/flipar á 4 px ferli) · --u-r-fld 12
@@ -377,8 +376,7 @@ html body.kerfi #view :is(.ll b,.utile b,.vyk b,.htile b,.ring b,.kn,.ukp b){fon
 html body.kerfi :is(.sdh h1,.cal-head h2){font-weight:600!important}
 html:not(#u2a):not(#u2b) body.kerfi :is(#view,#sheetwrap) .dpbtn{box-sizing:border-box!important;height:var(--u-h-fld)!important;min-height:var(--u-h-fld)!important;border-radius:var(--u-r-fld)!important;border:1px solid var(--line2)!important;background:var(--field)!important}
 
-/* =====================================================================================================
-   2.141.0 – lota 2: listar, síur, flipar, leit og síðuhaus
+/* ==============================================================================================   2.141.0 – lota 2: listar, síur, flipar, leit og síðuhaus
    ===================================================================================================== */
 /* Línur: 58 px (border-box – áður bættist innra bil ofan á lágmarkshæðina og línur urðu 79 px) */
 @media (min-width:1024px){
@@ -420,8 +418,7 @@ html:not(#u2a):not(#u2b) body.kerfi #view .uempty{color:var(--muted);font-size:1
 /* Lykiltölur í opnu spjaldi brotna ekki í tvær línur */
 html:not(#u2a):not(#u2b) body.kerfi #view .spdet :is(.ukp,.kp) b{white-space:nowrap!important;font-size:clamp(20px,1.9vw,30px)!important}
 
-/* =====================================================================================================
-   2.141.0 – lota 3: gluggar og form
+/* ==============================================================================================   2.141.0 – lota 3: gluggar og form
    ===================================================================================================== */
 /* Gluggi (sheet): 24 px innra bil, aðgerðir neðst til hægri – „Hætta við“ vinstra megin við aðalhnappinn */
 @media (min-width:1024px){
@@ -446,8 +443,7 @@ html:not(#u2a):not(#u2b) body.kerfi #dock .dchip .dopen{background:var(--gra)!im
 /* Hlutar í lengri formum */
 html:not(#u2a):not(#u2b) body.kerfi #sheetwrap :is(.fsec,.fhead,h4){font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 
-/* =====================================================================================================
-   2.141.0 – lota 4: sími
+/* ==============================================================================================   2.141.0 – lota 4: sími
    ===================================================================================================== */
 @media (max-width:1023px){
   /* Snertisvæði ≥ 44 px án þess að stækka hnappana sjálfa: ósýnilegt svæði utan um smáhnappa */
@@ -468,8 +464,7 @@ html:not(#u2a):not(#u2b) body.kerfi #sheetwrap :is(.fsec,.fhead,h4){font-size:11
 /* Fyrstu skref: spjald eins og önnur spjöld */
 html:not(#u2a):not(#u2b) body.kerfi #view .fsk{border:0!important;border-radius:26px!important;box-shadow:var(--e1)!important;padding:22px 24px 12px!important}
 
-/* =====================================================================================================
-   2.141.0 – lota 5: dökkt útlit, andstæður og sameiginlegir litir allra uppsetninga
+/* ==============================================================================================   2.141.0 – lota 5: dökkt útlit, andstæður og sameiginlegir litir allra uppsetninga
    Eldri litabreytur (brand.css / utlit.css: --accent, --hi, --b0…--b4, --t0…--t4, --raise, --late …) fá U2d-gildi,
    svo engin uppsetning fái aðra liti inni í appinu (aðeins á innskráningu og opnunarskjá).
    ===================================================================================================== */
@@ -534,8 +529,7 @@ html:not(#u2a):not(#u2b) body.kerfi #view .uhead > .uhr{align-self:flex-end!impo
 }
 html:not(#u2a):not(#u2b) body.kerfi #view .spsup{color:var(--muted)!important}
 
-/* =====================================================================================================
-   2.142.0 – Upphafsskjár og innskráning fylgja völdu þema (sama í öllum uppsetningum)
+/* ==============================================================================================   2.142.0 – Upphafsskjár og innskráning fylgja völdu þema (sama í öllum uppsetningum)
    ===================================================================================================== */
 html body.kerfi #view .ustart.ustljos{background:var(--bg)!important}
 html body.kerfi #view .ustart.ustljos .ustsep{background:var(--line2)!important}
@@ -560,8 +554,7 @@ html[data-theme="light"] body #login .lmark polygon[fill="#93A0AD"]{fill:#7C8896
 html[data-theme="light"] body #login .lmark polygon[fill="#4B5664"]{fill:#2F3742}
 html[data-theme="light"] body #login .lmark polygon{stroke:#7C8896}
 
-/* =====================================================================================================
-   2.142.0 – Haus-flipar standa kyrrir: fyrirsögnin hefur fasta lágmarksbreidd svo flipar færast ekki þegar
+/* ==============================================================================================   2.142.0 – Haus-flipar standa kyrrir: fyrirsögnin hefur fasta lágmarksbreidd svo flipar færast ekki þegar
    skipt er (Vikan → Færslur …); allt miðjað lóðrétt í sömu hæð á öllum síðum
    ===================================================================================================== */
 @media (min-width:1024px){
@@ -588,8 +581,7 @@ html:not(#u2a):not(#u2b) body.kerfi #view .rlbar .rldot{width:8px;height:8px;bor
 html:not(#u2a):not(#u2b) body.kerfi #view .split:not(.nodet) .splist .rlbar{margin-left:16px!important;margin-right:16px!important;max-width:calc(100% - 32px)}
 @media (max-width:1023px){html:not(#u2a):not(#u2b) body.kerfi #view .rlbar{margin-left:16px!important;margin-right:16px!important;max-width:calc(100% - 32px)}}
 
-/* =====================================================================================================
-   2.142.0 – Ekkert hopp við flipaskipti: hausinn (fyrirsögn, flipar, hnappar) stendur alltaf kyrr;
+/* ==============================================================================================   2.142.0 – Ekkert hopp við flipaskipti: hausinn (fyrirsögn, flipar, hnappar) stendur alltaf kyrr;
    efnið dofnar inn á 180 ms án hreyfingar (U2d: flipaskipti dofna 180 ms). Milli hluta: sama, ekkert 8 px stökk.
    ===================================================================================================== */
 @keyframes u2fade{from{opacity:0}to{opacity:1}}
@@ -617,8 +609,7 @@ html body.kerfi #view .odwrap .oddrag{opacity:.45}
 html body.kerfi #view .odwrap [draggable="true"]{cursor:grab}
 @media (min-width:1024px){html body.kerfi #view .odwrap .oddz{display:flex}}
 
-/* =====================================================================================================
-   2.142.0 – Opið atriði á dekkra spjaldi (aðgreint frá hvítum listum); kort og lykiltölur inni í því hvít
+/* ==============================================================================================   2.142.0 – Opið atriði á dekkra spjaldi (aðgreint frá hvítum listum); kort og lykiltölur inni í því hvít
    ===================================================================================================== */
 html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi{--u-det:#E4E8EC}
 html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--u-det:#161C22}
@@ -632,8 +623,7 @@ html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi{--u-det:#161C22}
   html:not(#u2a):not(#u2b) body.kerfi.pv.ui1 #view .spdet :is(.dtabs,.vtabs){border-bottom-color:color-mix(in srgb,var(--ink) 10%,transparent)!important}
 }
 
-/* =====================================================================================================
-   2.142.0 – Síur og flipar verða fellival þegar þeir komast ekki fyrir (u2fall.js); allar fellivalmyndir samræmdar
+/* ==============================================================================================   2.142.0 – Síur og flipar verða fellival þegar þeir komast ekki fyrir (u2fall.js); allar fellivalmyndir samræmdar
    ===================================================================================================== */
 html:not(#u2a):not(#u2b) body.kerfi #view :is(.uchips,.rlbar,.hdtabs,.seg,.simsub,.pofilt){flex-wrap:nowrap!important;overflow:hidden!important;min-width:0!important;flex-shrink:1!important;max-width:100%}
 html:not(#u2a):not(#u2b) body.kerfi #view :is(.hdtabs,.seg){flex:0 1 auto!important}
@@ -731,8 +721,7 @@ html:not(#u2a):not(#u2b) body.kerfi #view .splist > .ultool{margin-left:0!import
 html:not(#u2a):not(#u2b) body.kerfi #view .splist > .ultool + .rlbar,html:not(#u2a):not(#u2b) body.kerfi #view .splist > .rlbar{margin-top:0!important}
 
 
-/* =====================================================================================================
-   2.143.0 – Litaútfærslur (Stillingar › Útlit): Grafít (sjálfgefið) · Fjörður · Sjór · Lyng · Leir.
+/* ==============================================================================================   2.143.0 – Litaútfærslur (Stillingar › Útlit): Grafít (sjálfgefið) · Fjörður · Sjór · Lyng · Leir.
    Byggðar á litum U2d (grafít, blár og flokkalitirnir). Breyta aðeins aðallit (virkur liður, aðalhnappar, bjalla,
    lykilspjald) og áherslulit (tölur, tenglar, framvinda). Stöðulitir og grunnur haldast. Allar ná AA.
    ===================================================================================================== */
@@ -1475,3 +1464,67 @@ html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbacts{display:flex;fl
 html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbacts .btn{white-space:nowrap;max-width:none!important;overflow:visible!important}
 html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .ukps > .ukp > b{font-size:24px!important;letter-spacing:-.01em}
 html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tblin .utbr{border-top:0!important;box-shadow:none!important}
+/* ---------- 2.148.0: samræmi – enginn klipptur, þjappaður eða skarandi texti ---------- */
+/* Faldir dálkar í breiðum listum (samraemi.js) */
+html body.kerfi #view .uwl [data-u2hid]{display:none!important}
+/* Fyrirsagnir dálka brotna aldrei – styttast með … */
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.uwl,.u2wrap) .ucols > span{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* Lykiltölur í spjöldum: letrið minnkar með breidd spjaldsins í stað þess að styttast („14:00–15:…“) */
+html:not(#u2a):not(#u2b) body.kerfi #view .ukps > .ukp{container-type:inline-size;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .ukps > .ukp > b{font-size:clamp(16px,12.5cqi,30px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Tenglar í haus spjalda („Sjá allt →“) og upphæðir brotna ekki */
+html body.kerfi #view .uhch > a,html body.kerfi #view .uhch > .plink{white-space:nowrap;flex:none}
+html body.kerfi.pv.ui1 #view .ubr{grid-template-columns:150px minmax(0,1fr) auto!important}
+html body.kerfi.pv.ui1 #view .ubr > span:last-child{white-space:nowrap;min-width:70px}
+/* Síupillur brotna ekki í tvær línur – komist þær ekki fyrir verða þær að fellivali (u2fall.js) */
+html body.kerfi #view .uchips > .uchip{white-space:nowrap!important;flex:none!important}
+/* Dagsetningar og tímar í línum brotna ekki */
+html body.kerfi #view .utlr small,html body.kerfi #view .utl .utlr{white-space:nowrap}
+@media (max-width:1023px){
+  /* Sími: haus opins atriðis – ef Staða-val sést fer aðgerðaröðin undir titilinn í stað þess að liggja ofan á honum */
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet:not(:has(.vs3st)) .udh2:has(> .uact > .ustsel:not(.vs3hide)) > .uact{position:static!important;display:flex!important;justify-content:flex-start;align-items:center;gap:8px;margin:10px 0 0!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet:not(:has(.vs3st)) .udh2:has(> .uact > .ustsel:not(.vs3hide)) > .udl{padding-right:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet:not(:has(.vs3st)) .udh2 > .uact > .ustsel:not(.vs3hide){order:-1}
+  /* Svið og verkflokkur brotna í línur frekar en að fara út fyrir skjáinn */
+  html body.kerfi #view .udh2 .usvid{flex-wrap:wrap!important;row-gap:6px}
+  html body.kerfi #view .udh2 .usvf{flex-wrap:wrap}
+  /* Haus undirflipa (síur + hnappar): hnappar fara í næstu línu í stað þess að fara út fyrir skjáinn */
+  html body.kerfi #view .ush2 > span{flex-wrap:wrap!important;row-gap:8px;min-width:0}
+  html body.kerfi #view .ush2{flex-wrap:wrap}
+}
+@media (max-width:640px){
+  /* Sími: vikudagatal teymis – sjö dálkar eru of mjóir fyrir texta; færslan sýnist sem litaður reitur (smellt til að sjá) */
+  html body.kerfi #view .dwe{padding:2px!important;left:2px!important;right:2px!important}
+  html body.kerfi #view .dwe > *{display:none!important}
+  /* Vinnuskylda og sambærilegar töflur: nafnadálkurinn fær plássið, tölurnar þrengra */
+  html body.kerfi #view .uvs:not(.sv){grid-template-columns:minmax(0,1fr) 46px 46px 64px!important;gap:8px!important}
+  html body.kerfi #view .uvs:not(.sv) > span:first-child,html body.kerfi #view .uvs.h > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+/* Mjór listi við hlið opins atriðis: viðskiptavinur í annarri línu undir heitinu í stað þess að styttast í „Heiti · Viðsk…“ */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi #view .split:not(.nodet) .splist .u2wrap .urow > .t:has(> .m){display:block!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;line-height:1.3}
+  html:not(#u2a):not(#u2b) body.kerfi #view .split:not(.nodet) .splist .u2wrap .urow > .t > .m{display:block;font-size:12px!important;font-weight:400!important;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  html:not(#u2a):not(#u2b) body.kerfi #view .split:not(.nodet) .splist .u2wrap .urow > .t{white-space:nowrap}
+}
+html body.kerfi #view .urow .msep{font-style:normal}
+@media (min-width:1024px){html:not(#u2a):not(#u2b) body.kerfi #view .split:not(.nodet) .splist .u2wrap .urow > .t > .m > .msep{display:none}}
+/* Sími: sama tveggja lína form í listum – heiti efst, viðskiptavinur/verkefni undir, í stað „Heiti · Viðsk…“ */
+@media (max-width:1023px){
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2wrap .urow > .t:has(> .m){display:block!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;line-height:1.3}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2wrap .urow > .t > .m{display:block;font-size:12px!important;font-weight:400!important;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2wrap .urow > .t > .m > .msep{display:none}
+}
+/* Vikudagatal teymis (tölva): heiti færslu fær þær línur sem rúmast í reitnum (samraemi.js setur --lc) */
+@media (min-width:641px){
+  html body.kerfi #view .dwe > b{white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lc,1);line-height:1.25;flex:none}
+}
+/* Notandi neðst í stiku: nafnið styttist með … í stað þess að klippast */
+html body.kerfi .sfu .sfn{min-width:0}
+html body.kerfi .sfu .sfn > span,html body.kerfi .sfu .sfn > small{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Sími: tveggja dálka hlutar í opnu atriði (t.d. Bókað framundan / Á tilboðum) fara í einn dálk */
+@media (max-width:640px){html:not(#u2a):not(#u2b) body.kerfi #view .uvb .u2c{grid-template-columns:minmax(0,1fr)!important;row-gap:6px}}
+/* Dagatal › Fólk: stjórnröðin (hver · Dagur/Vika/Mánuður · fletta · + Viðburður) rúmast í einni línu á tölvu */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhr.dtnav{column-gap:8px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhr.dtnav > .dtwho{flex:0 1 160px!important;min-width:120px;width:auto!important}
+}
