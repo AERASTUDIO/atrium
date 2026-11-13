@@ -604,42 +604,48 @@
     const D = tDeild(T), L = D === "leiga" && (!isMix(T) || (T.linur || []).some(l => l.teg === "leiga" || l.teg === "pakki"));
     const PN0 = isP(T); // pöntun (2.90.1): skjalið heitir Pöntun, ekki Tilboð, og sýnir afhendingu í stað gildistíma
     const P = await DOK.pdf(), { C, M, X1 } = P, co = DOK.co(), t = totals(T), label = PN0 ? "Pöntun " + T.nr : "Tilboð " + T.nr + (+T.utgafa > 1 ? " (útgáfa " + T.utgafa + ")" : "");
-    let y = PN0 ? P.head("Pöntun", [["Pöntun nr.", T.nr], ["Dagsetning", dIS(T.dags)], ["Afhending", T.fra ? dIS(T.fra) + (T.afhKl ? " kl. " + T.afhKl : "") : ""]])
-      : P.head("Tilboð", [["Tilboð nr.", T.nr + (+T.utgafa > 1 ? " · útg. " + T.utgafa : "")], ["Dagsetning", dIS(T.dags)], ["Gildir til", T.gildir ? dIS(T.gildir) : ""]]);
+    /* 2.147.1: sama útlit og reikningar (2.145.11) – seljandi undir merki, titill og númer hægra megin, viðtakandi í ljósum reit, bláir töfluhausar, engin svartur kassi */
+    const BL = [31, 78, 121], KL = [91, 127, 166], GR = [85, 96, 107], BX = [242, 246, 250], doc = P.doc, LG = await DOK.logo();
+    const lh = 30, lw = lh * LG.w / LG.h; doc.addImage(LG.url, "PNG", M, M - 8, lw, lh);
+    P.text(PN0 ? "Pöntun" : "Tilboð", X1, M + 8, { w: "medium", size: 17, color: C.grafit, align: "right" });
+    { let ry = M + 26; const meta = PN0 ? [["Pöntun nr.", T.nr, 1], ["Dags.", dIS(T.dags)], ...(T.fra ? [["Afhending", dIS(T.fra) + (T.afhKl ? " kl. " + T.afhKl : "")]] : [])]
+        : [["Tilboð nr.", T.nr + (+T.utgafa > 1 ? " · útg. " + T.utgafa : ""), 1], ["Dags.", dIS(T.dags)], ...(T.gildir ? [["Gildir til", dIS(T.gildir)]] : [])];
+      meta.forEach(([k, v, bo]) => { P.font(bo ? "medium" : "regular", 9); const vw = doc.getTextWidth(v); P.text(v, X1, ry, { w: bo ? "medium" : "regular", size: 9, color: bo ? C.nott : GR, align: "right" }); P.text(k, X1 - vw - 4, ry, { size: 9, color: GR, align: "right" }); ry += 13; }); }
+    let y = M + lh + 14;
+    const b = T.vskId ? findVsk(T.vskId) : null;
+    P.text(co.nafn || "", M, y, { w: "medium", size: 13, color: C.grafit }); y += 16;
+    [[co.kt && "Kt. " + co.kt, co.vsknr && "VSK-nr. " + co.vsknr].filter(Boolean).join(" · "), co.heimilisfang, [co.netfang, co.simi].filter(Boolean).join(" · ")].filter(Boolean).forEach(t0 => { P.text(t0, M, y, { size: 9, color: GR }); y += 12.5; });
+    y = Math.max(y, M + 80) + 12;
     const need = h => { if (y + h > P.H - 60) { P.doc.addPage(); y = P.contHead(label); return true; } return false; };
-    const b = T.vskId ? findVsk(T.vskId) : null, col2 = M + (X1 - M) / 2 + 10;
-    const sl = [co.nafn, co.kt && "kt. " + co.kt, co.heimilisfang, [co.netfang, co.simi].filter(Boolean).join(" · ")].filter(Boolean);
-    const bl = [T.vidskiptavinur || b?.name, b?.kennitala && "kt. " + b.kennitala, T.tengilidur && "Tengiliður: " + T.tengilidur, T.netfang].filter(Boolean);
-    P.text("FRÁ", M, y, { size: 7.5, color: C.stal, space: 1.2 }); P.text("TIL", col2, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 15;
-    const rows = Math.max(sl.length, bl.length);
-    for (let i = 0; i < rows; i++) { if (sl[i]) P.text(sl[i], M, y + i * 13, { w: i ? "regular" : "medium", size: i ? 9 : 10 }); if (bl[i]) P.text(bl[i], col2, y + i * 13, { w: i ? "regular" : "medium", size: i ? 9 : 10 }); }
-    y += rows * 13 + 14;
-    P.text(T.heiti || "", M, y, { w: "light", size: 15, color: C.grafit }); y += 16;
-    const meta = [T.stadsetning, T.fra ? (L ? dRange(T) + " · " + tbDagar(T) + (tbDagar(T) === 1 ? " leigudagur" : " leigudagar") : "Áætluð afhending " + dIS(T.fra)) : ""].filter(Boolean).join("  ·  ");
-    if (meta) { P.text(meta, M, y, { size: 9, color: C.grafit }); y += 14; }
+    { const bl = [b?.kennitala && "Kt. " + b.kennitala, T.tengilidur && "Tengiliður: " + T.tengilidur, T.netfang].filter(Boolean), bh = 44 + bl.length * 12.5;
+      doc.setFillColor(...BX); doc.roundedRect(M, y, X1 - M, bh, 6, 6, "F");
+      P.text("VIÐTAKANDI", M + 12, y + 15, { size: 7.5, color: KL, space: 0.8 }); P.text(T.vidskiptavinur || b?.name || "", M + 12, y + 29, { w: "medium", size: 10 });
+      bl.forEach((t0, i) => P.text(t0, M + 12, y + 42 + i * 12.5, { size: 9.5 })); y += bh + 24; }
+    P.text(T.heiti || "", M, y, { w: "medium", size: 14, color: C.grafit }); y += 16;
+    { const meta = [T.stadsetning, T.fra ? (L ? dRange(T) + " · " + tbDagar(T) + (tbDagar(T) === 1 ? " leigudagur" : " leigudagar") : "Áætluð afhending " + dIS(T.fra)) : ""].filter(Boolean).join("  ·  ");
+      if (meta) { P.text(meta, M, y, { size: 9, color: GR }); y += 14; } }
     y += 8;
     const X = L ? { d: M + 8, m: 318, a: 362, v: 448, p: 482, u: X1 - 8 } : { d: M + 8, m: 362, a: 0, v: 448, p: 482, u: X1 - 8 };
-    const head = () => { P.rect(M, y, X1 - M, 20, C.grafit); [["Lýsing", X.d], ["Magn", X.m, "right"], ...(L ? [["Dagar", X.a, "right"]] : []), ["Verð", X.v, "right"], ["Afsl.", X.p, "right"], ["Upphæð", X.u, "right"]].forEach(([s, x, a]) => P.text(s, x, y + 13.5, { w: "medium", size: 8, color: C.hvitt, align: a || "left" })); y += 20; };
+    const head = () => { P.rect(M, y, X1 - M, 22, BL); [["Lýsing", X.d], ["Magn", X.m, "right"], ...(L ? [["Dagar", X.a, "right"]] : []), ["Verð", X.v, "right"], ["Afsl.", X.p, "right"], ["Upphæð", X.u, "right"]].forEach(([s, x, a]) => P.text(s, x, y + 14.5, { size: 8.5, color: C.hvitt, align: a || "left" })); y += 20; };
     head();
     groups(T).forEach(([hl, ls]) => {
       if (need(40)) head();
-      y += 6; P.text(hl.toUpperCase(), X.d, y + 10, { w: "medium", size: 8, color: C.grafit, space: 1 }); y += 16; P.line(M, y, X1, y);
+      y += 6; P.text(hl.toUpperCase(), X.d, y + 10, { size: 7.5, color: KL, space: 0.8 }); y += 16; P.line(M, y, X1, y, [227, 232, 238]);
       ls.forEach((l, i) => { const v = l.v ? findV(l.v) : null, pk = v?.tegund === "pakki" ? pakkiTxt(v) : "", w = (L ? X.m : X.m) - 44 - X.d;
         const ds = P.wrap(l.heiti, w, 9), ps = pk ? P.wrap(pk, w, 7.5) : [], h = 9 + ds.length * 12 + ps.length * 10; if (need(h)) head();
-        if (i % 2) P.rect(M, y, X1 - M, h, C.pappir);
         ds.forEach((s, j) => P.text(s, X.d, y + 13 + j * 12, { size: 9 })); ps.forEach((s, j) => P.text(s, X.d, y + 13 + ds.length * 12 + j * 10 - 2, { size: 7.5, color: C.stal }));
         P.text(fx(l.magn) + " " + (l.ein || ""), X.m, y + 13, { size: 9, align: "right" });
         if (L && l.teg === "leiga") P.text(String(lDagar(l, T)), X.a, y + 13, { size: 9, align: "right" });
         P.text(num(Math.round(+l.verd || 0)), X.v, y + 13, { size: 9, align: "right" }); if (+l.afsl) P.text(fx(l.afsl) + "%", X.p, y + 13, { size: 9, align: "right" });
-        P.text(num(lSum(l, T)), X.u, y + 13, { size: 9, w: "medium", align: "right" }); y += h; P.line(M, y, X1, y); });
+        P.text(num(lSum(l, T)), X.u, y + 13, { size: 9, align: "right" }); y += h; P.line(M, y, X1, y, [227, 232, 238]); });
       need(18); P.text("Samtals – " + hl, X.v + 34, y + 12, { size: 8.5, color: C.grafit, align: "right" }); P.text(num(ls.reduce((a, l) => a + lSum(l, T), 0)) + " kr.", X.u, y + 12, { size: 8.5, w: "medium", align: "right" }); y += 18;
     });
     need(130); y += 14; const tx = 330, row = (k, v) => { P.text(k, tx, y, { size: 9.5, color: C.grafit }); P.text(v, X1 - 8, y, { size: 9.5, align: "right" }); y += 15; };
     if (t.leiga) row("Leiga", krs(t.leiga)); if (t.sala) row(L ? "Sala" : "Vörur", krs(t.sala)); if (t.vinna) row("Vinna og þjónusta", krs(t.vinna));
     if (t.afsl) row("Afsláttur " + fx(T.afsl) + "%", "−" + krs(t.afsl));
-    row("Samtals án VSK", krs(t.net)); row("VSK " + fx(vskP()) + "%", krs(t.vsk)); y -= 5;
-    P.rect(tx - 8, y, X1 - tx + 8, 30, C.nott); P.text("Samtals með VSK", tx, y + 19.5, { w: "medium", size: 10.5, color: C.hvitt }); P.text(krs(t.tot), X1 - 8, y + 19.5, { w: "medium", size: 11.5, color: C.hvitt, align: "right" }); y += 48;
-    const txt = (title, s) => { if (!s) return; need(40); P.text(title, M, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 14; P.wrap(s, X1 - M, 9).forEach(z => { need(13); P.text(z, M, y, { size: 9 }); y += 12.5; }); y += 10; };
+    row("Samtals án VSK", krs(t.net)); row("VSK " + fx(vskP()) + "%", krs(t.vsk)); y -= 6;
+    P.line(tx, y, X1 - 8, y, BL, 1.5); y += 16; P.text("Samtals með VSK", tx, y, { w: "medium", size: 11.5 }); P.text(krs(t.tot), X1 - 8, y, { w: "medium", size: 11.5, align: "right" }); y += 28;
+    const txt = (title, s) => { if (!s) return; need(40); P.text(title, M, y, { size: 7.5, color: KL, space: 0.8 }); y += 14; P.wrap(s, X1 - M, 9).forEach(z => { need(13); P.text(z, M, y, { size: 9 }); y += 12.5; }); y += 10; };
     txt("ATHUGASEMD", T.athugasemd); txt("SKILMÁLAR", (L ? CF().skilmalarL : CF().skilmalarS) + (!PN0 && T.gildir ? " Tilboðið gildir til " + dIS(T.gildir) + "." : "") + (window.innflFyrirvari?.(T) ? " " + innflFyrirvari(T) : ""));   // 2.112.0: fyrirvari um gengi og flutning
     return P.finish(label);
   }

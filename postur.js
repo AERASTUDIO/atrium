@@ -173,7 +173,10 @@
       const QS = `?$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,body,webLink,hasAttachments,bodyPreview,conversationId,isRead,flag,importance`;
       // Opnað úr tilkynningu (2.65.1): ef pósturinn finnst ekki í eigin pósthólfi er reynt í sameiginlega pósthólfinu
       try { MSG[id] = await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}` + QS); }
-      catch (e0) { if (BOX[id] || !SHB) throw e0; MSG[id] = await MS.g(`${SHB}/messages/${encodeURIComponent(id)}` + QS); BOX[id] = SHB; }
+      catch (e0) { /* 2.147.1: pósturinn getur verið í hinu pósthólfinu (t.d. tilboð sent úr eigin pósthólfi en skráð við verkefnapóstinn) – reynt í báðum */
+        const other = mb(id) === "/me" ? SHB : "/me"; if (!other) throw e0;
+        try { MSG[id] = await MS.g(`${other}/messages/${encodeURIComponent(id)}` + QS); BOX[id] = other; }
+        catch (e1) { throw new Error("Pósturinn fannst ekki – hann gæti hafa verið færður eða honum eytt í Outlook."); } }
       noteConv([MSG[id]]); const m = MSG[id], html = m.body?.contentType === "html" ? m.body.content || "" : "", hasCid = /src\s*=\s*["']?cid:/i.test(html);
       if (m.hasAttachments || hasCid) {
         // contentId er aðeins til á fileAttachment, svo það er ekki valið í listanum (annars villa frá Graph)

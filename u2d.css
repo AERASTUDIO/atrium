@@ -1454,3 +1454,24 @@ html:not(#u2a):not(#u2b) body.kerfi #view .udh2 .ptitle{word-break:normal!import
 #view .u2hid{display:none!important}
 #view .u2more{display:block;margin:14px auto 6px;height:40px;padding:0 22px;border:0;border-radius:999px;background:var(--surface,#fff);color:var(--ink,#0F1720);font:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,32,.06),0 10px 24px -18px rgba(15,23,32,.35)}
 #view .u2more:hover{background:var(--hover,#EEF1F4)}
+
+/* 2.147.1 – Tilboðs-/pöntunarspjald: efnið í spjöldum eins og verkefnisyfirlitið */
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbc{background:var(--surface,#fff)!important;border:0!important;border-radius:22px!important;padding:18px 22px!important;margin:0 0 16px!important;box-shadow:0 1px 2px rgba(15,23,32,.04),0 14px 30px -22px rgba(15,23,32,.28)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbh{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:16px;font-weight:700;color:var(--ink,#0F1720)}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbh::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent,#2B63A6)}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbinfo > :not(.u2tbh){margin:0!important;padding:8px 0!important;border-top:1px solid var(--line,#DFE3E8);display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:40px;box-sizing:border-box}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbinfo > .u2tbh + *{border-top:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbinfo .kind{flex:0 0 120px;color:var(--muted,#5E6976);font-size:13px}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbinfo :is(select,.u2sel){max-width:260px}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbst{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbst .u2tbh{flex:1 1 100%;margin-bottom:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbst .smst{flex:1 1 auto;margin:0!important;background:transparent!important;border:0!important;padding:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbst .smpub{margin:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tblin .utb{margin:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tblin .utbr.h{color:var(--muted,#5E6976);font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line,#DFE3E8)}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tblin .utbr:not(.h){border-bottom:1px solid var(--line,#DFE3E8)}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tblin .utbt{margin:12px 0 0!important;padding-top:4px;font-weight:600}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbacts{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbacts .btn{white-space:nowrap;max-width:none!important;overflow:visible!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .ukps > .ukp > b{font-size:24px!important;letter-spacing:-.01em}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tblin .utbr{border-top:0!important;box-shadow:none!important}

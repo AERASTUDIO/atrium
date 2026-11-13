@@ -214,3 +214,26 @@
     }
   });
 })();
+
+/* 2.147.1: Tilboðs- og pöntunarspjald í sama útliti og verkefnisyfirlitið – efnið raðast í spjöld:
+   Upplýsingar (svið, verkefni, starfsfólk, undirflokkur) · Staða (staða + samþykktartengill) · Línur (línur + samtölur) · aðgerðir neðst. */
+window.u2TbCard = function (el) {
+  if (!el || el.dataset.u2tb) return; el.dataset.u2tb = "1"; el.classList.add("u2tbp");
+  const wrap = (cls, title, nodes) => { nodes = nodes.filter(Boolean); if (!nodes.length) return null;
+    const c = document.createElement("section"); c.className = "card u2tbc " + cls;
+    if (title) c.insertAdjacentHTML("afterbegin", `<h3 class="u2tbh">${title}</h3>`);
+    nodes[0].before(c); nodes.forEach(n => c.append(n)); return c; };
+  const kps = el.querySelector(":scope > .ukps");
+  // Upplýsingar: allt milli lykiltalna og stöðu sem er ekki spjald (svið, starfsfólk, undirflokkur)
+  const info = []; let n = kps ? kps.nextElementSibling : null;
+  while (n && !n.matches(".smst,.smpub,.utb,.utbt,.links,.card,.hint,.tbpost")) { info.push(n); n = n.nextElementSibling; }
+  const head = el.querySelector(":scope > .udh2"), svid = head?.nextElementSibling && !head.nextElementSibling.matches(".ukps") ? head.nextElementSibling : null;
+  if (svid && !info.includes(svid)) info.unshift(svid);
+  wrap("u2tbinfo", "Upplýsingar", info);
+  wrap("u2tbst", "Staða", [el.querySelector(":scope > .smst"), el.querySelector(":scope > .links.smpub")]);
+  const lin = wrap("u2tblin", "Línur", [el.querySelector(":scope > .utb"), el.querySelector(":scope > .utbt")]);
+  // Aðgerðir neðst og textinn um gildistíma undir þeim
+  const acts = [...el.querySelectorAll(":scope > .links")].filter(x => !x.classList.contains("smpub"));
+  acts.forEach(a => a.classList.add("u2tbacts"));
+  if (kps && kps.nextElementSibling !== el.querySelector(".u2tbinfo") && el.querySelector(".u2tbinfo")) kps.after(el.querySelector(".u2tbinfo"));
+};

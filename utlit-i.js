@@ -312,6 +312,7 @@
     applyFilt(sl);
     if (DETAIL) sl.querySelector(`[data-open="${CSS.escape(String(DETAIL))}"]`)?.classList.add("spsel");
     if (DETAIL && !vp) fixDet(v.querySelector(".spdet"));
+    if (DETAIL && /^(tb|pn):/.test(String(DETAIL)) && window.u2TbCard) { try { u2TbCard(v.querySelector(".spdet")); } catch (e) { console.warn("u2TbCard", e); } }   // 2.147.1
     const tl = sl.querySelector(".ptitle"), lab = (secOf(tab).tabs.find(t => t[0] === tab) || [])[1]; if (tl && lab && sup) tl.textContent = lab;
   }
   // Stillingar: listi vinstra megin og valin undirsíða hægra megin (eins og á útlitsborðinu)
