@@ -230,7 +230,7 @@
     document.body.classList.remove("onstart"); document.body.dataset.tab = tab;
     if (desk() && S && tab === "stillingar" && !DETAIL) return stSplit(v);
     // 2.145.12: atriði opnað af síðu án lista (t.d. Í dag) – opnast í listanum sínum með sama spjaldi og annars staðar; „Til baka“/loka skilar á upphaflegu síðuna
-    if (desk() && S && DETAIL && !LIST.has(tab)) { const to = { verk: "verk", pn: "pantanir", vsk: "vsk", fund: "fundir", time: "tfaer", kostn: "tfaer", reikn: "trk", vara: "lvorur", post: "postur" }[String(DETAIL).split(":")[0]];
+    if (desk() && S && DETAIL && !LIST.has(tab)) { const to = { verk: "verk", sub: "undir", pn: "pantanir", vsk: "vsk", fund: "fundir", time: "tfaer", kostn: "tfaer", reikn: "trk", vara: "lvorur", post: "postur" }[String(DETAIL).split(":")[0]];
       if (to && LIST.has(to) && (!window.tabOn || tabOn(to))) { window.u2RetTab = tab; window.u2RetFor = to; tab = to; } }
     else if (window.u2RetTab) { if (tab !== window.u2RetFor) window.u2RetTab = window.u2RetFor = null; else if (!DETAIL) { tab = window.u2RetTab; window.u2RetTab = window.u2RetFor = null; } }
     if (!desk() || !S || !LIST.has(tab)) {

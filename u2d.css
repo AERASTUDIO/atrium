@@ -1391,3 +1391,19 @@ html body.kerfi #view .vs3more .vs3g > .card{background:transparent!important;bo
   html:not(#u2a):not(#u2b) body.kerfi #view .u2pA .u2pf > .u2pq{flex:1 1 100%;justify-content:flex-end;opacity:1!important;visibility:visible!important;transform:none!important}
   html:not(#u2a):not(#u2b) body.kerfi #view .u2pA .u2pt{white-space:normal}
 }
+
+/* 2.145.13 – Listar í lista-dálki (t.d. Undirverk) í tölvu: spjald með innri spássíu; haus brotnar ekki út fyrir */
+html:not(#u2a):not(#u2b) body.kerfi #view .splist > .llist{background:var(--surface,#fff);border:0!important;border-radius:22px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,32,.04),0 14px 30px -22px rgba(15,23,32,.28)}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist > .llist > .lrow{margin:0!important;padding:12px 18px!important;border-radius:0!important;border:0!important;border-top:1px solid var(--line)!important;box-shadow:none!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist > .llist > .lrow:first-child{border-top:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet .llist > .lrow{padding-inline:18px!important;margin:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist > .llist > .lrow.spsel{outline:0!important;border-color:var(--line)!important;background:var(--hover,#EEF1F4)!important;box-shadow:inset 3px 0 0 var(--hi,#2A3441)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .phead .phrow{flex-wrap:nowrap;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .phead .phrow > .ptitle{flex:1 1 auto;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .phead .phrow > :is(select,label,.u2sel){flex:0 1 auto;width:auto!important;max-width:130px;min-width:90px}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .phead .phrow{gap:10px;padding-right:2px}
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .phead .phrow > .pnew{flex:none}
+/* 2.145.13 – Enginn „Til baka“ á listasíðum í tölvu: flipar og stikan duga til að fletta (bara í opnu atriði) */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi:not(.simidet) #view :is(.pback,.uback):not(.spdet *){display:none!important}
+}
