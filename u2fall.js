@@ -9,6 +9,7 @@
   let busy = false, raf = 0;
 
   function fold(t) {
+    if (t.matches(".simsub") && innerWidth < 1024) { unfold(t); return; }   // sími: undirflipar skrunast lárétt
     const btns = [...t.querySelectorAll(":scope > button, :scope > a, :scope > label > button")].filter(b => !b.hidden);
     if (btns.length < 2) { unfold(t); return; }
     // Mæla í fullri stærð (ferillinn sýnilegur augnablik – engin teikning á milli)

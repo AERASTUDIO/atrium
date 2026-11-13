@@ -1292,3 +1292,65 @@ html:not(#u2a):not(#u2b) body.pv.ui1 #view .spdet .stdet :not(.cfgrow)+.cfgrow:n
 /* Rofar: einn litur (grafít) í öllum stillingum */
 html:not(#u2a):not(#u2b) body.pv.ui1 :is(.snjsw,.usw,.hsw) input:checked+i{background:var(--hi,#2A3441)!important}
 html:not(#u2a):not(#u2b) body.pv.ui1 :is(.snjsw,.usw,.hsw) input:checked+i::after{background:#fff!important}
+
+/* ===== 2.145.9 – Símaappið yfirfarið: sömu form og stærðir og í tölvu ===== */
+@media (max-width:1023px){
+  /* Hausar: „Til baka“ alltaf efst, eins inndráttur alls staðar */
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead > :is(.pback,.uback){order:-1;margin:4px 0 6px!important}
+  html:not(#u2a):not(#u2b) body.kerfi.simi1 #view > .phead{margin-inline:0!important;padding-inline:16px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead .ptitle{font-size:28px!important;line-height:1.15;font-weight:600!important;letter-spacing:-.01em}
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow{align-items:center;gap:12px}
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow{flex-wrap:nowrap!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > .ptitle{flex:1 1 auto;min-width:0}
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > .pnew{flex:none;margin-left:auto!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2{grid-template-columns:minmax(0,1fr)!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2 > *{grid-column:auto!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow:has(.ucalctl){flex-wrap:wrap!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead .phrow > .ucalctl{flex:1 1 100%!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhb{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto auto!important;gap:10px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .uhb > span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ucard .uchips .uchip{white-space:nowrap!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ucard .uct{flex-wrap:wrap;gap:8px}
+  /* Skjöl: flipar birtust tvisvar (pillur + undirflipar) */
+  html:not(#u2a):not(#u2b) body.kerfi #view .phead:has(.simsub) > :is(.seg,.seg + .u2fold){display:none!important}
+  /* Leit í fullri breidd */
+  html:not(#u2a):not(#u2b) body.kerfi #view .ultool .spfilt{flex:1 1 100%;width:100%;max-width:none}
+  /* Listar í lista-dálki: spjald með spássíu í stað kanta upp við skjábrún */
+  html:not(#u2a):not(#u2b) body.kerfi #view .splist > :is(.viewtitle,label,.hint,p){margin-inline:16px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .splist > .llist{margin:0 16px!important;background:var(--surface,#fff);border:0!important;border-radius:22px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,32,.04),0 14px 30px -22px rgba(15,23,32,.28)}
+  html:not(#u2a):not(#u2b) body.kerfi #view .splist > .llist > .lrow{margin:0!important;padding:12px 16px!important;border-radius:0!important;border:0!important;border-top:1px solid var(--line)!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .splist > .llist > .lrow:first-child{border-top:0!important}
+  /* Skýrslur og yfirlit: flísar í einum/tveimur dálkum (stafir brotnuðu niður) */
+  html:not(#u2a):not(#u2b) body.kerfi #view .utiles{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile{min-height:70px!important;padding:12px 14px!important;width:auto!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .udash{grid-template-columns:1fr!important;margin-inline:16px!important;gap:12px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .udash > *{min-width:0;writing-mode:horizontal-tb}
+  /* Dagatal: stjórnhnappar raðast snyrtilega */
+  html:not(#u2a):not(#u2b) body.kerfi #view .ucalctl{flex-wrap:wrap!important;gap:8px!important;justify-content:flex-start!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ucalctl .calseg{flex:1 1 100%!important;width:100%!important;max-width:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .dtnav{justify-content:flex-start!important;gap:8px!important;flex-wrap:wrap!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .dtnav .dtwho{flex:1 1 100%!important;width:100%!important;max-width:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .dtnav .dtwho select{width:100%!important;max-width:none!important;flex:1 1 auto!important;min-width:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .dtnav .dtrng{flex:1 1 auto;text-align:right;margin:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .dtnav .btn.primary{margin-left:auto}
+  html:not(#u2a):not(#u2b) body.kerfi #view .card.dwk{padding:12px 8px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .dwrow.dwh > div{padding:8px 2px!important;font-size:11px!important;text-align:center;line-height:1.25}
+  html:not(#u2a):not(#u2b) body.kerfi #view .dwrow.dwh > div:first-child{text-align:left;padding-left:6px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view label.calwho{margin-top:4px!important}
+  /* Verkefni: titill nýtir breiddina, ⋯ efst til hægri */
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet .udh2{position:relative}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet .udh2 > .udl{padding-right:48px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet .udh2 > .udl > *{max-width:none!important;width:auto!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet .udh2 > .uact{position:absolute;top:8px;right:0;width:auto!important;margin:0!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .spdet .udh2 .ptitle{font-size:26px!important}
+  /* Verkefnisyfirlit: spjöld í eðlilegri hæð (tóm svæði hurfu) */
+  html body.kerfi #view .vs3r3{grid-template-rows:none!important;align-items:start!important;gap:16px!important}
+  html body.kerfi #view .vs3r3 > .vs3c{min-height:0!important}
+  html body.kerfi #view .vs3r3 > .vs3cm{max-height:560px}
+  html body.kerfi #view .vs3r1,html body.kerfi #view .vs3tiles{gap:16px!important}
+  html body.kerfi #view .vs3 {gap:16px}
+  html body.kerfi #view .vs3c{padding:18px 18px!important;border-radius:22px!important}
+  html body.kerfi #view .vs3nx{padding:20px!important}
+}
+/* Lýsing í verkefnisyfirliti: ekki spjald inni í spjaldi */
+html body.kerfi #view .vs3more .vs3g > .card{background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0!important}
