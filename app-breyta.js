@@ -49,7 +49,7 @@ ${window.RL&&RL().length?`<label>Undirflokkur (rekstrarlína)<select id="e-rl"><
     <label>Verkefni<select id="e-proj"><option value="">Ekkert</option>${allProjOpts(x.projectId)}</select></label>
     <label>Efni<textarea id="e-lys">${esc(x.lysing||"")}</textarea></label>`;}
   if(type==="time"){const e=findTime(id); if(!e) return; title="Breyta tímaskráningu";
-    f=`<label>Verkefni<select id="e-proj">${allProjOpts(e.verkefniId)}<option value=""${e.verkefniId?"":" selected"}>Ekkert verkefni (almennt)</option></select></label><label>Undirverk<select id="e-sub"></select></label>
+    f=`<label>Verkefni<select id="e-proj">${allProjOpts(e.verkefniId)}<option value=""${e.verkefniId?"":" selected"}>Ekkert verkefni (almennt)</option></select></label><label class="chk" id="e-rkw" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"${e.verkefniId?" hidden":""}><input type="checkbox" id="e-rukka" style="width:auto;min-height:0"${e.rukka?" checked":""}> Rukka – fer á reikning þótt tíminn sé ekki á verkefni</label><label>Undirverk<select id="e-sub"></select></label>
     <label>Lýsing<input id="e-desc" value="${esc(cleanLys(e.lysing))}" required></label>
     ${window.taxtiSelect?taxtiSelect("e-taxti",e.taxti||""):""}
     <label>Dagsetning<input id="e-date" type="date" value="${dOnly(e.date)}" required></label>
@@ -77,7 +77,7 @@ ${window.RL&&RL().length?`<label>Undirflokkur (rekstrarlína)<select id="e-rl"><
     ps.onchange=()=>{sel=null;fill();}; fill();}
   if(type==="time"){const e=findTime(id); let sel=e.undirverkId; const ps=document.getElementById("e-proj");
     const fill=()=>{const p=findProj(ps.value); document.getElementById("e-sub").innerHTML=`<option value="">Ekkert</option>`+(p?.undirverk||[]).map(u=>opt(u.id,u.heiti,sel)).join("");};
-    ps.onchange=()=>{sel=null;fill();}; fill();}
+    ps.onchange=()=>{sel=null;fill();const w=document.getElementById("e-rkw"); if(w) w.hidden=!!ps.value;}; fill();}
   document.getElementById("editf").onsubmit=ev=>{ev.preventDefault(); saveEdit(type,id);};
 }
 async function saveEdit(type,id){
@@ -133,7 +133,7 @@ async function saveEdit(type,id){
         const oP=sFindP(s,e.verkefniId), oU=e.undirverkId?sFindU(s,e.undirverkId)[1]:null; if(oP) oP.timar=(oP.timar||0)-old; if(oU) oU.timar=(oU.timar||0)-old;
         if(p) p.timar=(p.timar||0)+t; if(u) u.timar=(u.timar||0)+t; s.timar.samtals=(s.timar.samtals||0)+diff;
         if(s.timar.timabil){const was=tPer(e)===s.timar.timabil, now=timabilOf(dt)===s.timar.timabil; s.timar.timabilSamtals=(s.timar.timabilSamtals||0)-(was?old:0)+(now?t:0);}
-        if(q) Object.assign(q,{date:dt,lysing:lys,fra:fr&&to?fr:null,til:fr&&to?to:null,timar:t,starfsmadur:sk,verkefniId:pid,undirverkId:sid||null,nr:u?.nr||p?.nr,timabil:timabilOf(dt),...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null}:{})});
+        if(q) Object.assign(q,{date:dt,lysing:lys,fra:fr&&to?fr:null,til:fr&&to?to:null,timar:t,starfsmadur:sk,verkefniId:pid,undirverkId:sid||null,nr:u?.nr||p?.nr,timabil:timabilOf(dt),...(document.getElementById("e-taxti")?{taxti:val("e-taxti")||null}:{})}); /* 2.146.1: Rukka á tíma án verkefnis */ if(q&&!pid){ if(document.getElementById("e-rukka")?.checked) q.rukka=true; else delete q.rukka; }
         if(s.timar.faerslur) s.timar.nyjast=s.timar.faerslur.slice(0,10);});
     }
     if(type==="kostn"){const pid=val("e-proj"),sid=val("e-sub"),desc=val("e-desc"),dt=val("e-date"),amt=parseKr(val("e-amt")),sk=val("e-starf")||findKostn(id)?.starfsmadur||ME(), file=document.getElementById("e-file")?.files?.[0];
