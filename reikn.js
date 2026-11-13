@@ -367,51 +367,60 @@
   /* ---------- PDF (frá 1.7.0: skjalagerd.js – merki, Manrope, haus og fótur) ---------- */
   async function invoicePdf(R) {
     const P = await DOK.pdf(), { C, M, X1 } = P, s = R.seljandi || {}, b = R.kaupandi || {}, label = NRL(R);
-    let y = P.head(TT(), [[DROG() ? "Drög nr." : "Reikningur nr.", String(R.nr)], ["Dagsetning", dIS(R.dags)], ["Gjalddagi", dIS(R.gjalddagi)]]);
+    // 2.145.11: PDF eins og forskoðunin á skjánum (invoiceHTML) – sama uppsetning, blár hausborði í töflum, greiðandi í ljósum reit
+    const BL = [31, 78, 121], KL = [91, 127, 166], GR = [85, 96, 107], BX = [242, 246, 250], doc = P.doc, L = await DOK.logo();
+    const lh = 30, lw = lh * L.w / L.h; doc.addImage(L.url, "PNG", M, M - 8, lw, lh);
+    P.text(TT(), X1, M + 8, { w: "medium", size: 17, color: C.grafit, align: "right" });
+    { let ry = M + 26; const meta = [[DROG() ? "Drög nr." : "Nr.", String(R.nr), 1], ...(R.bokhaldNr ? [["Reikningur í bókhaldi:", String(R.bokhaldNr), 1]] : []), ["Dags.", dIS(R.dags)], ["Gjalddagi", dIS(R.gjalddagi)]];
+      meta.forEach(([k, v, bold]) => { P.font(bold ? "medium" : "regular", 9); const vw = doc.getTextWidth(v); P.text(v, X1, ry, { w: bold ? "medium" : "regular", size: 9, color: bold ? C.nott : GR, align: "right" }); P.text(k, X1 - vw - 4, ry, { size: 9, color: GR, align: "right" }); ry += 13; }); }
+    let y = M + lh + 14;
+    P.text(s.nafn || "", M, y, { w: "medium", size: 13, color: C.grafit }); y += 16;
+    [[s.kt && "Kt. " + s.kt, s.vsknr && "VSK-nr. " + s.vsknr].filter(Boolean).join(" · "), s.heimilisfang, [s.netfang, s.simi].filter(Boolean).join(" · ")].filter(Boolean).forEach(t => { P.text(t, M, y, { size: 9, color: GR }); y += 12.5; });
+    y = Math.max(y, M + 80) + 12;
     const need = h => { if (y + h > P.H - 60) { P.doc.addPage(); y = P.contHead(label); return true; } return false; };
-    // Seljandi og greiðandi hlið við hlið
-    const col2 = M + (X1 - M) / 2 + 10, sl = [s.nafn, [s.kt && "kt. " + s.kt, s.vsknr && "VSK-nr. " + s.vsknr].filter(Boolean).join(" · "), s.heimilisfang, [s.netfang, s.simi].filter(Boolean).join(" · ")].filter(Boolean);
-    const bl = [b.name, b.kennitala && "kt. " + b.kennitala, b.heimilisfang, [b.postnumer, b.stadur].filter(Boolean).join(" ")].filter(Boolean);
-    P.text("SELJANDI", M, y, { size: 7.5, color: C.stal, space: 1.2 }); P.text("GREIÐANDI", col2, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 15;
-    const rows = Math.max(sl.length, bl.length);
-    for (let i = 0; i < rows; i++) { if (sl[i]) P.text(sl[i], M, y + i * 13, { w: i ? "regular" : "medium", size: i ? 9 : 10 }); if (bl[i]) P.text(bl[i], col2, y + i * 13, { w: i ? "regular" : "medium", size: i ? 9 : 10 }); }
-    y += rows * 13 + 8;
-    const pn = projNames(R); if (pn.length) { P.wrap("Verkefni: " + pn.join(", "), X1 - M, 9).forEach(t => { P.text(t, M, y, { size: 9, color: C.grafit }); y += 12; }); }
-    y += 10;
+    // Greiðandi í ljósum reit
+    { const bl = [b.kennitala && "Kt. " + b.kennitala, b.heimilisfang, [b.postnumer, b.stadur].filter(Boolean).join(" ")].filter(Boolean), bh = 36 + bl.length * 12.5;
+      doc.setFillColor(...BX); doc.roundedRect(M, y, X1 - M, bh, 6, 6, "F");
+      P.text("GREIÐANDI", M + 12, y + 15, { size: 7.5, color: KL, space: 0.8 }); P.text(b.name || "", M + 12, y + 29, { w: "medium", size: 10 });
+      bl.forEach((t, i) => P.text(t, M + 12, y + 42 + i * 12.5, { size: 9.5 })); y += bh + 16; }
+    const pn = projNames(R); if (pn.length) { P.font("regular", 9.5); const lw0 = doc.getTextWidth("Verkefni: "); P.text("Verkefni: ", M, y, { size: 9.5, color: GR });
+      P.wrap(pn.join(", "), X1 - M - lw0, 9.5, "medium").forEach((t, i) => { P.text(t, M + lw0, y, { w: "medium", size: 9.5, color: C.nott }); y += 13; }); }
+    if ((R.pontunIds || []).length) { const pl = R.pontunIds.map(i => PNs().find(x => x.id === i)?.nr || "").filter(Boolean); if (pl.length) { P.text((pl.length > 1 ? "Pantanir: " : "Pöntun: ") + pl.join(", "), M, y, { size: 9.5, color: GR }); y += 13; } }
+    y += 6;
     // Línur
     const X = { d: M + 8, m: 360, e: 368, v: 460, u: X1 - 8 };
-    const head = () => { P.rect(M, y, X1 - M, 22, C.grafit); [["Lýsing", X.d], ["Magn", X.m, "right"], ["Ein.", X.e], ["Einingaverð", X.v, "right"], ["Upphæð", X.u, "right"]].forEach(([t, x, a]) => P.text(t, x, y + 14.5, { w: "medium", size: 8.5, color: C.hvitt, align: a })); y += 22; };
+    const head = () => { P.rect(M, y, X1 - M, 22, BL); [["Lýsing", X.d], ["Magn", X.m, "right"], ["Ein.", X.e], ["Einingaverð", X.v, "right"], ["Upphæð", X.u, "right"]].forEach(([t, x, a]) => P.text(t, x, y + 14.5, { size: 8.5, color: C.hvitt, align: a })); y += 22; };
     head();
-    R.linur.forEach((l, i) => { if (l.haus) { if (need(24)) head(); P.text(l.lysing, X.d, y + 16, { size: 9, w: "medium" }); y += 22; P.line(M, y, X1, y); return; }
-      const ls = P.wrap(l.lysing, X.m - 46 - X.d, 9), h = 10 + ls.length * 12; if (need(h)) head();
-      if (i % 2) P.rect(M, y, X1 - M, h, C.pappir);
-      ls.forEach((t, j) => P.text(t, X.d, y + 14 + j * 12, { size: 9 }));
-      P.text(fx(l.magn), X.m, y + 14, { size: 9, align: "right" }); P.text(l.eining, X.e, y + 14, { size: 9 });
-      P.text(kr(l.verd), X.v, y + 14, { size: 9, align: "right" }); P.text(kr(Math.round(l.magn * l.verd)), X.u, y + 14, { size: 9, w: "medium", align: "right" });
-      y += h; P.line(M, y, X1, y); });
-    need(90); y += 20; const tx = 330;
-    P.text("Samtals án VSK", tx, y, { size: 9.5, color: C.grafit }); P.text(kr(R.net), X1 - 8, y, { size: 9.5, align: "right" }); y += 16;
-    { const vr = vskRows(R); vr.forEach((x, i) => { P.text("VSK " + fx(x.p) + "%" + (vr.length > 1 ? " af " + kr(x.net) : (+x.p ? "" : " (félagið er ekki á VSK-skrá)")), tx, y, { size: 9.5, color: C.grafit }); P.text(kr(x.vsk), X1 - 8, y, { size: 9.5, align: "right" }); y += i < vr.length - 1 ? 16 : 10; }); }
-    P.rect(tx - 8, y, X1 - tx + 8, 30, C.nott); P.text("Samtals til greiðslu", tx, y + 19.5, { w: "medium", size: 10.5, color: C.hvitt }); P.text(kr(R.tot), X1 - 8, y + 19.5, { w: "medium", size: 11.5, color: C.hvitt, align: "right" }); y += 50;
-    if (s.banki) { need(50); P.text("GREIÐSLUUPPLÝSINGAR", M, y, { size: 7.5, color: C.stal, space: 1.2 }); y += 14;
-      if (DROG()) { P.text(DROG_TXT, M, y, { w: "medium", size: 9 }); y += 14; }
-      P.wrap(`Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}, í síðasta lagi ${dIS(R.gjalddagi)}. Vinsamlegast merkið greiðslu með reikningsnúmeri ${R.nr}.`, X1 - M, 9).forEach(t => { P.text(t, M, y, { size: 9 }); y += 12.5; }); }
+    R.linur.forEach(l => { if (l.haus) { if (need(24)) head(); P.rect(M, y, X1 - M, 22, [243, 245, 248]); P.text(l.lysing, X.d, y + 15, { size: 9, w: "medium" }); y += 22; P.line(M, y, X1, y, [227, 232, 238]); return; }
+      const ls = P.wrap(l.lysing, X.m - 46 - X.d, 9), h = 12 + ls.length * 12; if (need(h)) head();
+      ls.forEach((t, j) => P.text(t, X.d, y + 15 + j * 12, { size: 9 }));
+      P.text(fx(l.magn), X.m, y + 15, { size: 9, align: "right" }); P.text(l.eining, X.e, y + 15, { size: 9 });
+      P.text(kr(l.verd), X.v, y + 15, { size: 9, align: "right" }); P.text(kr(Math.round(l.magn * l.verd)), X.u, y + 15, { size: 9, align: "right" });
+      y += h; P.line(M, y, X1, y, [227, 232, 238]); });
+    need(90); y += 18; const tx = X1 - 215;
+    P.text("Samtals án VSK", tx, y, { size: 9.5 }); P.text(kr(R.net), X1, y, { w: "medium", size: 9.5, align: "right" }); y += 16;
+    { const vr = vskRows(R); vr.forEach(x => { P.text("VSK " + fx(x.p) + "%" + (vr.length > 1 ? " af " + kr(x.net) : (+x.p ? "" : " (félagið er ekki á VSK-skrá)")), tx, y, { size: 9.5 }); P.text(kr(x.vsk), X1, y, { w: "medium", size: 9.5, align: "right" }); y += 16; }); }
+    y -= 6; P.line(tx, y, X1, y, BL, 1.5); y += 16;
+    P.text("Samtals til greiðslu", tx, y, { w: "medium", size: 11.5 }); P.text(kr(R.tot), X1, y, { w: "medium", size: 11.5, align: "right" }); y += 26;
+    if (DROG()) { P.text(DROG_TXT, M, y, { w: "medium", size: 9, color: [58, 68, 78] }); y += 16; }
+    if (OGILT(R)) { P.text("ÓGILT " + dIS(R.ogilt || ""), M, y, { w: "medium", size: 9, color: [177, 62, 54] }); y += 16; }
+    if (s.banki) { need(40); y += 2;
+      P.wrap(`Greiðist inn á reikning ${s.banki}${s.kt ? ", kt. " + s.kt : ""}, í síðasta lagi ${dIS(R.gjalddagi)}. Vinsamlegast merkið greiðslu með reikningsnúmeri ${R.nr}.`, X1 - M, 9).forEach(t => { P.text(t, M, y, { size: 9, color: [58, 68, 78] }); y += 12.5; }); }
     // Sundurliðun tíma á nýrri síðu
     const es = entriesOf(R);
     if (es.length) {
       const multi = new Set(es.map(e => e.verkefniId || "")).size > 1;
       P.doc.addPage(); y = P.contHead(label);
-      P.text("Sundurliðun tíma", M, y, { w: "light", size: 16, color: C.grafit }); y += 20;
+      P.text("SUNDURLIÐUN TÍMA", M, y, { size: 8, color: KL, space: 0.8 }); y += 12;
       const D = { d: M + 8, p: M + 72, l: multi ? M + 122 : M + 72, t: 432, k: X1 - 8 };
-      const h2 = () => { P.rect(M, y, X1 - M, 20, C.grafit); [["Dags.", D.d], ...(multi ? [["Verk", D.p]] : []), ["Lýsing", D.l], ["Tími", D.t], ["Klst.", D.k, "right"]].forEach(([t, x, a]) => P.text(t, x, y + 13.5, { w: "medium", size: 8.5, color: C.hvitt, align: a })); y += 20; };
+      const h2 = () => { P.rect(M, y, X1 - M, 20, BL); [["Dags.", D.d], ...(multi ? [["Verk", D.p]] : []), ["Lýsing", D.l], ["Tími", D.t], ["Klst.", D.k, "right"]].forEach(([t, x, a]) => P.text(t, x, y + 13.5, { size: 8.5, color: C.hvitt, align: a })); y += 20; };
       h2();
       es.forEach((e, i) => { const ls = P.wrap(cleanLys(e.lysing) + (e.taxti && window.lidOf && lidOf(e.taxti) ? " (" + lidOf(e.taxti).heiti + ")" : ""), D.t - D.l - 10, 8.5), h = 8 + ls.length * 11.5; if (need(h)) h2();
-        if (i % 2) P.rect(M, y, X1 - M, h, C.pappir);
         P.text(dIS(String(e.date).slice(0, 10)), D.d, y + 12.5, { size: 8.5 }); if (multi) P.text(findProj(e.verkefniId)?.nr || "–", D.p, y + 12.5, { size: 8.5 });
         ls.forEach((t, j) => P.text(t, D.l, y + 12.5 + j * 11.5, { size: 8.5 }));
         P.text(e.fra ? e.fra + (e.til ? "–" + e.til : "") : "", D.t, y + 12.5, { size: 8.5 }); P.text(fx(Math.round((+e.timar || 0) * 100) / 100), D.k, y + 12.5, { size: 8.5, align: "right" });
-        y += h; P.line(M, y, X1, y); });
-      need(24); y += 16; P.text("Samtals", D.d, y, { w: "medium", size: 9 }); P.text(fx(Math.round(sumT(es) * 100) / 100) + " klst.", D.k, y, { w: "medium", size: 9, align: "right" });
+        y += h; P.line(M, y, X1, y, [227, 232, 238]); });
+      need(24); P.line(M, y, X1, y, BL, 1.2); y += 14; P.text("Samtals", D.d, y, { w: "medium", size: 9 }); P.text(fx(Math.round(sumT(es) * 100) / 100) + " klst.", D.k, y, { w: "medium", size: 9, align: "right" });
     }
     return P.finish(label);
   }
