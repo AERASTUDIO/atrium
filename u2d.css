@@ -1224,3 +1224,43 @@ html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile.on{background:var
 html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile.on b{color:var(--on-gra)!important}
 html:not(#u2a):not(#u2b) body.kerfi #view .utiles .utile.utile.on small{color:color-mix(in srgb,var(--on-gra) 72%,transparent)!important}
 html:not(#u2a):not(#u2b) body.kerfi #view .utiles{gap:14px!important}
+/* 2.145.5: tómir listar – Atrium-merkið í hringjum (minni útgáfa), í stað gamla kassans */
+html body.kerfi .u2emps{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:28px 16px!important;color:var(--muted)}
+html body.kerfi .u2empo.sm{width:96px;height:96px;margin:0 0 4px}
+html body.kerfi .u2empo.sm::before{inset:13px}
+html body.kerfi .u2empo.sm::after{width:6px;height:6px;top:15%;right:16%}
+html body.kerfi .u2empo.sm i{width:52px!important;height:52px!important}
+html body.kerfi .u2empo.sm i::before{width:28px;height:28px}
+html body.kerfi .u2emps .lifart{display:none}
+/* 2.145.5: Í dag › Verkefni í gangi (A) */
+html body.kerfi #view .u2pjA .uhch{gap:12px}
+html body.kerfi #view .u2pjs{display:flex;gap:3px;padding:3px;background:var(--hover);border-radius:999px;margin-left:8px}
+html body.kerfi #view .u2pjs button{height:26px;padding:0 11px;border:0;border-radius:999px;background:transparent;font:600 12px Manrope,system-ui,sans-serif;color:var(--muted);cursor:pointer}
+html body.kerfi #view .u2pjs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 4px rgba(15,23,32,.08)}
+html body.kerfi #view .u2pjA .uhch > a{margin-left:auto}
+html:not(#u2a):not(#u2b) body.kerfi #view .u2pA{position:relative;display:flex;flex-direction:column;gap:9px;padding:16px 18px 14px 22px!important;border-radius:20px!important;overflow:hidden}
+html:not(#u2a):not(#u2b) body.kerfi #view .u2pA::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--cc);height:auto!important;right:auto!important}
+html body.kerfi #view .u2pA .u2ph{display:flex;align-items:center;gap:8px}
+html body.kerfi #view .u2pA .u2ph small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi #view .u2pst{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;background:color-mix(in srgb,var(--kacc) 12%,transparent);color:var(--kacc);font-size:11.5px;font-weight:600}
+html body.kerfi #view .u2pst::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+html body.kerfi #view .u2pst.wait{background:var(--waitbg,#FBF0DD);color:var(--t-amb-tx,#8A580E)}
+html body.kerfi #view .u2pt{font-size:15px;font-weight:700;line-height:1.3;color:var(--ink)}
+html body.kerfi #view .u2pn{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink);min-width:0}
+html body.kerfi #view .u2pn svg{flex:none;color:var(--kacc)}
+html body.kerfi #view .u2pn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi #view .u2pA .u2pf{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;padding-top:10px;border-top:1px solid var(--hover);font-size:12px;color:var(--muted);min-height:38px}
+html body.kerfi #view .u2pA .u2pf b{color:var(--ink);font-weight:600}
+html body.kerfi #view .u2plive{font-style:normal;color:var(--t-grn-tx,#2C7A57);font-weight:600}
+html body.kerfi #view .u2psk{margin-left:auto}
+html body.kerfi #view .u2psk.amb{color:var(--t-amb-tx,#8A580E);font-weight:600}
+html body.kerfi #view .u2psk.red{color:var(--t-red,#B13E36);font-weight:600}
+html body.kerfi #view .u2pA .atavs{margin-left:4px}
+html body.kerfi #view .u2pq{display:none;margin-left:auto;gap:6px}
+html body.kerfi #view .u2pq button{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;border-radius:999px;background:var(--hover);color:var(--ink);font:600 12px Manrope,system-ui,sans-serif;cursor:pointer}
+html body.kerfi #view .u2pq button.dk{background:var(--gra);color:var(--on-gra)}
+@media (hover:hover){html body.kerfi #view .u2pA:is(:hover,:focus-within) .u2pq{display:inline-flex} html body.kerfi #view .u2pA:is(:hover,:focus-within) .u2psk{display:none}}
+@media (hover:none){html body.kerfi #view .u2pq{display:inline-flex}}
+html:not(#u2a):not(#u2b) body.kerfi #view .u2pA .u2pf{justify-content:flex-start!important;flex-wrap:nowrap!important}
+html body.kerfi #view .u2pA .u2pf > span{white-space:nowrap}
+@media (hover:hover){html body.kerfi #view .u2pA:is(:hover,:focus-within) .u2pf .atavs{display:none}}

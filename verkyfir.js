@@ -57,6 +57,20 @@
     return `<section class="vs3c vs3nx"><div class="vs3k"><span>Næsta skref</span><em>${E(ihL)}</em></div><h3>${E(t)}</h3>${d ? `<p>${E(d)}</p>` : ""}${B.length || link ? `<div class="vs3bs">${B.join("")}${link}</div>` : ""}</section>`;
   }
 
+  /* ---------- 2.145.5: næsta skref og virkni fyrir Í dag › Verkefni í gangi ---------- */
+  window.vs3Info = function (p) {
+    const api = window.salaAPI, sts = stillOf().filter(x => !x.falin || x.n === p.stada), idx = sts.findIndex(x => x.n === p.stada);
+    const tbs = api ? tr(() => api.TB().filter(T => T.verkefniId === p.id && !T.pontun), []) : [];
+    const live = tr(() => liveProjH(p.id), 0), hours = (+p.timar || 0) + live, ih = tr(() => innheimtaOf(p), "timar");
+    const unb = FIN() && window.rkUnbilledKr ? tr(() => rkUnbilledKr(p.id), 0) : 0;
+    const tbAct = (tr(() => tbProjTab(p), "").match(/data-act="(tbnew:[^"]+)"/) || [])[1] || "";
+    const h = next(p, { sts, idx, tbs, unb, hours, ih, tbAct }), t = (h.match(/<h3>([\s\S]*?)<\/h3>/) || [])[1] || "";
+    const es = tr(() => faerslur(), []).filter(e => e.verkefniId === p.id && !e.live), mon = (() => { const d0 = new Date(); d0.setHours(0, 0, 0, 0); d0.setDate(d0.getDate() - ((d0.getDay() + 6) % 7)); return d0; })();
+    const wk = es.filter(e => new Date(String(e.date).slice(0, 10) + "T12:00:00") >= mon).reduce((a, e) => a + (+e.timar || 0), 0) + live;
+    const last = [p.stofnad_t, ...es.map(e => String(e.date).slice(0, 10) + "T" + (e.til || e.fra || "12:00") + ":00"), ...(p.athugasemdir || []).map(c => c.d), ...(p.saga || []).map(x => x.d)].filter(Boolean).sort().pop() || "";
+    return { next: t.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"'), wk, live: !!live, last, idx, first: idx <= 0, sts };
+  };
+
   /* ---------- Saga verkefnisins (2.145.2) ---------- */
   const who = sk => sk ? tr(() => starfName(sk), sk).split(" ")[0] : "";
   const dt = x => { if (!x) return ""; const s0 = String(x); return s0.length <= 10 ? s0 + "T12:00:00" : s0; };
