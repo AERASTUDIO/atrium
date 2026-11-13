@@ -1354,3 +1354,40 @@ html:not(#u2a):not(#u2b) body.pv.ui1 :is(.snjsw,.usw,.hsw) input:checked+i::afte
 }
 /* Lýsing í verkefnisyfirliti: ekki spjald inni í spjaldi */
 html body.kerfi #view .vs3more .vs3g > .card{background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0!important}
+
+/* ===== 2.145.10 – Í dag í síma ===== */
+@media (max-width:1023px){
+  /* Ein spássía (16 px) eins og á öðrum síðum – var tvöföld (32 px) */
+  html:not(#u2a):not(#u2b) body.kerfi #view > :is(.fsk,.sd){margin-left:0!important;margin-right:0!important}
+  /* Klukka, Dagskrá og Næst: sama spjaldaform og einingarnar */
+  html:not(#u2a):not(#u2b) body.kerfi #view .sd :is(.sdk,.sdlist,.sdp){border:0!important;border-radius:22px!important;box-shadow:0 1px 2px rgba(15,23,32,.04),0 14px 30px -22px rgba(15,23,32,.28)!important;overflow:hidden}
+  html:not(#u2a):not(#u2b) body.kerfi #view .sd :is(.sdk,.sdp){padding:16px 18px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .sd .sdlist .sdrow{padding-inline:18px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .sd .sdpa .btn{border-radius:999px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .sd .u2grid{gap:16px!important}
+  /* Vikan framundan: tómir dagar ein lína, ekki stór tóm hólf */
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2vf2 .u2wk{gap:6px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2vf2 .u2wc:not(:has(.u2wi)){flex-direction:row!important;align-items:center!important;justify-content:space-between;min-height:0!important;padding:10px 14px!important;border-radius:14px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2vf2 .u2wc:not(:has(.u2wi)) .u2wh{padding:0!important;width:auto!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2vf2 .u2wc:not(:has(.u2wi)) .u2we{margin:0!important;width:auto!important;text-align:right}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2vf2 .u2wc:has(.u2wi){min-height:0!important;padding:12px 14px!important;border-radius:14px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2vf2 .u2wc .u2wh{width:auto!important}
+  /* Bíður mín: hnappurinn fer undir textann svo textinn styttist ekki */
+  html:not(#u2a):not(#u2b) body.kerfi #view .ubmc .ubm{flex-wrap:wrap!important;row-gap:8px;margin:0!important;padding:12px 0!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ubmc .ubm > .ubmx{flex:1 1 calc(100% - 24px)!important;min-width:0}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ubmc .ubm > .btn{margin-left:20px!important;height:32px!important;font-size:12.5px!important;padding:0 14px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ubmc .ubm .ubmx *{white-space:normal}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ubmc .ubm > .btn.primary{background:var(--hover,#EEF1F4)!important;color:var(--ink,#0F1720)!important;box-shadow:none!important;border:0!important}
+  /* Verkefni í gangi: haus í tveimur línum, röðun sem jafnbreiðar pillur */
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pjA > .uhch{flex-wrap:wrap!important;row-gap:10px;align-items:center}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pjA > .uhch > h3{flex:1 1 auto;white-space:nowrap;height:auto!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pjA > .uhch > a{flex:none;height:auto!important;white-space:nowrap}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pjA > .uhch > .u2pjs{order:3;flex:1 1 100%!important;width:100%;margin:0!important;display:flex!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pjA > .uhch > .u2pjs > button{flex:1 1 0;white-space:nowrap;padding:0 6px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pjA > .uhch > .u2fold{display:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pjA > .uhch > .u2pjs.u2folded{display:flex!important}
+  /* Verkefnaspjöld: neðsta línan brotnar í stað þess að fara út fyrir */
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pA .u2pf{flex-wrap:wrap!important;row-gap:8px}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pA .u2pf > .u2pq{flex:1 1 100%;justify-content:flex-end;opacity:1!important;visibility:visible!important;transform:none!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view .u2pA .u2pt{white-space:normal}
+}
