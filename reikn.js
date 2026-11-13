@@ -17,7 +17,7 @@
   const addDays = (iso, n) => { const x = d(iso); x.setDate(x.getDate() + n); return isoDay(x); };
   const kaupandi = p => findVsk(p?.vskId) || findVsk(p?.vkId) || null; // greiðandi = viðskiptavinur (verkkaupi aflagður 1.4.0)
   const fx = n => String(n).replace(".", ",");
-  const keyOf = x => x.verkefniId || NONE;
+  const keyOf = x => x.verkefniId || (x.vskId ? "_v:" + x.vskId : NONE); // 2.147.0: tími án verkefnis með viðskiptavin → eigin hópur
   /* 2.122.2: tillaga að númeri sleppir númerum sem eru þegar til (áður kom „Reikningur nr. X er þegar til“ ef næsta númer í stillingum var notað) */
   const nastaLaust = n => { let x = +n || 1001; const used = new Set(reikningar().map(r => +r.nr)); while (used.has(x)) x++; return x; };
   /* Innheimtuháttur verkefnis (2.42.0): timar = tímavinna (tímar × tímagjald rukkaðir); tilbod = fast verð skv. tilboði/pöntun (tímar til yfirsýnar);
@@ -44,7 +44,9 @@
     _obK = [F, K, R, V, C, window.VIEWAS]; _obM = M; return M; };
   const obilled = pid => { const x = obIdx().get(pid || NONE); return { es: x ? x.es.slice() : [], ks: x ? x.ks.slice() : [] }; };
   // Öll verkefni (og „án verkefnis“) sem eiga eitthvað óreikningsfært
-  const openGroups = () => [...verkefni().map(p => p.id), NONE].map(k => ({ k, p: k === NONE ? null : findProj(k), ...obilled(k === NONE ? null : k) })).filter(g => g.es.length || g.ks.length);
+  const openGroups = () => [...verkefni().map(p => p.id), ...[...obIdx().keys()].filter(k => String(k).startsWith("_v:")), NONE].map(k => { const v = String(k).startsWith("_v:") ? (findVsk(k.slice(3)) || { id: k.slice(3), name: "Viðskiptavinur" }) : null; return { k, v, p: k === NONE || v ? null : findProj(k), ...obilled(k === NONE ? null : k) }; }).filter(g => g.es.length || g.ks.length);
+  const gLabel = g => g.p ? g.p.nr + " " + (g.p.stutt || "") : g.v ? "Án verkefnis · " + g.v.name : "Án verkefnis (almennt)";
+  window.rkGroupLabel = gLabel;
   window.rkUnbilled = obilled;
   // Krónur fyrir tímafærslur: hver færsla með gjaldi eigin þjónustu eða gjaldi verkefnisins (projRate)
   const esKr = (es, projRate) => es.reduce((a, e) => a + (+e.timar || 0) * (window.entryRate ? entryRate(e, projRate) : projRate), 0);
@@ -60,7 +62,7 @@
     const o = rkOinnheimt(); if (!o.tot && !full) return "";
     return `<div class="chart"><div class="chh4"><b>Óinnheimt</b><span>${esc(kr(o.tot))} alls</span></div>
       <div class="chkpi"><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ub))}</b><span>óreikningsfært · ${esc(num(Math.round(o.h * 10) / 10))} klst.${o.pn.length ? " · " + o.pn.length + (o.pn.length === 1 ? " pöntun" : " pantanir") : ""}</span></a><a class="tap" data-act="tab:trk"><b>${esc(kr(o.ogKr))}</b><span>ógreiddir reikningar · ${o.og.length}</span></a>${o.late.length ? `<a class="tap late" data-act="tab:trk"><b>${esc(kr(o.lateKr))}</b><span>fram yfir gjalddaga</span></a>` : ""}</div>
-      ${o.gs.length ? `<div class="chh" style="margin-top:12px">${o.gs.slice(0, full ? 50 : 5).map(g => { const mx = o.gs[0].kr || 1; return `<a class="chr tap" ${g.p ? `data-open="verk:${esc(g.p.id)}"` : `data-act="tab:trk"`}><span class="chrl">${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt || "")}` : "Almennt"}</span><span class="chrb"><i style="width:${Math.max(2, Math.round(g.kr / mx * 100))}%"></i></span><span class="chrv">${esc(kr(g.kr))}</span></a>`; }).join("")}</div>` : ""}
+      ${o.gs.length ? `<div class="chh" style="margin-top:12px">${o.gs.slice(0, full ? 50 : 5).map(g => { const mx = o.gs[0].kr || 1; return `<a class="chr tap" ${g.p ? `data-open="verk:${esc(g.p.id)}"` : `data-act="tab:trk"`}><span class="chrl">${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt || "")}` : esc(gLabel(g))}</span><span class="chrb"><i style="width:${Math.max(2, Math.round(g.kr / mx * 100))}%"></i></span><span class="chrv">${esc(kr(g.kr))}</span></a>`; }).join("")}</div>` : ""}
       <p class="hint" style="margin:10px 0 0">Óreikningsfært er reiknað með tímagjaldi úr verðskrá, án VSK. Ógreiddir reikningar eru með VSK.</p></div>`;
   };
   window.rkFind = findR; window.rkVidbunadur = id => { const R = findR(id); return R ? vidbunadur(R) : []; };
@@ -228,8 +230,8 @@
 
   function buildLines(groups, sund) {
     const multi = groups.length > 1, L = [];
-    groups.forEach(({ p, es, ks, verd }) => {
-      const pre = multi ? (p ? p.nr + " · " : "Almennt · ") : "";
+    groups.forEach(({ p, v, es, ks, verd }) => {
+      const pre = multi ? (p ? p.nr + " · " : v ? v.name + " · " : "Almennt · ") : "";
       // Hver færsla fær gjald eigin þjónustu (e.taxti) ef hún er önnur en verkefnisins, annars gjald verkefnisins
       const ev = e => window.entryRate ? entryRate(e, verd) : verd, tx = e => (ev(e) !== verd && e.taxti && window.lidOf) ? lidOf(e.taxti) : null;
       if (sund) es.slice().sort((a, b) => String(a.date + (a.fra || "")).localeCompare(String(b.date + (b.fra || "")))).forEach(e => L.push({ flokkur: "vinna", lysing: pre + dIS(String(e.date).slice(0, 10)) + " – " + cleanLys(e.lysing) + (tx(e) ? " (" + tx(e).heiti + ")" : ""), magn: Math.round((+e.timar || 0) * 100) / 100, eining: "klst.", verd: ev(e) }));
@@ -255,9 +257,9 @@
     const groups = openGroups(), rk = RK();
     if (!groups.length) { toast("Ekkert óreikningsfært."); return; }
     if (pid && !groups.some(g => g.k === pid)) { toast("Engir óreikningsfærðir tímar eða kostnaður á verkefninu."); return; }
-    const p0 = pid ? findProj(pid) : null, buyer0 = kaupandi(p0) || kaupandi(groups.find(g => g.p)?.p);
+    const p0 = pid ? findProj(pid) : null, buyer0 = kaupandi(p0) || kaupandi(groups.find(g => g.p)?.p) || (groups.find(g => g.v)?.v && findVsk(groups.find(g => g.v).v.id)) || null;
     const missing = !rk.kt || (!rk.banki && !["dk", "payday"].includes(rk.bokhald)); // 2.118.1: með bókhaldstengingu sér bókhaldskerfið um greiðsluupplýsingar (t.d. krafa í netbanka)
-    const grpHTML = g => `<details class="rkg" data-g="${esc(g.k)}"><summary><label class="rkrow rkgh" onclick="event.stopPropagation()"><input type="checkbox" data-gall="${esc(g.k)}"><span><b>${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt)}` : "Án verkefnis (almennt)"}</b></span><b class="rkgt"></b></label></summary>
+    const grpHTML = g => `<details class="rkg" data-g="${esc(g.k)}"><summary><label class="rkrow rkgh" onclick="event.stopPropagation()"><input type="checkbox" data-gall="${esc(g.k)}"><span><b>${g.p ? `<span class="nr">${esc(g.p.nr)}</span> ${esc(g.p.stutt)}` : esc(gLabel(g))}</b></span><b class="rkgt"></b></label></summary>
       <div class="rkgb">${g.es.length ? `<label class="rkrate">Tímagjald kr./klst.<input data-rate="${esc(g.k)}" inputmode="numeric" value="${rate(g.p) || ""}" placeholder="t.d. 15000"></label>` : ""}
       <div class="rkpick">${g.es.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).map(e => `<label class="rkrow"><input type="checkbox" data-rke="${esc(e.id)}" data-gk="${esc(g.k)}"><span>${esc(dIS(String(e.date).slice(0, 10)))} · ${esc(cleanLys(e.lysing))}${e.taxti && window.lidOf && lidOf(e.taxti) ? ` <span class="tag">${esc(lidOf(e.taxti).heiti)}</span>` : ""}</span><b>${esc(hrs(e.timar))}</b></label>`).join("")}
       ${g.ks.map(k => `<label class="rkrow"><input type="checkbox" data-rkk="${esc(k.id)}" data-gk="${esc(g.k)}"><span>${esc(dIS(k.date))} · 🧾 ${esc(k.lysing)}</span><b>${esc(kr(k.upphaed))}</b></label>`).join("")}</div></div></details>`;
@@ -278,15 +280,15 @@
     sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden = false;
     const Q = sel => [...sheet.querySelectorAll(sel)];
     const setGroup = (k, on) => { Q(`[data-gk="${CSS.escape(k)}"]`).forEach(c => c.checked = on); };
-    const mine = (g, bid) => !!(bid && g.p && (sameId(g.p.vkId, bid) || sameId(g.p.vskId, bid)));
+    const mine = (g, bid) => !!(bid && ((g.p && (sameId(g.p.vkId, bid) || sameId(g.p.vskId, bid))) || (g.v && sameId(g.v.id, bid))));
     const defaults = () => { const bid = val("rk-buyer"); groups.forEach(g => setGroup(g.k, mine(g, bid))); };
-    const sel = () => groups.map(g => ({ k: g.k, p: g.p, verd: parseKr(sheet.querySelector(`[data-rate="${CSS.escape(g.k)}"]`)?.value), es: g.es.filter(e => sheet.querySelector(`[data-rke="${CSS.escape(e.id)}"]`)?.checked), ks: g.ks.filter(k => sheet.querySelector(`[data-rkk="${CSS.escape(k.id)}"]`)?.checked) })).filter(g => g.es.length || g.ks.length);
+    const sel = () => groups.map(g => ({ k: g.k, p: g.p, v: g.v, verd: parseKr(sheet.querySelector(`[data-rate="${CSS.escape(g.k)}"]`)?.value), es: g.es.filter(e => sheet.querySelector(`[data-rke="${CSS.escape(e.id)}"]`)?.checked), ks: g.ks.filter(k => sheet.querySelector(`[data-rkk="${CSS.escape(k.id)}"]`)?.checked) })).filter(g => g.es.length || g.ks.length);
     const upd = () => {
       groups.forEach(g => { const cs = Q(`[data-gk="${CSS.escape(g.k)}"]`), n = cs.filter(c => c.checked).length, h = sheet.querySelector(`[data-gall="${CSS.escape(g.k)}"]`);
         h.checked = n > 0 && n === cs.length; h.indeterminate = n > 0 && n < cs.length;
         const s = sel().find(x => x.k === g.k); sheet.querySelector(`.rkg[data-g="${CSS.escape(g.k)}"] .rkgt`).textContent = s ? [s.es.length ? hrs(sumT(s.es)) : "", s.ks.length ? kr(sumK(s.ks)) : ""].filter(Boolean).join(" + ") : ""; });
       const G = sel(), L = buildLines(G, document.getElementById("rk-sund").checked), t = totals(L, +RK().vsk || 0);
-      document.getElementById("rk-sum").innerHTML = G.length ? `${G.map(g => `<div class="sub-i"><span>${esc(g.p ? g.p.nr + " " + g.p.stutt : "Almennt")}${g.es.length ? ` · ${num(sumT(g.es))} klst.${g.es.every(e => (window.entryRate ? entryRate(e, g.verd) : g.verd) === g.verd) ? " × " + esc(kr(g.verd)) : ""}` : ""}</span><b>${esc(kr(Math.round(esKr(g.es, g.verd)) + sumK(g.ks)))}</b></div>`).join("")}
+      document.getElementById("rk-sum").innerHTML = G.length ? `${G.map(g => `<div class="sub-i"><span>${esc(g.p ? g.p.nr + " " + g.p.stutt : g.v ? g.v.name : "Almennt")}${g.es.length ? ` · ${num(sumT(g.es))} klst.${g.es.every(e => (window.entryRate ? entryRate(e, g.verd) : g.verd) === g.verd) ? " × " + esc(kr(g.verd)) : ""}` : ""}</span><b>${esc(kr(Math.round(esKr(g.es, g.verd)) + sumK(g.ks)))}</b></div>`).join("")}
         ${t.vskSund.map(x => `<div class="sub-i"><span>VSK ${esc(fx(x.p))}%${t.vskSund.length > 1 ? " af " + esc(kr(x.net)) : ""}</span><b>${esc(kr(x.vsk))}</b></div>`).join("")}<div class="sub-i" style="font-size:16px"><span>Samtals til greiðslu</span><b>${esc(kr(t.tot))}</b></div>` : `<span class="hint">Ekkert valið.</span>`; };
     Q("[data-gall]").forEach(h => h.addEventListener("change", () => { setGroup(h.dataset.gall, h.checked); h.closest("details").open = h.checked; upd(); }));
     sheet.addEventListener("input", upd); sheet.addEventListener("change", e => { if (!e.target.dataset.gall) upd(); });
@@ -565,7 +567,7 @@
   };
   window.rkTimarSection = function () {
     const gs = FJ() ? openGroups().sort((a, b) => sumT(b.es) - sumT(a.es)) : [];
-    const open = gs.length ? `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Óreikningsfært${MCP ? `<a class="plink" data-act="rknew:" style="margin-left:auto">+ Nýr reikningur</a>` : ""}</div>${llist(gs.map(g => `<div class="lrow"><div class="lm"><div class="lt">${g.p ? `<span class="nr">${esc(g.p.nr)}</span>&nbsp; ${esc(g.p.stutt)}` : "Án verkefnis (almennt)"}</div><div class="ls">${esc([g.es.length ? hrs(sumT(g.es)) : "", g.ks.length ? kr(sumK(g.ks)) + " kostnaður" : "", rate(g.p) ? "≈ " + kr(sumT(g.es) * rate(g.p) + sumK(g.ks)) + " án VSK" : ""].filter(Boolean).join(" · "))}</div></div>${MCP ? `<button type="button" class="btn" data-act="rknew:${esc(g.k)}" style="flex:none">Reikningsfæra</button>` : ""}</div>`))}` : "";
+    const open = gs.length ? `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Óreikningsfært${MCP ? `<a class="plink" data-act="rknew:" style="margin-left:auto">+ Nýr reikningur</a>` : ""}</div>${llist(gs.map(g => `<div class="lrow"><div class="lm"><div class="lt">${g.p ? `<span class="nr">${esc(g.p.nr)}</span>&nbsp; ${esc(g.p.stutt)}` : esc(gLabel(g))}</div><div class="ls">${esc([g.es.length ? hrs(sumT(g.es)) : "", g.ks.length ? kr(sumK(g.ks)) + " kostnaður" : "", rate(g.p) ? "≈ " + kr(sumT(g.es) * rate(g.p) + sumK(g.ks)) + " án VSK" : ""].filter(Boolean).join(" · "))}</div></div>${MCP ? `<button type="button" class="btn" data-act="rknew:${esc(g.k)}" style="flex:none">Reikningsfæra</button>` : ""}</div>`))}` : "";
     return (FJ() ? `<div style="margin-top:14px">${rkOinnheimtCard(true)}</div>` : "") + open + rkList(null, "Reikningar");
   };
   window.rkTag = e => e.reikningur ? (findR(e.reikningur) ? "Reikn. " + findR(e.reikningur).nr : "Reikningsfært") : "";

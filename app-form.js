@@ -127,7 +127,7 @@ function drawForm(){
     <label>Verkefni<select id="f-proj"><option value="">Ekkert</option>${projOpts(true)}</select></label>
     <label>Efni<textarea id="f-note" placeholder="Valfrjálst"></textarea></label>`;
   if(kind==="tima") f=`${window.isVett&&isVett()?"":subseg}<label>Verkefni<select id="f-proj">${projOpts(true)}${window.isVett&&isVett()?"":`<option value="">Ekkert verkefni (almennt)</option>`}</select></label>
-    ${window.isVett&&isVett()?"":`<label class="chk" id="f-rkw" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)" hidden><input type="checkbox" id="f-rukka" style="width:auto;min-height:0"> Rukka – fer á reikning þótt tíminn sé ekki á verkefni</label>`}
+    ${window.isVett&&isVett()?"":`<label class="chk" id="f-rkw" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)" hidden><input type="checkbox" id="f-rukka" style="width:auto;min-height:0"> Rukka – fer á reikning þótt tíminn sé ekki á verkefni</label><label id="f-vskw" hidden>Viðskiptavinur <small>· sá sem tíminn er rukkaður á</small><select id="f-vsk"><option value="">– Velja síðar á reikningi –</option>${vskList().map(c=>`<option value="${esc(c.id)}"${false?" selected":""}>${esc(c.name)}</option>`).join("")}</select></label>`}
     <label>Undirverk<select id="f-sub"></select></label>
     <label>Lýsing<input id="f-desc" required placeholder="Hvað var gert" value="${esc(PREFILL?.desc||"")}"></label>
     ${!PREFILL?.timer&&window.taxtiSelect&&!(window.isVett&&isVett())?taxtiSelect("f-taxti",""):""}
@@ -165,7 +165,7 @@ function drawForm(){
   sheet.querySelectorAll(".seg2 button").forEach(b=>b.onclick=()=>{kind=b.dataset.k2;drawForm();});
   document.getElementById("f-cancel").onclick=closeSheet;
   const ps=document.getElementById("f-proj");
-  /* 2.146.1: Rukka sýnilegt þegar ekkert verkefni er valið */ if(ps&&kind==="tima"){const rw=document.getElementById("f-rkw"), sy=()=>{if(rw) rw.hidden=!!ps.value;}; ps.addEventListener("change",sy); setTimeout(sy,0);}
+  /* 2.146.1: Rukka sýnilegt þegar ekkert verkefni er valið */ if(ps&&kind==="tima"){const rw=document.getElementById("f-rkw"), vw=document.getElementById("f-vskw"), sy=()=>{if(rw) rw.hidden=!!ps.value; if(vw) vw.hidden=!!ps.value||!document.getElementById("f-rukka")?.checked;}; ps.addEventListener("change",sy); document.getElementById("f-rukka")?.addEventListener("change",sy); setTimeout(sy,0);}
   const syncSub=()=>{const p=verkefni().find(x=>x.id===ps?.value);
     const s=document.getElementById("f-sub"); if(s) s.innerHTML=`<option value="">Ekkert</option>`+(p?.undirverk||[]).filter(u=>u.stada!=="Done").map(u=>`<option value="${esc(u.id)}"${ctxProj()?.u?.id===u.id?" selected":""}>${esc(u.heiti)}</option>`).join("");
     const h=document.getElementById("f-nr"); if(h&&p) h.innerHTML=`Fær verknúmerið <b class="nr">${nextSubNr(p)}</b>.`;};
@@ -374,7 +374,7 @@ async function save(ev){
       const id=newId();
       await saveSnapshot(s=>{const p=sFindP(s,pid), u=sid?sFindU(s,sid)[1]:null; if(p) p.timar=(p.timar||0)+t; if(u) u.timar=(u.timar||0)+t;
         s.timar=s.timar||{}; s.timar.samtals=(s.timar.samtals||0)+t; if(!s.timar.timabil||timabilOf(dt)===s.timar.timabil) s.timar.timabilSamtals=(s.timar.timabilSamtals||0)+t;
-        const L=sTimes(s); L.unshift({id,date:dt,lysing:lys,nr:u?.nr||p?.nr,verkefniId:pid,undirverkId:sid||null,fra:fr&&to?fr:null,til:fr&&to?to:null,timar:t,starfsmadur:sk,timabil:timabilOf(dt),taxti:val("f-taxti")||null,...(!pid&&document.getElementById("f-rukka")?.checked?{rukka:true}:{})});
+        const L=sTimes(s); L.unshift({id,date:dt,lysing:lys,nr:u?.nr||p?.nr,verkefniId:pid,undirverkId:sid||null,fra:fr&&to?fr:null,til:fr&&to?to:null,timar:t,starfsmadur:sk,timabil:timabilOf(dt),taxti:val("f-taxti")||null,...(!pid&&document.getElementById("f-rukka")?.checked?{rukka:true,...(val("f-vsk")?{vskId:val("f-vsk")}:{})}:{})});
         L.sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||"")))); s.timar.nyjast=L.slice(0,10);});
       toast(`Skráð: ${hrs(t)}`);
     }
