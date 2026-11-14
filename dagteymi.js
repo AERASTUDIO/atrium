@@ -71,6 +71,9 @@
         if (nakv && e.fra && e.til) { const v = e.verkefniId && tr(() => findProj(e.verkefniId), null); put(d, { k: "t", t: e.fra, e: e.til, txt: "Skráð · " + (v ? (v.nr || "") + " " + (v.stutt || "") : (e.lysing || "án verkefnis")), open: v ? "verk:" + v.id : "" }); return; }
         const k = d + "|" + (e.verkefniId || ""); sum.set(k, (sum.get(k) || 0) + (+e.timar || 0)); });
       sum.forEach((h, k) => { const [d, pid] = k.split("|"), v = pid && tr(() => findProj(pid), null); put(d, { k: "t", t: "", txt: (Math.round(h * 10) / 10).toString().replace(".", ",") + " klst. · " + (v ? (v.nr || "") + " " + (v.stutt || "") : "án verkefnis"), open: v ? "verk:" + v.id : "" }); }); }
+    // 2.151.2: verk á vikuplani sem viðkomandi er settur á (dagsverk) – í hans dagatali í Fólk
+    (Array.isArray(S?.dagsverk) ? S.dagsverk : []).forEach(D => { if (!p.sk || !(D.menn || []).includes(p.sk) || !D.dagur) return; const f0 = String(D.dagur).slice(0, 10), t0 = D.til && D.til > f0 ? String(D.til).slice(0, 10) : f0;
+      days.forEach(d => { if (d >= f0 && d <= t0) put(d, { k: "v", t: "", txt: (D.kl ? D.kl + " " : "") + (D.heiti || "Verk") + (D.lokid ? " ✓" : ""), open: "", act: "dvopn:" + D.id }); }); });
     // Pantanir: afhending og skil
     tr(() => window.salaAPI.PN(), []).forEach(P => { if (!p.sk || !(P.starfsmenn || []).includes(p.sk) || ["Skilað", "Lokið"].includes(P.stada)) return;
       const f0 = String(P.fra || "").slice(0, 10), t0 = String(P.til || "").slice(0, 10);
@@ -310,7 +313,7 @@
     const SEL = new Set(D?.menn || []);
     sheet.innerHTML = `<h3 id="sheet-h">${D ? "Verk" : "Nýtt verk"}</h3><form id="dvf" novalidate>
       <label>Hvað þarf að gera<input id="dv-h" required placeholder="T.d. Ganga frá á lager, uppsetning í sal" value="${E(D?.heiti || "")}"></label>
-      <label>Tengist<input id="dv-l" list="dv-ll" placeholder="Verkefni eða pöntun – autt = innra verk" autocomplete="off" value="${E(curL?.l || "")}"><datalist id="dv-ll">${TL.map(x => `<option value="${E(x.l)}"></option>`).join("")}</datalist></label>
+      <label>Tengist<select id="dv-l"><option value="">Innra verk – engin mappa</option>${[["Verkefni", x => !x.pnid], ["Pantanir", x => !!x.pnid]].map(([g, f]) => { const xs = TL.map((x, k) => [x, k]).filter(([x]) => f(x)); return xs.length ? `<optgroup label="${g}">${xs.map(([x, k]) => `<option value="${k}"${x === curL ? " selected" : ""}>${E(x.l.replace(/^(Verkefni|Pöntun) · /, ""))}</option>`).join("")}</optgroup>` : ""; }).join("")}</select></label>
       <p class="hint" id="dv-lh" style="margin:-4px 0 10px"></p>
       <div class="three"><label>Dagur<input id="dv-d" type="date" required value="${E(D?.dagur || d || today())}"></label><label>Til (ef fleiri dagar)<input id="dv-t" type="date" value="${E(D?.til || "")}"></label><label>Klukkan<input id="dv-k" type="text" inputmode="decimal" maxlength="5" placeholder="valfrjálst" data-t24 value="${E(D?.kl || "")}"></label></div>
       <div class="kind" style="margin:12px 0 6px">Hver tekur það</div>
@@ -321,7 +324,7 @@
       <div id="f-msg"></div><div class="actions">${D ? `<button type="button" class="btn" id="dv-del" style="margin-right:auto">Eyða</button>` : ""}<button type="button" class="btn" id="dv-x">Hætta við</button><button class="btn primary" id="dv-ok">${D ? "Vista" : "Setja á vikuplan"}</button></div></form>`;
     sheetwrap.hidden = false; setTimeout(() => document.getElementById(D ? "dv-q" : "dv-h")?.focus(), 50);
     const $ = i => document.getElementById(i), nmOf = sk => (PP.find(p => p.sk === sk)?.nafn) || sk;
-    const lh = () => { const v = $("dv-l").value.trim(), L = TL.find(x => x.l === v); $("dv-lh").textContent = !v ? "Innra verk – fær enga möppu, ekkert verknúmer og fer ekki á reikning. Birtist á vikuplaninu og hjá þeim sem taka það." : L ? "" : "Veldu úr listanum, eða hafðu autt fyrir innra verk."; };
+    const lh = () => { const v = $("dv-l").value, L = v === "" ? null : TL[+v]; $("dv-lh").textContent = !v ? "Innra verk – fær enga möppu, ekkert verknúmer og fer ekki á reikning. Birtist á vikuplaninu og hjá þeim sem taka það." : L ? "" : "Veldu úr listanum, eða hafðu autt fyrir innra verk."; };
     const ar = () => { const dg = $("dv-d").value; if (!dg || !SEL.size) { $("dv-ar").textContent = ""; return; }
       const R = tr(() => verkItems([dg]), new Map()), xs = (R.get(dg) || []).filter(it => it.id !== D?.id);
       $("dv-ar").textContent = [...SEL].map(sk => { const c = xs.filter(it => (it.menn || []).includes(sk)).length; return c ? `${nmOf(sk).split(" ")[0]} á ${c} ${c === 1 ? "annað verk" : "önnur verk"} þennan dag.` : ""; }).filter(Boolean).join(" "); };
@@ -333,12 +336,12 @@
     $("dv-sel").onclick = e => { const b = e.target.closest("[data-rm]"); if (b) { SEL.delete(b.dataset.rm); paint(); } };
     $("dv-opts").onclick = e => { const b = e.target.closest("[data-add]"); if (b) { SEL.add(b.dataset.add); $("dv-q").value = ""; paint(); $("dv-q").focus(); } };
     $("dv-q").oninput = paint; $("dv-q").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); const b = $("dv-opts").querySelector("[data-add]"); if (b) b.click(); } };
-    $("dv-l").oninput = lh; $("dv-d").onchange = ar; lh(); paint();
+    $("dv-l").onchange = lh; $("dv-d").onchange = ar; lh(); paint();
     $("dv-x").onclick = closeSheet;
     if (D) $("dv-del").onclick = async () => { if (!await atrJa(`Eyða verkinu „${D.heiti || "Verk"}“?`, { ja: "Eyða", haetta: true })) return;
       await saveSnapshot(s => { s.dagsverk = (s.dagsverk || []).filter(x => x.id !== D.id); }); closeSheet(); toast("Verki eytt"); };
     $("dvf").onsubmit = async e => { e.preventDefault(); const say = t2 => { $("f-msg").innerHTML = `<div class="msg err">${E(t2)}</div>`; };
-      const h = $("dv-h").value.trim(), dg = $("dv-d").value, tl2 = $("dv-t").value, lv = $("dv-l").value.trim(), L = lv ? TL.find(x => x.l === lv) : null;
+      const h = $("dv-h").value.trim(), dg = $("dv-d").value, tl2 = $("dv-t").value, lv = $("dv-l").value, L = lv === "" ? null : TL[+lv] || null;
       const nt = v => { v = String(v || "").trim().replace(/[.,]/, ":"); if (!v) return ""; if (/^\d{1,2}$/.test(v)) v += ":00"; const m2 = v.match(/^(\d{1,2}):(\d{2})$/); return m2 && +m2[1] < 24 && +m2[2] < 60 ? pad(+m2[1]) + ":" + m2[2] : null; };
       const kl = nt($("dv-k").value);
       if (!h) return say("Skrifaðu hvað þarf að gera."); if (!dg) return say("Veldu dag."); if (lv && !L) return say("Veldu verkefni eða pöntun úr listanum, eða hafðu reitinn auðan fyrir innra verk.");
