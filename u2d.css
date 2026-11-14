@@ -1646,3 +1646,19 @@ html:not(#u2a):not(#u2b) body.kerfi #view .vslist{margin:28px 0!important;gap:28
 html:not(#u2a):not(#u2b) body.kerfi #view .ukps.k4:has(+ .vsinfo){display:grid!important;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))!important}
 html:not(#u2a):not(#u2b) body.kerfi #view .vslist .ush2{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 8px}
 html:not(#u2a):not(#u2b) body.kerfi #view .ukps.k4:has(+ .vsinfo) .ukp b{font-size:26px!important;line-height:1.15}
+/* 2.152.3: Yfirlitsskjáir – jafnhá spjöld í hverri röð, dálkar standast á milli raða, númer án kassa */
+@media (min-width:1024px){
+  html:not(#u2a):not(#u2b) body.kerfi #view :is(.udash,.ydash){align-items:stretch!important;gap:20px!important;margin-top:20px!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view :is(.udash,.ydash) > .ucard{margin:0!important;height:auto}
+  html:not(#u2a):not(#u2b) body.kerfi #view .yfk{gap:20px}
+  html:not(#u2a):not(#u2b) body.kerfi #view .ukps.k4{gap:20px!important}
+}
+@media (min-width:1181px){
+  html:not(#u2a):not(#u2b) body.kerfi #view :is(.ydash.y11,.ydash.y21){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  html:not(#u2a):not(#u2b) body.kerfi #view :is(.ydash.y11,.ydash.y21) > :first-child{grid-column:span 2}
+}
+html:not(#u2a):not(#u2b) body.kerfi #view .gnr{background:none;padding:0;border-radius:0;font-size:inherit;font-weight:500;letter-spacing:0;color:var(--muted);margin-right:7px;vertical-align:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp > span a{color:var(--kacc);text-decoration:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .rlbar:has(+ :is(.yfk,.ukps)){margin:-20px 0 20px!important;max-width:100%}
+html:not(#u2a):not(#u2b) body.kerfi #view .ikstrip{border:0!important;border-radius:26px!important;box-shadow:var(--e1);padding:16px 24px!important;margin:20px 0 0!important;background:var(--surface,#fff)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfk + .pdstrip{margin-top:20px!important}

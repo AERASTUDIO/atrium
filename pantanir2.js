@@ -799,7 +799,7 @@
     if (!D && /^(pnyf|pantanir|pnl|pns|pnt)$/.test(t)) {
       const ph = root.querySelector(".phead .phrow, .uhead"), nb = ph && (ph.querySelector('[data-act^="fabnew"]') || ph.querySelector(".btn.primary"));
       if (nb && ed() && !root.querySelector('[data-pf="mail"]')) nb.insertAdjacentHTML("beforebegin", `<button type="button" class="btn pfmailb" data-pf="mail:" title="Ný pöntun úr pósti eða sniðmáti">Úr pósti / sniðmáti</button>`);
-      if (t === "pnyf" && !root.querySelector(".pdstrip")) { const k = root.querySelector(".ukps"); if (k) k.insertAdjacentHTML("afterend", stripHTML()); else { const h = root.querySelector(".uhead"); h ? h.insertAdjacentHTML("afterend", stripHTML()) : root.insertAdjacentHTML("afterbegin", stripHTML()); } }
+      if (t === "pnyf" && !root.querySelector(".pdstrip")) { const k = root.querySelector(".yfk, .ukps"); if (k) k.insertAdjacentHTML("afterend", stripHTML()); else { const h = root.querySelector(".uhead"); h ? h.insertAdjacentHTML("afterend", stripHTML()) : root.insertAdjacentHTML("afterbegin", stripHTML()); } }
       if (t === "pnyf" && FERD() && !root.querySelector(".pfferd")) { const at = root.querySelector(".uh3") || root.querySelector(".foot") ; const h = ferdHTML(); at ? at.insertAdjacentHTML("beforebegin", h) : root.insertAdjacentHTML("beforeend", h); }
     }
   }

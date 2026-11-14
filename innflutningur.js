@@ -590,7 +590,7 @@
       }
     }
     let t = null; try { t = tab; } catch (e) {}
-    if (!D && t === "pnyf" && !root.querySelector(".ikstrip")) { const h = stripHTML(); if (h) { const at = root.querySelector(".pdstrip") || root.querySelector(".ukps"); at ? at.insertAdjacentHTML("afterend", h) : (root.querySelector(".splist") || root).insertAdjacentHTML("afterbegin", h); } }
+    if (!D && t === "pnyf" && !root.querySelector(".ikstrip")) { const h = stripHTML(); if (h) { const at = root.querySelector(".pdstrip") || root.querySelector(".yfk, .ukps"); at ? at.insertAdjacentHTML("afterend", h) : (root.querySelector(".splist") || root).insertAdjacentHTML("afterbegin", h); } }
   }
   const hook = () => { if (typeof window.render !== "function" || window.render.__ik) return false; const o = window.render; window.render = function () { const r = o.apply(this, arguments); try { decorate(); } catch (e) { console.warn("innflutningur", e); } return r; }; window.render.__ik = true; try { render = window.render; } catch (e) {} return true; };
   if (!hook()) { const iv = setInterval(() => { if (hook()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 15000); }

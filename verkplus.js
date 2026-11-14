@@ -50,16 +50,20 @@
       tekjur = rk + tr(() => rkUnbilledKr(p.id), 0); grunnur = "reikningsfært og óreikningsfært"; }
     else if (ih === "tilbod") { tekjur = tb + utl + auk; grunnur = tbs.length ? "samþykkt tilboð" : "tilboðsupphæð"; }
     else { tekjur = auk; grunnur = "ekki rukkað"; }
-    const kostnadur = vinna + utl, fr = tekjur - kostnadur, pct = tekjur ? fr / tekjur : null;
+    // 2.152.3: kostnaðarverð seldra vara í samþykktum tilboðum (fast verð) – úr reikni (l.ik.kostn) eða innkaupsverði vörunnar
+    const vkOf = T => { const f = tr(() => window.innflFramlegd ? innflFramlegd(T) : null, null); if (f) return { k: +f.kostn || 0, v: +f.vant || 0 };
+      let k = 0, v = 0; (T.linur || []).filter(l => l.teg === "sala" && !l.aukagjald).forEach(l => { const ik = l.ik && l.ik.kostn != null ? +l.ik.kostn : +(tr(() => api.VR().find(x => String(x.id) === String(l.v)), null)?.innkaupsverd) || 0; if (ik) k += ik * (+l.magn || 0); else v++; }); return { k, v }; };
+    const vkL = ih === "tilbod" ? tbs.map(vkOf) : [], vorur = vkL.reduce((a, x) => a + x.k, 0), vorVant = vkL.reduce((a, x) => a + x.v, 0);
+    const kostnadur = vinna + utl + vorur, fr = tekjur - kostnadur, pct = tekjur ? fr / tekjur : null;
     // Spá: fast verð með áætlun – áætlaðir heildartímar út frá framvindu undirverka (eða áætlun), kostnaður hækkar en tekjur ekki
     let spa = null; const a = +p.aklst || 0, subs = p.undirverk || [], dn = subs.filter(u => u.stada === "Done").length;
     if (ih !== "timar" && (a || subs.length) && h > 0) {
-      const r = subs.length ? dn / subs.length : 0, projH = Math.max(h, r >= 0.2 ? h / r : a || h), avgKv = h ? vinna / h : 0, pc = projH * avgKv + utl, pf = tekjur - pc;
+      const r = subs.length ? dn / subs.length : 0, projH = Math.max(h, r >= 0.2 ? h / r : a || h), avgKv = h ? vinna / h : 0, pc = projH * avgKv + utl + vorur, pf = tekjur - pc;
       spa = { h: projH, fr: pf, pct: tekjur ? pf / tekjur : null, by: r >= 0.2 ? `${dn} af ${subs.length} undirverkum lokið` : "áætlun" };
     } else if (ih === "timar" && pct != null && tekjur > 0) spa = { same: true, pct };
     // 2.152.1: samþykkt tilboð í tímavinnu – viðmið (telst ekki sem tekjur fyrr en unnið/reikningsfært)
     const tbVid = ih === "timar" && tbs.length ? tbs.reduce((a, T) => a + (tr(() => api.netOf(T), 0) || 0), 0) : 0;
-    return { h, tekjur, kostnadur, vinna, utl, auk, fr, pct, spa, ih, grunnur, noKv, tbVid, tbN: tbs.length };
+    return { h, tekjur, kostnadur, vinna, utl, vorur, vorVant, auk, fr, pct, spa, ih, grunnur, noKv, tbVid, tbN: tbs.length };
   }
   window.vpAfkoma = p => (G() && FIN() ? afkoma(p) : null);   // 2.145.0: notað í Framlegð-spjaldi verkefnisyfirlits (verkyfir.js)
   const tone = pc => pc == null ? "" : pc < 0 ? "t-red" : pc < 0.15 ? "t-amb" : "t-grn";
@@ -70,9 +74,9 @@
     const spa = k.spa ? (k.spa.same ? `Tímavinna: framlegð helst um ${pctS(k.spa.pct)} á meðan tímagjald og kostnaðarverð breytast ekki.` :
       `Spá við lok (${E(k.spa.by)}): ~${H1(k.spa.h)} klst. · framlegð <b class="${tone(k.spa.pct)}">${KR(k.spa.fr)} (${pctS(k.spa.pct)})</b>`) : "";
     return `<section class="vpafk"><div class="vph"><b>Afkoma</b><small>${E(k.grunnur)}${k.auk ? " · með aukaverkum" : ""}</small></div>
-      <div class="vpk"><div><small>Tekjur</small><b>${KR(k.tekjur)}</b></div><div><small>Kostnaður</small><b>${KR(k.kostnadur)}</b><small>${H1(k.h)} klst.${k.utl ? " + útlagt " + KR(k.utl) : ""}</small></div>
+      <div class="vpk"><div><small>Tekjur</small><b>${KR(k.tekjur)}</b></div><div><small>Kostnaður</small><b>${KR(k.kostnadur)}</b><small>${H1(k.h)} klst.${k.utl ? " + útlagt " + KR(k.utl) : ""}${k.vorur ? " + vörur " + KR(k.vorur) : ""}</small></div>
       <div><small>Framlegð</small><b class="${tone(k.pct)}">${KR(k.fr)}</b><small class="${tone(k.pct)}">${pctS(k.pct)}</small></div></div>
-      ${k.tbVid ? `<p class="vps">Samþykkt tilboð: <b>${KR(k.tbVid)}</b> án VSK – viðmið. Verkið er í tímavinnu, svo tekjur teljast þegar tímar eru skráðir eða reikningur gerður. Ef tilboðið er fast verð: Breyta › Innheimta › Fast verð.</p>` : ""}${spa ? `<p class="vps">${spa}</p>` : ""}${k.noKv ? `<p class="vps t-amb">Kostnaðarverð starfsfólks vantar – skráðu það í Stillingar › Verkefnagreining.</p>` : ""}</section>`;
+      ${k.tbVid ? `<p class="vps">Samþykkt tilboð: <b>${KR(k.tbVid)}</b> án VSK – viðmið. Verkið er í tímavinnu, svo tekjur teljast þegar tímar eru skráðir eða reikningur gerður. Ef tilboðið er fast verð: Breyta › Innheimta › Fast verð.</p>` : ""}${spa ? `<p class="vps">${spa}</p>` : ""}${k.vorVant ? `<p class="vps t-amb">${k.vorVant} ${k.vorVant === 1 ? "vörulína er" : "vörulínur eru"} án innkaupsverðs – skráðu það á vörunni svo kostnaðurinn teljist með.</p>` : ""}${k.noKv ? `<p class="vps t-amb">Kostnaðarverð starfsfólks vantar – skráðu það í Stillingar › Verkefnagreining.</p>` : ""}</section>`;
   }
 
   /* ---------- Áætlun sem lærir ---------- */
