@@ -9,7 +9,7 @@
   /* ---------- sameiginlegt ---------- */
   const head = (sup, title, right = "") => `<div class="uhead"><div><div class="spsup">${E(sup)}</div><h2 class="ptitle">${E(title)}</h2></div><div class="uhr">${right}</div></div>`;
   const lhead = (sup, title, nb = "") => `<div class="phead">${sup ? `<div class="spsup">${E(sup)}</div>` : ""}<div class="phrow"><h2 class="ptitle">${E(title)}</h2>${nb}</div></div>` + (RLT.has(typeof tab !== "undefined" ? tab : "") && window.rlBar ? rlBar() : "");
-  const RLT = new Set(["ltilbod", "tbl", "tbs", "tbt", "tbyf", "pantanir", "pnl", "pns", "pnt", "verk", "lverk", "sverk", "tverk"]); // 2.95.0: sía eftir rekstrarlínu
+  const RLT = new Set(["ltilbod", "tbl", "tbs", "tbt", "tbyf", "tbfer", "pantanir", "pnl", "pns", "pnt", "verk", "lverk", "sverk", "tverk"]); // 2.95.0: sía eftir rekstrarlínu
   const btn = (l, act, cls = "") => `<button type="button" class="btn ${cls}" data-act="${act}">${l}</button>`;
   const chips = (arr, cur, pre) => `<div class="uchips">${arr.map(([k, l]) => `<button type="button" class="uchip${k === cur ? " on" : ""}" data-act="${pre}:${k}">${E(l)}</button>`).join("")}</div>`;
   const pill = (t, dark) => `<span class="upill${dark ? " dark" : ""} ${window.toneOf ? toneOf(t) : ""}">${E(t)}</span>`;
@@ -997,6 +997,143 @@
     return head("Tímaskráning", "Yfirlit", btn("Opna vikuna", "tab:timar", "primary")) + kp4([["Þín vika", H(me) + " af " + H(g) + " klst."], ["Teymið í viku", H(team) + " klst."], ["Þessi mánuður", H(moT) + " klst."], ["Óreikningsfært", H(unb) + " klst."]])
       + `<div class="udash">${dcard("Vikan hjá teyminu", staff.map(x => { const h = wk.filter(e => e.starfsmadur === x.sk).reduce((s, e) => s + (+e.timar || 0), 0); return `<div class="ubr"><span>${E(x.nafn || x.sk)}</span><div class="ubar"><i style="width:${Math.min(100, h / g * 100)}%"></i></div><span>${H(h)} klst.</span></div>`; }), "tskyr", "Engir tímar skráðir.")}`
       + dcard("Hvert fer tíminn · " + MNs[today.getMonth()], [...SV, "Án verkefnis"].filter(k => by[k]).map(k => `<div class="ubr"><span>${E(k === "Án verkefnis" ? k : svH(k))}</span><div class="ubar"><i style="width:${moT ? by[k] / moT * 100 : 0}%"></i></div><span>${Math.round(moT ? by[k] / moT * 100 : 0)} %</span></div>`), "tskyr", "Engir tímar í mánuðinum.") + `</div>`;
+  };
+
+  /* ---------- 2.149.0: Yfirlit reikninga, verkefna, tíma og tilboða (skissa „Yfirlit – skissur“, 14.11) ----------
+     Eitt form alls staðar: fjórar lykiltölur (.yfk – full upphæð í kr., fjöldi í undirlínu, eitt grafítspjald), svo það sem þarf að gera og loks þróun.
+     Opnast fyrst í hlutanum (app-grunnur.js applyEin). Eigin klasar (.yfk/.yfkp) svo fagun.js setji ekki tákn í hornið. */
+  const krN = n => Math.round(+n || 0).toLocaleString("de-DE");
+  const yU = (v, u) => `${v}${u ? `<u>${E(u)}</u>` : ""}`;
+  // [merki, gildi (html), eining, undirlína (html), aðgerð (u1kpf), klasi ("dk" = grafít)]
+  const yfk = arr => `<div class="yfk">${arr.map(([l, v, u, s, a, c]) => `<div class="yfkp${c ? " " + c : ""}${a ? " tap" : ""}"${a ? ` data-act="u1kpf:${a}" role="button" tabindex="0" title="Sýna lista"` : ""}><small>${E(l)}</small><b>${yU(v, u)}</b>${s ? `<span>${s}</span>` : ""}</div>`).join("")}</div>`;
+  const yrow = (attr, nr, t, sub, right) => `<a class="uhrow yrow" ${attr}><span><b>${nr ? `<em>${E(nr)}</em>` : ""}${E(t)}</b><small>${sub || ""}</small></span>${right || ""}</a>`;
+  const yam = n => `<span class="yam">${E(kr(n))}</span>`;
+  const ycard = (title, body, more, extra = "", cls = "") => `<section class="card ucard uhc ycard${cls ? " " + cls : ""}"><div class="uhch"><h3>${E(title)}</h3>${extra ? `<span class="yn">${extra}</span>` : ""}${more ? `<a href="#" data-act="${String(more).includes(":") ? "u1kpf" : "tab"}:${more}">Sjá allt →</a>` : ""}</div>${body}</section>`;
+  const yempty = t => `<div class="usub" style="padding:10px 0">${E(t)}</div>`;
+  const ybars = rows => `<div class="ybars">${rows.map(([l, v, max, right, o = {}]) => `<div class="ybr${o.sub ? " sub" : ""}"${o.title ? ` title="${E(o.title)}"` : ""}><span>${E(l)}</span><div class="ybt"><i class="${o.c || ""}" style="width:${max ? Math.max(v > 0 ? 2 : 0, Math.min(100, v / max * 100)) : 0}%"></i>${o.goal ? `<s style="left:${Math.min(100, o.goal)}%"></s>` : ""}</div><span>${right}</span></div>`).join("")}</div>`;
+  const ycols = (cols, n) => { const mx = Math.max(1, ...cols.map(c => c.v)); return `<div class="ycols" style="--n:${n || cols.length}">${cols.map(c => `<div title="${E(c.t || "")}"><i class="${c.c || ""}" style="height:${c.c === "fut" ? 3 : Math.max(c.v > 0 ? 3 : 0, c.v / mx * 100)}%"></i><span>${E(c.l)}</span></div>`).join("")}</div>`; };
+  const dgr = w => { const n = daysTo(w); return n === 0 ? "í dag" : n > 0 ? "eftir " + n + (n === 1 ? " dag" : " daga") : -n + (n === -1 ? " degi" : " dögum") + " of seint"; };
+  const wd = w => { const x = d(w); return x ? ["sun", "mán", "þri", "mið", "fim", "fös", "lau"][x.getDay()] + " " + fmtD(w) : ""; };
+  const lineSum = (r, y) => (r.linur || []).filter(l => !l.haus && l.flokkur !== "kostn").reduce((a, l) => a + Math.round((+l.magn || 0) * (+l.verd || 0)), 0);
+
+  /* Yfirlit reikninga */
+  U.rkyf = function () {
+    const R = (S?.reikningar || []).filter(r => r.stada !== "Ógilt"), og = R.filter(r => r.stada !== "Greitt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
+    const d30 = R.filter(r => r.stada === "Greitt" && daysTo(r.greitt?.dags || r.dags) >= -30);
+    const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
+    const PO = window.rkOrders ? rkOrders() : [], pnN = P => { try { return salaAPI.totals(P).net; } catch (e) { return 0; } };
+    const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ubK = ub.reduce((a, x) => a + x.kr, 0) + PO.reduce((a, P) => a + pnN(P), 0), ubH = ub.reduce((a, x) => a + x.h, 0);
+    const ogs = og.slice().sort((a, b) => String(a.gjalddagi || "9").localeCompare(String(b.gjalddagi || "9")));
+    const nxt = ogs.find(r => r.gjalddagi && daysTo(r.gjalddagi) >= 0);
+    const dTo = (a, b) => { const x = d(a), y = d(b); return x && y ? Math.round((y - x) / 864e5) : null; }, pd = d30.map(r => dTo(r.dags, r.greitt?.dags)).filter(x => x != null && x >= 0);
+    const n = (k, a, b) => k + " " + (k === 1 ? a : b);
+    const kps = yfk([
+      ["Óreikningsfært", krN(ubK), "kr.", ub.length || PO.length ? E([ub.length ? n(ub.length, "verkefni", "verkefni") + " · " + H(ubH) + " klst." : "", PO.length ? n(PO.length, "pöntun", "pantanir") : ""].filter(Boolean).join(" · ")) : "Allt reikningsfært", "trk:oreikn"],
+      ["Ógreitt", krN(sum(og)), "kr.", og.length ? E(n(og.length, "reikningur", "reikningar")) + (nxt ? " · næsti gjalddagi " + E(fmtD(nxt.gjalddagi)) : "") : "Allt greitt", "trk:ogr", "dk"],
+      ["Fram yfir gjalddaga", krN(sum(late)), "kr.", late.length ? `<i class="bad">${E(n(late.length, "reikningur", "reikningar"))} · elsti ${E(dgr(late.map(r => r.gjalddagi).sort()[0]))}</i>` : `<i class="ok">Allt á tíma</i>`, "trk:ogr"],
+      ["Greitt síðustu 30 daga", krN(sum(d30)), "kr.", d30.length ? E(n(d30.length, "reikningur", "reikningar")) + (pd.length ? ` · <i class="bl">að meðaltali ${Math.round(pd.reduce((a, x) => a + x, 0) / pd.length)} dagar að greiðast</i>` : "") : "Ekkert greitt", "trk:gr"]]);
+    // Ógreiddir eftir gjalddaga
+    let ogH = "", lastG = null, shown = 0;
+    ogs.slice(0, 6).forEach(r => { const g = r.gjalddagi || ""; if (g !== lastG) { lastG = g; ogH += `<div class="ygrp${g && daysTo(g) < 0 ? " bad" : ""}">${g ? "Gjalddagi " + E(fmtD(g)) + " · " + E(dgr(g)) : "Án gjalddaga"}</div>`; }
+      shown++; ogH += yrow(tapAttr("reikn", r.id), String(r.nr || "").padStart(3, "0"), r.kaupandi?.name || "", r.sent ? "sendur " + E(fmtD(r.sent)) : r.dags ? "dags. " + E(fmtD(r.dags)) : "", yam(r.tot)); });
+    if (og.length > shown) ogH += `<a class="uhrow yrow" data-act="u1kpf:trk:ogr" role="button" tabindex="0"><span><b><em>+${og.length - shown}</em>fleiri</b><small>${E(kr(sum(ogs.slice(shown))))} samtals</small></span></a>`;
+    // Skulda mest
+    const by = {}; og.forEach(r => { const k = r.kaupandi?.name || "Óþekktur"; (by[k] = by[k] || { n: 0, t: 0 }); by[k].n++; by[k].t += +r.tot || 0; });
+    const skuld = Object.entries(by).sort((a, b) => b[1].t - a[1].t).slice(0, 4);
+    // Velta eftir mánuðum (án VSK, kostnaður ekki með)
+    const y = String(today.getFullYear()), mo = Array(12).fill(0); R.filter(r => String(r.dags || "").startsWith(y)).forEach(r => { const m = +String(r.dags).slice(5, 7) - 1; if (m >= 0) mo[m] += lineSum(r); });
+    const tm = today.getMonth(), tot = mo.reduce((a, x) => a + x, 0);
+    const col = ycard("Velta " + y + " eftir mánuðum", ycols(mo.map((v, i) => ({ v, l: MNs[i], t: MNs[i] + ": " + kr(v), c: i === tm ? "cur" : i > tm ? "fut" : "" }))), "", "án VSK · samtals " + E(kr(tot)));
+    return head("Reikningar", "Yfirlit reikninga", nbtn("Reikningur").replace(/data-act="fabnew[^"]*"/, 'data-act="rknew:"')) + kps
+      + `<div class="udash ydash">` + ycard("Tilbúið í reikning", ub.length ? ub.slice(0, 6).map(x => yrow(tapAttr("verk", x.p.id), x.p.nr, x.p.stutt || x.p.nafn || "", E((x.p.vidskiptavinur || "") + " · " + H(x.h) + " klst."), yam(x.kr))).join("") : yempty("Allt reikningsfært."), "trk:oreikn")
+      + ycard("Ógreiddir reikningar", ogH || yempty("Engir ógreiddir reikningar."), "trk:ogr")
+      + ycard("Pantanir án reiknings", (PO.length ? PO.slice(0, 4).map(P => yrow(`data-act="rkpn:${E(P.id)}" role="button" tabindex="0"`, P.nr, P.heiti && P.heiti !== "Pöntun" ? P.heiti : "", E(P.vidskiptavinur || ""), yam(pnN(P)))).join("") : yempty("Engar afhentar pantanir bíða reiknings."))
+        + (skuld.length ? `<div class="uhch ysub"><h3>Skulda mest</h3></div>` + skuld.map(([k, o]) => yrow(`data-act="u1kpf:trk:ogr" role="button" tabindex="0"`, "", k, E(n(o.n, "reikningur", "reikningar")), yam(o.t))).join("") : ""), PO.length ? "trk" : "")
+      + `</div><div class="udash ydash y21">` + col + veltaSvid(R) + `</div>`;
+  };
+
+  /* Yfirlit verkefna */
+  U.verkyf = function () {
+    const ps = verkefni().filter(p => !isDone(p) && (!window.rlMatch || rlMatch(p))), ti = isoD(today);
+    const late = ps.filter(p => p.skiladagur && p.skiladagur < ti).sort((a, b) => a.skiladagur.localeCompare(b.skiladagur)), soon = ps.filter(p => p.skiladagur && daysTo(p.skiladagur) >= 0 && daysTo(p.skiladagur) <= 7).sort((a, b) => a.skiladagur.localeCompare(b.skiladagur));
+    const up14 = ps.filter(p => p.skiladagur && daysTo(p.skiladagur) >= 0 && daysTo(p.skiladagur) <= 14).sort((a, b) => a.skiladagur.localeCompare(b.skiladagur));
+    const hBy = {}; faerslur().forEach(e => { if (e.verkefniId) hBy[e.verkefniId] = (hBy[e.verkefniId] || 0) + (+e.timar || 0); });
+    const bud = ps.filter(p => +p.aklst > 0).map(p => ({ p, h: hBy[p.id] || 0, a: +p.aklst })).map(x => ({ ...x, r: x.h / x.a })).sort((a, b) => b.r - a.r), over = bud.filter(x => x.r >= 0.8);
+    const subs = ps.flatMap(p => (p.undirverk || []).filter(u => u.stada !== "Done" && u.skiladagur && daysTo(u.skiladagur) <= 14).map(u => ({ p, u }))).sort((a, b) => a.u.skiladagur.localeCompare(b.u.skiladagur));
+    const st0 = STODUR().filter(x => !x.falin && !x.lokid), cnt = s => ps.filter(p => p.stada === s).length;
+    const lokSd = p => (p.saga || []).filter(s => s.k === "st").map(s => String(s.d || "").slice(0, 10)).sort().pop() || "";
+    const done = verkefni().filter(p => isDone(p) && (!window.rlMatch || rlMatch(p))).map(p => ({ p, sd: lokSd(p) })).filter(x => x.sd && daysTo(x.sd) >= -30).sort((a, b) => b.sd.localeCompare(a.sd));
+    const nm = p => p.stutt || p.nafn || "", sfn = p => (p.starfsmenn || []).map(sk => (STARFS().find(x => x.sk === sk)?.nafn || sk).split(" ")[0]).join(", ");
+    const bi = ["Í bið", "Í yfirferð"].map(s => cnt(s) ? cnt(s) + " " + s.toLowerCase() : "").filter(Boolean).join(" · ");
+    const kps = yfk([
+      ["Í gangi", ps.length, "", E(bi || "verkefni sem eru ekki lokin"), "verk:gangi", "dk"],
+      ["Skil næstu 7 daga", soon.length, "", soon[0] ? "næst: " + E(nm(soon[0]) + ", " + wd(soon[0].skiladagur)) : "Engin skil framundan", "verk:skil7"],
+      ["Komið fram yfir", late.length, "", late[0] ? `<i class="bad">${E(nm(late[0]) + " · " + dgr(late[0].skiladagur))}</i>` : `<i class="ok">Allt á áætlun</i>`, "verk:seint"],
+      ["Yfir 80 % af áætlun", over.length, "", over[0] ? `<i class="warn">${E(nm(over[0].p) + " " + Math.round(over[0].r * 100) + " %")}</i>` : bud.length ? "Öll innan áætlunar" : "Engin verkefni með áætlun"]]);
+    return head("Verkefni", "Yfirlit verkefna", nbtn("Verkefni")) + (window.rlBar ? rlBar() : "") + kps
+      + `<div class="udash ydash">` + ycard("Skil framundan", [...late, ...up14].length ? [...late, ...up14].slice(0, 6).map(p => yrow(go("verk", "verk:" + p.id), p.nr, nm(p), E((p.vidskiptavinur || "") + " · " + wd(p.skiladagur)), pill(daysTo(p.skiladagur) < 0 ? "Seint" : p.stada, daysTo(p.skiladagur) < 0))).join("") : yempty("Engin skil næstu 14 daga."), "verk:skil7")
+      + ycard("Áætlun og notkun", bud.length ? ybars(bud.slice(0, 6).map(x => [x.p.nr + " " + nm(x.p), x.h, x.a, H(x.h) + " / " + H(x.a), { c: x.r >= 1 ? "bad" : x.r >= 0.8 ? "warn" : "", title: Math.round(x.r * 100) + " % af áætlun" }])) : yempty("Engin verkefni í gangi með áætlun (klst.)."), "", "klst. af áætlun")
+      + ycard("Eftir stöðu", ybars(st0.map(x => [x.n, cnt(x.n), ps.length, String(cnt(x.n)), { c: x.n === "Í vinnslu" ? "g" : "" }])), "verk") + `</div>`
+      + `<div class="udash ydash y11">` + ycard("Undirverk næstu 14 daga", subs.length ? subs.slice(0, 6).map(({ p, u }) => yrow(go("verk", "verk:" + p.id), "", u.heiti || u.nr || "", E([p.nr, (u.starfsmadur && (STARFS().find(x => x.sk === u.starfsmadur)?.nafn || u.starfsmadur).split(" ")[0]) || sfn(p), wd(u.skiladagur)].filter(Boolean).join(" · ")), pill(daysTo(u.skiladagur) < 0 ? "Seint" : STL[u.stada] || u.stada, daysTo(u.skiladagur) < 0))).join("") : yempty("Engin opin undirverk með skiladag næstu 14 daga."), "")
+      + ycard("Nýlega lokið", done.length ? done.slice(0, 5).map(({ p, sd }) => yrow(go("verk", "verk:" + p.id), p.nr, nm(p), E((p.vidskiptavinur || "") + " · " + fmtD(sd) + (hBy[p.id] ? " · " + H(hBy[p.id]) + " klst." : "")), pill(p.stada))).join("") : yempty("Ekkert verkefni lokið síðustu 30 daga."), "", "30 dagar") + `</div>`;
+  };
+
+  /* Yfirlit tíma */
+  U.timyf = function () {
+    const a = mondayOf(today), fs = faerslur(), wk = fs.filter(e => d(e.date) >= a), g = goal(), fin = window.can ? can("fjarmal") : true;
+    const staff = STARFS().filter(x => fs.some(e => e.starfsmadur === x.sk)), hs = xs => xs.reduce((s, e) => s + (+e.timar || 0), 0);
+    const mine = e => (e.starfsmadur || ME()) === ME(), me = hs(wk.filter(mine)), team = hs(wk), bill = hs(wk.filter(e => e.verkefniId || e.rukka));
+    const m0 = new Date(today.getFullYear(), today.getMonth(), 1), mo = fs.filter(e => d(e.date) >= m0), moT = hs(mo);
+    const p0 = new Date(today.getFullYear(), today.getMonth() - 1, 1), p1 = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate() + 1), prT = hs(fs.filter(e => { const x = d(e.date); return x >= p0 && x < p1 && x < m0; }));
+    const by = {}; mo.forEach(e => { const p = findProj(String(e.verkefniId || "")), k = p ? svidOf(p)[0] : "Án verkefnis"; by[k] = (by[k] || 0) + (+e.timar || 0); });
+    const pBy = {}; mo.forEach(e => { const k = e.verkefniId ? "p:" + e.verkefniId : e.rukka && e.vskId ? "v:" + e.vskId : "x"; pBy[k] = (pBy[k] || 0) + (+e.timar || 0); });
+    const top = Object.entries(pBy).sort((x, y) => y[1] - x[1]).slice(0, 5);
+    const unbE = window.rkUnbilled ? verkefni().map(p => sumT(rkUnbilled(p.id).es)).reduce((s, x) => s + x, 0) : 0, unbK = window.rkUnbilledKr ? verkefni().reduce((s, p) => s + rkUnbilledKr(p.id), 0) : 0;
+    const days = [...Array(7)].map((_, i) => { const x = new Date(a); x.setDate(x.getDate() + i); const k = isoD(x); return { k, l: ["mán", "þri", "mið", "fim", "fös", "lau", "sun"][i], h: hs(wk.filter(e => mine(e) && String(e.date).slice(0, 10) === k)), past: k < isoD(today), we: i > 4 }; });
+    const gap = days.filter(x => x.past && !x.we && !x.h);
+    const dmx = Math.max(8, ...days.map(x => x.h));
+    const MN = ["janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", "ágúst", "september", "október", "nóvember", "desember"], cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    const kps = yfk([
+      ["Þín vika", H(me), "af " + H(g) + " klst.", `<span class="ymeter"><i style="width:${Math.min(100, me / g * 100)}%"></i></span>`, "", "dk"],
+      ["Teymið í vikunni", H(team), "klst.", E(staff.length + (staff.length === 1 ? " starfsmaður" : " starfsmenn")) + (team ? " · " + Math.round(bill / team * 100) + " % á verkefni" : "")],
+      [cap(MN[today.getMonth()]), H(moT), "klst.", prT ? (moT >= prT ? `<i class="bl">+${H(moT - prT)} klst.</i>` : `${H(moT - prT)} klst.`) + " miðað við sama tíma í " + E(MN[p0.getMonth()]) : "fyrsti mánuðurinn með tímum"],
+      ["Óreikningsfært", H(unbE), "klst.", fin ? E(kr(unbK)) : "bíður reiknings", fin ? "trk:oreikn" : ""]]);
+    const dayCols = `<div class="ydays">${days.map(x => `<div title="${E(x.l + ": " + H(x.h) + " klst.")}"><i class="${!x.h && x.past && !x.we ? "miss" : x.k === isoD(today) ? "cur" : ""}" style="height:${x.h ? Math.max(4, x.h / dmx * 100) : 0}%"></i><b>${x.h ? H(x.h) : ""}</b><span>${x.l}</span></div>`).join("")}</div>`
+      + `<div class="yleg"><span><i></i>skráð</span>${gap.length ? `<span class="warn"><i class="miss"></i>${gap.length === 1 ? "einn virkur dagur" : gap.length + " virkir dagar"} án skráningar</span>` : ""}</div>`;
+    const lbl = k => { if (k === "x") return ["", "Án verkefnis", ""]; if (k.startsWith("v:")) { const c = (S?.vidskiptavinir || []).find(c => String(c.id) === k.slice(2)); return ["", "Án verkefnis · Rukka", c?.name || ""]; } const p = findProj(k.slice(2)); return [p?.nr || "", p ? (p.stutt || p.nafn || "") : "Verkefni", p?.vidskiptavinur || ""]; };
+    return head("Tímaskráning", "Yfirlit tíma", btn("+ Skrá tíma", "tab:timar", "primary")) + kps
+      + `<div class="udash ydash y21">` + ycard("Vikan hjá teyminu", (staff.length ? ybars(staff.map(x => { const h = hs(wk.filter(e => e.starfsmadur === x.sk)); return [(x.nafn || x.sk).split(" ")[0], h, g, H(h) + " klst.", { c: x.sk === ME() ? "g" : "", goal: 100 }]; })) : yempty("Engir tímar skráðir í vikunni."))
+          + `<div class="uhch ysub"><h3>Þín vika eftir dögum</h3></div>` + dayCols, "tskyr", "strik = vikumarkmið")
+      + ycard("Hvert fer tíminn · " + MN[today.getMonth()], (moT ? ybars([...SV, "Án verkefnis"].filter(k => by[k]).map(k => [k === "Án verkefnis" ? k : svH(k), by[k], moT, Math.round(by[k] / moT * 100) + " %", { c: k === "Án verkefnis" ? "" : "g" }])) : yempty("Engir tímar í mánuðinum."))
+          + (top.length ? `<div class="uhch ysub"><h3>Mest unnið í</h3></div>` + top.map(([k, h]) => { const [nr, t, s] = lbl(k); return yrow(k.startsWith("p:") ? go("verk", "verk:" + k.slice(2)) : `data-act="tab:tfaer" role="button" tabindex="0"`, nr, t, E(s), `<span class="yam">${H(h)} klst.</span>`); }).join("") : ""), "tskyr") + `</div>`;
+  };
+
+  /* Yfirlit tilboða – Ferillinn (dálkarnir) er sér flipi (tbfer) */
+  U.tbfer = () => { const h = U.tbyf_gamalt(), i = h.indexOf('<div class="tfgrid">'); return head("Tilboð", "Ferill", nbtn("Tilboð")) + (i < 0 ? "" : h.slice(i)); };   // aðeins dálkarnir – lykiltölur eru á Yfirliti
+  U.tbyf = function () {
+    const api = window.salaAPI; if (!api) return head("Tilboð", "Yfirlit tilboða");
+    const all = api.TB().filter(T => !window.rlMatch || rlMatch(T)), open = all.filter(T => ["Drög", "Sent"].includes(T.stada)), drog = all.filter(T => T.stada === "Drög"), sent = all.filter(T => T.stada === "Sent");
+    const d90 = all.filter(T => daysTo(T.samthykkt?.dags || T.vidskHafnad?.dags || T.dags) >= -90), won = d90.filter(T => T.stada === "Samþykkt"), lost = d90.filter(T => T.stada === "Hafnað");
+    const S_ = xs => xs.reduce((a, T) => a + (tbSum(T) || 0), 0), rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) : null;
+    const dTo = (a, b) => { const x = d(a), y = d(b); return x && y ? Math.round((y - x) / 864e5) : null; }, ans = won.map(T => dTo(T.sent || T.dags, T.samthykkt?.dags)).filter(x => x != null && x >= 0);
+    const old = sent.filter(T => !T.bidur && daysTo(T.sent || T.dags) <= -7);
+    const n = (k, a, b) => k + " " + (k === 1 ? a : b);
+    const kps = yfk([
+      ["Opin tilboð", krN(S_(open)), "kr.", E(n(open.length, "tilboð", "tilboð")) + (open.length ? " · " + drog.length + " drög, " + sent.length + " send" : ""), "ltilbod:opin", "dk"],
+      ["Samþykkt · 90 dagar", krN(S_(won)), "kr.", E(n(won.length, "tilboð", "tilboð")), "ltilbod:samth"],
+      ["Hlutfall samþykkt", rate == null ? "–" : rate, rate == null ? "" : "%", rate == null ? "Engin svör síðustu 90 daga" : E(won.length + " af " + (won.length + lost.length)) + (ans.length ? " · að meðaltali " + Math.round(ans.reduce((a, x) => a + x, 0) / ans.length) + " dagar að svari" : "")],
+      ["Ósvarað í 7+ daga", old.length, "", old.length ? `<i class="warn">${E(kr(S_(old)))} bíða svars</i>` : `<i class="ok">Ekkert gamalt</i>`, "ltilbod:sent"]]);
+    const step = (l, xs, f, on) => `<a class="ystep${on ? " on" : ""}" data-act="u1kpf:ltilbod:${f}" role="button" tabindex="0"><small>${E(l)}</small><b>${xs.length}</b><span>${E(kr(S_(xs)))}</span></a>`;
+    const funnel = ycard("Ferill · síðustu 90 dagar", `<div class="yfun">${step("Drög", drog, "drog")}${step("Sent – bíður svars", sent, "sent", 1)}${step("Samþykkt", won, "samth")}${step("Hafnað", lost, "allt")}</div>`, "", `<a href="#" data-act="tab:tbfer">Opna ferilinn →</a>`, "ywide");
+    const fyl = [...sent.filter(T => T.bidur), ...sent.filter(T => !T.bidur).sort((a, b) => String(a.sent || a.dags).localeCompare(String(b.sent || b.dags)))];
+    const pn = T => (api.PN() || []).find(P => P.tilbodId === T.id), pr = T => T.verkefniId && findProj(String(T.verkefniId));
+    const wonS = won.slice().sort((a, b) => String(b.samthykkt?.dags || b.dags).localeCompare(String(a.samthykkt?.dags || a.dags)));
+    const m6 = [...Array(6)].map((_, i) => { const x = new Date(today.getFullYear(), today.getMonth() - 5 + i, 1), k = isoD(x).slice(0, 7); const v = S_(all.filter(T => T.stada === "Samþykkt" && String(T.samthykkt?.dags || T.dags || "").slice(0, 7) === k)); return { v, l: MNs[x.getMonth()], t: MNs[x.getMonth()] + ": " + kr(v), c: i === 5 ? "cur" : "" }; });
+    const why = lost.map(T => String(T.vidskHafnad?.athugasemd || "").trim()).filter(Boolean).slice(0, 3);
+    return head("Tilboð", "Yfirlit tilboða", nbtn("Tilboð")) + (window.rlBar ? rlBar() : "") + kps + `<div class="ydash y1">${funnel}</div>`
+      + `<div class="udash ydash">` + ycard("Þarf að fylgja eftir", fyl.length ? fyl.slice(0, 6).map(T => { const sd = -daysTo(T.sent || T.dags); return yrow(go("ltilbod", "tb:" + T.id), T.nr, T.heiti || "Tilboð", E((T.vidskiptavinur || T.tengilidur || "") + " · sent " + fmtD(T.sent || T.dags)), T.bidur ? pill("Samþykkt – staðfesta", true) : `<span class="upill ${sd >= 7 ? "t-amb" : ""}">${sd} ${sd === 1 ? "dagur" : "dagar"}</span>`); }).join("") : yempty("Ekkert tilboð bíður svars."), "ltilbod:sent")
+      + ycard("Nýlega samþykkt", wonS.length ? wonS.slice(0, 5).map(T => { const P = pn(T), V = pr(T); return yrow(go("ltilbod", "tb:" + T.id), T.nr, T.heiti || "Tilboð", P ? "→ pöntun " + E(P.nr || "") : V ? "→ verkefni " + E(V.nr || "") : E(T.vidskiptavinur || ""), yam(tbSum(T))); }).join("") : yempty("Ekkert samþykkt síðustu 90 daga."), "ltilbod:samth")
+      + ycard("Samþykkt eftir mánuðum", ycols(m6) + (why.length ? `<div class="uhch ysub"><h3>Síðustu ástæður höfnunar</h3></div>` + why.map(t => `<div class="ywhy">„${E(t)}“</div>`).join("") : "")) + `</div>`;
   };
 
   /* ---------- Heim: Yfirlit, Óklárað, Framundan, Tilkynningar ---------- */

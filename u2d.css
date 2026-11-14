@@ -1528,3 +1528,73 @@ html body.kerfi .sfu .sfn > span,html body.kerfi .sfu .sfn > small{display:block
   html:not(#u2a):not(#u2b) body.kerfi #view .uhr.dtnav{column-gap:8px!important}
   html:not(#u2a):not(#u2b) body.kerfi #view .uhr.dtnav > .dtwho{flex:0 1 160px!important;min-width:120px;width:auto!important}
 }
+
+/* ---------- 2.149.0 – Yfirlit reikninga, verkefna, tíma og tilboða (ui1-skjair.js: yfk, ycard, ybars, ycols) ---------- */
+html:not(#u2a):not(#u2b) body.kerfi #view .yfk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:4px 0 0}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp{background:var(--surface);border-radius:22px;box-shadow:var(--e1);padding:16px 18px 15px;display:flex;flex-direction:column;gap:3px;min-width:0;color:var(--ink);transition:box-shadow .18s,transform .18s}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp.tap{cursor:pointer}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp.tap:hover{box-shadow:var(--e2);transform:translateY(-1px)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp > small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp > b{font-size:clamp(22px,2.1vw,30px);font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp > b u{text-decoration:none;font-size:15px;font-weight:500;color:var(--muted);margin-left:4px;letter-spacing:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp > span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.yfkp,.ycard) i:is(.ok,.warn,.bad,.bl){font-style:normal;font-weight:600}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.yfkp,.ycard) .ok{color:var(--t-grn)}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.yfkp,.ycard) .warn{color:var(--t-amb)}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.yfkp,.ycard) .bad{color:var(--t-red)}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.yfkp,.ycard) .bl{color:var(--kacc)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp.dk{background:var(--gra);color:var(--on-gra)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp.dk > :is(small,span),html:not(#u2a):not(#u2b) body.kerfi #view .yfkp.dk > b u{color:color-mix(in srgb,var(--on-gra) 70%,transparent)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfkp.dk i:is(.ok,.warn,.bad,.bl){color:var(--on-gra)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ymeter{display:block;height:6px;border-radius:99px;background:color-mix(in srgb,var(--on-gra) 18%,transparent);overflow:hidden;margin-top:7px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ymeter i{display:block;height:100%;border-radius:99px;background:var(--on-gra)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydash{grid-template-columns:repeat(3,minmax(0,1fr))}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydash.y21{grid-template-columns:2fr 1fr}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydash.y11{grid-template-columns:1fr 1fr}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydash.y1{display:grid;grid-template-columns:1fr;margin-top:16px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycard .uhch{display:flex;align-items:center;gap:8px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycard .uhch > h3{flex:1;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycard .yn{font-size:12px;color:var(--muted);white-space:nowrap}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycard .yn a{color:var(--kacc);text-decoration:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycard .uhch.ysub{margin-top:22px!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .yrow b em{font-style:normal;color:var(--muted);font-weight:500;margin-right:7px;font-variant-numeric:tabular-nums}
+html:not(#u2a):not(#u2b) body.kerfi #view .yrow .yam{font-variant-numeric:tabular-nums;font-weight:600;font-size:13.5px;white-space:nowrap;color:var(--ink)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ygrp{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:12px 0 2px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ygrp.bad{color:var(--t-red)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ygrp + .uhrow{border-top:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybars{display:flex;flex-direction:column;gap:10px;padding-top:4px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybr{display:grid;grid-template-columns:minmax(0,130px) minmax(0,1fr) auto;gap:12px;align-items:center;font-size:13px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybr > span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybr > span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap;min-width:60px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybt{height:8px;border-radius:99px;background:var(--hover);position:relative}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybt i{display:block;height:100%;border-radius:99px;background:var(--kacc);opacity:.85}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybt i.g{background:var(--gra);opacity:1}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybt i.warn{background:var(--t-amb);opacity:1}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybt i.bad{background:var(--t-red);opacity:1}
+html:not(#u2a):not(#u2b) body.kerfi #view .ybt s{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-2px;border-radius:2px;background:var(--ink);opacity:.3}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycols{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:6px;align-items:end;height:150px;padding-top:8px}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.ycols,.ydays) > div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycols i{display:block;width:100%;max-width:28px;border-radius:7px 7px 3px 3px;background:var(--kacc);opacity:.8}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.ycols,.ydays) i.cur{background:var(--gra);opacity:1}
+html:not(#u2a):not(#u2b) body.kerfi #view .ycols i.fut{background:var(--hover);opacity:1}
+html:not(#u2a):not(#u2b) body.kerfi #view :is(.ycols,.ydays) span{font-size:10.5px;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end;height:130px;padding-top:6px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydays i{display:block;width:100%;max-width:36px;border-radius:8px 8px 3px 3px;background:var(--kacc);opacity:.8}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydays i.miss{height:22px!important;background:none;border:1.5px dashed var(--t-amb);opacity:1}
+html:not(#u2a):not(#u2b) body.kerfi #view .ydays b{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);min-height:14px}
+html:not(#u2a):not(#u2b) body.kerfi #view .yleg{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding-top:8px}
+html:not(#u2a):not(#u2b) body.kerfi #view .yleg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--kacc)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yleg i.miss{background:none;border:1.5px dashed var(--t-amb)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yleg .warn{color:var(--t-amb)}
+html:not(#u2a):not(#u2b) body.kerfi #view .yfun{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-top:4px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ystep{background:var(--hover);border-radius:18px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;color:var(--ink);text-decoration:none;cursor:pointer;transition:transform .18s}
+html:not(#u2a):not(#u2b) body.kerfi #view .ystep:hover{transform:translateY(-1px)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ystep small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+html:not(#u2a):not(#u2b) body.kerfi #view .ystep b{font-size:24px;font-weight:500;font-variant-numeric:tabular-nums}
+html:not(#u2a):not(#u2b) body.kerfi #view .ystep span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+html:not(#u2a):not(#u2b) body.kerfi #view .ystep.on{background:var(--gra);color:var(--on-gra)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ystep.on :is(small,span){color:color-mix(in srgb,var(--on-gra) 70%,transparent)}
+html:not(#u2a):not(#u2b) body.kerfi #view .ywhy{font-size:13px;color:var(--muted);padding:6px 0;border-top:1px solid var(--line)}
+@media (max-width:1180px){html:not(#u2a):not(#u2b) body.kerfi #view .yfk{grid-template-columns:repeat(2,minmax(0,1fr))}html:not(#u2a):not(#u2b) body.kerfi #view :is(.ydash,.ydash.y21,.ydash.y11){grid-template-columns:1fr 1fr}}
+@media (max-width:1023px){html:not(#u2a):not(#u2b) body.kerfi #view .yfk{margin-inline:16px;gap:12px}html:not(#u2a):not(#u2b) body.kerfi #view :is(.ydash,.ydash.y21,.ydash.y11,.ydash.y1){grid-template-columns:1fr}html:not(#u2a):not(#u2b) body.kerfi #view .yfun{grid-template-columns:1fr 1fr}html:not(#u2a):not(#u2b) body.kerfi #view .ydash.y1{margin-inline:16px}}
+@media (prefers-reduced-motion:reduce){html:not(#u2a):not(#u2b) body.kerfi #view :is(.yfkp,.ystep){transition:none}}

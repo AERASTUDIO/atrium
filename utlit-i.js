@@ -58,9 +58,9 @@
     return x => { const i = ORD.indexOf(x.k); return i < 0 ? (x.k === "meira" ? 999 : 500) : i; }; };
   { const r = secRank(), sorted = SECTIONS_ALL.slice().sort((x, y) => r(x) - r(y)); SECTIONS_ALL.length = 0; sorted.forEach(x => SECTIONS_ALL.push(x)); }
   window.secRank = secRank;
-  if (T) { const i0 = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i0 > 0) T.tabs.unshift(T.tabs.splice(i0, 1)[0]); T.tabs.push(["tbyf", "Yfirlit", 1]); } // 2.70.0: Tilboð ein síða – yfirlitið efst í listanum
-  if (TI) { TI.tabs.push(["timyf", "Yfirlit", 1]); TI.hdrAlltaf = true; } // 2.131.0: Tímar opnast á Vikunni, flipar efst
-  Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: "verkefni", tbyf: "tilbod", timyf: "timar" });
+  if (T) { const i0 = T.tabs.findIndex(t => t[0] === "ltilbod"); if (i0 > 0) T.tabs.unshift(T.tabs.splice(i0, 1)[0]); T.tabs.push(["tbyf", "Yfirlit", 1], ["tbfer", "Ferill", 1]); } // 2.70.0: Tilboð ein síða – yfirlitið efst í listanum
+  if (TI) { TI.tabs.unshift(["timyf", "Yfirlit tíma"]); TI.hdrAlltaf = true; } // 2.149.0: Tímar opnast á Yfirliti tíma // 2.131.0: Tímar opnast á Vikunni, flipar efst
+  Object.assign(window.TAB_EIN, { verkyf: "verkefni", vskyf: "vidskiptavinir", vskl: ["vidskiptavinir", "leiga"], vsks: ["vidskiptavinir", "sala"], vskt: "vidskiptavinir", pnyf: "pantanir", pndag: "verkefni", tbyf: "tilbod", tbfer: "tilbod", timyf: "timar" });
   // 2.113.2: Core (hvorki leiga né sala) – sviðsflipar og sviðsflögur (Þjónusta) falla út; listinn sjálfur er þá „allt“
   { const fl = (...k) => () => k.every(x => ON(x)) && (ON("leiga") || ON("sala")); Object.assign(window.TAB_EIN, { tverk: fl("verkefni"), tbt: fl("tilbod"), vskt: fl("vidskiptavinir"), pnt: fl("pantanir") }); }
   _einSig = null; applyEin();

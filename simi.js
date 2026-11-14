@@ -17,7 +17,7 @@
   const phone = () => !matchMedia("(min-width:1024px)").matches;
   const E = s => (typeof esc === "function" ? esc(s) : String(s ?? ""));
   // Yfirlitsflipar hluta → listinn sem opnast í staðinn í síma
-  const YF = { verkyf: "verk", pnyf: "pantanir", tbyf: "ltilbod", timyf: "timar", vskyf: "vsk", vyfir: "lvorur" };
+  const YF = { verkyf: "verk", pnyf: "pantanir", tbyf: "ltilbod", tbfer: "ltilbod", rkyf: "trk", timyf: "timar", vskyf: "vsk", vyfir: "lvorur" };
   const ALLL = { verk: "Öll", pantanir: "Allar", ltilbod: "Öll", vsk: "Allir" };
   const secs = () => { try { return typeof SECTIONS_ALL !== "undefined" ? SECTIONS_ALL : window.SECTIONS || []; } catch (e) { return []; } };
   const cur = () => { try { return tab; } catch (e) { return ""; } };
