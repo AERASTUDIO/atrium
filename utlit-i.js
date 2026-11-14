@@ -81,7 +81,7 @@
   const bidur = () => { if (bMemo && bS === S && Date.now() - bT < 3000) return bMemo; const c = {};
     try { (window.oklItems ? oklItems({ stika: 1 }) : []).forEach(i => { const k = bKey(i); if (k) c[k] = (c[k] || 0) + 1; });
       const sp = window.spBidur ? +spBidur() || 0 : window.spUnread ? +spUnread() || 0 : 0; if (sp) c.spjall = sp; /* 2.142.0: ólesin skilaboð + ósvöruð bein samtöl */ } catch (e) {}
-    c.heim = Object.values(c).reduce((a, n) => a + n, 0); bMemo = c; bS = S; bT = Date.now(); return c; };
+    c.heim = window.bmCount ? bmCount() : Object.values(c).reduce((a, n) => a + n, 0); bMemo = c; bS = S; bT = Date.now(); return c; };   // 2.150.2: Í dag = sama tala og Bíður mín
   window.stikaBidur = bidur;
   /* 2.144.6: hvað liggur að baki tölunni í stikunni – spjald við hlið liðarins (hover/fókus) með því sem bíður og hlekk á hvert atriði */
   const BLAB = { heim: "Allt sem bíður þín", tilbod: "Tilboð sem bíða þín", pantanir: "Pantanir sem bíða þín", verkefni: "Verkefni sem bíða þín", bunadur: "Lager – bíður skoðunar", postur: "Póstur", fjarmal: "Fjármál", spjall: "Spjall" };

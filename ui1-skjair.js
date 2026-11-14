@@ -795,6 +795,7 @@
     const tapU = x => x.p ? tapAttr("verk", x.p.id) : 'data-act="rknew:_" role="button" tabindex="0" title="Gera reikning úr tímum án verkefnis"';
     const og = R.filter(r => r.stada !== "Greitt"), gr = R.filter(r => r.stada === "Greitt");
     // 2.89.0: afhentar pantanir í reikningi sem eiga eftir að fá reikning
+    const OI = window.rkOinnheimt ? rkOinnheimt() : { ub: 0, h: 0, gs: [], pn: [] };   // 2.150.2: ein skilgreining á óreikningsfærðu
     const PO = window.rkOrders ? rkOrders() : [], pnN = P => { try { return salaAPI.totals(P).net; } catch (e) { return 0; } };
     const tapP = P => `data-act="rkpn:${E(P.id)}" role="button" tabindex="0" title="Búa til reikning úr ${E(P.nr)}"`;
     const tot = ub.reduce((a, x) => a + x.kr, 0) + PO.reduce((a, P) => a + pnN(P), 0) + og.reduce((a, r) => a + (+r.tot || 0), 0), mkr = n => (Math.round(n / 1e5) / 10).toLocaleString("de-DE") + " m.kr.";
@@ -965,6 +966,7 @@
     const R = (S?.reikningar || []).filter(r => r.stada !== "Ógilt"), og = R.filter(r => r.stada !== "Greitt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
     const d30 = R.filter(r => r.stada === "Greitt" && daysTo(r.greitt?.dags || r.dags) >= -30);
     const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
+    const OI = window.rkOinnheimt ? rkOinnheimt() : { ub: 0, h: 0, gs: [], pn: [] };   // 2.150.2: ein skilgreining á óreikningsfærðu
     const PO = window.rkOrders ? rkOrders() : [], pnN = P => { try { return salaAPI.totals(P).net; } catch (e) { return 0; } };
     const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ubK = ub.reduce((a, x) => a + x.kr, 0) + PO.reduce((a, P) => a + pnN(P), 0);
     return head("Reikningar", "Yfirlit", nbtn("Reikningur").replace(/data-act="fabnew[^"]*"/, 'data-act="rknew:"'))
@@ -1021,6 +1023,7 @@
     const R = (S?.reikningar || []).filter(r => r.stada !== "Ógilt"), og = R.filter(r => r.stada !== "Greitt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
     const d30 = R.filter(r => r.stada === "Greitt" && daysTo(r.greitt?.dags || r.dags) >= -30);
     const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
+    const OI = window.rkOinnheimt ? rkOinnheimt() : { ub: 0, h: 0, gs: [], pn: [] };   // 2.150.2: ein skilgreining á óreikningsfærðu
     const PO = window.rkOrders ? rkOrders() : [], pnN = P => { try { return salaAPI.totals(P).net; } catch (e) { return 0; } };
     const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ubK = ub.reduce((a, x) => a + x.kr, 0) + PO.reduce((a, P) => a + pnN(P), 0), ubH = ub.reduce((a, x) => a + x.h, 0);
     const ogs = og.slice().sort((a, b) => String(a.gjalddagi || "9").localeCompare(String(b.gjalddagi || "9")));
@@ -1028,7 +1031,7 @@
     const dTo = (a, b) => { const x = d(a), y = d(b); return x && y ? Math.round((y - x) / 864e5) : null; }, pd = d30.map(r => dTo(r.dags, r.greitt?.dags)).filter(x => x != null && x >= 0);
     const n = (k, a, b) => k + " " + (k === 1 ? a : b);
     const kps = yfk([
-      ["Óreikningsfært", krN(ubK), "kr.", ub.length || PO.length ? E([ub.length ? n(ub.length, "verkefni", "verkefni") + " · " + H(ubH) + " klst." : "", PO.length ? n(PO.length, "pöntun", "pantanir") : ""].filter(Boolean).join(" · ")) : "Allt reikningsfært", "trk:oreikn"],
+      ["Óreikningsfært", krN(OI.ub), "kr.", OI.ub > 0 ? E([OI.gs.length ? n(OI.gs.length, "verkefni", "verkefni") + " · " + H(OI.h) + " klst." : "", OI.pn.length ? n(OI.pn.length, "pöntun", "pantanir") : ""].filter(Boolean).join(" · ") + " · án VSK") : "Allt reikningsfært", "trk:oreikn"],
       ["Ógreitt", krN(sum(og)), "kr.", og.length ? E(n(og.length, "reikningur", "reikningar")) + (nxt ? " · næsti gjalddagi " + E(fmtD(nxt.gjalddagi)) : "") : "Allt greitt", "trk:ogr", "dk"],
       ["Fram yfir gjalddaga", krN(sum(late)), "kr.", late.length ? `<i class="bad">${E(n(late.length, "reikningur", "reikningar"))} · elsti ${E(dgr(late.map(r => r.gjalddagi).sort()[0]))}</i>` : `<i class="ok">Allt á tíma</i>`, "trk:ogr"],
       ["Greitt síðustu 30 daga", krN(sum(d30)), "kr.", d30.length ? E(n(d30.length, "reikningur", "reikningar")) + (pd.length ? ` · <i class="bl">að meðaltali ${Math.round(pd.reduce((a, x) => a + x, 0) / pd.length)} dagar að greiðast</i>` : "") : "Ekkert greitt", "trk:gr"]]);
@@ -1088,7 +1091,7 @@
     const by = {}; mo.forEach(e => { const p = findProj(String(e.verkefniId || "")), k = p ? svidOf(p)[0] : "Án verkefnis"; by[k] = (by[k] || 0) + (+e.timar || 0); });
     const pBy = {}; mo.forEach(e => { const k = e.verkefniId ? "p:" + e.verkefniId : e.rukka && e.vskId ? "v:" + e.vskId : "x"; pBy[k] = (pBy[k] || 0) + (+e.timar || 0); });
     const top = Object.entries(pBy).sort((x, y) => y[1] - x[1]).slice(0, 5);
-    const unbE = window.rkUnbilled ? verkefni().map(p => sumT(rkUnbilled(p.id).es)).reduce((s, x) => s + x, 0) : 0, unbK = window.rkUnbilledKr ? verkefni().reduce((s, p) => s + rkUnbilledKr(p.id), 0) : 0;
+    const OI = window.rkOinnheimt ? rkOinnheimt() : { h: 0, ub: 0, pn: [] }, unbE = OI.h, unbK = OI.ub;   // 2.150.2: sama óreikningsfært og í Reikningum (tímar + kostnaður + pantanir, án VSK)
     const days = [...Array(7)].map((_, i) => { const x = new Date(a); x.setDate(x.getDate() + i); const k = isoD(x); return { k, l: ["mán", "þri", "mið", "fim", "fös", "lau", "sun"][i], h: hs(wk.filter(e => mine(e) && String(e.date).slice(0, 10) === k)), past: k < isoD(today), we: i > 4 }; });
     const gap = days.filter(x => x.past && !x.we && !x.h);
     const dmx = Math.max(8, ...days.map(x => x.h));
@@ -1097,7 +1100,7 @@
       ["Þín vika", H(me), "af " + H(g) + " klst.", `<span class="ymeter"><i style="width:${Math.min(100, me / g * 100)}%"></i></span>`, "", "dk"],
       ["Teymið í vikunni", H(team), "klst.", E(staff.length + (staff.length === 1 ? " starfsmaður" : " starfsmenn")) + (team ? " · " + Math.round(bill / team * 100) + " % á verkefni" : "")],
       [cap(MN[today.getMonth()]), H(moT), "klst.", prT ? (moT >= prT ? `<i class="bl">+${H(moT - prT)} klst.</i>` : `${H(moT - prT)} klst.`) + " miðað við sama tíma í " + E(MN[p0.getMonth()]) : "fyrsti mánuðurinn með tímum"],
-      ["Óreikningsfært", H(unbE), "klst.", fin ? E(kr(unbK)) : "bíður reiknings", fin ? "trk:oreikn" : ""]]);
+      ["Óreikningsfært", H(unbE), "klst.", fin ? E(kr(unbK) + " alls" + (OI.pn.length ? " · með " + OI.pn.length + (OI.pn.length === 1 ? " pöntun" : " pöntunum") : "")) : "bíður reiknings", fin ? "trk:oreikn" : ""]]);
     const dayCols = `<div class="ydays">${days.map(x => `<div title="${E(x.l + ": " + H(x.h) + " klst.")}"><i class="${!x.h && x.past && !x.we ? "miss" : x.k === isoD(today) ? "cur" : ""}" style="height:${x.h ? Math.max(4, x.h / dmx * 100) : 0}%"></i><b>${x.h ? H(x.h) : ""}</b><span>${x.l}</span></div>`).join("")}</div>`
       + `<div class="yleg"><span><i></i>skráð</span>${gap.length ? `<span class="warn"><i class="miss"></i>${gap.length === 1 ? "einn virkur dagur" : gap.length + " virkir dagar"} án skráningar</span>` : ""}</div>`;
     const lbl = k => { if (k === "x") return ["", "Án verkefnis", ""]; if (k.startsWith("v:")) { const c = (S?.vidskiptavinir || []).find(c => String(c.id) === k.slice(2)); return ["", "Án verkefnis · Rukka", c?.name || ""]; } const p = findProj(k.slice(2)); return [p?.nr || "", p ? (p.stutt || p.nafn || "") : "Verkefni", p?.vidskiptavinur || ""]; };
@@ -1152,7 +1155,8 @@
     if (tbOn() && api) api.TB().filter(T => T.stada === "Sent" && !T.bidur && daysTo(T.sent || T.dags) <= -7).forEach(T => R.push({ grp: "Svör", k: "Tilboð", title: (T.nr || "") + " " + (T.heiti || ""), sub: "sent " + dateIS(d(T.sent || T.dags)), date: T.sent || T.dags, pill: "Svar", open: "tb:" + T.id }));
     verkD().filter(p => p.stada === STODUR()[0]?.n && !isDone(p)).forEach(p => R.push({ grp: "Svör", k: "Verkefni", title: p.nr + " " + (p.stutt || ""), sub: p.vidskiptavinur || "", date: p.stofnad_t, pill: STODUR()[0].n, open: "verk:" + p.id }));
     if (ON("reikningar") && window.can && can("fjarmal")) {
-      if (!o?.stika && window.rkUnbilled) { let h = 0, k = 0; verkefni().forEach(p => { const x = rkUnbilled(p.id); h += sumT(x.es); k += sumK(x.ks); }); if (h >= 1 || k) R.push({ grp: "Fjármál", k: "Fjármál", title: "Óreikningsfært · " + H(h) + " klst.", sub: k ? kr(k) + " í kostnaði" : "", date: "", pill: "Búa til", open: "oreikn:all" }); }
+      if (!o?.stika && window.rkOinnheimt) { const OI = rkOinnheimt(), fj = window.can ? can("fjarmal") : true, h = OI.h;   // 2.150.2: sama tala og í Reikningum
+        if (h >= 1 || OI.ub > 0) R.push({ grp: "Fjármál", k: "Fjármál", title: "Óreikningsfært · " + (fj ? kr(OI.ub) : H(h) + " klst."), sub: [fj ? H(h) + " klst." : "", OI.pn.length ? OI.pn.length + (OI.pn.length === 1 ? " pöntun" : " pantanir") : ""].filter(Boolean).join(" · ") + (fj ? " · án VSK" : ""), date: "", pill: "Búa til", open: "oreikn:all" }); }
       const og = (S?.reikningar || []).filter(r => r.stada !== "Greitt" && r.stada !== "Ógilt"), late = og.some(r => daysTo(r.gjalddagi) < 0);
       if (og.length === 1) R.push({ grp: "Fjármál", k: "Fjármál", title: "1 ógreiddur reikningur · " + kr(og[0].tot), sub: og[0].kaupandi?.name || "", date: og[0].gjalddagi, pill: late ? "Seint" : "Opna", dark: late, open: "reikn:" + og[0].id });
       else if (og.length) R.push({ grp: "Fjármál", k: "Fjármál", title: og.length + " ógreiddir reikningar · " + kr(og.reduce((a, r) => a + (+r.tot || 0), 0)), sub: late ? "einn eða fleiri komnir fram yfir gjalddaga" : "", date: og.map(r => r.gjalddagi).sort()[0], pill: late ? "Seint" : "Opna", dark: late, act: "u1go:trk:" });
@@ -1163,6 +1167,8 @@
     return R;
   }
   window.oklItems = oklItems;
+  /* 2.150.2: fjöldinn í Bíður mín (sama tala í stikunni við Í dag) – atriðin + viðvaranir sem eru ekki þegar á listanum */
+  window.bmCount = () => { try { const ok = oklItems(), wn = window.snjWarnings ? snjWarnings() : [], seen = new Set(ok.map(it => it.open).filter(Boolean)); return ok.length + wn.filter(w => !w.open || !seen.has(w.open)).length; } catch (e) { return 0; } };
   window.u1Att = att;
   function framItems(days = 14) {
     const ti = isoD(today), ud = (window.utlDocs && ON("leiga") ? utlDocs() : []).filter(u => !u.T || !window.tbMine || tbMine(u.T)), ux = [];
