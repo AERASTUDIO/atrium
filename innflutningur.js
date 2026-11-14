@@ -428,6 +428,7 @@
     } catch (err) { toast?.("Vistaðist ekki: " + (err?.message || err)); }
   }
   window.innflReiknir = opna;
+  window.innflFramlegd = T => { try { return framlegd(T); } catch (e) { return null; } };   // 2.151.0: lykiltala í tilboði
 
   /* ---------- Kostnaður og framlegð á tilboði/pöntun ---------- */
   // Allar sölulínur: kostnaður úr reikni (l.ik.kostn) eða innkaupsverði vörunnar (lagervara)

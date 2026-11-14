@@ -331,9 +331,9 @@
     const PD = pD(PP);
     const c = CF(), d0 = isoDay(new Date()), g0 = (() => { const x = new Date(); x.setDate(x.getDate() + (+c.gildisdagar || 14)); return isoDay(x); })(), M = D === "blandad", L = D !== "sala" && (!M || ON("leiga")), SV = M && !L; // SV (2.22.0): þjónustutilboð – Leiga ekki virk
     sheet.innerHTML = `<h3 id="sheet-h">Nýtt ${M ? "tilboð" : L ? "leigutilboð" : "sölutilboð"}</h3>${byrjaHTML()}<form id="tbf" novalidate>
+      ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <label>${L ? "Heiti viðburðar" : "Heiti verks"}<input id="tb-heiti" value="${esc(PP?.stutt || "")}" placeholder="${L ? "T.d. Árshátíð" : SV ? "T.d. Ljósahönnun – anddyri" : "T.d. Hljóðkerfi fyrir veitingastað"}"></label>
       ${verkefni().length ? `<label>Verkefni<select id="tb-verk"><option value="">Ekkert verkefni</option>${verkefni().filter(p => !isDone(p) || (PP && p.id === PP.id)).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(p => `<option value="${esc(p.id)}"${PP && p.id === PP.id ? " selected" : ""}>${esc(p.nafn || p.nr)}</option>`).join("")}</select></label><label id="tb-undir-l"${(PP?.undirverk || []).length ? "" : " hidden"}>Undirverk<select id="tb-undir">${undirOpts(PP, pre?.undirverkId)}</select></label>` : ""}
-      ${vskSelect("tb", "client", "Viðskiptavinur", "Viðskiptavinur", PP?.vskId || PP?.vkId || null)}
       <div class="two"><label>Tengiliður<input id="tb-teng" placeholder="Nafn"></label><label>Netfang tengiliðs<input id="tb-net" type="email" placeholder="nafn@fyrirtaeki.is"></label></div>
       <label>${L || SV ? "Staðsetning" : "Uppsetningarstaður"}<input id="tb-stad" data-stadur placeholder="${L ? "T.d. Salur A" : "T.d. Gata 10"}"></label>
       ${L ? `<div class="two"><label>Frá${M ? "" : " (afhending)"}<input id="tb-fra" type="date" value="${pre?.fra || PD.fra || (M ? "" : d0)}"></label><label>Til${M ? "" : " (skil)"}<input id="tb-til" type="date" value="${pre?.til || pre?.fra || PD.til || (M ? "" : d0)}"></label></div>${M ? `<p class="hint" id="tb-tbh" style="margin:-4px 0 8px">Tímabil verksins${PP ? " – sömu dagar og verkefnið" : ""}. Leigulínur reiknast á þessa daga.</p>` : ""}` : `<label>Áætluð afhending<input id="tb-fra" type="date"></label>`}
@@ -342,6 +342,11 @@
     sheetwrap.hidden = false; wireVskSelects(sheet);
     if (L) document.getElementById("tb-fra").onchange = e => { const t = document.getElementById("tb-til"); if (!t.value || t.value < e.target.value) t.value = e.target.value; };
     document.getElementById("tb-client").addEventListener("change", e => { const v = findVsk(e.target.value); if (v) { if (!val("tb-teng") && v.tengilidur) document.getElementById("tb-teng").value = v.tengilidur; if (!val("tb-net") && v.netfang) document.getElementById("tb-net").value = v.netfang; } });
+    /* 2.151.0: viðskiptavinur fyrst – verkefnavalið sýnir þá aðeins opin verkefni hans (öll ef hann á ekkert) */
+    { const vs = document.getElementById("tb-verk"); if (vs) { const ALL = [...vs.options].map(o2 => ({ v: o2.value, t: o2.textContent })), pOf = id => findProj(id);
+      document.getElementById("tb-client").addEventListener("change", e => { const cid = e.target.value, cur = vs.value;
+        const mine = ALL.filter(o2 => !o2.v || o2.v === cur || (cid && [pOf(o2.v)?.vskId, pOf(o2.v)?.vkId].includes(cid))), list = cid && mine.length > 1 ? mine : ALL;
+        vs.innerHTML = list.map(o2 => `<option value="${esc(o2.v)}"${o2.v === cur ? " selected" : ""}>${esc(o2.t)}</option>`).join(""); }); } }
     // Val á verkefni fyllir í heiti, viðskiptavin og tímabil (ef reitirnir eru tómir eða enn með gildi fyrra verkefnis)
     let lastPD = PD, lastH = PP?.stutt || "";
     document.getElementById("tb-verk")?.addEventListener("change", e => { const pu = findProj(e.target.value), ul = document.getElementById("tb-undir-l"); if (ul) { ul.hidden = !(pu?.undirverk || []).length; document.getElementById("tb-undir").innerHTML = undirOpts(pu, null); } });

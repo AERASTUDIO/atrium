@@ -43,6 +43,29 @@
       ${rows ? `<table class="ptab" style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th style="text-align:left">Mánuður</th><th style="text-align:right">Notendur</th><th style="text-align:right">Vettvangsnotendur</th><th style="text-align:right">Áætlað gjald</th></tr></thead><tbody>${rows}</tbody></table>` : `<p class="hint">Engin notkun skráð enn.</p>`}
       <p class="hint" style="margin-top:10px">Notandi telst virkur í mánuði ef hann opnar Atrium a.m.k. einu sinni. Hlutverkið Vettvangur er valið í Stillingar › Fólk.</p></div>`;
   }
-  const add = () => { if (typeof STPAGES === "undefined") return false; STPAGES.askrift = { l: "Áskrift", d: "Leið, virkir notendur og áætlað mánaðargjald", s: ["Áskrift", "Notendur", "Verð"], adm: 1, fn: () => html() }; return true; };
+  /* 2.151.0: Um Atrium – áskrift, gögnin ykkar (öll gögn í einni Excel-skrá), hvað gerist ef þið hættið, og hjálp */
+  const SOFN = [["verkefni", "Verkefni"], ["vidskiptavinir", "Viðskiptavinir"], ["tilbod", "Tilboð og pantanir"], ["reikningar", "Reikningar"], ["timar", "Tímafærslur"], ["kostnadur", "Útlagður kostnaður"], ["fundir", "Fundir"], ["dagsverk", "Vikuplan – verk"], ["vorur", "Vörur og búnaður"]];
+  const radir = k => { try { if (k === "timar") return typeof faerslur === "function" ? faerslur() : (S?.timar?.faerslur || []); const v = S?.[k]; return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const flat = v => v == null ? "" : typeof v === "object" ? JSON.stringify(v) : v;
+  async function utflutningur() {
+    if (!window.makeXlsx) { toast?.("Útflutningur ekki tiltækur"); return; }
+    const rows = [[{ v: (window.ORG?.nafn || "Fyrirtækið") + " – öll gögn úr Atrium · " + new Date().toLocaleDateString("is-IS"), s: 1 }], []];
+    SOFN.forEach(([k, l]) => { const xs = radir(k); if (!xs.length) return; const keys = [...new Set(xs.flatMap(x => Object.keys(x || {})))].filter(x => !x.startsWith("_"));
+      rows.push([{ v: l + " (" + xs.length + ")", s: 1 }], keys.map(x => ({ v: x, s: 3 }))); xs.forEach(x => rows.push(keys.map(c => ({ v: flat(x[c]), s: 4 })))); rows.push([]); });
+    const bytes = makeXlsx({ sheet: "Gögn", cols: [], rows }), b = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "Atrium-gogn-" + new Date().toISOString().slice(0, 10) + ".xlsx"; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast?.("Öll gögn sótt í Excel-skrá");
+  }
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { umx: () => utflutningur() });
+  function umHtml() {
+    const adm = typeof can === "function" && can("stillingar"), nf = E(window.ORG?.nafn || "fyrirtækisins"), leid = window.leidNu ? leidNu() : null;
+    const sec = (t, b) => `<div class="card" style="margin-top:12px"><div class="viewtitle">${t}</div>${b}</div>`;
+    return sec("Áskrift", `<p style="margin:0">${leid ? "Leið: <b>" + E(leid.heiti || leid.k || "") + "</b>" + (leid.d ? " – " + E(leid.d) : "") + ". " : ""}Verð fer eftir leið og fjölda virkra notenda í mánuðinum.</p>${adm && STPAGES.askrift && leid ? `<div class="links" style="margin-top:10px"><button type="button" class="btn" data-act="stsub:askrift">Sjá áskrift og mánaðargjald</button></div>` : ""}`)
+      + sec("Gögnin ykkar", `<p style="margin:0">Öll gögn sem skráð eru í Atrium – verkefni, viðskiptavinir, tilboð, pantanir, reikningar, tímar, fundir og vikuplan – eru eign ${nf}. AERA Studio notar þau ekki í öðrum tilgangi.</p>${adm ? `<div class="links" style="margin-top:10px"><button type="button" class="btn primary" data-act="umx:xlsx">Sækja öll gögn (Excel)</button></div><p class="hint" style="margin:8px 0 0">Ein skrá með öllum söfnum, hvert á eftir öðru. Inniheldur persónuupplýsingar – geymið á öruggum stað.</p>` : `<p class="hint" style="margin:8px 0 0">Stjórnandi getur sótt öll gögnin í Excel.</p>`}`)
+      + sec("Ef þið hættið", `<p style="margin:0">Þið fáið öll gögnin afhent í Excel og sem JSON-afrit. Skjöl sem appið hefur vistað eru þegar á ykkar SharePoint/OneDrive og verða þar áfram. Að því loknu er gögnunum eytt úr Atrium.</p>`)
+      + sec("Hjálp", `<p style="margin:0">Við „?“ í Stillingum eru stuttar skýringar á hugtökum. Spurningar og óskir um nýja virkni: hafið samband við AERA Studio.</p><p class="hint" style="margin:8px 0 0">Útgáfa ${E(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</p>`);
+  }
+  const add = () => { if (typeof STPAGES === "undefined") return false; STPAGES.askrift = { l: "Áskrift", d: "Leið, virkir notendur og áætlað mánaðargjald", s: ["Áskrift", "Notendur", "Verð"], adm: 1, fn: () => html() };
+    STPAGES.um = { l: "Um Atrium", d: "Áskrift, gögnin ykkar, útflutningur og hjálp", s: ["Um Atrium", "Gögn", "Útflutningur", "Hjálp"], fn: () => umHtml() }; return true; };
   if (!add()) { const iv = setInterval(() => { if (add()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 })();

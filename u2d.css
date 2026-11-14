@@ -1612,3 +1612,18 @@ html body.kerfi #view .u2wi.u2wdone{opacity:.55}
 html body.kerfi #view .spdet:has(.vs3b[data-act^="kstart:"]) .udh2 .uact [data-act^="kstart:"]{display:none!important}
 /* Tilboð: Staða-valið inni í Staða-spjaldinu */
 html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbst .u2tbsel{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);flex:0 0 auto}
+
+/* ---------- 2.151.0 ---------- */
+/* Fyrstu skref í einni línu eftir fyrsta daginn */
+html body.kerfi #view .fsk.fskc{padding:0!important;margin-bottom:18px}
+html body.kerfi #view .fskc-b{width:100%;display:flex;align-items:center;gap:14px;border:0;background:transparent;font:inherit;color:var(--ink);padding:14px 20px;cursor:pointer;text-align:left;border-radius:inherit}
+html body.kerfi #view .fskc-b:hover{background:var(--hover,#EEF1F4)}
+html body.kerfi #view .fskc .fsk-y{flex:none}
+html body.kerfi #view .fskc-n{flex:1 1 auto;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi #view .fskc-bar{flex:0 0 120px;height:4px;border-radius:2px;background:var(--line,#DFE3E8);overflow:hidden;display:flex}.fskc-bar i{background:var(--hi,#2B63A6)}
+html body.kerfi #view .fskc-a{flex:none;font-size:13px;font-weight:600;color:var(--hi,#2B63A6)}
+@media (max-width:640px){html body.kerfi #view .fskc-bar{display:none}html body.kerfi #view .fskc-b{flex-wrap:wrap;row-gap:4px}html body.kerfi #view .fskc-n{flex-basis:100%;order:3}}
+/* Tilboð: framboð sem stöðumerki í hausnum */
+html body.kerfi #view .upill.u2av{font-weight:600}
+html body.kerfi #view .upill.u2av.ok{background:#E3F1EA!important;color:#2C7A57!important}
+html body.kerfi #view .upill.u2av.wait{background:#FBF0DD!important;color:#9C6410!important}

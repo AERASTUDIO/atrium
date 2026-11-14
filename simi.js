@@ -76,6 +76,7 @@
     cam: '<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>', note: '<path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4M8 9h8M8 12.5h5"/>',
     tel: '<path d="M6.5 3.5h3l1.5 4-2 1.3a11 11 0 0 0 5.2 5.2l1.3-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2z"/>',
     chev: '<path d="M9 6l6 6-6 6"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
     verk: '<path d="M3.5 7h17v12.5h-17zM8 7V4.5h8V7"/>',
     pant: '<path d="M5 7.5h14l-1.3 11a1.5 1.5 0 0 1-1.5 1.3H7.8a1.5 1.5 0 0 1-1.5-1.3z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/>'
   };
@@ -160,13 +161,14 @@
   function bar() {
     const tb = document.getElementById("tbar"); if (!tb) return;
     const t = cur(), D = det(), inDag = t === "yfirlit" && !D, inLeit = t === "leit" && !D, inTim = /^(timar|tfaer|tskyr|timyf|trk)$/.test(t) && !D;
-    const B = (k, l, icn, on, extra = "") => `<button type="button" class="tab tb${k === "scan" ? " simscan" : ""}" ${k === "scan" ? 'data-simk="scan"' : `data-tab="${k}"`} aria-label="${l}"${on ? ' aria-current="page"' : ""}${extra}>${ico(icn, k === "scan" ? 22 : 21)}<span class="tl">${l}</span></button>`;
-    const qr = window.qrScan && ON("qr");
+    const B = (k, l, icn, on, extra = "") => `<button type="button" class="tab tb${k === "scan" || k === "skra" ? " simscan" : ""}" ${k === "scan" || k === "skra" ? `data-simk="${k}"` : `data-tab="${k}"`} aria-label="${l}"${on ? ' aria-current="page"' : ""}${extra}>${ico(icn, k === "scan" || k === "skra" ? 22 : 21)}<span class="tl">${l}</span></button>`;
     // 2.129.0: annar hnappurinn er aðalferill fyrirtækisins – Pantanir með Leigu/Sölu, annars Verkefni (Leita fer í Meira ef Skanna er í boði)
     let rent = false; try { rent = ON("pantanir") && (ON("leiga") || ON("sala")); } catch (e) {}
+    /* 2.151.0: Skanna aðeins hjá fyrirtækjum með leigu/sölu (búnað); annars er „Skrá tíma“ í miðjunni */
+    const qr = window.qrScan && ON("qr") && rent, skra = !qr && ON("timar");
     const FK = rent ? "pantanir" : "verkefni", fs = (() => { try { return SECTIONS; } catch (e) { return []; } })().find(x => x.k === FK), ft = fs && (fs.tabs.find(t => !YF[t[0]] && ok(t[0])) || fs.tabs[0])[0];
     const inFl = !!fs && !inDag && !inLeit && !inTim && (D ? (FK === "verkefni" ? /^verk:/.test(String(D)) : /^tb:/.test(String(D))) : secOf(t)?.k === FK);
-    tb.innerHTML = B("yfirlit", "Í dag", "dag", inDag) + (ft ? B(ft, fs.l, FK === "pantanir" ? "pant" : "verk", inFl) : "") + (qr ? B("scan", "Skanna", "scan", false) : B("leit", "Leita", "leit", inLeit)) + B("timar", "Tímar", "tim", inTim) + B("meira", "Meira", "meira", !inDag && !inLeit && !inTim && !inFl);
+    tb.innerHTML = B("yfirlit", "Í dag", "dag", inDag) + (ft ? B(ft, fs.l, FK === "pantanir" ? "pant" : "verk", inFl) : "") + (qr ? B("scan", "Skanna búnað", "scan", false) : skra ? B("skra", "Skrá tíma", "plus", false) : B("leit", "Leita", "leit", inLeit)) + B("timar", "Tímar", "tim", inTim) + B("meira", "Meira", "meira", !inDag && !inLeit && !inTim && !inFl);
   }
   // 2.142.0: bjalla í haus símans (við hlið prófílmyndar) – tilkynningar opnast í spjaldi eins og í tölvu
   function bell() {
@@ -211,6 +213,7 @@
     const b = e.target.closest("[data-simk]"); if (!b) return; e.preventDefault();
     const [k, a] = b.dataset.simk.split(/:(.*)/s);
     if (k === "scan") return window.qrScan?.();
+    if (k === "skra") { try { kind = "tima"; PREFILL = null; openSheet(); } catch (x) {} return; }
     if (k === "stop") return typeof stopKlukka === "function" && stopKlukka();
     if (k === "go") return startOn(a);
     if (k === "ath") return noteSheet(a);

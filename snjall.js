@@ -39,7 +39,7 @@
   const mrg = (a, b) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => { o[k] = v && typeof v === "object" && !Array.isArray(v) ? mrg(a[k] || {}, v) : v; }); return o; };
   const coPref = () => tr(() => CFG().heim, null) || {};
   const PR = () => mrg(mrg(DEF, coPref()), UP || {});
-  const showPart = k => { const p = PR(); return !p.fela.includes(k); };
+  const showPart = k => { if (k === "cmd") return false; const p = PR(); return !p.fela.includes(k); };   // 2.151.0: textareiturinn (›_) tekinn út að ósk Dags
   const order = () => { const p = PR(), o = p.hlutar.filter(k => HL[k]); Object.keys(HL).forEach(k => { if (!o.includes(k)) o.push(k); }); return o; };
   const vOn = k => !PR().vidv.af.includes(k), lOn = k => !PR().loka.af.includes(k);
   // Samstilling við aðganginn: sama skjal og „Sérsníða Heim“ (notandi/{netfang}) – engin ný regla

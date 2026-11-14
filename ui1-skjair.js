@@ -40,11 +40,13 @@
     const wkNo = (() => { const t = new Date(Date.UTC(a.getFullYear(), a.getMonth(), a.getDate() + 3)); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 4)); return 1 + Math.round(((t - y) / 864e5 - 3 + ((y.getUTCDay() + 6) % 7)) / 7); })();
     const ents = mine(me), cal = window.calItems ? calItems() : new Map();
     let wTot = 0;
+    /* 2.151.0: engar „Úr dagatali“-tillögur um helgar nema viðkomandi hafi sjálfur skráð helgartíma síðustu 4 vikur */
+    const c28 = new Date(today); c28.setDate(c28.getDate() - 28); const helgV = ents.some(e => { const dx = d(e.date); return dx && dx >= c28 && [0, 6].includes(dx.getDay()); });
     const cols = days.map((x, i) => {
       const iso = isoD(x), es = ents.filter(e => e.date === iso), tot = es.reduce((s, e) => s + (+e.timar || 0), 0); wTot += tot;
       const isT = iso === isoD(today), wk = i > 4;
       const cards = es.map(e => { const p = findProj(e.verkefniId); return `<a class="uent" ${tapAttr("time", e.id)}><span class="uer"><small>${E(p?.nr || "Án verkefnis")}</small><b>${H(e.timar)}${e.live ? " ⏱" : ""}</b></span><span class="uen">${E(e.lysing || p?.stutt || p?.nafn || "")}</span></a>`; }).join("");
-      const sug = (cal.get(iso) || []).filter(it => it.t === "fund").filter(it => !es.some(e => String(e.lysing || "").toLowerCase().includes(String(it.title || "").toLowerCase().slice(0, 8))))
+      const sug = (i > 4 && !helgV ? [] : cal.get(iso) || []).filter(it => it.t === "fund").filter(it => !es.some(e => String(e.lysing || "").toLowerCase().includes(String(it.title || "").toLowerCase().slice(0, 8))))
         .map(it => { const pid = it.o?.projectId || ""; const h = it.o?.end && it.o?.date ? Math.max(0.5, Math.round((new Date(it.o.end) - new Date(it.o.date)) / 18e5) / 2) : 1;
           return `<div class="usug"><small>Úr dagatali</small><span>${E(it.title || "Fundur")}</span><button type="button" onclick="kind='tima';PREFILL={date:'${iso}'${pid ? `,pid:'${E(pid)}'` : ""}};openSheet()" aria-label="Skrá ${H(h)} klst. – ${E(it.title || "Fundur")}">+ <span class="usk">Skrá </span>${H(h)} klst.</button></div>`; }).join("");
       return `<div class="uday${wk ? " wk" : ""}"><div class="udh${isT ? " on" : ""}"><span>${DN[i]} <small>${x.getDate()}. ${MNs[x.getMonth()]}</small></span><span class="${tot ? "b" : "m"}">${tot ? H(tot) + " klst." : "–"}</span></div>${cards}${sug}<button type="button" class="uadd" onclick="kind='tima';PREFILL={date:'${iso}'};openSheet()" aria-label="Skrá tíma ${DN[i]}">+</button></div>`;
@@ -206,10 +208,10 @@
     const top = lhead("", teg ? title : "Tilboð", nbtn("Tilboð")) + kp + `<div class="ulbar">${chips([["opin", "Opin · " + cn("opin")], ["drog", "Drög · " + cn("drog")], ["sent", "Bíða svars · " + cn("sent")], ["samth", "Samþykkt · " + cn("samth")], ["allt", "Allar stöður"]], f, "u1vf:ltilbod")}</div>`;
     const SF = T => window.tbStofnandi ? tbStofnandi(T) : ""; // 2.88.0: stofnandi
     if (WIDE()) return top + wl("80px minmax(0,1.4fr) minmax(0,1fr) 84px 170px 100px 56px 120px 150px", wcols(["Nr.", "Heiti", "Viðskiptavinur", "Verkefni", "Tímabil", "Stofnandi", "Línur", "Upphæð m. vsk", "Staða"])
-      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc((window.rlDot ? rlDot(T) : "") + E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || (T.dags ? dateIS(d(T.dags)) : ""))), wc(E(SF(T))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
+      + (xs.map(T => wrow(tapAttr("tb", T.id), [wc(E(T.nr || "")), wc((window.rlDot ? rlDot(T) : "") + E(T.heiti || ""), "t"), wc(E(T.vidskiptavinur || "")), wc(E(pnr(T.verkefniId))), wc(E(rng2(T) || "–")), wc(E(SF(T))), wc(fjL(T)), wc(E(totK(T))), wc(pill(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög"), "r")])).join("") || `<div class="uempty">Engin tilboð.</div>`));
     return top
-      + cols("Nr.", "Heiti · Viðskiptavinur", "Dags.", "Staða")
-      + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E([T.vidskiptavinur, SF(T) ? "stofnaði: " + SF(T) : ""].filter(Boolean).join(" · ")), E(T.fra ? relD(T.fra) : (T.dags || "").slice(5).split("-").reverse().join(".")), api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
+      + cols("Nr.", "Heiti · Viðskiptavinur", "Afhending", "Staða")   // 2.151.0: dálkurinn hét „Dags.“ en sýndi afhendingu
+      + (xs.map(T => row(tapAttr("tb", T.id), E(T.nr || ""), E(T.heiti || ""), E([T.vidskiptavinur, SF(T) ? "stofnaði: " + SF(T) : ""].filter(Boolean).join(" · ")), E(T.fra ? relD(T.fra) : "–"), api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Drög")).join("") || `<div class="uempty">Engin tilboð.</div>`);
   }
   U.ltilbod = () => tlist("ltilbod", "Tilboð", "");
   U.tbl = () => tlist("tbl", "Leiga", "leiga");
@@ -982,8 +984,12 @@
     const y = String(today.getFullYear()), SV = { vinna: "Þjónusta", leiga: "Leiga", sala: "Sala", auka: "Aukagjöld" }, by = {}, RLn = window.RL ? RL() : [];
     const subOf = r => { const P = (r.pontunIds || []).map(id => (window.salaAPI ? salaAPI.PN() : []).find(x => x.id === id)).find(Boolean); const p = findProj(r.verkefniId || (r.verkefniIds || [])[0]);
       const k = (P && window.rlOf && rlOf(P)) || (p && window.rlOf && rlOf(p)) || ""; return RLn.find(x => x.id === k)?.heiti || ""; };
+    /* 2.151.0: lína án flokks (eldri eða handskráðir reikningar) fær svið úr pöntun reikningsins (tegund línunnar þar) eða einingu (dagar → leiga, klst. → þjónusta) */
+    const flOf = (r, l) => { if (l.flokkur) return l.flokkur; const ly = String(l.lysing || "").toLowerCase();
+      for (const id of r.pontunIds || []) { const P = (window.salaAPI ? salaAPI.PN() : []).find(x => x.id === id); const m = (P?.linur || []).find(x => x.heiti && ly.includes(String(x.heiti).toLowerCase())); if (m?.teg) return m.teg; }
+      const e = String(l.eining || "").toLowerCase(); return /dag/.test(e) ? "leiga" : /klst/.test(e) ? "vinna" : ""; };
     R.filter(r => String(r.dags || "").startsWith(y)).forEach(r => { const sub = subOf(r);
-      (r.linur || []).filter(l => !l.haus && l.flokkur !== "kostn").forEach(l => { const sv = SV[l.flokkur] || "Þjónusta", a = Math.round((+l.magn || 0) * (+l.verd || 0)); if (!a) return;
+      (r.linur || []).filter(l => !l.haus && l.flokkur !== "kostn").forEach(l => { const sv = SV[flOf(r, l)] || "Þjónusta", a = Math.round((+l.magn || 0) * (+l.verd || 0)); if (!a) return;
         const o = by[sv] = by[sv] || { t: 0, s: {} }; o.t += a; if (sub) o.s[sub] = (o.s[sub] || 0) + a; }); });
     const keys = Object.keys(by).sort((a, b) => by[b].t - a.t), tot = keys.reduce((s, k) => s + by[k].t, 0);
     const bar = (l, v, sub) => `<div class="ubr"${sub ? ' style="padding-left:14px"' : ""}><span>${E(l)}</span><div class="ubar"><i style="width:${tot ? Math.max(2, v / tot * 100) : 0}%"></i></div><span>${E(kr(v))}</span></div>`;
@@ -1031,9 +1037,11 @@
     const dTo = (a, b) => { const x = d(a), y = d(b); return x && y ? Math.round((y - x) / 864e5) : null; }, pd = d30.map(r => dTo(r.dags, r.greitt?.dags)).filter(x => x != null && x >= 0);
     const n = (k, a, b) => k + " " + (k === 1 ? a : b);
     const kps = yfk([
-      ["Óreikningsfært", krN(OI.ub), "kr.", OI.ub > 0 ? E([OI.gs.length ? n(OI.gs.length, "verkefni", "verkefni") + " · " + H(OI.h) + " klst." : "", OI.pn.length ? n(OI.pn.length, "pöntun", "pantanir") : ""].filter(Boolean).join(" · ") + " · án VSK") : "Allt reikningsfært", "trk:oreikn"],
+      ["Óreikningsfært", krN(OI.ub), "kr.", OI.ub > 0 ? E([OI.gs.length ? n(OI.gs.length, "verkefni", "verkefni") + " · " + H(OI.h) + " klst." : "", OI.pn.length ? n(OI.pn.length, "pöntun", "pantanir") : ""].filter(Boolean).join(" · ")) : "Allt reikningsfært", "trk:oreikn"],
       ["Ógreitt", krN(sum(og)), "kr.", og.length ? E(n(og.length, "reikningur", "reikningar")) + (nxt ? " · næsti gjalddagi " + E(fmtD(nxt.gjalddagi)) : "") : "Allt greitt", "trk:ogr", "dk"],
       ["Fram yfir gjalddaga", krN(sum(late)), "kr.", late.length ? `<i class="bad">${E(n(late.length, "reikningur", "reikningar"))} · elsti ${E(dgr(late.map(r => r.gjalddagi).sort()[0]))}</i>` : `<i class="ok">Allt á tíma</i>`, "trk:ogr"],
+      /* 2.151.0: án Payday-tengingar og án greiðslna segir 0 kr. ekkert – þá er sagt hvernig greiðslur sjást */
+      !d30.length && S?.stillingar?.reikn?.bokhald !== "payday" ? ["Greitt síðustu 30 daga", "–", "", `<a href="#" data-act="fsk:opna:fyrir">Tengdu Payday</a> til að sjá greiðslur`, ""] :
       ["Greitt síðustu 30 daga", krN(sum(d30)), "kr.", d30.length ? E(n(d30.length, "reikningur", "reikningar")) + (pd.length ? ` · <i class="bl">að meðaltali ${Math.round(pd.reduce((a, x) => a + x, 0) / pd.length)} dagar að greiðast</i>` : "") : "Ekkert greitt", "trk:gr"]]);
     // Ógreiddir eftir gjalddaga
     let ogH = "", lastG = null, shown = 0;

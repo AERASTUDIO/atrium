@@ -232,6 +232,7 @@ window.u2TbCard = function (el) {
   wrap("u2tbinfo", "Upplýsingar", info);
   wrap("u2tbst", "Staða", [el.querySelector(":scope > .smst"), el.querySelector(":scope > .links.smpub")]);
   const lin = wrap("u2tblin", "Línur", [el.querySelector(":scope > .utb"), el.querySelector(":scope > .utbt")]);
+  if (lin && el.dataset.u2av) { const [c0, t0] = el.dataset.u2av.split("|"); lin.querySelector(".u2tbh")?.insertAdjacentHTML("beforeend", ` <span class="upill u2av ${c0 === "ok" ? "ok" : "wait"}">${String(t0).replace(/[<>&]/g, "")}</span>`); }   // 2.151.0: framboð við Línur
   // Aðgerðir neðst og textinn um gildistíma undir þeim
   const acts = [...el.querySelectorAll(":scope > .links")].filter(x => !x.classList.contains("smpub"));
   acts.forEach(a => a.classList.add("u2tbacts"));

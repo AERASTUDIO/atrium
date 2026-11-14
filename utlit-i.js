@@ -417,7 +417,11 @@
         else { avL = "Vinna"; av = L.reduce((a, l) => a + (/klst/.test(l.ein || "") ? +l.magn || 0 : 0), 0).toLocaleString("de-DE") + " klst."; }
         const dd = x => x ? String(x).slice(0, 10).split("-").reverse().map((v, i) => i < 2 ? +v : v).slice(0, 2).join(".") + "." : "–";
         const kp = (a, b) => `<div class="ukp"><small>${esc(a)}</small><b>${esc(b)}</b></div>`;
-        const kpis = `<div class="ukps">${kp("Samtals án VSK", (Math.round(tt.net || 0)).toLocaleString("de-DE") + " kr.")}${isP ? kp("Afhending", dd(T.fra)) : kp("Gildir til", dd(T.gildir))}${kp(avL, av)}</div>`;
+        /* 2.151.0: framboð (lager/búnaður) sem stöðumerki í hausnum, ekki lykiltala; þriðja lykiltalan er framlegð (sala) eða tímabil (leiga) */
+        if (avL !== "Vinna") { const okA = !/vantar/.test(av); el.dataset.u2av = (okA ? "ok|" : "wait|") + (okA ? (avL === "Lager" ? "Allt á lager" : "Allur búnaður laus") : av.replace(/^(\d+) vantar.*/, (m0, n0) => n0 + (avL === "Lager" ? " á lager vantar" : " búnaður vantar"))); }
+        const FR = has("sala") && window.innflFramlegd ? innflFramlegd(T) : null;
+        const k3 = FR && FR.sala > 0 && !FR.vant ? kp("Framlegð · " + Math.round(FR.P) + " %", Math.round(FR.fram).toLocaleString("de-DE") + " kr.") : has("leiga") && T.fra ? kp("Tímabil", dd(T.fra) + (T.til && T.til !== T.fra ? "–" + dd(T.til) : "")) : avL === "Vinna" ? kp("Vinna", av) : "";
+        const kpis = `<div class="ukps">${kp("Samtals án VSK", (Math.round(tt.net || 0)).toLocaleString("de-DE") + " kr.")}${isP ? kp("Afhending", dd(T.fra)) : kp("Gildir til", dd(T.gildir))}${k3}</div>`;
         const tab = el.querySelector(".tbtab");
         if (tab) { const tv = el.querySelector(".viewtitle"); const rows = L.map(l => { const dg = l.teg === "leiga" ? (+l.dagar || (T.fra ? Math.max(1, Math.round((new Date(T.til || T.fra) - new Date(T.fra)) / 864e5) + 1) : "")) : ""; return `<div class="utbr"><span>${esc(l.heiti || "")}</span><span>${esc(String(l.magn ?? ""))}${l.ein && l.ein !== "stk." ? " " + esc(l.ein) : ""}</span><span>${dg || ""}</span><span>${(Math.round(api.lSum(l, T) || 0)).toLocaleString("de-DE")} kr.</span></div>`; }).join("");
           tab.outerHTML = `<div class="utb"><div class="utbr h"><span>Lína</span><span>Magn</span><span>Dagar</span><span>Upphæð</span></div>${rows}</div>`; if (tv) tv.remove(); }

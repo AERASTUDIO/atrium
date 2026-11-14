@@ -17,8 +17,13 @@
     ].filter(s => pg(s.k));
   };
   const synilegt = () => adm() && !cfg().fyrstuSkref?.falid && SKREF().some(s => !s.ok);
+  /* 2.151.0: eftir fyrsta daginn er spjaldið ein lína („Uppsetning 2 af 5 · Næst: … · Halda áfram ›“) sem opnar listann */
+  let EXP = false;
+  const fyrstDag = () => { const t = new Date().toISOString().slice(0, 10); try { const k = "atr-fsk-d:" + (window.ORG?.lsForskeyti || ""), v = localStorage.getItem(k); if (!v) { localStorage.setItem(k, t); return true; } return v === t; } catch (e) { return true; } };
   function html() {
     const L = SKREF(), n = L.filter(s => s.ok).length;
+    if (!EXP && !fyrstDag()) { const nx = L.find(s => !s.ok);
+      return `<section class="fsk fskc" aria-label="Fyrstu skref"><button type="button" class="fskc-b" data-act="fsk:opin"><span class="fsk-y">Uppsetning ${n} af ${L.length}</span><span class="fskc-n">${nx ? "Næst: " + E(nx.t) : ""}</span><span class="fskc-bar" aria-hidden="true"><i style="width:${Math.round(n / Math.max(1, L.length) * 100)}%"></i></span><span class="fskc-a">Halda áfram ›</span></button></section>`; }
     return `<section class="fsk" aria-label="Fyrstu skref">
       <div class="fsk-h"><div><div class="fsk-y">Fyrstu skref · ${n} af ${L.length}</div><h3 class="fsk-t">Komdu ${E(window.ORG?.nafn || "fyrirtækinu")} af stað í Atrium</h3></div>
         <button type="button" class="btn sm fsk-x" data-act="fsk:fela" title="Fela – má alltaf finna í Stillingum">Fela</button></div>
@@ -33,12 +38,14 @@
     const v = document.getElementById("view"); if (!v || v.querySelector(".fsk") || !synilegt()) return;
     const st = v.querySelector(".ustart .ustcol");
     if (st) { st.insertAdjacentHTML("beforeend", html()); if (st.closest(".ustdark")) st.querySelector(".fsk").classList.add("fsk-dokk"); return; }
+    const sd = v.querySelector(":scope > .sd"); if (sd) { const sh = sd.querySelector(".sdh"); (sh || sd).insertAdjacentHTML(sh ? "afterend" : "beforebegin", html()); return; }   // sími: fyrir neðan kveðjuna/daginn
     const ph = v.querySelector(".phead, .uhead, h1, h2");
     if (ph && ph.parentElement === v) ph.insertAdjacentHTML("afterend", html()); else v.insertAdjacentHTML("afterbegin", html());
   }
   window.fskAct = function (k, r) {
     const op = r[0];
     if (op === "opna") { tab = "stillingar"; DETAIL = null; window.STSUB = r[1] || null; try { localStorage.setItem("aera-tab", tab); } catch (e) {} render(); window.scrollTo({ top: 0 }); return; }
+    if (op === "opin") { EXP = true; document.querySelector("#view .fsk")?.remove(); inject(); return; }
     if (op === "fela") { if (!adm()) return; saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.fyrstuSkref = { falid: new Date().toISOString() }; }).then(() => toast("Fyrstu skref falin – Stillingar › Einingar sýnir þau aftur")).catch(e => toast(window.errText ? errText(e) : String(e))); return; }
     if (op === "syna") { saveSnapshot(s => { s.stillingar = s.stillingar || {}; delete s.stillingar.fyrstuSkref; }).then(() => { tab = "yfirlit"; DETAIL = null; window.STSUB = null; render(); }); return; }
   };
