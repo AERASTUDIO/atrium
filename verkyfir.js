@@ -136,7 +136,7 @@
     const tiles = `<div class="vs3tiles">`
       + tile(IC.clock, "Tímar", `${H1(hours)} klst.${live ? ' <span class="vs3live">● í gangi</span>' : ""}`, aklst ? `${pc} % af ${H1(aklst)} klst.` : ED() ? '<span class="vs3a">+ Setja áætlun</span>' : "Engin áætlun", 'data-act="dtab:timar" title="Sjá tímafærslur verkefnisins"', aklst ? `<span class="vs3bar${pc > 100 ? " over" : pc >= 80 ? " near" : ""}"><i style="width:${Math.min(100, pc)}%"></i></span>` : "")
       + (tr(() => ON("undirverk"), true) ? tile(IC.list, "Undirverk", `${ou.length}${(p.undirverk || []).length > ou.length ? ` <span class="vs3sm">af ${(p.undirverk || []).length}</span>` : ""}`, ED() ? '<span class="vs3a">+ Undirverk</span>' : "", 'data-act="dtab:undir"') : "")
-      + (af ? tile(IC.bars, "Framlegð", E(KR(af.fr)), (af.pct == null ? "" : Math.round(af.pct * 100) + " % · ") + '<span class="vs3a vs3afkb">Sundurliðun</span>', `data-vs3afk="1" aria-expanded="${afkOpen}" title="Sýna eða fela sundurliðun afkomu"`)
+      + (af ? tile(IC.bars, "Framlegð", E(KR(af.fr)), (af.pct == null ? "" : Math.round(af.pct * 100) + " % · ") + '<span class="vs3a vs3afkb">Sundurliðun</span>', `data-vs3afk="1" aria-expanded="${afkOpen}" title="Sýna eða fela sundurliðun afkomu"`, af.tbVid ? `<span class="vs3tvid" title="Samþykkt tilboð ${E(KR(af.tbVid))} án VSK – viðmið (tímavinna)">Tilboð ${E(af.tbVid >= 1e6 ? (Math.round(af.tbVid / 1e5) / 10).toString().replace(".", ",") + " m.kr." : KR(af.tbVid))}</span>` : "")
         : FIN() && ih === "timar" ? tile(IC.bars, "Óreikningsfært", E(KR(unb)), unb ? '<span class="vs3a">Búa til reikning</span>' : "Ekkert óreikningsfært", unb ? `data-act="rknew:${E(p.id)}"` : 'data-act="tab:trk"') : "")
       + `</div>`;
     // Tilboð og pantanir

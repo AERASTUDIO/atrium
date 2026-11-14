@@ -57,7 +57,9 @@
       const r = subs.length ? dn / subs.length : 0, projH = Math.max(h, r >= 0.2 ? h / r : a || h), avgKv = h ? vinna / h : 0, pc = projH * avgKv + utl, pf = tekjur - pc;
       spa = { h: projH, fr: pf, pct: tekjur ? pf / tekjur : null, by: r >= 0.2 ? `${dn} af ${subs.length} undirverkum lokið` : "áætlun" };
     } else if (ih === "timar" && pct != null && tekjur > 0) spa = { same: true, pct };
-    return { h, tekjur, kostnadur, vinna, utl, auk, fr, pct, spa, ih, grunnur, noKv };
+    // 2.152.1: samþykkt tilboð í tímavinnu – viðmið (telst ekki sem tekjur fyrr en unnið/reikningsfært)
+    const tbVid = ih === "timar" && tbs.length ? tbs.reduce((a, T) => a + (tr(() => api.netOf(T), 0) || 0), 0) : 0;
+    return { h, tekjur, kostnadur, vinna, utl, auk, fr, pct, spa, ih, grunnur, noKv, tbVid, tbN: tbs.length };
   }
   window.vpAfkoma = p => (G() && FIN() ? afkoma(p) : null);   // 2.145.0: notað í Framlegð-spjaldi verkefnisyfirlits (verkyfir.js)
   const tone = pc => pc == null ? "" : pc < 0 ? "t-red" : pc < 0.15 ? "t-amb" : "t-grn";
@@ -70,7 +72,7 @@
     return `<section class="vpafk"><div class="vph"><b>Afkoma</b><small>${E(k.grunnur)}${k.auk ? " · með aukaverkum" : ""}</small></div>
       <div class="vpk"><div><small>Tekjur</small><b>${KR(k.tekjur)}</b></div><div><small>Kostnaður</small><b>${KR(k.kostnadur)}</b><small>${H1(k.h)} klst.${k.utl ? " + útlagt " + KR(k.utl) : ""}</small></div>
       <div><small>Framlegð</small><b class="${tone(k.pct)}">${KR(k.fr)}</b><small class="${tone(k.pct)}">${pctS(k.pct)}</small></div></div>
-      ${spa ? `<p class="vps">${spa}</p>` : ""}${k.noKv ? `<p class="vps t-amb">Kostnaðarverð starfsfólks vantar – skráðu það í Stillingar › Verkefnagreining.</p>` : ""}</section>`;
+      ${k.tbVid ? `<p class="vps">Samþykkt tilboð: <b>${KR(k.tbVid)}</b> án VSK – viðmið. Verkið er í tímavinnu, svo tekjur teljast þegar tímar eru skráðir eða reikningur gerður. Ef tilboðið er fast verð: Breyta › Innheimta › Fast verð.</p>` : ""}${spa ? `<p class="vps">${spa}</p>` : ""}${k.noKv ? `<p class="vps t-amb">Kostnaðarverð starfsfólks vantar – skráðu það í Stillingar › Verkefnagreining.</p>` : ""}</section>`;
   }
 
   /* ---------- Áætlun sem lærir ---------- */

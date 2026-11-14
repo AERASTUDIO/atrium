@@ -1627,3 +1627,6 @@ html body.kerfi #view .fskc-a{flex:none;font-size:13px;font-weight:600;color:var
 html body.kerfi #view .upill.u2av{font-weight:600}
 html body.kerfi #view .upill.u2av.ok{background:#E3F1EA!important;color:#2C7A57!important}
 html body.kerfi #view .upill.u2av.wait{background:#FBF0DD!important;color:#9C6410!important}
+
+/* 2.152.1: samþykkt tilboð sem viðmið í Framlegð-flís (tímavinna) */
+html body.kerfi #view .vs3t .vs3tvid{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
