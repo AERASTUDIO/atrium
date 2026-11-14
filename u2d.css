@@ -1664,11 +1664,11 @@ html:not(#u2a):not(#u2b) body.kerfi #view .ikstrip{border:0!important;border-rad
 html:not(#u2a):not(#u2b) body.kerfi #view .yfk + .pdstrip{margin-top:20px!important}
 /* 2.152.4: Verkefnalisti – nýtt útlit */
 html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow[data-vl]{min-height:64px;align-items:center}
-html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlnr{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
-html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlh{display:flex;flex-direction:column;gap:2px;min-width:0}
-html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlh b{font-size:14.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlh small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlno{color:color-mix(in srgb,var(--muted) 60%,transparent)}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow .vlnr{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow .vlh{display:flex;flex-direction:column;gap:2px;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow .vlh b{font-size:14.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow .vlh small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow .vlno{color:color-mix(in srgb,var(--muted) 60%,transparent)}
 html:not(#u2a):not(#u2b) body.kerfi #view .vlav{display:inline-flex;align-items:center}
 html:not(#u2a):not(#u2b) body.kerfi #view .vlav i{font-style:normal;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#2A3441;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.02em;box-shadow:0 0 0 2px var(--surface,#fff)}
 html:not(#u2a):not(#u2b) body.kerfi #view .vlav i + i{margin-left:-5px}
@@ -1709,3 +1709,42 @@ html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i{back
 html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i:nth-child(2){background:#4F5B6A}
 html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i:nth-child(3){background:#66717F}
 html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i.more{background:var(--hover);color:var(--muted)}
+/* 2.153.2: Allir breiðir listar í sama útliti og verkefnalistinn */
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl > .urow{min-height:60px;align-items:center}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow .vlh b .rldot{margin-right:7px}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wcoh{display:flex;align-items:center;gap:12px;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wco{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:11.5px;font-weight:700;letter-spacing:.02em;color:#2A3441;background:#E3E7EC}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wco1{background:#E2EAF4;color:#2B63A6}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wco2{background:#E4EFEC;color:#3E8E7E}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wco3{background:#ECE9F5;color:#7A6BB8}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .uwl .wco{background:#2A333E;color:#C9D1DA}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .uwl .wco1{background:#22344A;color:#7DAFE0}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .uwl .wco2{background:#1E3A33;color:#79C3B0}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .uwl .wco3{background:#2D2846;color:#B5A9E8}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wamt{font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;color:var(--ink);white-space:nowrap}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wn{font-weight:600;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wns{font-size:12px;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .wok{color:var(--t-grn);font-size:13px;font-weight:600}
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .vltm .vlbar{max-width:140px}
+/* 2.153.2: Starfsmannaspjald */
+html:not(#u2a):not(#u2b) body.kerfi #view .fkhead{display:flex;align-items:center;gap:18px}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkhead > .udl{flex:1;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkav{flex:none;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--gra);color:var(--on-gra);font-size:19px;font-weight:600;letter-spacing:.02em}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .yfk{grid-template-columns:repeat(3,minmax(0,1fr))!important;margin:8px 0 20px}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .ycard.fkc{margin:0 0 20px}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-sec{margin:0 0 20px;background:var(--surface);border-radius:26px;box-shadow:var(--e1);padding:22px 24px}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-sec > h4{justify-content:flex-start!important;margin:0 0 10px;font-size:16px;font-weight:700;color:var(--ink);text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:8px}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-sec > h4::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--kacc);flex:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-sec > h4 > span + span{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-l{border:0;border-radius:0;background:none;overflow:visible}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-r{padding:12px 0;border-bottom:1px solid var(--line)}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-r:last-child{border-bottom:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet a.fk-r:hover{background:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet a.fk-r:hover .fk-t b{color:var(--kacc)}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-t b{font-weight:600;font-size:14.5px}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-t small{font-size:12px;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-e{padding:4px 0;color:var(--muted);font-size:14px;border:0;background:none}
+@media (max-width:1023px){html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .yfk{grid-template-columns:1fr 1fr!important}}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkhead .ptitle{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.15}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkhead .usub{white-space:normal}
+html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .yfkp b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
