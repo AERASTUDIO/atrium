@@ -356,7 +356,7 @@
     const act = hd.querySelector(".uact");
     const [kind, id] = String(DETAIL).split(":");
     if (kind === "verk") {
-      const ks = el.querySelector('[data-act^="kstart:"]'); if (ks) act.append(ks); else if (MCP && ON("timar") && !klukka()) act.insertAdjacentHTML("beforeend", `<button type="button" class="btn primary" data-act="kstart:${esc(id)}">▶ Byrja klukku</button>`);
+      const bid = /bið/i.test(findProj(id)?.stada || ""), ks = el.querySelector('[data-act^="kstart:"]'); if (ks && bid) ks.remove(); else if (ks) act.append(ks); else if (!bid && MCP && ON("timar") && !klukka()) act.insertAdjacentHTML("beforeend", `<button type="button" class="btn primary" data-act="kstart:${esc(id)}">▶ Byrja klukku</button>`);
       if (!el.querySelector('select[aria-label="Staða verkefnis"]') && MCP && findProj(id)) { const pp = findProj(id); act.insertAdjacentHTML("beforeend", `<label class="ustsel">Staða<select aria-label="Staða" onchange="doAct('status:verk:${esc(id)}:'+this.value,this)">${STODUR().filter(x => !x.falin || x.n === pp.stada).map(x => `<option${x.n === pp.stada ? " selected" : ""}>${esc(x.n)}</option>`).join("")}</select></label>`); }
       const ss = el.querySelector('select[aria-label="Staða verkefnis"]'); if (ss) { const w = document.createElement("label"); w.className = "ustsel"; w.textContent = "Staða"; w.append(ss); act.append(w); ss.closest(".fsels")?.remove(); }
       [...el.querySelectorAll(".viewtitle")].find(x => x.textContent.trim() === "Staða verkefnis")?.remove();

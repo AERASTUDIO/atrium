@@ -1598,3 +1598,17 @@ html:not(#u2a):not(#u2b) body.kerfi #view .ywhy{font-size:13px;color:var(--muted
 @media (max-width:1180px){html:not(#u2a):not(#u2b) body.kerfi #view .yfk{grid-template-columns:repeat(2,minmax(0,1fr))}html:not(#u2a):not(#u2b) body.kerfi #view :is(.ydash,.ydash.y21,.ydash.y11){grid-template-columns:1fr 1fr}}
 @media (max-width:1023px){html:not(#u2a):not(#u2b) body.kerfi #view .yfk{margin-inline:16px;gap:12px}html:not(#u2a):not(#u2b) body.kerfi #view :is(.ydash,.ydash.y21,.ydash.y11,.ydash.y1){grid-template-columns:1fr}html:not(#u2a):not(#u2b) body.kerfi #view .yfun{grid-template-columns:1fr 1fr}html:not(#u2a):not(#u2b) body.kerfi #view .ydash.y1{margin-inline:16px}}
 @media (prefers-reduced-motion:reduce){html:not(#u2a):not(#u2b) body.kerfi #view :is(.yfkp,.ystep){transition:none}}
+
+/* ---------- 2.150.1: lagfæringar eftir yfirferð ---------- */
+/* Flýtilyklaröðin neðst í listum lá ofan á línunum (sticky) – nú einfaldlega neðst í listanum */
+html:not(#u2a):not(#u2b) body.kerfi #view .splist .spfoot{position:static!important}
+/* Vikan þín: skráðir tímar sjást (voru daufir eins og tómir reitir) */
+.u2bars i{background:rgba(255,255,255,.5)}
+/* Vikan framundan: hverjir taka verkið; lokið dempað */
+html body.kerfi #view .u2wi .u2wn{display:block;font-style:normal;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.kerfi #view .u2wi .u2wno{color:#9C6410;font-weight:600}
+html body.kerfi #view .u2wi.u2wdone{opacity:.55}
+/* Verkefni: „Byrja klukku“ ekki tvisvar – haushnappurinn víkur þegar Næsta skref hefur hann */
+html body.kerfi #view .spdet:has(.vs3b[data-act^="kstart:"]) .udh2 .uact [data-act^="kstart:"]{display:none!important}
+/* Tilboð: Staða-valið inni í Staða-spjaldinu */
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet.u2tbp .u2tbst .u2tbsel{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);flex:0 0 auto}

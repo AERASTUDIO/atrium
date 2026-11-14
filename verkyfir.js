@@ -32,7 +32,7 @@
   /* ---------- Næsta skref ---------- */
   function next(p, ctx) {
     const { sts, idx, tbs, unb, hours, ih, tbAct } = ctx, kl = tr(() => klukka(), null), id = E(p.id), B = [];
-    const klB = () => kl ? `<button type="button" class="vs3b w" data-act="kedit">Klukka í gangi</button>` : `<button type="button" class="vs3b w" data-act="kstart:${id}">${IC.play}Byrja klukku</button>`;
+    const bid = /bið/i.test(p.stada || ""), klB = () => kl ? `<button type="button" class="vs3b w" data-act="kedit">Klukka í gangi</button>` : bid ? "" : `<button type="button" class="vs3b w" data-act="kstart:${id}">${IC.play}Byrja klukku</button>`;   // 2.150.1: ekki klukka á verkefni í bið
     const tB = `<button type="button" class="vs3b g" data-act="add:tima">Skrá tíma</button>`;
     const uB = tr(() => ON("undirverk"), true) ? `<button type="button" class="vs3b g" data-act="add:undir">+ Undirverk</button>` : "";
     let t, d = "", link = "";
@@ -236,4 +236,6 @@ window.u2TbCard = function (el) {
   const acts = [...el.querySelectorAll(":scope > .links")].filter(x => !x.classList.contains("smpub"));
   acts.forEach(a => a.classList.add("u2tbacts"));
   if (kps && kps.nextElementSibling !== el.querySelector(".u2tbinfo") && el.querySelector(".u2tbinfo")) kps.after(el.querySelector(".u2tbinfo"));
+  // 2.150.1: Staða á einum stað – fellivalið úr hausnum fer inn í Staða-spjaldið (var tvítekið: „Staða: Sent“ í haus og „Sent – bíður…“ í spjaldi)
+  const stc = el.querySelector(".u2tbst"), ssel = head?.querySelector(".uact .ustsel"); if (stc && ssel) { ssel.classList.add("u2tbsel"); [...ssel.childNodes].filter(x => x.nodeType === 3).forEach(x => x.remove()); (stc.querySelector(".u2tbh") || stc.firstChild).after(ssel); }
 };
