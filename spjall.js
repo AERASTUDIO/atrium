@@ -60,8 +60,9 @@
       return sep + `<div class="spm${mine ? " me" : ""}">${head && !mine ? `<div class="spn">${esc(m.nafn || nameOf(m.af))}</div>` : ""}<div class="spb${!m.texti && m.ref?.url && isMed(m.ref) ? " spbm" : ""}">${m.texti ? esc(m.texti).replace(/\n/g, "<br>").replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>') : ""}${m.ref?.k ? refCard(m.ref) : ""}</div><div class="spt">${esc(when(m.t))}${mine ? ` · <button type="button" class="klink" data-act="spdel:${esc(m.id)}">eyða</button>` : ""}</div></div>`; }).join("");
   }
   /* ---------- Deila (2.134.0): verkefni, undirverk, fundir, tilboð, pantanir, reikningar, skjöl og viðskiptavinir í spjalli ---------- */
-  const REFT = { verk: "Verkefni", sub: "Undirverk", fund: "Fundur", tb: "Tilboð", reikn: "Reikningur", skjal: "Skjal", vsk: "Viðskiptavinur", vara: "Vara" };
+  const REFT = { dv: "Verk", verk: "Verkefni", sub: "Undirverk", fund: "Fundur", tb: "Tilboð", reikn: "Reikningur", skjal: "Skjal", vsk: "Viðskiptavinur", vara: "Vara" };
   const homeAct = k => { const [t] = k.split(":"), id = k.slice(k.indexOf(":") + 1);
+    if (t === "dv") return "dvopn:" + id;   // 2.152.0: verk á vikuplani opnast í eigin glugga
     if (t === "tb") return "u1go:" + ((window.salaAPI?.PN?.() || []).some(P => P.id === id) ? "pantanir" : "ltilbod") + ":" + k;
     return "u1go:" + ({ verk: "verk", sub: "verk", fund: "dteymi", reikn: "trk", skjal: "skjol", vsk: "vsk", vara: "lvorur" }[t] || "yfirlit") + ":" + k; };
   /* 2.144.5: viðhengi úr tölvunni – myndir og myndbönd með forskoðun (smámynd úr SharePoint), aðrar skrár sem spjald */
@@ -85,6 +86,7 @@
     if (t === "reikn") { const R = (S?.reikningar || []).find(x => x.id === id); return R && { heiti: "Reikningur " + (R.bokhald?.nr || R.nr || ""), sub: R.kaupandi?.name || "" }; }
     if (t === "skjal") { const x = (S?.skjol || []).find(y => y.id === id); return x && { heiti: x.name || "Skjal", sub: "" }; }
     if (t === "vsk") { const c = (S?.vidskiptavinir || []).find(y => String(y.id) === id); return c && { heiti: c.name || "", sub: c.tengilidur || "" }; }
+    if (t === "dv") { const D = (S?.dagsverk || []).find(y => y.id === id); return D && { teg: "Verk", heiti: D.heiti || "Verk", sub: window.dvLysing ? dvLysing(D) : (D.dagur || "") }; }
     return null; };
   window.spSendRef = async (email, texti, k) => { if (typeof DB === "undefined" || !DB?.commit || !email) return; const info = k ? spRefInfo(k) : null, r = dmKey(email), o = otherOf(r);
     const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");

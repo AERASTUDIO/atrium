@@ -1186,6 +1186,10 @@
   }
   function tilkItems() {
     const R = [], api = window.salaAPI;
+    /* 2.152.0: verk á vikuplani sem einhver annar setti mig á (síðustu 14 daga, ólokið) */
+    { const me = typeof ME === "function" ? ME() : "", meE = String(window.USER?.email || "").toLowerCase();
+      (Array.isArray(S?.dagsverk) ? S.dagsverk : []).filter(D => !D.lokid && (D.menn || []).includes(me) && String(D.breytt_af || D.stofnad_af || "").toLowerCase() !== meE && daysTo(D.breytt_t || D.stofnad_t) >= -14 && String(D.til || D.dagur) >= isoD(today))
+        .forEach(D => R.push({ k: "Verk", title: "Þú ert á verki: " + (D.heiti || ""), sub: window.dvLysing ? dvLysing(D) : D.dagur, date: D.breytt_t || D.stofnad_t, pill: "Opna", act: "dvopn:" + D.id })); }
     const pu = window.poUnread ? poUnread() : 0; if (ON("postur") && pu) R.push({ k: "Póstur", title: pu + " " + (pu === 1 ? "ólesinn póstur" : "ólesnir póstar"), sub: "Pósthólf", date: "", pill: "Nýtt", dark: 1, act: "tab:postur" });
     const su = window.spUnread ? spUnread() : 0; if (ON("spjall") && su) R.push({ k: "Spjall", title: su + " " + (su === 1 ? "ný skilaboð" : "ný skilaboð") + " í spjalli", sub: "Spjall", date: "", pill: "Nýtt", dark: 1, act: "tab:spjall" });
     if (api) {
@@ -1332,7 +1336,7 @@
     window.__adKey = e => { if (e.key === "Escape") atrDrawerClose(); }; document.addEventListener("keydown", window.__adKey); setTimeout(() => d.querySelector("button,a,input")?.focus(), 30); return d; };
   window.atrDrawerClose = quick => { document.querySelectorAll(".adrw,.adscrim").forEach(x => { if (quick) x.remove(); else { x.classList.add("out"); setTimeout(() => x.remove(), 220); } }); if (window.__adKey) document.removeEventListener("keydown", window.__adKey); };
   // ---- 2.139.0: bjalla (lengst til hægri) og tilkynningar í spjaldi frá hægri ----
-  const TKIC = { "Póstur": "M3.5 6h17v12h-17zM3.5 6l8.5 7 8.5-7", "Spjall": "M4 6.5h16v10H9l-5 4z", "Tilboð": "M6 3.5h9l3.5 3.5v13.5H6zM9 11h6M9 14.5h6", "Pantanir": "M5 7.5h14l-1.3 11a1.5 1.5 0 0 1-1.5 1.3H7.8a1.5 1.5 0 0 1-1.5-1.3zM9 10V6.5a3 3 0 0 1 6 0V10", "Verkefni": "M3.5 7h17v12.5h-17zM8 7V4.5h8V7", "Reikningar": "M3.5 6h17v12h-17zM3.5 10h17", "Lager": "M4 8l8-4 8 4v8l-8 4-8-4z" };
+  const TKIC = { "Verk": "M8 4h8v3H8zM6 5.5H5v15h14v-15h-1M9 13l2 2 4-4", "Póstur": "M3.5 6h17v12h-17zM3.5 6l8.5 7 8.5-7", "Spjall": "M4 6.5h16v10H9l-5 4z", "Tilboð": "M6 3.5h9l3.5 3.5v13.5H6zM9 11h6M9 14.5h6", "Pantanir": "M5 7.5h14l-1.3 11a1.5 1.5 0 0 1-1.5 1.3H7.8a1.5 1.5 0 0 1-1.5-1.3zM9 10V6.5a3 3 0 0 1 6 0V10", "Verkefni": "M3.5 7h17v12.5h-17zM8 7V4.5h8V7", "Reikningar": "M3.5 6h17v12h-17zM3.5 10h17", "Lager": "M4 8l8-4 8 4v8l-8 4-8-4z" };
   window.u1TilkN = () => { try { return tilkItems().filter(x => !u1Seen(x)).length; } catch (e) { return 0; } };
   window.u1Bell = () => { let un = 0; try { un = tilkItems().filter(x => !u1Seen(x)).length; } catch (e) {}
     let b = document.getElementById("u2bell"); if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "u2bell"; b.className = "u2bell"; b.onclick = () => u1Tilk(); document.body.append(b); }

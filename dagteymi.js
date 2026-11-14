@@ -245,6 +245,9 @@
     if (p) return { sub: (p.nr ? p.nr + " " : "") + (p.stutt || p.nafn || ""), rail: catC(p), lab: "Verk" };
     return { sub: "Innra verk", rail: "#B9C1CB", lab: "Innra verk" };
   }
+  /* 2.152.0: stutt lýsing verks fyrir spjall, póst og tilkynningar – „mán 16. nóv kl. 09:00 · Innra verk“ */
+  const dagT = d0 => { if (!d0) return ""; const x = dd(String(d0).slice(0, 10)); return DN[x.getDay()].toLowerCase() + " " + x.getDate() + ". " + MN[x.getMonth()]; };
+  window.dvLysing = D => [dagT(D.dagur) + (D.til && D.til > D.dagur ? "–" + dagT(D.til) : "") + (D.kl ? " kl. " + D.kl : ""), dvMeta(D).sub].filter(Boolean).join(" · ");
   function verkItems(days, opt) {
     const R = new Map(days.map(d => [d, []])), put = (d, it) => { d = String(d || "").slice(0, 10); if (R.has(d)) R.get(d).push(it); };
     /* 2.150.0: Vikuplan – dagsverk (verk á dag, með eða án verkefnis). Verk sem taka marga daga fara í opt.band (efst í vikunni). */
@@ -321,6 +324,8 @@
       <p class="hint" id="dv-ar"></p>
       <label>Athugasemd<textarea id="dv-a" rows="2" placeholder="Valfrjálst">${E(D?.aths || "")}</textarea></label>
       ${D ? `<label class="chk"><input type="checkbox" id="dv-lok"${D.lokid ? " checked" : ""}><span>Lokið</span></label>` : ""}
+      <label class="chk" id="dv-spl"><input type="checkbox" id="dv-sp" checked><span>Láta ${D ? "nýja" : "þau"} vita í spjalli – tilkynning og ýtitilkynning í síma</span></label>
+      ${D ? `<div class="links dvshare"><button type="button" class="btn" id="dv-dsp">Deila í spjalli</button><button type="button" class="btn" id="dv-dpo">Senda í pósti</button></div>` : ""}
       <div id="f-msg"></div><div class="actions">${D ? `<button type="button" class="btn" id="dv-del" style="margin-right:auto">Eyða</button>` : ""}<button type="button" class="btn" id="dv-x">Hætta við</button><button class="btn primary" id="dv-ok">${D ? "Vista" : "Setja á vikuplan"}</button></div></form>`;
     sheetwrap.hidden = false; setTimeout(() => document.getElementById(D ? "dv-q" : "dv-h")?.focus(), 50);
     const $ = i => document.getElementById(i), nmOf = sk => (PP.find(p => p.sk === sk)?.nafn) || sk;
@@ -332,12 +337,17 @@
       $("dv-sel").innerHTML = [...SEL].map(sk => `<button type="button" class="dvchip" data-rm="${E(sk)}" aria-label="Taka ${E(nmOf(sk))} af verkinu">${window.atrAv ? atrAv(sk) : ""}<span>${E(nmOf(sk))}</span><i aria-hidden="true">×</i></button>`).join("") || `<span class="dvnone">Enginn valinn enn</span>`;
       const opts = PP.filter(p => !SEL.has(p.sk) && (!q || lc(p.nafn + " " + p.sk).includes(q))).slice(0, q ? 12 : 8);
       $("dv-opts").innerHTML = opts.map(p => `<button type="button" class="dvopt" data-add="${E(p.sk)}">${window.atrAv ? atrAv(p.sk) : ""}<span>${E(p.nafn)}</span></button>`).join("") + (!q && PP.length - SEL.size > 8 ? `<span class="dvmore">Skrifaðu nafn til að finna fleiri</span>` : "");
-      ar(); };
+      ar(); const nyir = [...SEL].filter(sk => !(D?.menn || []).includes(sk)); $("dv-spl").hidden = !nyir.length; };
     $("dv-sel").onclick = e => { const b = e.target.closest("[data-rm]"); if (b) { SEL.delete(b.dataset.rm); paint(); } };
     $("dv-opts").onclick = e => { const b = e.target.closest("[data-add]"); if (b) { SEL.add(b.dataset.add); $("dv-q").value = ""; paint(); $("dv-q").focus(); } };
     $("dv-q").oninput = paint; $("dv-q").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); const b = $("dv-opts").querySelector("[data-add]"); if (b) b.click(); } };
     $("dv-l").onchange = lh; $("dv-d").onchange = ar; lh(); paint();
     $("dv-x").onclick = closeSheet;
+    if (D) { $("dv-dsp").onclick = () => { closeSheet(); window.spDeila ? spDeila("dv:" + D.id) : toast("Spjall er ekki í boði"); };
+      $("dv-dpo").onclick = () => { const em = (D.menn || []).map(sk => PP.find(p => p.sk === sk)?.email).filter(Boolean);
+        const body = `${D.heiti || "Verk"}\n${dvLysing(D)}${(D.menn || []).length ? "\nHver: " + D.menn.map(nmOf).join(", ") : ""}${D.aths ? "\n\n" + D.aths : ""}`;
+        closeSheet(); if (window.poCompose && window.MS?.on?.()) poCompose({ subject: "Verk: " + (D.heiti || "") + " – " + dvLysing(D).split(" · ")[0], body, forceTo: em.join("; ") });
+        else location.href = "mailto:" + encodeURIComponent(em.join(",")) + "?subject=" + encodeURIComponent("Verk: " + (D.heiti || "")) + "&body=" + encodeURIComponent(body); }; }
     if (D) $("dv-del").onclick = async () => { if (!await atrJa(`Eyða verkinu „${D.heiti || "Verk"}“?`, { ja: "Eyða", haetta: true })) return;
       await saveSnapshot(s => { s.dagsverk = (s.dagsverk || []).filter(x => x.id !== D.id); }); closeSheet(); toast("Verki eytt"); };
     $("dvf").onsubmit = async e => { e.preventDefault(); const say = t2 => { $("f-msg").innerHTML = `<div class="msg err">${E(t2)}</div>`; };
@@ -350,7 +360,11 @@
       $("dv-ok").disabled = true;
       try { const nid = D ? D.id : (typeof newId === "function" ? newId() : "dv" + Date.now().toString(36));
         await saveSnapshot(s => { s.dagsverk = s.dagsverk || []; const q = s.dagsverk.find(x => x.id === nid); if (q) Object.assign(q, rec); else s.dagsverk.push({ id: nid, ...rec }); });
-        closeSheet(); toast(D ? "Verk vistað" : "Verk sett á vikuplanið"); }
+        // 2.152.0: þeir sem eru nýir á verkinu fá skilaboð í spjalli (tilkynning í appinu og ýtitilkynning í síma)
+        const nyir = rec.menn.filter(sk => !(D?.menn || []).includes(sk)), meE = lc(window.USER?.email || ""); let n = 0;
+        if (nyir.length && $("dv-sp")?.checked && window.spSendRef) for (const sk of nyir) { const em = lc(PP.find(p => p.sk === sk)?.email || ""); if (!em || em === meE) continue;
+          try { await spSendRef(em, `Ég setti þig á verk: ${h} – ${dvLysing({ ...rec, id: nid })}${rec.aths ? "\n" + rec.aths : ""}`, "dv:" + nid); n++; } catch (x) { console.warn("spjall", x); } }
+        closeSheet(); toast((D ? "Verk vistað" : "Verk sett á vikuplanið") + (n ? " · " + n + (n === 1 ? " fékk" : " fengu") + " skilaboð" : "")); }
       catch (err) { $("dv-ok").disabled = false; say(err?.message || String(err)); } };
   }
   window.dvForm = dvForm;
