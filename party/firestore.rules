@@ -53,7 +53,7 @@ service cloud.firestore {
     match /app/state {
       allow read: if active();
       allow write: if active() && !(resource != null && resource.data.get("skipting", 0) >= 2
-        && (request.resource.data.keys().hasAny(["verkefni", "vidskiptavinir", "fundir", "skjol", "thraedir", "reikningar", "kostnadur", "klukka", "vorur", "tilbod", "pantanir"])
+        && (request.resource.data.keys().hasAny(["verkefni", "vidskiptavinir", "fundir", "skjol", "thraedir", "reikningar", "kostnadur", "klukka", "vorur", "tilbod", "pantanir", "dagsverk"])
             || request.resource.data.get("timar", {}).keys().hasAny(["faerslur", "nyjast"])));
     }
     // Notkun (2.97.0): hver notandi skráir sig virkan í mánuðinum – aðeins eigið netfang, rétt tegund og núverandi mánuður. Admin les.
@@ -76,6 +76,8 @@ service cloud.firestore {
     match /verkefni/{id}       { allow read, update: if active(); allow create: if skrif(); allow delete: if admin(); }
     match /vidskiptavinir/{id} { allow read: if active(); allow create, update: if skrif(); allow delete: if admin(); }
     match /fundir/{id}         { allow read, write: if active(); }
+    // 2.150.0: Vikuplan – verk á dag (með eða án verkefnis). Allir virkir notendur lesa og skrifa, eins og fundir.
+    match /dagsverk/{id}       { allow read, write: if active(); }
     match /skjol/{id}          { allow read, write: if active(); }
     match /thraedir/{id}       { allow read, write: if active(); }
     // Vörulisti og tilboð (frá 2.4.0): allir virkir notendur lesa og skrifa; aðeins admin eyðir.

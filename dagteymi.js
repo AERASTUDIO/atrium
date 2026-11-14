@@ -230,10 +230,25 @@
   /* ---------- Dagatal › Verk (2.131.2): vikan í dálkum – allt með dagsetningu úr pöntunum, verkefnum, tilboðum og reikningum ---------- */
   let VA = today(), VF = "", VMODE = SYN0;
   const VT = { ut: ["Leiga út", "#2C7A57", "#E3F1EA"], inn: ["Leiga inn", "#2C7A57", "#E3F1EA"], afh: ["Afhending", "#9C6410", "#FBF0DD"], skilp: ["Skil pöntunar", "#9C6410", "#FBF0DD"],
-    skil: ["Skil", "#2B63A6", "#EAF0F6"], hefst: ["Hefst", "#2B63A6", "#EAF0F6"], vidb: ["Viðburður", "#2B63A6", "#EAF0F6"], frestur: ["Frestur", "#5E6976", "#F1F3F5"], gjd: ["Gjalddagi", "#5E6976", "#F1F3F5"] };
-  const VGRP = { ut: "afh", inn: "afh", afh: "afh", skilp: "afh", skil: "skil", hefst: "skil", vidb: "skil", frestur: "frestur", gjd: "frestur" };
-  function verkItems(days) {
+    skil: ["Skil", "#2B63A6", "#EAF0F6"], hefst: ["Hefst", "#2B63A6", "#EAF0F6"], vidb: ["Viðburður", "#2B63A6", "#EAF0F6"], frestur: ["Frestur", "#5E6976", "#F1F3F5"], gjd: ["Gjalddagi", "#5E6976", "#F1F3F5"], dv: ["Verk", "#2A3441", "#EEF1F4"] };
+  const VGRP = { ut: "afh", inn: "afh", afh: "afh", skilp: "afh", skil: "skil", hefst: "skil", vidb: "skil", frestur: "frestur", gjd: "frestur", dv: "verk" };
+  const dvCol = () => (Array.isArray(S?.dagsverk) ? S.dagsverk : []);
+  const CATC = ["#2B63A6", "#C47A3A", "#3E8E7E", "#7A6BB8"];
+  const catC = p => { const n = tr(() => (window.rlName && rlName(p)) || (p.thjonusta || [])[0] || "", ""); let h = 0; for (const ch of n) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return n ? CATC[h % 4] : "#8E99A6"; };
+  function dvMeta(D) {
+    const P = D.pontunId && tr(() => window.salaAPI.PN().find(x => x.id === D.pontunId), null);
+    if (P) return { sub: "Pöntun " + (P.nr || "") + (P.heiti && P.heiti !== "Pöntun" ? " " + P.heiti : ""), rail: "#9C6410", lab: "Verk" };
+    const p = D.verkefniId && tr(() => findProj(D.verkefniId), null);
+    if (p) return { sub: (p.nr ? p.nr + " " : "") + (p.stutt || p.nafn || ""), rail: catC(p), lab: "Verk" };
+    return { sub: "Innra verk", rail: "#B9C1CB", lab: "Innra verk" };
+  }
+  function verkItems(days, opt) {
     const R = new Map(days.map(d => [d, []])), put = (d, it) => { d = String(d || "").slice(0, 10); if (R.has(d)) R.get(d).push(it); };
+    /* 2.150.0: Vikuplan – dagsverk (verk á dag, með eða án verkefnis). Verk sem taka marga daga fara í opt.band (efst í vikunni). */
+    dvCol().forEach(D => { const a = String(D.dagur || "").slice(0, 10); if (!a) return; const b = D.til && D.til > a ? String(D.til).slice(0, 10) : a, m = dvMeta(D);
+      const mk = () => ({ k: "dv", t: D.kl || "", txt: D.heiti || "Verk", sub: m.sub, lab: m.lab, rail: m.rail, menn: D.menn || [], need: 1, done: !!D.lokid, id: D.id, go: "dvopn:" + D.id, a, b });
+      if (b > a && opt && opt.band) { if (b >= days[0] && a <= days[days.length - 1]) opt.band.push(mk()); return; }
+      days.forEach(d => { if (d >= a && d <= b) put(d, mk()); }); });
     tr(() => window.salaAPI.PN(), []).forEach(P => { if (["Skilað", "Lokið"].includes(P.stada)) return; const L = P.deild === "leiga", who = P.vidskiptavinur || P.tengilidur || "", nm = [P.nr, P.heiti && P.heiti !== "Pöntun" ? P.heiti : ""].filter(Boolean).join(" ");
       if (P.fra && P.stada !== "Afhent") put(P.fra, { k: L ? "ut" : "afh", t: hm(P.fra), txt: nm, sub: who, menn: P.starfsmenn || [], need: 1, go: "u1go:pantanir:tb:" + P.id });
       if (P.til && (P.til !== P.fra || P.stada === "Afhent") && (P.deild === "leiga" || P.deild === "blandad")) put(P.til, { k: L ? "inn" : "skilp", t: hm(P.til), txt: nm, sub: who, menn: P.starfsmenn || [], need: 1, go: "u1go:pantanir:tb:" + P.id }); });
@@ -253,16 +268,92 @@
     document.documentElement.style.setProperty("--dtn", VMODE === "m" || tl ? 7 : days.length);
     const top = `<div class="uhead"><div><div class="spsup">Dagatal</div><h2 class="ptitle">Verk</h2></div><div class="uhr dtnav">${synH("v", VMODE, true)}${tl ? "" : navH("dverk", VMODE, rngTxt(VMODE, days, VA))}</div></div>`;
     if (tl) return top + `<p class="hint dthint">Tímalína: pantanir og búnaður sem stikur yfir margar vikur – sýnir hvað er úti hvenær og hvort búnaður skarast.</p>` + tr(() => window.pfCalHTML(), "");
-    const R = verkItems(days), SK = new Map(tr(() => STARFS(), []).map(x => [x.sk, x.nafn]));
-    const chips = [["", "Allt"], ["afh", "Afhendingar og leiga"], ["skil", "Skil og verk"], ["frestur", "Frestir"]].map(([k, l2]) => `<button type="button" class="uchip${VF === k ? " on" : ""}" data-act="dverkf:${k}">${E(l2)}</button>`).join("");
-    const card = it => { const [lab, c, bg] = VT[it.k], av = it.menn.map(sk => window.atrAv(sk)).join("");
-      return `<div class="dvc" data-act="${E(it.go)}" role="button" tabindex="0" style="border-left-color:${c}"><span class="dvt" style="color:${c}">${E(lab)}${it.t ? " · " + E(it.t) : ""}</span><b>${E(it.txt)}</b>${it.sub ? `<small>${E(it.sub)}</small>` : ""}${av ? `<div class="dvavs">${av}</div>` : it.need ? `<span class="dvwarn">Enginn skráður · opna til að bóka</span>` : ""}</div>`; };
-    const cols = days.map(d => { const x = new Date(d + "T12:00:00"), xs = (R.get(d) || []).filter(it => !VF || VGRP[it.k] === VF);
-      return `<section class="dvcol${d === ti ? " dvtd" : ""}"><div class="dvh">${DN[x.getDay()]} ${x.getDate()}. ${MN[x.getMonth()]}</div>${xs.map(card).join("") || `<div class="dvempty">–</div>`}</section>`; }).join("");
-    const bar = `<div class="ulbar dvbar">${chips}<span class="m dvhint">Allt með dagsetningu í pöntunum, verkefnum, tilboðum og reikningum</span></div>`;
-    if (VMODE === "m") return top + bar + monthGrid("v", days, VA, d => more((R.get(d) || []).filter(it => !VF || VGRP[it.k] === VF), 4, it => { const [lab, c] = VT[it.k]; return `<a href="#" class="dmi" data-act="${E(it.go)}" style="border-left-color:${c}" title="${E(lab + (it.t ? " " + it.t : "") + " · " + it.txt + (it.sub ? " · " + it.sub : ""))}">${it.t ? `<b>${E(it.t)}</b> ` : ""}${E(it.txt)}</a>`; }));
-    return top + bar + `<div class="dvgrid${VMODE === "d" ? " dvday" : ""}">${cols}</div>`;
+    /* 2.150.0: Vikuplan – verk raðað á daga, hver tekur hvert verk sést á spjaldinu. Verk sem taka marga daga efst. */
+    const band = [], R = verkItems(days, VMODE === "m" ? null : { band }), SK = new Map(tr(() => STARFS(), []).map(x => [x.sk, x.nafn])), me = tr(() => ME(), "");
+    const nmOf = sk => String(SK.get(sk) || sk || "").split(" ")[0];
+    const qq = lc(VQ), pass = it => {
+      if (VF === "min" && !(it.menn || []).includes(me)) return false;
+      if (VF === "obu" && !(it.need && !(it.menn || []).length)) return false;
+      if ((VF === "afh" || VF === "frestur") && VGRP[it.k] !== VF) return false;
+      if (qq && !lc([it.txt, it.sub, ...(it.menn || []).map(sk => SK.get(sk) || sk)].join(" ")).includes(qq)) return false;
+      return true; };
+    let nObu = band.filter(it => !(it.menn || []).length).length; R.forEach(xs => xs.forEach(it => { if (it.need && !(it.menn || []).length) nObu++; }));
+    const chips = [["", "Allt"], ["min", "Mín verk"], ["obu", "Óúthlutað" + (nObu ? " · " + nObu : "")], ["afh", "Afhendingar og leiga"], ["frestur", "Frestir"]].map(([k, l2]) => `<button type="button" class="uchip${VF === k ? " on" : ""}" data-act="dverkf:${k}">${E(l2)}</button>`).join("");
+    const d0 = days.includes(ti) ? ti : days[0];
+    const bar = `<div class="ulbar dvbar vpbar">${chips}<label class="vpq"><input id="dvq" type="search" placeholder="Leita að starfsmanni eða verki" aria-label="Leita að starfsmanni eða verki" value="${E(VQ)}" autocomplete="off"></label><button type="button" class="btn primary vpnew" data-act="dvny2:${d0}">+ Verk</button></div>`;
+    if (VMODE === "m") { const mR = new Map([...R].map(([d, xs]) => [d, xs.filter(pass)]));
+      return top + bar + monthGrid("v", days, VA, d => more(mR.get(d) || [], 4, it => { const [lab, c] = VT[it.k], col = it.k === "dv" ? it.rail : c; return `<a href="#" class="dmi${it.done ? " vpdone" : ""}" data-act="${E(it.go)}" style="border-left-color:${col}" title="${E((it.k === "dv" ? it.lab : lab) + (it.t ? " " + it.t : "") + " · " + it.txt + (it.sub ? " · " + it.sub : "") + ((it.menn || []).length ? " · " + it.menn.map(nmOf).join(", ") : ""))}">${it.t ? `<b>${E(it.t)}</b> ` : ""}${E(it.txt)}</a>`; })); }
+    const CK = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+    const whoH = it => { const M = it.menn || [], nm = M.map(nmOf);
+      if (M.length) return `<div class="vpw"><span class="atavs">${M.slice(0, 4).map(sk => window.atrAv(sk)).join("")}</span><span class="vpn">${E(nm.slice(0, 2).join(", ") + (nm.length > 2 ? " +" + (nm.length - 2) : ""))}</span></div>`;
+      return it.need ? `<span class="vpwarn">${it.k === "dv" ? "Enginn á verkinu" : "Enginn skráður"}</span>` : ""; };
+    const card = it => { const [lab, c] = VT[it.k], dv = it.k === "dv", col = dv ? it.rail : c;
+      const topT = dv ? (it.t ? it.t + " · " + it.lab : it.lab) : lab + (it.t ? " · " + it.t : "");
+      const chk = dv ? `<button type="button" class="vpchk${it.done ? " on" : ""}" data-act="dvlok:${E(it.id)}" aria-label="${it.done ? "Merkja ólokið" : "Merkja lokið"}" title="${it.done ? "Lokið – smelltu til að opna aftur" : "Merkja lokið"}">${CK}</button>` : "";
+      return `<div class="vpc${it.done ? " vpdone" : ""}" data-act="${E(it.go)}" role="button" tabindex="0" style="--vpr:${col}">${chk}<span class="dvt" style="color:${dv ? "var(--muted)" : c}">${E(topT)}</span><b>${E(it.txt)}</b>${it.sub ? `<small>${E(it.sub)}</small>` : ""}${whoH(it)}</div>`; };
+    const n = days.length, wk = d => (dd(d).getDay() + 6) % 7, G = days.map(d => wk(d) >= 5 && n > 1 ? "minmax(0,.85fr)" : "minmax(0,1fr)").join(" ");
+    const dlab = d => { const x = dd(d); return `<span>${DN[x.getDay()]}</span><b>${x.getDate()}.</b>`; };
+    const head = days.map(d => { const c = (R.get(d) || []).filter(pass).length; return `<div class="vph${d === ti ? " vptd" : ""}${wk(d) >= 5 ? " vpwe" : ""}">${dlab(d)}<small>${c ? c + (c === 1 ? " atriði" : " atriði") : ""}</small></div>`; }).join("");
+    const bandH = band.filter(pass).sort((x, y) => x.a.localeCompare(y.a)).map(it => { const s0 = Math.max(0, days.indexOf(it.a) < 0 ? 0 : days.indexOf(it.a)), e0 = days.indexOf(it.b) < 0 ? n - 1 : days.indexOf(it.b);
+      const rng = dd(it.a).getDate() + "." + (it.a.slice(5, 7) !== it.b.slice(5, 7) ? " " + MN[dd(it.a).getMonth()] : "") + "–" + dd(it.b).getDate() + ". " + MN[dd(it.b).getMonth()];
+      return `<div class="vpb${it.a < days[0] ? " vpbl" : ""}${it.b > days[n - 1] ? " vpbr" : ""}${it.done ? " vpdone" : ""}" style="grid-column:${s0 + 1}/${e0 + 2};--vpr:${it.rail}" data-act="${E(it.go)}" role="button" tabindex="0"><b>${E(it.txt)}</b><small>${E(it.sub)} · ${E(rng)}</small>${whoH(it)}</div>`; }).join("");
+    const cols = days.map(d => { const xs = (R.get(d) || []).filter(pass);
+      return `<section class="vpcol${d === ti ? " vptd" : ""}${wk(d) >= 5 ? " vpwe" : ""}"><div class="vpch">${dlab(d)}</div>${xs.map(card).join("")}<button type="button" class="vpadd" data-act="dvny2:${d}">+ Verk</button></section>`; }).join("");
+    return top + bar + `<div class="card vpwk${VMODE === "d" ? " vpday" : ""}" style="--vpg:${G}"><div class="vprow vphead">${head}</div>${bandH ? `<div class="vprow vpband">${bandH}</div>` : ""}<div class="vprow vpdays">${cols}</div></div>`;
   }
+
+  /* ---------- Nýtt verk / breyta verki (2.150.0): verk á dag – tengist verkefni, pöntun eða er innra verk (engin mappa, ekkert verknúmer, ekki á reikning) ---------- */
+  function dvForm(d, id) {
+    const D = id ? dvCol().find(x => x.id === id) : null; if (id && !D) return;
+    const PP = folk().filter(p => p.sk), TL = tengjanleg().filter(x => !x.uid);
+    const curL = D ? (D.pontunId ? TL.find(x => x.pnid === D.pontunId) : D.verkefniId ? TL.find(x => x.pid === D.verkefniId && !x.pnid) : null) : null;
+    const SEL = new Set(D?.menn || []);
+    sheet.innerHTML = `<h3 id="sheet-h">${D ? "Verk" : "Nýtt verk"}</h3><form id="dvf" novalidate>
+      <label>Hvað þarf að gera<input id="dv-h" required placeholder="T.d. Ganga frá á lager, uppsetning í sal" value="${E(D?.heiti || "")}"></label>
+      <label>Tengist<input id="dv-l" list="dv-ll" placeholder="Verkefni eða pöntun – autt = innra verk" autocomplete="off" value="${E(curL?.l || "")}"><datalist id="dv-ll">${TL.map(x => `<option value="${E(x.l)}"></option>`).join("")}</datalist></label>
+      <p class="hint" id="dv-lh" style="margin:-4px 0 10px"></p>
+      <div class="three"><label>Dagur<input id="dv-d" type="date" required value="${E(D?.dagur || d || today())}"></label><label>Til (ef fleiri dagar)<input id="dv-t" type="date" value="${E(D?.til || "")}"></label><label>Klukkan<input id="dv-k" type="text" inputmode="decimal" maxlength="5" placeholder="valfrjálst" data-t24 value="${E(D?.kl || "")}"></label></div>
+      <div class="kind" style="margin:12px 0 6px">Hver tekur það</div>
+      <div class="dvpick"><div class="dvsel" id="dv-sel"></div><input id="dv-q" type="search" placeholder="Leita að starfsmanni…" autocomplete="off" aria-label="Leita að starfsmanni"><div class="dvopts" id="dv-opts"></div></div>
+      <p class="hint" id="dv-ar"></p>
+      <label>Athugasemd<textarea id="dv-a" rows="2" placeholder="Valfrjálst">${E(D?.aths || "")}</textarea></label>
+      ${D ? `<label class="chk"><input type="checkbox" id="dv-lok"${D.lokid ? " checked" : ""}><span>Lokið</span></label>` : ""}
+      <div id="f-msg"></div><div class="actions">${D ? `<button type="button" class="btn" id="dv-del" style="margin-right:auto">Eyða</button>` : ""}<button type="button" class="btn" id="dv-x">Hætta við</button><button class="btn primary" id="dv-ok">${D ? "Vista" : "Setja á vikuplan"}</button></div></form>`;
+    sheetwrap.hidden = false; setTimeout(() => document.getElementById(D ? "dv-q" : "dv-h")?.focus(), 50);
+    const $ = i => document.getElementById(i), nmOf = sk => (PP.find(p => p.sk === sk)?.nafn) || sk;
+    const lh = () => { const v = $("dv-l").value.trim(), L = TL.find(x => x.l === v); $("dv-lh").textContent = !v ? "Innra verk – fær enga möppu, ekkert verknúmer og fer ekki á reikning. Birtist á vikuplaninu og hjá þeim sem taka það." : L ? "" : "Veldu úr listanum, eða hafðu autt fyrir innra verk."; };
+    const ar = () => { const dg = $("dv-d").value; if (!dg || !SEL.size) { $("dv-ar").textContent = ""; return; }
+      const R = tr(() => verkItems([dg]), new Map()), xs = (R.get(dg) || []).filter(it => it.id !== D?.id);
+      $("dv-ar").textContent = [...SEL].map(sk => { const c = xs.filter(it => (it.menn || []).includes(sk)).length; return c ? `${nmOf(sk).split(" ")[0]} á ${c} ${c === 1 ? "annað verk" : "önnur verk"} þennan dag.` : ""; }).filter(Boolean).join(" "); };
+    const paint = () => { const q = lc($("dv-q").value);
+      $("dv-sel").innerHTML = [...SEL].map(sk => `<button type="button" class="dvchip" data-rm="${E(sk)}" aria-label="Taka ${E(nmOf(sk))} af verkinu">${window.atrAv ? atrAv(sk) : ""}<span>${E(nmOf(sk))}</span><i aria-hidden="true">×</i></button>`).join("") || `<span class="dvnone">Enginn valinn enn</span>`;
+      const opts = PP.filter(p => !SEL.has(p.sk) && (!q || lc(p.nafn + " " + p.sk).includes(q))).slice(0, q ? 12 : 8);
+      $("dv-opts").innerHTML = opts.map(p => `<button type="button" class="dvopt" data-add="${E(p.sk)}">${window.atrAv ? atrAv(p.sk) : ""}<span>${E(p.nafn)}</span></button>`).join("") + (!q && PP.length - SEL.size > 8 ? `<span class="dvmore">Skrifaðu nafn til að finna fleiri</span>` : "");
+      ar(); };
+    $("dv-sel").onclick = e => { const b = e.target.closest("[data-rm]"); if (b) { SEL.delete(b.dataset.rm); paint(); } };
+    $("dv-opts").onclick = e => { const b = e.target.closest("[data-add]"); if (b) { SEL.add(b.dataset.add); $("dv-q").value = ""; paint(); $("dv-q").focus(); } };
+    $("dv-q").oninput = paint; $("dv-q").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); const b = $("dv-opts").querySelector("[data-add]"); if (b) b.click(); } };
+    $("dv-l").oninput = lh; $("dv-d").onchange = ar; lh(); paint();
+    $("dv-x").onclick = closeSheet;
+    if (D) $("dv-del").onclick = async () => { if (!await atrJa(`Eyða verkinu „${D.heiti || "Verk"}“?`, { ja: "Eyða", haetta: true })) return;
+      await saveSnapshot(s => { s.dagsverk = (s.dagsverk || []).filter(x => x.id !== D.id); }); closeSheet(); toast("Verki eytt"); };
+    $("dvf").onsubmit = async e => { e.preventDefault(); const say = t2 => { $("f-msg").innerHTML = `<div class="msg err">${E(t2)}</div>`; };
+      const h = $("dv-h").value.trim(), dg = $("dv-d").value, tl2 = $("dv-t").value, lv = $("dv-l").value.trim(), L = lv ? TL.find(x => x.l === lv) : null;
+      const nt = v => { v = String(v || "").trim().replace(/[.,]/, ":"); if (!v) return ""; if (/^\d{1,2}$/.test(v)) v += ":00"; const m2 = v.match(/^(\d{1,2}):(\d{2})$/); return m2 && +m2[1] < 24 && +m2[2] < 60 ? pad(+m2[1]) + ":" + m2[2] : null; };
+      const kl = nt($("dv-k").value);
+      if (!h) return say("Skrifaðu hvað þarf að gera."); if (!dg) return say("Veldu dag."); if (lv && !L) return say("Veldu verkefni eða pöntun úr listanum, eða hafðu reitinn auðan fyrir innra verk.");
+      if (kl === null) return say("Skrifaðu klukkuna eins og 13:00, eða hafðu reitinn auðan."); if (tl2 && tl2 < dg) return say("„Til“ má ekki vera á undan deginum.");
+      const rec = { heiti: h, dagur: dg, til: tl2 && tl2 > dg ? tl2 : null, kl: kl || null, menn: [...SEL], verkefniId: L ? (L.pid || null) : null, pontunId: L?.pnid || null, aths: $("dv-a").value.trim() || null, lokid: D ? !!$("dv-lok")?.checked : false };
+      $("dv-ok").disabled = true;
+      try { const nid = D ? D.id : (typeof newId === "function" ? newId() : "dv" + Date.now().toString(36));
+        await saveSnapshot(s => { s.dagsverk = s.dagsverk || []; const q = s.dagsverk.find(x => x.id === nid); if (q) Object.assign(q, rec); else s.dagsverk.push({ id: nid, ...rec }); });
+        closeSheet(); toast(D ? "Verk vistað" : "Verk sett á vikuplanið"); }
+      catch (err) { $("dv-ok").disabled = false; say(err?.message || String(err)); } };
+  }
+  window.dvForm = dvForm;
+  let VQ = "", VQT = 0;
+  document.addEventListener("input", e => { if (e.target?.id !== "dvq") return; VQ = e.target.value; clearTimeout(VQT);
+    VQT = setTimeout(() => { render(); const i = document.getElementById("dvq"); if (i) { i.focus(); try { i.setSelectionRange(i.value.length, i.value.length); } catch (x) {} } }, 220); });
 
   function act(k, r) {
     if (k === "dtdagar") { ND = +r[0] === 5 ? 5 : 7; try { localStorage.setItem("aera-dtdagar", String(ND)); } catch (e) {} render(); return; }
@@ -273,11 +364,14 @@
     if (k === "dtsyn") { const m = r[1]; if (r[0] === "v") VMODE = m; else FM = m; if (m !== "tl") try { localStorage.setItem("aera-dtsyn", m); } catch (e) {} render(); return; }
     if (k === "dtday") { if (r[0] === "v") { VMODE = "d"; VA = r[1]; } else { FM = "d"; FA = r[1]; } render(); return; }
     if (k === "dverkf") { VF = r[0] || ""; render(); return; }
+    if (k === "dvny2") { dvForm(r[0] || today()); return; }
+    if (k === "dvopn") { dvForm(null, r.join(":")); return; }
+    if (k === "dvlok") { const id = r.join(":"); saveSnapshot(s2 => { const q = (s2.dagsverk || []).find(x => x.id === id); if (q) q.lokid = !q.lokid; }).then(() => toast("Merkt " + ((dvCol().find(x => x.id === id) || {}).lokid ? "lokið" : "ólokið"))).catch(e2 => toast(e2?.message || "Villa")); return; }
     if (k === "dverkm") { VMODE = r[0] === "tl" ? "tl" : "v"; render(); return; }
     if (k === "dteymi") { FA = shift(FM, FA, +r[0]); render(); return; }
     if (k === "dtbok") { const [d, em] = r; bokForm(d, "09:00", em || ""); return; }
   }
-  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dtdagar: act, dvny: act, dvid: act, dtsyn: act, dtday: act });
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dtdagar: act, dvny: act, dvny2: act, dvopn: act, dvlok: act, dvid: act, dtsyn: act, dtday: act });
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { dteymi: view });
   const reg = () => { if (window.UI1V && !UI1V.dteymi) { UI1V.dteymi = view; UI1V.pndag = verkView; } };
   reg(); document.addEventListener("DOMContentLoaded", reg); setTimeout(reg, 0);
@@ -357,6 +451,53 @@
   .dvwarn{margin-top:4px;align-self:flex-start;font-size:11px;color:#8A5A00;background:#FBF0DD;border:1px solid #F0D9A8;border-radius:5px;padding:1px 6px}
   @media (max-width:1023px){.dvgrid{grid-template-columns:minmax(0,1fr)}.dvhint{margin-left:0}}
   @media (max-width:1023px){.dtrow{grid-template-columns:120px repeat(var(--dtn,5),minmax(96px,1fr))}.dtleg .dtlh{margin-left:0}}
+  /* 2.150.0: Vikuplan */
+  .vpbar .vpq{margin-left:auto;display:flex;align-items:center;width:280px;max-width:100%}
+  .vpbar .vpq input{width:100%}
+  .vpbar .vpnew{white-space:nowrap}
+  .vpwk{padding:0!important;overflow:hidden}
+  .vprow{display:grid;grid-template-columns:var(--vpg)}
+  .vph{display:flex;align-items:baseline;justify-content:center;gap:6px;padding:16px 8px 12px;border-left:1px solid var(--line)}.vph:first-child{border-left:0}
+  .vph span,.vpch span{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.vph b,.vpch b{font-size:16px;font-weight:600}
+  .vph small{font-size:11px;color:var(--muted)}
+  .vph.vptd span,.vph.vptd b,.vpcol.vptd .vpch span,.vpcol.vptd .vpch b{color:var(--hi,#2B63A6)}
+  .vpwe{background:color-mix(in srgb,var(--line) 28%,transparent)}
+  .vpband{border-top:1px solid var(--line);background:color-mix(in srgb,var(--line) 22%,transparent);padding:10px 4px;row-gap:6px;grid-auto-flow:row dense}
+  html body.kerfi #view .vpb{flex-wrap:nowrap}.vpb{margin:0 4px;min-width:0;background:var(--surface,#fff);border:1px solid var(--line);border-left:4px solid var(--vpr);border-radius:10px;padding:6px 12px;display:flex;align-items:center;gap:10px;white-space:nowrap;overflow:hidden;cursor:pointer}
+  .vpb b{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.vpb b{flex:0 1 auto;min-width:40px}.vpb small{flex:1 1 0;min-width:0;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}.vpb .vpw{margin:0 0 0 auto;flex:none}
+  .vpb.vpbl{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:0}.vpb.vpbr{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:0}
+  .vpdays{border-top:1px solid var(--line);min-height:380px}
+  .vpcol{padding:12px 8px 16px;display:flex;flex-direction:column;gap:8px;min-width:0;border-left:1px solid var(--line)}.vpcol:first-child{border-left:0}
+  .vpcol.vptd{background:color-mix(in srgb,var(--hi,#2B63A6) 5%,transparent)}
+  .vpch{display:none}
+  .vpc{position:relative;background:var(--surface,#fff);border:1px solid var(--line);border-left:4px solid var(--vpr);border-radius:12px;padding:9px 32px 10px 10px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0;box-shadow:0 1px 2px rgba(15,23,32,.04);transition:box-shadow .15s,transform .15s}
+  .vpc:hover,.vpb:hover{box-shadow:0 4px 14px rgba(15,23,32,.10)}.vpc:hover{transform:translateY(-1px)}
+  .vpc b{font-size:13.5px;font-weight:600;line-height:1.3;overflow-wrap:break-word}.vpc small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .vpc .dvt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .vpchk{position:absolute;top:8px;right:8px;width:20px;height:20px;padding:0;border-radius:50%;border:1.5px solid var(--line2,#C9D1DA);background:var(--surface,#fff);color:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .vpchk:hover{color:var(--muted);border-color:var(--muted)}.vpchk.on{background:#2C7A57;border-color:#2C7A57;color:#fff}
+  .vpdone{opacity:.6}.vpdone b{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--ink) 40%,transparent)}
+  .vpw{display:flex;align-items:center;gap:6px;margin-top:5px;min-width:0}.vpw .atavs{flex:none}.vpn{font-size:12px;color:var(--ink2,#3A4552);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .vpwarn{margin-top:5px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#9C6410}.vpwarn::before{content:"";width:7px;height:7px;border-radius:50%;background:#9C6410;flex:none}
+  .vpadd{margin-top:2px;border:1.5px dashed var(--line);background:transparent;border-radius:12px;padding:7px;font:inherit;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;opacity:.75}
+  .vpadd:hover,.vpadd:focus-visible{opacity:1;border-style:solid;color:var(--ink)}
+  .vpday .vprow{grid-template-columns:minmax(0,680px)}.vpday .vph,.vpday .vpcol{border-left:0}
+  .dvpick{border:1px solid var(--line2,var(--line));border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+  .dvsel{display:flex;flex-wrap:wrap;gap:6px}.dvnone{font-size:12.5px;color:var(--muted);padding:2px 4px}
+  .dvchip,.dvopt{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:999px;padding:3px 10px 3px 3px;font:inherit;font-size:13px;cursor:pointer;min-height:0}
+  .dvchip{background:var(--hover,#EEF1F4);font-weight:600}.dvchip i{font-style:normal;color:var(--muted);font-weight:500}
+  .dvchip .atav,.dvopt .atav{margin-left:0}
+  #dv-q{border:0!important;box-shadow:none!important;padding:4px!important;min-height:0!important;outline:0;background:transparent!important}
+  .dvopts{display:flex;flex-wrap:wrap;gap:6px}.dvopt{background:transparent;border:1px solid var(--line)}.dvopt:hover{background:var(--hover,#EEF1F4)}
+  .dvmore{font-size:12px;color:var(--muted);align-self:center}
+  @media (max-width:1023px){
+    .vpbar .vpq{margin-left:0;width:100%;order:9}.vpbar .vpnew{margin-left:auto}
+    .vprow{grid-template-columns:minmax(0,1fr)!important}.vphead{display:none}
+    .vpb{grid-column:auto!important;flex-wrap:wrap;white-space:normal;border-radius:10px!important;margin:0 4px!important}
+    .vpcol{border-left:0;border-top:1px solid var(--line)}.vpcol:first-child{border-top:0}
+    .vpch{display:flex;align-items:baseline;gap:6px;padding:0 2px 2px}
+    .vpdays{min-height:0}
+  }
   `;
   document.head.appendChild(css);
 })();

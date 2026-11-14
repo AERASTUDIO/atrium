@@ -84,6 +84,11 @@ function sampleState() {
     uppfaert: new Date().toISOString(),
     verkefni, fundir, vidskiptavinir: vsk, skjol, kostnadur, reikningar, postar, thraedir,
     timar: { faerslur },
+    // 2.150.0: Vikuplan – verk á dag (sýnidæmi; vikan í ár og sú næsta)
+    dagsverk: (() => { const mo = -((base.getDay() + 6) % 7), D = (id, o, heiti, menn, x) => ({ id, heiti, dagur: day(mo + o), til: null, kl: null, menn, verkefniId: null, pontunId: null, aths: null, lokid: false, ...x });
+      return [D("dv1", 0, "Ganga frá á lager", ["GG"], { lokid: mo + 0 < 0 }), D("dv2", 1, "Uppsetning í sal", ["JJ", "HS"], { kl: "09:00", verkefniId: "p1" }), D("dv3", 2, "Mæling á staðnum", [], { kl: "10:00", verkefniId: "p2" }),
+        D("dv4", 1, "Vinna á staðnum", ["HS"], { til: day(mo + 3), verkefniId: "p2" }), D("dv5", 4, "Vörutalning", ["GG", "HS", "JJ"], { kl: "08:00" }), D("dv6", 7, "Þrif á búnaði eftir leigu", ["GG"]),
+        D("dv7", 8, "Fundur með verkkaupa", ["JJ"], { kl: "13:00", verkefniId: "p1" }), D("dv8", 9, "Yfirfara tilboð vikunnar", ["JJ"]), D("dv9", 10, "Uppsetning á staðnum", ["HS", "GG"], { til: day(mo + 11), verkefniId: "p3" })]; })(),
     netfangaskra: [],
     stillingar: {
       starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }, ...(window.ORG?.utlit === "I" ? [{ sk: "OK", nafn: "Ólafur Kristinsson" }] : [])],

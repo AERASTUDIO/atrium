@@ -13,7 +13,8 @@
     { k: "reikningar" }, { k: "vorur" }, { k: "tilbod" }, { k: "pantanir" },
     { k: "timar", get: s => s.timar?.faerslur, set: (s, v) => { s.timar = s.timar || {}; s.timar.faerslur = v; }, eigandi: true,
       sort: (a, b) => String(b.date + (b.fra || "")).localeCompare(String(a.date + (a.fra || ""))) },
-    { k: "kostnadur", eigandi: true }
+    { k: "kostnadur", eigandi: true },
+    { k: "dagsverk" }   // 2.150.0: Vikuplan – verk á dag (með eða án verkefnis)
   ];
   const getA = (c, s) => (c.get ? c.get(s) : s[c.k]) || [];
   const setA = (c, s, v) => c.get ? c.set(s, v) : (s[c.k] = v);
