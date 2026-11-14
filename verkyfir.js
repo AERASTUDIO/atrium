@@ -163,8 +163,15 @@
     const cmC = `<section class="vs3c vs3cm"><div class="vs3h">${hd("Athugasemdir og saga")}</div><div class="vs3cmb"></div></section>`;
     // Á verkinu (annað af gamla yfirlitinu)
     const moreC = `<div class="vs3afkbox${afkOpen ? " open" : ""}"><div class="vs3afkin"><div class="ukps vs3anch" hidden></div></div></div><section class="vs3more"></section>`;
+    // 2.152.2: Á vikuplani – verk (dagsverk) sem tengjast verkefninu eða pöntunum þess
+    const pnIds = new Set(pns.map(P => P.id)), tdy = new Date().toISOString().slice(0, 10);
+    const dvs = (Array.isArray(S?.dagsverk) ? S.dagsverk : []).filter(D => D.verkefniId === p.id || pnIds.has(D.pontunId)).filter(D => !D.lokid || String(D.til || D.dagur) >= tdy).sort((a, b) => String(a.dagur).localeCompare(String(b.dagur)) || String(a.kl || "99").localeCompare(String(b.kl || "99")));
+    const SKN = new Map(tr(() => STARFS(), []).map(x => [x.sk, String(x.nafn || x.sk).split(" ")[0]]));
+    const dvRow = D => `<button type="button" class="vs3r${D.lokid ? " vs3dvd" : ""}" data-act="dvopn:${E(D.id)}"><span class="vs3rt"><b>${E(D.heiti || "Verk")}</b><small>${E([window.dvLysing ? dvLysing(D).split(" · ")[0] : D.dagur, (D.menn || []).map(sk => SKN.get(sk) || sk).join(", ") || "enginn á verkinu"].join(" · "))}</small></span><span class="vs3rv">${D.lokid ? "Lokið" : String(D.til || D.dagur) < tdy ? "Ólokið" : ""}</span></button>`;
+    const vpC = dvs.length || ED() ? `<div class="vs3r4">${card("vs3vp", hd("Á vikuplani", `${ED() ? `<a href="#" class="vs3a" data-act="dvny3:${E(p.id)}">+ Verk</a>` : ""}<a href="#" class="vs3a" data-act="tab:pndag">Vikuplan →</a>`),
+      dvs.length ? `<div class="vs3rs">${dvs.slice(0, 6).map(dvRow).join("")}</div>${dvs.length > 6 ? `<div class="vs3m">+ ${dvs.length - 6} í viðbót</div>` : ""}` : `<div class="vs3e"><b>Ekkert verk á vikuplani</b><small>Settu verk á dag og veldu hver tekur það</small></div>`)}</div>` : "";
     const wrap = document.createElement("div"); wrap.className = "vs3";
-    wrap.innerHTML = steps + `<div class="vs3r1">${next(p, ctx)}${staffC}</div>` + tiles + moreC + `<div class="vs3r3">${tpC}${fC}${cmC}</div>`;
+    wrap.innerHTML = steps + `<div class="vs3r1">${next(p, ctx)}${staffC}</div>` + tiles + moreC + vpC + `<div class="vs3r3">${tpC}${fC}${cmC}</div>`;
     // Færa hluta inn
     const sfb = wrap.querySelector(".vs3sfb"); staffNodes.forEach(n => sfb.append(n));
     const more = wrap.querySelector(".vs3more");

@@ -1630,3 +1630,19 @@ html body.kerfi #view .upill.u2av.wait{background:#FBF0DD!important;color:#9C641
 
 /* 2.152.1: samþykkt tilboð sem viðmið í Framlegð-flís (tímavinna) */
 html body.kerfi #view .vs3t .vs3tvid{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 2.152.2: Á vikuplani á verkefnisspjaldi */
+html body.kerfi .vs3r4{margin-bottom:24px}
+html body.kerfi .vs3r4 .vs3h > :last-child{display:flex;gap:14px}
+html body.kerfi .vs3r4 .vs3rs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));column-gap:24px}
+html body.kerfi .vs3r.vs3dvd{opacity:.55}
+/* 2.152.2: Stillingar – skýringartexti eininga birtist allur (ekki styttur með …) */
+html:not(#u2a):not(#u2b) body[data-tab="stillingar"] #view .llist .lrow .ls{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.4}
+/* 2.152.2: Söluvöruspjald – upplýsingar og listar í spjöldum */
+html:not(#u2a):not(#u2b) body.kerfi #view .vsinfo{margin:20px 0 0}
+html:not(#u2a):not(#u2b) body.kerfi #view .vsinfo .uminis{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px 24px;margin:0!important;padding:0!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vsinfo .ulm{width:64px;height:32px;padding:4px 10px;border:1px solid var(--line,#DFE3E8);border-radius:10px;background:var(--bg2,#EEF1F4);font:inherit}
+html:not(#u2a):not(#u2b) body.kerfi #view .vslist{margin:28px 0!important;gap:28px!important;align-items:start;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr))!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .ukps.k4:has(+ .vsinfo){display:grid!important;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .vslist .ush2{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 8px}
+html:not(#u2a):not(#u2b) body.kerfi #view .ukps.k4:has(+ .vsinfo) .ukp b{font-size:26px!important;line-height:1.15}

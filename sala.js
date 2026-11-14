@@ -250,7 +250,7 @@
     sheet.innerHTML = `<h3 id="sheet-h">${v ? "Breyta" : "Nýtt í " + (D === "leiga" ? "búnaðarlista leigu" : "vörulista sölu")}</h3><form id="vrf" novalidate>
       <label>Heiti<input id="vr-heiti" value="${esc(x.heiti || "")}" placeholder="${D === "leiga" ? "T.d. Hátalari" : "T.d. Vegghátalari"}"></label>
       <div class="two"><label>Tegund<select id="vr-teg">${opts(T0.map(k => [k, TEG[k]]), x.tegund)}</select></label><label>Flokkur<select id="vr-fl">${opts(FLOKKAR(D).map(f => [f, f]), x.flokkur)}<option value="__nyr__">+ Nýr flokkur…</option></select></label></div>
-      <label id="vr-flnl" style="display:none">Heiti nýs flokks<input id="vr-fln" placeholder="T.d. Rigging"></label>
+      <label id="vr-flnl" style="display:none">Heiti nýs flokks<input id="vr-fln" placeholder="T.d. Rigging"><small class="hint">Flokkurinn bætist í listann þegar þú vistar.${ADM() ? ` Raða, endurnefna eða eyða flokkum: <a href="#" class="plink" id="vr-flst">Stillingar › Leiga og sala</a>` : ""}</small></label>
       <div class="two"><label>Vörunúmer<input id="vr-nr" value="${esc(x.nr || "")}" placeholder="Sjálfvirkt" autocomplete="off"></label><label>Eining<select id="vr-ein">${opts(["stk.", "klst.", "dagur", "ferð", "km", "sett", "m", "m²"].map(e => [e, e]), x.eining || "stk.")}</select></label></div>
       <label>Vörunúmer framleiðanda<input id="vr-fnr" value="${esc(x.fnr || "")}" placeholder="T.d. ACEG1R21BLK – notað við innkaup" autocomplete="off"></label>
       <div class="two" id="vr-innfl"><label>Þyngd á stk. (kg)<input id="vr-kg" inputmode="decimal" value="${+x.kg ? esc(String(x.kg).replace(".", ",")) : ""}" placeholder="Fyrir flutning"></label><label>Tollskrárnúmer<input id="vr-tnr" value="${esc(x.tollnr || "")}" placeholder="T.d. 8518.2200"></label></div>
@@ -268,7 +268,9 @@
     if (!String(x.nr || "").trim()) { nrEl.dataset.auto = "1"; sugg(); }
     nrEl.addEventListener("input", () => { delete nrEl.dataset.auto; });
     document.getElementById("vr-fln").addEventListener("input", sugg);
-    document.getElementById("vr-fl").onchange = e => { document.getElementById("vr-flnl").style.display = e.target.value === "__nyr__" ? "" : "none"; sugg(); };
+    const flSync = () => { const ny = val("vr-fl") === "__nyr__", l = document.getElementById("vr-flnl"); l.style.display = ny ? "" : "none"; if (ny) setTimeout(() => document.getElementById("vr-fln")?.focus(), 60); };   // 2.152.2: reiturinn fær fókus
+    document.getElementById("vr-fl").onchange = () => { flSync(); sugg(); }; if (val("vr-fl") === "__nyr__") flSync();
+    const fst = document.getElementById("vr-flst"); if (fst) fst.onclick = e => { e.preventDefault(); closeSheet(); doAct("tab:stillingar"); window.STSUB = "tilbod"; render(); };
     document.getElementById("vr-cancel").onclick = () => { closeSheet(); pre?.onCancel?.(); };
     // 2.105.0: strikamerki lesið með myndavélinni (skanninn opnast ofan á formið og fyllir reitinn)
     const smB = document.getElementById("vr-smscan"); if (smB) smB.onclick = () => window.qrScanCode(c => { const el = document.getElementById("vr-sm"); if (!el) return; const a = el.value.split(/[\s,;]+/).filter(Boolean); if (!a.includes(c)) a.push(c); el.value = a.join(", "); });

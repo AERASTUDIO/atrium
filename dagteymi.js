@@ -309,10 +309,10 @@
   }
 
   /* ---------- Nýtt verk / breyta verki (2.150.0): verk á dag – tengist verkefni, pöntun eða er innra verk (engin mappa, ekkert verknúmer, ekki á reikning) ---------- */
-  function dvForm(d, id) {
+  function dvForm(d, id, pre) {
     const D = id ? dvCol().find(x => x.id === id) : null; if (id && !D) return;
     const PP = folk().filter(p => p.sk), TL = tengjanleg().filter(x => !x.uid);
-    const curL = D ? (D.pontunId ? TL.find(x => x.pnid === D.pontunId) : D.verkefniId ? TL.find(x => x.pid === D.verkefniId && !x.pnid) : null) : null;
+    const R0 = D || pre || null, curL = R0 ? (R0.pontunId ? TL.find(x => x.pnid === R0.pontunId) : R0.verkefniId ? TL.find(x => x.pid === R0.verkefniId && !x.pnid) : null) : null;   // pre (2.152.2): nýtt verk af verkefnisspjaldi
     const SEL = new Set(D?.menn || []);
     sheet.innerHTML = `<h3 id="sheet-h">${D ? "Verk" : "Nýtt verk"}</h3><form id="dvf" novalidate>
       <label>Hvað þarf að gera<input id="dv-h" required placeholder="T.d. Ganga frá á lager, uppsetning í sal" value="${E(D?.heiti || "")}"></label>
@@ -383,12 +383,13 @@
     if (k === "dverkf") { VF = r[0] || ""; render(); return; }
     if (k === "dvny2") { dvForm(r[0] || today()); return; }
     if (k === "dvopn") { dvForm(null, r.join(":")); return; }
+    if (k === "dvny3") { dvForm(today(), null, { verkefniId: r.join(":") }); return; }
     if (k === "dvlok") { const id = r.join(":"); saveSnapshot(s2 => { const q = (s2.dagsverk || []).find(x => x.id === id); if (q) q.lokid = !q.lokid; }).then(() => toast("Merkt " + ((dvCol().find(x => x.id === id) || {}).lokid ? "lokið" : "ólokið"))).catch(e2 => toast(e2?.message || "Villa")); return; }
     if (k === "dverkm") { VMODE = r[0] === "tl" ? "tl" : "v"; render(); return; }
     if (k === "dteymi") { FA = shift(FM, FA, +r[0]); render(); return; }
     if (k === "dtbok") { const [d, em] = r; bokForm(d, "09:00", em || ""); return; }
   }
-  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dtdagar: act, dvny: act, dvny2: act, dvopn: act, dvlok: act, dvid: act, dtsyn: act, dtday: act });
+  Object.assign(window.ACT_EXT = window.ACT_EXT || {}, { dteymi: act, dtbok: act, dverkf: act, dverkm: act, dverk: act, dtwho: act, dtdagar: act, dvny: act, dvny2: act, dvny3: act, dvopn: act, dvlok: act, dvid: act, dtsyn: act, dtday: act });
   Object.assign(window.VIEWS_EXT = window.VIEWS_EXT || {}, { dteymi: view });
   const reg = () => { if (window.UI1V && !UI1V.dteymi) { UI1V.dteymi = view; UI1V.pndag = verkView; } };
   reg(); document.addEventListener("DOMContentLoaded", reg); setTimeout(reg, 0);
