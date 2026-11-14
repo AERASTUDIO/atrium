@@ -290,7 +290,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,body *::-webkit-scrollbar{displa
 #wcodrag{display:none}
 @media (display-mode: window-controls-overlay){
   #wcodrag{display:block;position:fixed;z-index:60;top:env(titlebar-area-y,0);left:248px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 248px);height:env(titlebar-area-height,0);-webkit-app-region:drag;app-region:drag;background:var(--bg)}
-  body.pv .app{padding-top:env(titlebar-area-height,0)}
+  body.pv .app,body.pv.ui1.hassplit .app{padding-top:env(titlebar-area-height,0)!important;box-sizing:border-box}   /* 2.151.1: listasíður (hassplit) fengu padding:0 – fóru upp undir gluggastikuna og hausinn hoppaði milli flipa */
   body.pv.ui1 .split,body.pv.ui1[data-tab="spjall"] .spwrap,body.pv.ui1[data-tab="spjall"] .spconv{height:calc(100vh - env(titlebar-area-height,0px))!important}
   body.pv.ui1 .split .splist .phead{top:0!important}
 }
