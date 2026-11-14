@@ -289,7 +289,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,body *::-webkit-scrollbar{displa
    Appið nær upp í efstu brún; gluggahnapparnir (–, ▢, ✕) liggja ofan á efst til hægri og mjó dráttarlína (#wcodrag) heldur glugganum færanlegum. */
 #wcodrag{display:none}
 @media (display-mode: window-controls-overlay){
-  #wcodrag{display:block;position:fixed;z-index:60;top:env(titlebar-area-y,0);left:248px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 248px);height:env(titlebar-area-height,0);-webkit-app-region:drag;app-region:drag;background:var(--bg)}
+  #wcodrag{display:block;position:fixed;z-index:60;top:env(titlebar-area-y,0);left:272px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 272px);height:env(titlebar-area-height,0);-webkit-app-region:drag;app-region:drag;background:var(--bg)}
   body.pv .app,body.pv.ui1.hassplit .app{padding-top:env(titlebar-area-height,0)!important;box-sizing:border-box}   /* 2.151.1: listasíður (hassplit) fengu padding:0 – fóru upp undir gluggastikuna og hausinn hoppaði milli flipa */
   body.pv.ui1 .split,body.pv.ui1[data-tab="spjall"] .spwrap,body.pv.ui1[data-tab="spjall"] .spconv{height:calc(100vh - env(titlebar-area-height,0px))!important}
   body.pv.ui1 .split .splist .phead{top:0!important}
@@ -1194,7 +1194,7 @@ body.ui1 #sitems .tab .tbid{margin-left:auto;background:#2B63A6;color:#fff;borde
   :root body.pv.ui1.srail #sextra .sx-k>*{display:none!important}
   :root body.pv.ui1.srail .side .sgrp+.tab,:root body.pv.ui1.srail nav#sitems .sgrp{display:block!important;height:1px;padding:0;margin:6px 4px;background:var(--ui1hi);font-size:0}
   body.pv.ui1.srail .toast{left:calc(68px + 24px)!important}
-  body.srail #wcodrag{left:68px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 68px)}
+  body.srail #wcodrag{left:100px;width:calc(env(titlebar-area-x,0px) + env(titlebar-area-width,100%) - 100px)}   /* 2.152.4: byrjar hægra megin við fljótandi stikuna (skar áður horn hennar) */
 }
 
 /* 2.131.0: Í dag – Bíður mín vinstra megin, Vikan og Dagurinn hægra megin */

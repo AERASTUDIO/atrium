@@ -1662,3 +1662,50 @@ html:not(#u2a):not(#u2b) body.kerfi #view .yfkp > span a{color:var(--kacc);text-
 html:not(#u2a):not(#u2b) body.kerfi #view .rlbar:has(+ :is(.yfk,.ukps)){margin:-20px 0 20px!important;max-width:100%}
 html:not(#u2a):not(#u2b) body.kerfi #view .ikstrip{border:0!important;border-radius:26px!important;box-shadow:var(--e1);padding:16px 24px!important;margin:20px 0 0!important;background:var(--surface,#fff)}
 html:not(#u2a):not(#u2b) body.kerfi #view .yfk + .pdstrip{margin-top:20px!important}
+/* 2.152.4: Verkefnalisti – nýtt útlit */
+html:not(#u2a):not(#u2b) body.kerfi #view .uwl .urow[data-vl]{min-height:64px;align-items:center}
+html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlnr{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlh{display:flex;flex-direction:column;gap:2px;min-width:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlh b{font-size:14.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlh small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html:not(#u2a):not(#u2b) body.kerfi #view .urow[data-vl] .vlno{color:color-mix(in srgb,var(--muted) 60%,transparent)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlav{display:inline-flex;align-items:center}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlav i{font-style:normal;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#2A3441;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.02em;box-shadow:0 0 0 2px var(--surface,#fff)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlav i + i{margin-left:-5px}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlav i:nth-child(1){z-index:3}html:not(#u2a):not(#u2b) body.kerfi #view .vlav i:nth-child(2){z-index:2}html:not(#u2a):not(#u2b) body.kerfi #view .vlav i{position:relative;flex:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlav i:nth-child(2){background:#4A5664}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlav i:nth-child(3){background:#6B7684}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlav i.more{background:var(--hover,#EEF1F4);color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vltm{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:2px;font-variant-numeric:tabular-nums}
+html:not(#u2a):not(#u2b) body.kerfi #view .vltm b{font-weight:600;font-size:14px;color:var(--ink)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vltm small{font-size:12px;color:var(--muted)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlbar{flex-basis:100%;height:4px;border-radius:99px;background:var(--hover,#EEF1F4);margin-top:6px;max-width:120px;overflow:hidden}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlbar i{display:block;height:100%;border-radius:99px;background:var(--kacc,#2B63A6)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlbar i.warn{background:var(--t-amb,#9C6410)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlbar i.bad{background:var(--t-red,#B13E36)}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlsk{font-size:13px;color:var(--ink2,var(--ink))}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlsk.soon{color:var(--kacc,#2B63A6);font-weight:600}
+html:not(#u2a):not(#u2b) body.kerfi #view .vlsk.bad{color:var(--t-red,#B13E36);font-weight:600}
+/* ruslafatan á hover ýtir stöðunni til hliðar í stað þess að fela hana */
+:root body.kerfi #view .uwl .urow[data-open]:has(.fvtr):hover > .r{opacity:1!important;transform:translateX(-40px);transition:transform .15s}
+:root body.kerfi #view .uwl .urow[data-open]:hover .fvtr{opacity:1}
+/* 2.152.4: Stika „Ljós“ – ljós stika þótt skjárinn sé dökkur (í ljósu útliti eins og Gler) */
+@media (min-width:1024px){
+  html[data-stika="ljos"]:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side{
+    --bg:#EDEFF2; --surface:#FFFFFF; --ink:#0F1720; --ink2:#3F4A57; --muted:#5E6976; --line:#DFE3E8; --line2:#D3D9E0;
+    --kacc:#2B63A6; --on-kacc:#FFFFFF; --acc-soft:#E7EEF8; --field:#F4F6F8; --hover:#E3E7EC; --accent:#2B63A6;
+    --gra:#2A3441; --on-gra:#FFFFFF; --gra-soft:#E3E7EC; --gra-tile:#2A3441;
+    --glass:#D3D8DE; --glass-hi:rgba(255,255,255,.6); --glass-tx:#3F4A57; --glass-mu:#5E6976;
+    --sidebg:#D3D8DE; --sideink:#3F4A57; --sidemut:#5E6976;
+    background:#D3D8DE!important;-webkit-backdrop-filter:none;backdrop-filter:none;color:#3F4A57!important;color-scheme:light;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 16px 32px -16px rgba(0,0,0,.6)!important}
+  html[data-stika="ljos"]:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side .tbid{background:rgba(15,23,32,.07)!important;color:#3F4A57!important}
+  html[data-stika="ljos"]:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi.pv.ui1 .side nav#sitems .tab[aria-current="page"] .tbid{background:rgba(255,255,255,.16)!important;color:#fff!important}
+}
+html body.kerfi .u2stkp-ljos{background:#171C23}
+html body.kerfi .u2stkp-ljos i{background:#D3D8DE}
+html body.kerfi .u2stkp-ljos b{background:#1F262E}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i{background:#3A4656}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i:nth-child(2){background:#4F5B6A}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i:nth-child(3){background:#66717F}
+html:not(#u2a):not(#u2b):not([data-theme="light"]) body.kerfi #view .vlav i.more{background:var(--hover);color:var(--muted)}

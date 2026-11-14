@@ -22,8 +22,8 @@ function setLitur(k){if(!LITIR_U2[k]) k="grafit"; LITUR=k; try{localStorage.setI
 document.documentElement.dataset.litur=LITIR_U2[LITUR]?LITUR:"grafit";
 /* 2.144.0: Stika – „gler“ (U2d, sjálfgefið) eða „litud“ (stikan í lit útfærslunnar) */
 let STIKA=(()=>{try{return localStorage.getItem("aera-stika")||"gler";}catch(e){return "gler";}})();
-function setStika(k){STIKA=k==="litud"?"litud":"gler"; try{localStorage.setItem("aera-stika",STIKA);}catch(e){} document.documentElement.dataset.stika=STIKA; if(typeof render==="function"&&S) render();}
-document.documentElement.dataset.stika=STIKA==="litud"?"litud":"gler";
+function setStika(k){STIKA=["litud","ljos"].includes(k)?k:"gler"; try{localStorage.setItem("aera-stika",STIKA);}catch(e){} document.documentElement.dataset.stika=STIKA; if(typeof render==="function"&&S) render();}
+document.documentElement.dataset.stika=["litud","ljos"].includes(STIKA)?STIKA:"gler";
 function setTheme(t){THEME=t; try{localStorage.setItem("aera-theme",t);}catch(e){} applyTheme(); if(typeof render==="function"&&S) render();}
 applyTheme(); matchMedia("(min-width:1024px)").addEventListener?.("change",applyTheme);
 document.getElementById("themebtn").addEventListener("click",()=>{const o=["auto","light","dark"]; setTheme(o[(o.indexOf(THEME)+1)%3]); toast(THEME_L[THEME]);});

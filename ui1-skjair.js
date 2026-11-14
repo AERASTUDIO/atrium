@@ -160,8 +160,19 @@
     const n = all.filter(p => !isDone(p)).length, nm = all.filter(p => !isDone(p) && mineP(p)).length;
     const flSel = fls.length ? `<label class="uflsel"><select onchange="doAct('u1vf:${key}V:'+this.value)" aria-label="Verkflokkur"><option value="">Allir verkflokkar</option>${fls.map(x => `<option${x === fv ? " selected" : ""}>${E(x)}</option>`).join("")}</select></label>` : "";
     const top = lhead("Verkefni", title, nbtn("Verkefni")) + `<div class="ulbar">${chips([["gangi", "Í gangi · " + n], ["min", "Mín · " + nm], ["skil7", "Skil næstu 7 daga"], ["seint", "Komið fram yfir"], ["lokid", "Lokið"]], f, "u1vf:" + key)}${flSel}</div>`;
-    if (WIDE()) return top + wl("80px minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) 120px 130px 90px 110px", wcols(["Nr.", "Heiti", "Viðskiptavinur", vfl ? "Verkflokkur" : "Svið", "Starfsfólk", "Tímar", "Skil", "Staða"])
-      + (xs.map(p => wrow(tapAttr("verk", p.id), [wc(E(p.nr)), wc((window.rlDot ? rlDot(p) : "") + E(p.stutt || p.nafn || ""), "t"), wc(E(p.vidskiptavinur || "")), wc(E(vfl ? (p.thjonusta || []).join(", ") : svidOf(p).join(", "))), wc(E((p.starfsmenn || []).map(x => x.sk || x).join(", "))), wc(E(H(+p.timar || 0) + (+p.aklst ? " / " + H(+p.aklst) : "") + " klst.")), wc(E(relD(p.skiladagur))), wc(pill(p.stada), "r")])).join("") || `<div class="uempty">Engin verkefni.</div>`));
+    if (WIDE()) {   // 2.152.4: verkefnalisti í nýju útliti – heiti með viðskiptavini undir, fólk sem merki, tímar með framvindu, skil með lit
+      const svT = p => vfl ? (p.thjonusta || []).join(", ") : svidOf(p).join(", "), svOn = new Set(xs.map(svT)).size > 1, ti = isoD(today);
+      const SN = new Map((tr0(() => STARFS()) || []).map(x => [x.sk, x.nafn || x.sk]));
+      const ini = sk => { const n = String(SN.get(sk) || sk || "").trim(); const w = n.split(/\s+/); return (w.length > 1 && SN.has(sk) ? w[0][0] + w[w.length - 1][0] : n.slice(0, 2)).toUpperCase(); };
+      const ppl = p => { const L = (p.starfsmenn || []).map(x => x.sk || x).filter(Boolean); if (!L.length) return `<span class="vlno">–</span>`;
+        return `<span class="vlav" title="${E(L.map(sk => SN.get(sk) || sk).join(", "))}">${L.slice(0, 3).map(sk => `<i>${E(ini(sk))}</i>`).join("")}${L.length > 3 ? `<i class="more">+${L.length - 3}</i>` : ""}</span>`; };
+      const tim = p => { const h = +p.timar || 0, a = +p.aklst || 0, r = a ? h / a : 0;
+        return `<span class="vltm"><b>${E(H(h))}</b><small>${a ? " / " + E(H(a)) + " klst." : " klst."}</small>${a ? `<span class="vlbar"><i class="${r >= 1 ? "bad" : r >= 0.8 ? "warn" : ""}" style="width:${Math.min(100, Math.round(r * 100))}%"></i></span>` : ""}</span>`; };
+      const skl = p => { if (!p.skiladagur) return `<span class="vlno">–</span>`; const late = !isDone(p) && p.skiladagur < ti, soon = !isDone(p) && !late && daysTo(p.skiladagur) <= 7;
+        return `<span class="vlsk${late ? " bad" : soon ? " soon" : ""}">${E(relD(p.skiladagur))}</span>`; };
+      const g = "72px minmax(0,2.4fr)" + (svOn ? " minmax(0,1fr)" : "") + " 120px 150px 120px 120px";
+      return top + wl(g, wcols(["Nr.", "Heiti", ...(svOn ? [vfl ? "Verkflokkur" : "Svið"] : []), "Starfsfólk", "Tímar", "Skil", "Staða"])
+        + (xs.map(p => wrow(tapAttr("verk", p.id) + ' data-vl="1"', [wc(E(p.nr), "m vlnr"), wc(`<span class="vlh"><b>${(window.rlDot ? rlDot(p) : "")}${E(p.stutt || p.nafn || "")}</b>${p.vidskiptavinur ? `<small>${E(p.vidskiptavinur)}</small>` : ""}</span>`, "t"), ...(svOn ? [wc(E(svT(p)))] : []), wc(ppl(p)), wc(tim(p)), wc(skl(p)), wc(pill(p.stada || "", false), "r")])).join("") || `<div class="uempty">Engin verkefni.</div>`)); }
     return top
       + cols("Nr.", vfl ? "Heiti · Verkflokkur" : "Heiti · Viðskiptavinur", "Skil", "Staða")
       + (xs.map(p => row(tapAttr("verk", p.id), E(p.nr), E(p.stutt || p.nafn || ""), E(vfl ? ((p.thjonusta || []).join(", ") || p.vidskiptavinur || "") : (p.vidskiptavinur || "")), E(relD(p.skiladagur)), p.stada, false)).join("") || `<div class="uempty">Engin verkefni.</div>`);
