@@ -24,7 +24,7 @@
   SM.frameHead = (t, plusAttr = "", plusLabel = "Nýtt") => {
     const s = secFor(t), lab = labOf(s, t);
     const ALL = { "Öll": "Öll " + String(s?.l || "").toLowerCase(), "Allar": "Allar " + String(s?.l || "").toLowerCase(), "Allir": "Allir " + String(s?.l || "").toLowerCase(), "Listi": "Öll " + String(s?.l || "").toLowerCase() };
-    const title = ALL[lab] || lab.replace(/^Yfirlit (verkefna|tilboða|reikninga|tíma)$/, "Yfirlit") || s?.l;
+    const title = (ALL[lab] && ALL[lab].length <= 16 ? ALL[lab] : ALL[lab] ? s.l : "") || lab.replace(/^Yfirlit (verkefna|tilboða|reikninga|tíma)$/, "Yfirlit") || s?.l;
     const sup = s && title !== s.l ? s.l : "";
     return SM.head(E(sup), E(title), `<div class="smhr">${plusAttr ? `<button type="button" class="smib gr" aria-label="${E(plusLabel)}" ${plusAttr}>${ic("plus", 20, 2)}</button>` : ""}${SM.bell()}</div>`);
   };
@@ -41,7 +41,7 @@
     const kids = [...r.children], t = r.querySelector(":scope > .t"), right = r.querySelector(":scope > .r");
     const tm = t ? [...t.querySelectorAll(".m")].map(txt) : [];
     let title = t ? txt([...t.childNodes].filter(n => !(n.nodeType === 1 && n.matches(".m"))).reduce((d, n) => (d.append(n.cloneNode(true)), d), document.createElement("span"))) : txt(kids[0]);
-    const subs = [...tm, ...kids.filter(k => k !== t && k !== right && !k.matches(".ubox,.ufree") && txt(k)).map(txt)].filter(Boolean);
+    const subs = [...tm, ...kids.filter(k => k !== t && k !== right && !k.matches(".ubox,.ufree") && txt(k)).map(txt)].map(x => x.replace(/^[·•|\s]+|[·•|\s]+$/g, "")).filter(Boolean);
     const pill = right?.querySelector(".upill"), rr = right ? (pill ? pill.outerHTML : `<b>${E(txt(right))}</b>`) : "";
     const free = r.querySelector(":scope > .ufree");
     const all = txt(r);
@@ -58,7 +58,8 @@
     if (f) { f.classList.add("smsearch"); f.querySelector("kbd")?.remove(); const i = f.querySelector("input"); if (i) i.placeholder = i.placeholder.replace(/…$/, ""); }
     const flt = document.createElement("div"); flt.className = "smflt";
     sl.querySelectorAll(".uchips, .usvbar, .ulbar").forEach(c => { c.classList.add("smtrk2"); flt.append(c); });
-    sl.querySelectorAll(".usort, .uflsel").forEach(c => { c.classList.add("smsel"); flt.append(c); });
+    const lastTrk = [...flt.querySelectorAll(".smtrk2")].pop();
+    sl.querySelectorAll(".usort, .uflsel").forEach(c => { c.classList.add("smsel"); (lastTrk || flt).append(c); });
     // Línur í spjöldum: nýtt spjald við hvern hópfyrirsögn
     const rows = [...sl.children].filter(c => c.matches(".urow, .ugrp, .uempty, .lrow, .porow, .empty"));
     const wrap = document.createElement("div"); wrap.className = "smlist";
@@ -71,6 +72,9 @@
     });
     [...wrap.children].forEach(c => { if (!c.querySelector(".urow, .lrow, .porow, .uempty, .empty")) c.remove(); });
     const head = document.createElement("div"); head.innerHTML = SM.frameHead(t, plusFrom(plus), plus ? txt(plus).replace(/^\+\s*/, "") : "");
+    // Leit: hringhnappur í hausnum sem opnar leitarpilluna (opin ef eitthvað er slegið inn) – listinn byrjar ofar
+    if (f) { const open = !!(f.querySelector("input")?.value || "").trim() || SM._lq === t; f.classList.toggle("smshut", !open);
+      head.querySelector(".smhr")?.insertAdjacentHTML("afterbegin", `<button type="button" class="smib${open ? " on" : ""}" data-smq="1" aria-label="Leita" aria-expanded="${open}">${ic("search")}</button>`); }
     const tk = document.createElement("div"); tk.innerHTML = SM.track(t);
     const keep = [...sl.children].filter(c => !c.matches(".phead, .ultool, .urow, .ugrp, .uempty, .lrow, .porow") && c !== wrap);
     sl.innerHTML = ""; sl.append(...head.children, ...tk.children);
@@ -105,6 +109,9 @@
     v.insertAdjacentHTML("afterbegin", `<div class="smdnav"><button type="button" class="smback" data-smback="1" aria-label="Til baka – ${E(lab)}">${ic("back", 20)}<span>${E(lab)}</span></button></div>`);
     v.classList.add("smdetv");
   }
+  document.addEventListener("click", e => { const q = e.target.closest("[data-smq]"); if (!q || !SM.phone()) return; e.preventDefault(); e.stopPropagation();
+    const sl = q.closest(".splist"), f = sl?.querySelector(".spfilt"); if (!f) return; const shut = !f.classList.toggle("smshut"); SM._lq = shut ? tr(() => tab, "") : null;
+    q.classList.toggle("on", shut); q.setAttribute("aria-expanded", String(shut)); const i = f.querySelector("input"); if (shut) i?.focus(); else if (i?.value) { i.value = ""; i.dispatchEvent(new Event("input", { bubbles: true })); } }, true);
   document.addEventListener("click", e => { const b = e.target.closest("[data-smback]"); if (!b || !SM.phone()) return; e.preventDefault(); e.stopPropagation(); tr(() => goBack(), 0); }, true);
 
   /* ---------- Yfirlitssíður (UI1V) ---------- */

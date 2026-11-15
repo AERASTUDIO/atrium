@@ -87,8 +87,8 @@
   html:not(#s1):not(#s2) body.kerfi.sm.pv #view{padding-left:16px!important;padding-right:16px!important;box-sizing:border-box}
   html:not(#s1):not(#s2) body.kerfi.sm .smtrack{display:flex;gap:2px;background:color-mix(in srgb,var(--ink) 7%,var(--bg));border-radius:999px;padding:4px;overflow-x:auto;scrollbar-width:none;flex:none}
   html:not(#s1):not(#s2) body.kerfi.sm .smtrack::-webkit-scrollbar{display:none}
-  html:not(#s1):not(#s2) body.kerfi.sm .smtrack button{flex:none;min-height:38px;padding:0 15px;border:0;border-radius:19px;background:transparent;font:500 13.5px var(--font,inherit);color:var(--muted);white-space:nowrap;cursor:pointer}
-  html:not(#s1):not(#s2) body.kerfi.sm .smtrack button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 2px 6px rgba(15,23,32,.10)}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smtrack button{flex:none;min-height:40px!important;height:40px!important;padding:0 15px;border:0;border-radius:20px;background:transparent;font:500 13.5px var(--font,inherit);color:var(--muted);white-space:nowrap;cursor:pointer}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smtrack button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 2px 6px rgba(15,23,32,.10)}
   html:not(#s1):not(#s2) body.kerfi.sm .smfr{display:flex;flex-direction:column;gap:12px}
   html:not(#s1):not(#s2) body.kerfi.sm #view .splist.smfr{padding:6px 0 8px!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important;max-height:none!important;overflow:visible!important;height:auto!important;width:auto!important;position:static!important}
   html:not(#s1):not(#s2) body.kerfi.sm #view .split{display:block!important;margin:0!important;padding:0!important;height:auto!important;background:none!important;box-shadow:none!important;border:0!important}
@@ -96,8 +96,8 @@
   html:not(#s1):not(#s2) body.kerfi.sm .smflt{display:flex;flex-direction:column;gap:8px}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .smtrk2{display:flex!important;flex-wrap:nowrap!important;gap:6px!important;overflow-x:auto;scrollbar-width:none;margin:0 -16px!important;padding:0 16px!important;background:none!important;border:0!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .smtrk2::-webkit-scrollbar{display:none}
-  html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip{flex:none!important;min-height:40px!important;height:40px!important;padding:0 15px!important;border-radius:20px!important;border:0!important;background:var(--surface)!important;color:var(--ink)!important;font:500 13px var(--font,inherit)!important;box-shadow:var(--e1)!important;white-space:nowrap}
-  html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip.on{background:var(--gra)!important;color:var(--on-gra)!important;box-shadow:none!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smflt .uchip{flex:none!important;min-height:40px!important;height:40px!important;padding:0 15px!important;border-radius:20px!important;border:0!important;background:var(--surface)!important;color:var(--ink)!important;font:500 13px var(--font,inherit)!important;box-shadow:var(--e1)!important;white-space:nowrap}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smflt .uchip.on{background:var(--gra)!important;color:var(--on-gra)!important;box-shadow:none!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip em,html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip span{opacity:.75}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .smsel{display:flex!important;align-items:center;gap:8px;margin:0!important;font-size:13px;color:var(--muted)}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .smsel select{min-height:40px!important;height:40px!important;border-radius:20px!important;padding:0 14px!important;background:var(--surface)!important;border:0!important;box-shadow:var(--e1)!important;font-size:14px!important}
@@ -191,4 +191,16 @@
   html:not(#s1):not(#s2) body.kerfi.sm .vt .vtr{min-height:58px}
   html:not(#s1):not(#s2) body.kerfi.sm .vt .vtclk + .vtbtn{margin-top:4px}
   html:not(#s1):not(#s2) body.kerfi.sm .vt .vtav{width:44px;height:44px;border-radius:22px;background:var(--gra)!important;color:var(--on-gra)!important;border:0!important}
+}
+
+/* 2.158.0 – fínstillingar: snertisvæði á Heim */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smheim .shk button{min-height:40px}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smheim .smmods .uhch a,html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smyfb .uhch a{display:inline-flex;align-items:center;min-height:36px}
+}
+
+@media (max-width:1023px){
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smfr .spfilt.smshut{display:none!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smib.on{background:var(--gra);color:var(--on-gra)}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smflt .smtrk2 .smsel{flex:none;margin-left:4px!important}
 }
