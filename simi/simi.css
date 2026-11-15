@@ -79,6 +79,7 @@
   html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt em{font-style:normal;font-size:11px;font-weight:700;background:rgba(255,255,255,.22);border-radius:9px;padding:1px 7px}
   html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbplus{flex:none;width:48px;height:48px;border-radius:24px;border:0;background:var(--surface);color:var(--gra);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(15,23,32,.14);cursor:pointer;margin-left:2px;padding:0}
   html:not(#s1):not(#s2) body.kerfi.sm.pv .app{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv.simhasact .app{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))!important}
   html:not(#s1):not(#s2) body.kerfi.sm.s2detb.pv nav.mbar.tbar.smbar{display:none!important}
 }
 
@@ -203,4 +204,69 @@
   html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smfr .spfilt.smshut{display:none!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smib.on{background:var(--gra);color:var(--on-gra)}
   html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smflt .smtrk2 .smsel{flex:none;margin-left:4px!important}
+}
+
+/* 2.159.0 – Tilkynningar („Vistað“ o.fl.) renna niður efst á skjánum með hakmerki; villur með rauðu upphrópunarmerki */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm .toast{top:calc(10px + env(safe-area-inset-top,0px))!important;bottom:auto!important;left:12px!important;right:12px!important;transform:none!important;margin:0 auto!important;width:auto!important;max-width:420px!important;
+    display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 14px 10px 12px!important;border-radius:20px!important;border:0!important;
+    background:var(--surface)!important;color:var(--ink)!important;font:600 14.5px/1.35 var(--font,inherit)!important;text-align:left!important;
+    box-shadow:0 14px 34px -10px rgba(15,23,32,.30),0 0 0 1px color-mix(in srgb,var(--ink) 6%,transparent)!important;animation:smtoast .36s cubic-bezier(.2,0,0,1) both}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm .toast[hidden]{display:none!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm .toast::before{content:"";flex:none;width:28px;height:28px;border-radius:14px;background:var(--t-grn) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/16px no-repeat}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm .toast.smerr::before{background:var(--t-red) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M12 7v6M12 17v.01'/%3E%3C/svg%3E") center/16px no-repeat}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm .toast.sminfo::before{background:var(--gra) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M12 11v6M12 7v.01'/%3E%3C/svg%3E") center/16px no-repeat}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm .toast .undo{margin-left:auto!important;flex:none;min-height:36px;padding:0 14px!important;border-radius:18px!important;border:0!important;background:var(--gra)!important;color:var(--on-gra)!important;font:600 13px var(--font,inherit)!important}
+  @keyframes smtoast{from{opacity:0;transform:translateY(-130%)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){html:not(#s1):not(#s2):not(#s3) body.kerfi.sm .toast{animation:none}}
+}
+/* 2.159.0 – efnið nær alltaf upp fyrir glerstikuna/aðgerðastikuna (bilið á #view, ekki .app – .app er föst hæð í síma) */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm.pv #view{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm.pv.simhasact #view{padding-bottom:calc(128px + env(safe-area-inset-bottom,0px))!important}
+}
+@media (max-width:1023px){
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm.pv.smdet #simact{bottom:calc(12px + env(safe-area-inset-bottom,0px))!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm.pv.smdet.simhasact #view{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}
+}
+
+/* 2.159.0 – Opið verkefni í síma: flipar festast undir toppnum, lykiltölur 2×2, Næsta skref ber aðgerðirnar */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .dtabs{position:sticky!important;top:0;z-index:6;background:var(--bg)!important;margin:0 -16px!important;padding:env(safe-area-inset-top,0px) 16px 0!important;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .dtabs::-webkit-scrollbar{display:none}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .dtabs button{flex:none;min-height:44px}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3tiles{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:0 0 14px!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:4px!important;padding:14px 15px!important;border-radius:20px!important;min-height:0!important;text-align:left;background:var(--surface)!important;box-shadow:var(--e1)!important;border:0!important;width:auto!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t .vs3ti{display:none!important}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t .vs3tx{display:flex;flex-direction:column;gap:2px;width:100%}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t .vs3tx small{font-size:12px;color:var(--muted)}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t .vs3tx b{font-size:22px!important;font-weight:500!important;font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t .vs3ts{font-size:12px;color:var(--muted);margin:0!important;text-align:left}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t .vs3bar{width:100%;margin-top:4px}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view.smdetv .vs3t.smskil.late .vs3ts{color:var(--t-red)}
+}
+
+/* 2.159.0 – Form í síma sem heilskjár: titill + ✕ efst, flipar sem ferill, 48 px reitir, Vista fast neðst (grafít, full breidd) */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet:not(.s2sheet){position:fixed!important;inset:0!important;top:0!important;bottom:0!important;left:0!important;right:0!important;transform:none!important;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;
+    margin:0!important;border-radius:0!important;box-shadow:none!important;border:0!important;background:var(--bg)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;
+    padding:calc(8px + env(safe-area-inset-top,0px)) 16px 0!important;box-sizing:border-box;animation:smsheet .3s cubic-bezier(.2,0,0,1) both}
+  @keyframes smsheet{from{transform:translateY(100%)}to{transform:none}}
+  @media (prefers-reduced-motion:reduce){html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet{animation:none}}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .grab{display:none!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .sheetmin{display:none!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .smshx{position:sticky;top:0;z-index:3;display:flex;justify-content:flex-end;height:0;margin:0}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .smshx button{width:44px;height:44px;border-radius:22px;border:0;background:var(--surface);color:var(--ink);box-shadow:var(--e1);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:2px}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap #sheet-h{font-size:26px!important;font-weight:600!important;letter-spacing:-.02em;margin:8px 56px 14px 0!important;line-height:1.2}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .seg{display:flex!important;flex-wrap:nowrap!important;gap:2px!important;overflow-x:auto;scrollbar-width:none;background:color-mix(in srgb,var(--ink) 7%,var(--bg))!important;border-radius:999px!important;padding:4px!important;border:0!important;margin:0 0 16px!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .seg::-webkit-scrollbar{display:none}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .seg button{flex:none!important;min-height:40px!important;padding:0 15px!important;border-radius:20px!important;border:0!important;background:transparent!important;color:var(--muted)!important;font:500 13.5px var(--font,inherit)!important;box-shadow:none!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .seg button.on,html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .seg button[aria-pressed="true"],html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .seg button[aria-selected="true"]{background:var(--surface)!important;color:var(--ink)!important;font-weight:600!important;box-shadow:0 2px 6px rgba(15,23,32,.10)!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet form > label,html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet form .card,html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet form details{background:var(--surface);border-radius:18px;padding:12px 14px!important;margin:0 0 10px!important;box-shadow:var(--e1);border:0!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet input:not([type=checkbox]):not([type=radio]):not([type=range]),html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet select,html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet textarea{min-height:48px!important;font-size:16px!important;border-radius:14px!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .actions{position:sticky!important;bottom:0!important;z-index:3;display:flex!important;gap:10px!important;margin:16px -16px 0!important;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))!important;background:var(--bg)!important;border:0!important;box-shadow:0 -10px 24px -14px rgba(15,23,32,.25)!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .actions .btn{min-height:52px!important;border-radius:26px!important;font:600 15.5px var(--font,inherit)!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .actions .btn.primary{flex:1 1 auto!important;background:var(--gra)!important;color:var(--on-gra)!important;border:0!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .sheet .actions .btn:not(.primary){flex:none!important;background:var(--surface)!important;color:var(--ink)!important;border:0!important;box-shadow:var(--e1)!important;padding:0 18px!important}
+  html:not(#s1):not(#s2):not(#s3):not(#s4) body.kerfi.sm #sheetwrap .scrim{display:none!important}
 }

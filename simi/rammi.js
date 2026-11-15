@@ -106,6 +106,17 @@
     if (v.querySelector(":scope > .smdnav")) return;
     const k = String(D).split(":")[0], s = secFor(tr(() => tab, "")), lab = s && s.k !== "heim" ? s.l : BACK[k] || "Til baka";
     v.querySelectorAll(".spx, .backbtn, .uback, .spwin, .spexp, .spshr, [data-ui1='close']").forEach(b => b.style.display = "none");
+    // Opið verkefni (S3): lykiltölur 2×2 fremst (+ Skil), Næsta skref ber aðgerðirnar – engin aukastika neðst
+    if (k === "verk") tr(() => {
+      const tl = v.querySelector(".vs3tiles"), r1 = v.querySelector(".vs3r1");
+      const p = tr(() => findProj(String(D).slice(5)), null);
+      if (tl && p && !tl.querySelector(".smskil")) { const n = p.skiladagur ? tr(() => daysTo(p.skiladagur), null) : null;
+        tl.insertAdjacentHTML("beforeend", `<button type="button" class="vs3t smskil" data-act="dtab:undir"><span class="vs3tx"><small>Skil</small><b>${p.skiladagur ? E(tr(() => fmtDate(p.skiladagur), p.skiladagur).replace(/\.\d{4}$/, "")) : "–"}</b></span><span class="vs3ts">${n == null ? "Enginn skiladagur" : n < 0 ? `${-n} d. fram yfir` : n === 0 ? "í dag" : `eftir ${n} ${n === 1 ? "dag" : "daga"}`}</span></button>`);
+        if (n != null && n < 0) tl.querySelector(".smskil").classList.add("late"); }
+      if (tl && r1 && tl.compareDocumentPosition(r1) & Node.DOCUMENT_POSITION_PRECEDING) r1.before(tl);
+      if (v.querySelector(".vs3nx .vs3bs")) { document.getElementById("simact")?.remove(); document.body.classList.remove("simhasact"); }
+    }, 0);
+    if (k === "reikn") v.querySelectorAll(".ukp").forEach(x => { if (/^Staða/.test(txt(x)) && v.querySelector(".ustsel")) x.remove(); });
     v.insertAdjacentHTML("afterbegin", `<div class="smdnav"><button type="button" class="smback" data-smback="1" aria-label="Til baka – ${E(lab)}">${ic("back", 20)}<span>${E(lab)}</span></button></div>`);
     v.classList.add("smdetv");
   }

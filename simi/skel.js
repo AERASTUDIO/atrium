@@ -129,6 +129,21 @@
       + `<button type="button" class="smbplus" data-simk="plus" aria-label="Skrá tíma og fleira">${ic("plus", 22, 2)}</button>`;
   }
 
+  // Tilkynning efst með hakmerki (CSS); flokkun: villa (rautt !), upplýsing (grafít i) eða staðfesting (grænt ✓)
+  if (typeof window.toast === "function" && !window.toast._sm) {
+    const T = window.toast;
+    window.toast = function (t, undo, lbl) { const r = T.apply(this, arguments); const el = document.getElementById("toast"), s = String(t || "");
+      if (el) { el.classList.toggle("smerr", /villa|tókst ekki|mistókst|ekki hægt|vantar|ógild|rangt|ekki leyfi|hafnað/i.test(s)); el.classList.toggle("sminfo", !el.classList.contains("smerr") && /sýniútgáfa|ný útgáfa|^hleð|bíð|án nettengingar|engin/i.test(s));
+        el.style.animation = "none"; void el.offsetWidth; el.style.animation = ""; }
+      return r; };
+    window.toast._sm = 1;
+  }
+  // Form í síma: ✕ efst í heilskjánum (sama og „Hætta við“ / closeSheet)
+  tr(() => { const w = document.getElementById("sheetwrap"); if (!w) return;
+    new MutationObserver(() => { if (w.hidden || !phone()) return; const sh = w.querySelector(".sheet"); if (!sh || sh.querySelector(".smshx")) return;
+      sh.insertAdjacentHTML("afterbegin", `<div class="smshx"><button type="button" aria-label="Loka">${ic("x", 20, 2)}</button></div>`);
+      sh.querySelector(".smshx button").addEventListener("click", () => { const c = sh.querySelector("#f-cancel"); if (c && c.offsetParent) c.click(); else tr(() => closeSheet(), 0); }); })
+      .observe(w, { attributes: true, attributeFilter: ["hidden"] }); }, 0);
   SM.bar = () => { if (phone()) tr(() => bar(), 0); };
   /* ---------- Tenging ---------- */
   function nat() {
