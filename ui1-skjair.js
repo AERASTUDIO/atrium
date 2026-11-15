@@ -1371,7 +1371,11 @@
     wire(); };
   // ---- 2.139.0: hliðarspjald frá hægri (tilkynningar, sérsníða) ----
   window.atrDrawer = (html, label) => { atrDrawerClose(true); const sc = document.createElement("div"); sc.className = "adscrim"; const d = document.createElement("aside"); d.className = "adrw"; d.setAttribute("role", "dialog"); d.setAttribute("aria-label", label || ""); d.innerHTML = html;
-    document.body.append(sc, d); sc.onclick = () => atrDrawerClose(); d.addEventListener("click", e => { if (e.target.closest("[data-adclose]")) atrDrawerClose(); });
+    document.body.append(sc, d); sc.onclick = () => atrDrawerClose(); d.addEventListener("click", e => {
+      // 2.154.1: spjaldið er utan #view – smellir á data-act/data-open voru hvergi gripnir svo tilkynningar leiddu ekki neitt
+      const a = e.target.closest("[data-act]"), o = !a && e.target.closest("[data-open]");
+      if (a || o) { e.preventDefault(); atrDrawerClose(); setTimeout(() => { try { a ? doAct(a.dataset.act, a) : openDetail(o.dataset.open); } catch (er) { console.warn("drawer", er); } }, 0); return; }
+      if (e.target.closest("[data-adclose]")) atrDrawerClose(); });
     window.__adKey = e => { if (e.key === "Escape") atrDrawerClose(); }; document.addEventListener("keydown", window.__adKey); setTimeout(() => d.querySelector("button,a,input")?.focus(), 30); return d; };
   window.atrDrawerClose = quick => { document.querySelectorAll(".adrw,.adscrim").forEach(x => { if (quick) x.remove(); else { x.classList.add("out"); setTimeout(() => x.remove(), 220); } }); if (window.__adKey) document.removeEventListener("keydown", window.__adKey); };
   // ---- 2.139.0: bjalla (lengst til hægri) og tilkynningar í spjaldi frá hægri ----
