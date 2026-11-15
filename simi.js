@@ -226,7 +226,8 @@
   }
   function heimTop() {
     const d = new Date(), L = tGet();
-    return `<div class="shd"><span class="sdl">${DN[d.getDay()]} ${d.getDate()}. ${MN[d.getMonth()]}</span><h1>${greet()}</h1></div>${keyCard()}`
+    let un = 0; try { un = window.u1TilkN ? u1TilkN() : 0; } catch (e) {}
+    return `<div class="shd"><div class="shdt"><span class="sdl">${DN[d.getDay()]} ${d.getDate()}. ${MN[d.getMonth()]}</span><h1>${greet()}</h1></div>${window.u1Tilk ? `<button type="button" class="shbell" onclick="u1Tilk()" aria-label="Tilkynningar${un ? ", " + un + " ólesnar" : ""}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>${un ? `<span>${un > 99 ? "99+" : un}</span>` : ""}</button>` : ""}</div>${keyCard()}`
       + `<div class="shsec"><span>Svæði</span><button type="button" class="shed" data-simk="flis">Breyta</button></div><div class="sht">${L.map(tileHTML).join("")}</div>${pills()}`;
   }
   // „+“: fljótleg skráning
@@ -244,7 +245,7 @@
       + `<div class="shpg">${L.join("")}</div></div>`;
     document.body.append(w); const close = () => w.remove();
     w.addEventListener("click", e => { if (e.target.closest("[data-x]")) return close(); const b = e.target.closest("[data-pl]"); if (!b) return; const [a, id] = b.dataset.pl.split(/:(.*)/s); close();
-      if (a === "tima") { try { kind = "tima"; PREFILL = null; openSheet(); } catch (x) {} }
+      if (a === "tima") { if (window.s2Skra) return window.s2Skra(); try { kind = "tima"; PREFILL = null; openSheet(); } catch (x) {} }
       else if (a === "klukka") { try { kind = "tima"; PREFILL = { timer: true }; openSheet(); } catch (x) {} }
       else if (a === "mynd") photo(id); else if (a === "ath") noteSheet(id); else if (a === "scan") window.qrScan?.();
       else if (a === "tilbod") window.FAB_EXT.ltilbod(); else if (a === "pontun") window.FAB_EXT.pantanir(); });
@@ -316,6 +317,7 @@
       if (window.saveDoc) saveDoc({ data: f, name: nm, type: f.type || "image/jpeg", kind: "Myndir", pid: p.id }); else toast?.("Ekki hægt að vista mynd hér"); };
     i.click();
   }
+  window.simiPhoto = id => photo(id); window.simiNote = id => noteSheet(id);
   async function startOn(pid) {
     try { await saveSnapshot(s => { s.klukka = { pid, sid: null, desc: "", sk: me(), start: new Date().toISOString() }; }); toast?.("Klukkan er farin af stað"); } catch (e) {}
   }
