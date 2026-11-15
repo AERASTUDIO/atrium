@@ -390,7 +390,8 @@
         { const dl = el.querySelector('[data-act^="del:vsk:"]'); if (dl && MCP) { act.insertAdjacentHTML("beforeend", `<details class="umore"><summary aria-label="Fleiri aðgerðir">⋯</summary><div></div></details>`); dl.className = ""; dl.textContent = "Eyða"; act.querySelector(".umore:last-child>div").append(dl); } }   // 2.113.2: Eyða viðskiptavini týndist
         const kp = el.querySelector(".kpis"), body = el.querySelector(".dbody") || kp?.parentElement;
         if (kp) { const wrap = document.createElement("div"); wrap.className = "uorig"; let n = kp.nextElementSibling; while (n) { const nx = n.nextElementSibling; wrap.append(n); n = nx; }
-          kp.insertAdjacentHTML("afterend", r.tabs + (r.body !== null ? `<div class="uvy">${r.body}</div>` : ""));
+          kp.insertAdjacentHTML("afterend", r.tabs + (r.body !== null ? `<div class="uvy vsyv">${r.body}</div>` : ""));
+          if (r.kps) { kp.insertAdjacentHTML("beforebegin", r.kps); kp.classList.add("u2hidkp"); }   // 2.153.2: sama lyklaspjald og yfirlitin
           if (r.body === null) kp.parentElement.append(wrap); }
       }
     }

@@ -1748,3 +1748,10 @@ html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .fk-e{padding:4px 0;color:var(-
 html:not(#u2a):not(#u2b) body.kerfi #view .fkhead .ptitle{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.15}
 html:not(#u2a):not(#u2b) body.kerfi #view .fkhead .usub{white-space:normal}
 html:not(#u2a):not(#u2b) body.kerfi #view .fkdet .yfkp b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 2.153.2: Viðskiptavinaspjald */
+html:not(#u2a):not(#u2b) body.kerfi #view .dbody > .yfk,html:not(#u2a):not(#u2b) body.kerfi #view .yfk + .kpis + *{margin-top:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet .yfk{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin:8px 0 20px}
+html:not(#u2a):not(#u2b) body.kerfi #view .vsyv{margin-top:18px}
+html:not(#u2a):not(#u2b) body.kerfi #view .vsyv > .ycard{margin:0}
+html:not(#u2a):not(#u2b) body.kerfi #view .vsr{display:inline-flex;align-items:center;gap:14px;flex:none}
+html:not(#u2a):not(#u2b) body.kerfi #view .spdet .kpis.u2hidkp,html:not(#u2a):not(#u2b) body.kerfi #view .kpis.u2hidkp{display:none!important}

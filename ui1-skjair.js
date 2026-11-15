@@ -684,7 +684,7 @@
       const fut = items.filter(x => x.k === "f" && x.w.slice(0, 10) >= ti).sort((a, b) => a.w.localeCompare(b.w)), past = items.filter(x => !(x.k === "f" && x.w.slice(0, 10) >= ti)).sort((a, b) => b.w.localeCompare(a.w));
       const row = x => { const f = x.o, wd = x.w.slice(0, 10);
         if (x.k === "f") return `<a class="utl" ${tapAttr("fund", f.id)}><i class="ic">◷</i><span><b>${E(f.name || "Fundur")}</b><small>${E([f.stadsetning || (f.fundarhlekkur ? "Fjarfundur" : ""), (f.attendees || []).length ? f.attendees.length + " þátttakendur" : "", f.fundargerd ? "fundargerð" : ""].filter(Boolean).join(" · "))}</small></span><span class="utlr"><small>${E(u1D.dIS(wd))}${hhmm(f.date) ? " · " + hhmm(f.date) : ""}</small>${pill("Fundur")}</span></a>`;
-        if (x.k === "p") return `<a class="utl" href="#" data-act="tab:postur"><i class="ic">✉</i><span><b>${E(f.efni || "Póstþráður")}</b><small>tengt ${E(f.af || "")}</small></span><span class="utlr"><small>${E(u1D.dIS(wd))}</small>${pill("Póstur")}</span></a>`;
+        if (x.k === "p") return `<a class="utl" href="#" data-act="tkpo:${E(f.id)}"><i class="ic">✉</i><span><b>${E(f.efni || "Póstþráður")}</b><small>tengt ${E(f.af || "")}</small></span><span class="utlr"><small>${E(u1D.dIS(wd))}</small>${pill("Póstur")}</span></a>`;
         return `<div class="utl"><i class="ic">✉</i><span><b>${E(f.efni || "")}</b><small>${E(f.fra || "")} · eldri póstur</small></span><span class="utlr"><small>${E(u1D.dIS(wd))}</small>${pill("Póstur")}</span></div>`; };
       const nF = fs.length, nP = th.length + po.length;
       return `<div class="ush2" style="margin-top:14px"><span>${chips([["", "Allt · " + (nF + nP)], ["f", "Fundir · " + nF], ["p", "Póstar · " + nP]], st.cf, "u1cf")}</span>${MCP ? `<span style="display:flex;gap:8px"><button type="button" class="btn" data-act="add:fund">+ Fundur</button>${ON("postur") ? `<button type="button" class="btn" data-act="pofind:${E(p.id)}">Tengja póst</button>` : ""}</span>` : ""}</div>`
@@ -878,12 +878,23 @@
     const tb = api ? api.TB().filter(mine).sort((a, b) => String(b.dags).localeCompare(String(a.dags))) : [], pn = api ? api.PN().filter(mine) : [], rk = (S?.reikningar || []).filter(r => String(r.vskId || "") === String(c.id) || r.kaupandi?.name === c.name);
     const keys = [["verk", "Verkefni " + vs.length], ...(api ? [["tb", "Tilboð " + tb.length]] : []), ...(api && pn.length ? [["pn", "Pantanir " + pn.length]] : []), ...(ON("reikningar") ? [["rk", "Reikningar " + rk.length]] : []), ["upp", "Tengiliðir"]];
     if (!keys.some(k => k[0] === st.ct)) st.ct = "verk";
-    const ln = (attr, a, b, pl, dark) => `<a class="uln" ${attr}><span>${a}<small>${b ? " · " + b : ""}</small></span>${pl ? pill(pl, dark) : ""}</a>`;
-    const body = st.ct === "verk" ? vs.map(p => ln(tapAttr("verk", p.id), E(p.nr + " " + (p.stutt || "")), E(svidOf(p).join(", ")), p.stada, !isDone(p) && p.stada === STODUR()[1]?.n)).join("")
-      : st.ct === "tb" ? tb.map(T => ln(tapAttr("tb", T.id), E((T.nr || "") + " " + (T.heiti || "")), E((T.fra || T.dags || "").slice(0, 10).split("-").reverse().join(".")), T.stada, T.stada === "Samþykkt")).join("")
-      : st.ct === "pn" ? pn.map(P => ln(tapAttr("tb", P.id), E((P.nr || "") + " " + (P.heiti || "")), E((P.fra || "").split("-").reverse().join(".")), P.stada, P.stada === "Ný")).join("")
-      : st.ct === "rk" ? rk.map(r => ln(tapAttr("reikn", r.id), "Reikningur " + E(String(r.nr)), E(kr(r.tot)), r.stada, r.stada !== "Greitt" && daysTo(r.gjalddagi) < 0)).join("") : null;
-    return { tabs: tabsV(keys.map(([k, l]) => [k, l]), st.ct).replace(/u1vt:/g, "u1ct:"), body: body === null ? null : (body || `<div class="usub" style="padding:8px 0">Ekkert hér enn.</div>`) };
+    // 2.153.2: spjöld viðskiptavinar í útliti yfirlitanna – lyklaspjald (yfk) og listar í spjaldi (ycard/yrow)
+    const ti = isoD(today), dI = x => x ? fmtD(String(x).slice(0, 10)) : "", amt = n => `<span class="yam">${E(kr(Math.round(n)))}</span>`;
+    const R2 = (pl, dark, a) => `<span class="vsr">${a != null ? amt(a) : ""}${pill(pl, dark)}</span>`;
+    const opV = vs.filter(p => !isDone(p)), doneV = vs.filter(p => isDone(p));
+    const hrsV = tr0(() => faerslur().filter(e => vs.some(p => p.id === e.verkefniId)).reduce((a, e) => a + (+e.timar || 0), 0)) || 0;
+    const rkOk = rk.filter(r => r.stada !== "Ógilt"), rkTot = rkOk.reduce((a, r) => a + (+r.tot || 0), 0), ogr = rkOk.filter(r => r.stada !== "Greitt"), ogrK = ogr.reduce((a, r) => a + (+r.tot || 0), 0), late = ogr.filter(r => daysTo(r.gjalddagi) < 0);
+    const tbOpen = tb.filter(T => ["Drög", "Sent"].includes(T.stada) || T.bidur), tbOK = tbOpen.reduce((a, T) => a + (tr0(() => api.netOf(T)) || 0), 0);
+    const kps = yfk([["Verkefni í gangi", opV.length, "", vs.length ? "af " + vs.length + " alls" : "Engin verkefni", "", "dk"], ["Tímar", H(hrsV), "klst.", "á öllum verkefnum", ""],
+      ...(ON("reikningar") ? [["Reikningsfært", krN(rkTot), "kr.", ogr.length ? (late.length ? `<i class="bad">${E(kr(ogrK))} ógreitt · ${late.length} fram yfir</i>` : E(kr(ogrK)) + " ógreitt") : rkOk.length ? `<i class="ok">Allt greitt</i>` : "Enginn reikningur", ""]] : []),
+      ...(api ? [["Opin tilboð", tbOpen.length, "", tbOpen.length ? E(kr(Math.round(tbOK))) + " án vsk" : "Ekkert opið", ""]] : [])]);
+    const vRow = p => yrow(tapAttr("verk", p.id), p.nr, p.stutt || p.nafn || "", E([svidOf(p).join(", "), p.skiladagur ? "skil " + dI(p.skiladagur) : "", +p.timar ? H(+p.timar) + " klst." : ""].filter(Boolean).join(" · ")), pill(p.stada, !isDone(p) && p.stada === STODUR()[1]?.n));
+    const body = st.ct === "verk" ? (vs.length ? ycard(opV.length ? "Í gangi" : "Verkefni", (opV.length ? opV.map(vRow).join("") : "") + (doneV.length ? `<div class="ygrp">Lokin · ${doneV.length}</div>` + doneV.map(vRow).join("") : ""), "", opV.length + " í gangi") : "")
+      : st.ct === "tb" ? (tb.length ? ycard("Tilboð", tb.map(T => yrow(tapAttr("tb", T.id), T.nr || "", T.heiti || "Tilboð", E([dI(T.fra || T.dags), (T.linur || []).length + " línur"].filter(Boolean).join(" · ")), R2(api.stTxt ? api.stTxt(T) : T.stada, T.stada === "Samþykkt", tr0(() => api.netOf(T)) || 0))).join(""), "", tbOpen.length ? tbOpen.length + " opin" : "") : "")
+      : st.ct === "pn" ? (pn.length ? ycard("Pantanir", pn.map(P => yrow(tapAttr("tb", P.id), P.nr || "", P.heiti && P.heiti !== "Pöntun" ? P.heiti : "Pöntun", E([P.fra ? "afhending " + dI(P.fra) : "", P.til && P.til !== P.fra ? "skil " + dI(P.til) : ""].filter(Boolean).join(" · ")), R2(P.stada, P.stada === "Ný", tr0(() => api.netOf(P)) || 0))).join("")) : "")
+      : st.ct === "rk" ? (rk.length ? ycard("Reikningar", rk.map(r => { const lt = !["Greitt", "Ógilt"].includes(r.stada) && daysTo(r.gjalddagi) < 0, p = findProj(r.verkefniId || (r.verkefniIds || [])[0]);
+          return yrow(tapAttr("reikn", r.id), String(r.nr).padStart(3, "0"), p ? (p.stutt || p.nafn || p.nr) : "Reikningur", (r.dags ? E(dI(r.dags)) : "") + (r.gjalddagi && !["Greitt", "Ógilt"].includes(r.stada) ? ` · <span class="${lt ? "t-red" : ""}">gjalddagi ${E(dI(r.gjalddagi))}</span>` : ""), R2(lt ? "Fram yfir" : r.stada || "", lt, +r.tot || 0)); }).join(""), "", ogr.length ? E(kr(ogrK)) + " ógreitt" : "") : "") : null;
+    return { kps, tabs: tabsV(keys.map(([k, l]) => [k, l]), st.ct).replace(/u1vt:/g, "u1ct:"), body: body === null ? null : (body || ycard({ verk: "Verkefni", tb: "Tilboð", pn: "Pantanir", rk: "Reikningar" }[st.ct] || "", `<div class="usub" style="padding:6px 0">${{ verk: "Engin verkefni enn.", tb: "Engin tilboð enn.", pn: "Engar pantanir enn.", rk: "Enginn reikningur enn." }[st.ct] || "Ekkert hér enn."}</div>`)) };
   };
 
   /* ---------- Yfirlit hluta (Verkefni, Viðskiptavinir, Pantanir, Tilboð, Tímar) og viðskiptavinir eftir sviðum ---------- */
@@ -1248,7 +1259,8 @@
     // 2.96.0: sjálfvirk reikningsdrög sem eru tilbúin en ekki komin í bókhald
     if (window.can && can("fjarmal")) (S?.reikningar || []).filter(r => r.sjalf && r.tilbuid && !r.lifandi && !r.bokhald && !r.bokhaldNr && r.stada !== "Ógilt" && daysTo(String(r.tilbuid).slice(0, 10)) >= -30).forEach(r => {
       R.push({ k: "Reikningar", title: `Reikningsdrög ${r.nr} tilbúin til bókunar`, sub: [r.kaupandi?.name, r.stadgreitt ? "staðgreitt" : ""].filter(Boolean).join(" · "), date: String(r.tilbuid).slice(0, 10), pill: "Reikningur", dark: 1, open: "reikn:" + r.id }); });
-    (S?.thraedir || []).filter(t => daysTo(t.tengt) >= -3).forEach(t => R.push({ k: "Póstur", title: "Póstur tengdur verkefni", sub: t.efni || "", date: t.tengt, pill: "Póstur", open: t.verkefniId ? "verk:" + t.verkefniId : null, act: "tab:postur" }));
+    (S?.thraedir || []).filter(t => daysTo(t.tengt) >= -3).forEach(t => { const p = t.verkefniId ? findProj(t.verkefniId) : null;   // 2.153.2: opnar póstinn sjálfan (eða Samskipti verkefnisins)
+      R.push({ k: "Póstur", title: "Póstur tengdur " + (p ? (p.nr + " " + (p.stutt || p.nafn || "")).trim() : "verkefni"), sub: t.efni || "(ekkert efni)", date: t.tengt, pill: "Póstur", act: "tkpo:" + t.id }); });
     return R.sort((a, b) => String(b.date || "9").localeCompare(String(a.date || "9")));
   }
   const relW = w => fmtD(w);
@@ -1424,6 +1436,13 @@
       row: it => `<div class="urow uh" ${att(it)}><span class="m">${E(it.k)}</span><span class="t">${E(it.title)}${it.sub ? `<span class="m"><i class="msep"> · </i>${E(it.sub)}</span>` : ""}</span><span class="m">${E(tkWhen(it.date))}</span><span class="r">${pill(u1Seen(it) ? "Lesið" : "Nýtt", !u1Seen(it))}</span></div>` }); };
 
   /* ---------- aðgerðir ---------- */
+  // 2.153.2: tilkynning um tengdan póst – opnar nýjasta póstinn í þræðinum; annars Samskipti verkefnisins; annars pósthólfið
+  window.ACT_EXT = window.ACT_EXT || {};
+  ACT_EXT.tkpo = function (k, r) { const t = (S?.thraedir || []).find(x => x.id === r.join(":")); if (!t) { doAct("tab:postur"); return; }
+    const m = tr0(() => window.poConvLast && poConvLast(t.conv));
+    if (m && m.id) { openDetail("post:" + m.id); return; }
+    if (t.verkefniId && findProj(t.verkefniId)) { openDetail("verk:" + t.verkefniId); setTimeout(() => { if (typeof setDtab === "function" && DTAB !== "fundir") setDtab("fundir"); render(); }, 0); return; }
+    doAct("tab:postur"); };
   Object.assign(window.ACT_EXT = window.ACT_EXT || {}, {
     u1: async function (k, r) {
       const v = r.join(":");
