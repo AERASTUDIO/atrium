@@ -318,6 +318,8 @@
     i.click();
   }
   window.simiPhoto = id => photo(id); window.simiNote = id => noteSheet(id);
+  // 2.155.0: símaskelin (simi/skel.js) notar þessa hluta
+  window.simiApi = { keyCard: () => keyCard(), tiles: () => { try { return tGet().map(tileHTML).join(""); } catch (e) { return ""; } }, plus: () => plusSheet(), flis: () => flisSheet(), meira: () => meiraHTML() };
   async function startOn(pid) {
     try { await saveSnapshot(s => { s.klukka = { pid, sid: null, desc: "", sk: me(), start: new Date().toISOString() }; }); toast?.("Klukkan er farin af stað"); } catch (e) {}
   }

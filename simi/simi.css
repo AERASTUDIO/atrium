@@ -1,0 +1,83 @@
+/* simi/simi.css (2.155.0) – Símaskel Atrium (simi/skel.js). U2d í síma: sömu breytur og u2d.css, einn dálkur, 16 px spássía, 44 px snertisvæði.
+   Aðeins undir 1024 px. Forskeytið html:not(#s1):not(#s2) body.kerfi.sm vinnur á eldri símareglum (simi.css, simi2.css, simi-ui1.css). */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2) body.kerfi.sm .smscr{display:flex;flex-direction:column;gap:14px;padding:6px 0 8px;color:var(--ink)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smbody{display:flex;flex-direction:column;gap:14px}
+
+  /* Haus */
+  html:not(#s1):not(#s2) body.kerfi.sm #view > .smscr{margin-inline:0!important}
+  html:not(#s1):not(#s2) body.kerfi.sm header.smh{position:static!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smh{display:flex;align-items:flex-start;gap:10px;padding:8px 0 2px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smht{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+  html:not(#s1):not(#s2) body.kerfi.sm .smsup{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  html:not(#s1):not(#s2) body.kerfi.sm .smh1{margin:0;font-size:28px!important;font-weight:600!important;letter-spacing:-.02em;line-height:1.15;color:var(--ink)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smh1.kv{font-weight:500} html:not(#s1):not(#s2) body.kerfi.sm .smh1.kv b{font-weight:700}
+  html:not(#s1):not(#s2) body.kerfi.sm .smhr{display:flex;gap:8px;flex:none;padding-top:2px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smib{position:relative;flex:none;width:44px;height:44px;border-radius:22px;border:0;background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--e1);padding:0}
+  html:not(#s1):not(#s2) body.kerfi.sm .smib.gr{background:var(--gra);color:var(--on-gra);box-shadow:0 6px 16px rgba(15,23,32,.22)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smbdg{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--kacc,#2B63A6);color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+  html:not(#s1):not(#s2) body.kerfi.sm .smlnk{border:0;background:none;padding:0;color:var(--kacc,#2B63A6);font:500 13px var(--font,inherit);cursor:pointer;min-height:32px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smh .smlnk{color:var(--ink);font-weight:600}
+
+  /* Spjald, línur, pillur */
+  html:not(#s1):not(#s2) body.kerfi.sm .smc{background:var(--surface);border-radius:22px;box-shadow:var(--e1);padding:16px 18px 8px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smct{display:flex;align-items:center;gap:8px;padding-bottom:6px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smct i{flex:none;width:6px;height:6px;border-radius:3px;background:var(--kacc,#2B63A6)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smct h2{flex:1;margin:0;font-size:16px!important;font-weight:700!important;letter-spacing:0!important;color:var(--ink)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smrows{display:flex;flex-direction:column}
+  html:not(#s1):not(#s2) body.kerfi.sm .smr{display:flex;align-items:center;gap:12px;min-height:56px;border-top:1px solid var(--line);color:var(--ink);text-decoration:none;cursor:pointer}
+  html:not(#s1):not(#s2) body.kerfi.sm .smr:first-child{border-top:0}
+  html:not(#s1):not(#s2) body.kerfi.sm .smr > svg{flex:none;color:var(--muted)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smrt{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+  html:not(#s1):not(#s2) body.kerfi.sm .smrt b{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html:not(#s1):not(#s2) body.kerfi.sm .smrt small{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html:not(#s1):not(#s2) body.kerfi.sm .smri{flex:none;width:34px;height:34px;border-radius:11px;background:var(--hover);color:var(--gra);display:flex;align-items:center;justify-content:center}
+  html:not(#s1):not(#s2) body.kerfi.sm .smn{flex:none;min-width:22px;height:22px;border-radius:11px;background:var(--hover);color:var(--kacc,#2B63A6);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 7px;box-sizing:border-box}
+  html:not(#s1):not(#s2) body.kerfi.sm .smp{flex:none;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;font-size:12px;font-weight:600;background:var(--hover);color:var(--ink);white-space:nowrap}
+  html:not(#s1):not(#s2) body.kerfi.sm .smp::before{content:"";width:6px;height:6px;border-radius:3px;background:currentColor}
+  html:not(#s1):not(#s2) body.kerfi.sm .smp.b{background:color-mix(in srgb,var(--kacc,#2B63A6) 12%,transparent);color:var(--kacc,#2B63A6)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smp.a{background:color-mix(in srgb,var(--t-amb) 13%,transparent);color:var(--t-amb)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smp.r{background:color-mix(in srgb,var(--t-red) 12%,transparent);color:var(--t-red)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smp.g{background:color-mix(in srgb,var(--t-grn) 13%,transparent);color:var(--t-grn)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smempty{margin:0;padding:28px 18px;text-align:center;color:var(--muted);font-size:14px;background:var(--surface);border-radius:22px;box-shadow:var(--e1)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smsearch{display:flex;flex-direction:row;align-items:center;gap:10px;height:50px;padding:0 18px;border-radius:25px;background:var(--surface);color:var(--muted);box-shadow:var(--e1)}
+  html:not(#s1):not(#s2):not(#s3) body.kerfi.sm #view .smsearch input#smq{border-radius:0!important;-webkit-appearance:none;appearance:none;outline:none!important;flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;padding:0!important;margin:0!important;min-height:0!important;height:auto!important;font:400 16px var(--font,inherit);color:var(--ink)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smme{display:flex;align-items:center;gap:12px;padding:6px 0 10px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smav{flex:none;width:44px;height:44px;border-radius:22px;background:var(--gra);color:var(--on-gra);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+  /* Heim: Í dag-einingar tölvunnar í einum dálki */
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .shk{margin:0}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .u2grid{display:flex!important;flex-direction:column;gap:14px!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .u2m{width:auto!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .card{border-radius:22px!important;padding:16px 18px!important;margin:0!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .uhch{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .uhch h3{flex:1;min-width:0;font-size:16px!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .uhch .m{display:none}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .u2wk{display:flex!important;gap:10px!important;overflow-x:auto;scrollbar-width:none;margin:6px -18px 0!important;padding:0 18px 4px;scroll-snap-type:x proximity}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .u2wk::-webkit-scrollbar{display:none}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .u2wc{flex:none;width:172px;min-height:120px!important;scroll-snap-align:start}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .ubm{min-height:56px;gap:10px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .ubm .btn{min-height:40px;padding:0 14px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .u2pjs button{min-height:36px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .smmods .u2pq button{min-height:40px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smheim .fsk{margin:0!important;border-radius:22px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smsv .sht{padding:6px 0 10px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smsv .shti{background:var(--hover);box-shadow:none}
+
+  /* Neðri valmynd = vinstri stika tölvunnar: glerstika, virkur liður grafít pilla með heiti og tölu */
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar{left:12px!important;right:12px!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;height:66px!important;padding:0 9px!important;border:0!important;border-radius:28px!important;
+    background:var(--glass)!important;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),inset 0 1px 0 rgba(255,255,255,.6),0 12px 30px -10px rgba(15,23,32,.28)!important;
+    display:flex!important;align-items:center;gap:4px;grid-template-columns:none!important}
+  html:not(#s1):not(#s2):not([data-theme="light"]) body.kerfi.sm.pv nav.mbar.tbar.smbar{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 16px 32px -16px rgba(0,0,0,.6)!important}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt{flex:1 1 0!important;min-width:44px!important;height:48px;border-radius:24px!important;border:0!important;background:none!important;color:var(--glass-tx)!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px;padding:0!important;margin:0!important;font:600 13.5px var(--font,inherit)!important;box-shadow:none!important;cursor:pointer}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt span{display:none}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt::after,html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt::before{display:none!important}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt.on{flex:0 0 auto!important;width:auto!important;max-width:62%;padding:0 16px!important;background:var(--gra)!important;color:var(--on-gra)!important}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt.on span{display:inline;white-space:nowrap}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt.on svg{color:var(--on-gra)!important}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbt em{font-style:normal;font-size:11px;font-weight:700;background:rgba(255,255,255,.22);border-radius:9px;padding:1px 7px}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv nav.mbar.tbar.smbar .smbplus{flex:none;width:48px;height:48px;border-radius:24px;border:0;background:var(--surface);color:var(--gra);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(15,23,32,.14);cursor:pointer;margin-left:2px;padding:0}
+  html:not(#s1):not(#s2) body.kerfi.sm.pv .app{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}
+  html:not(#s1):not(#s2) body.kerfi.sm.s2detb.pv nav.mbar.tbar.smbar{display:none!important}
+}
