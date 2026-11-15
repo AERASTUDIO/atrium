@@ -23,7 +23,7 @@
   const cur = () => { try { return tab; } catch (e) { return ""; } };
   const det = () => { try { return DETAIL; } catch (e) { return null; } };
   const ok = t => !window.tabOn || tabOn(t);
-  const mapTab = () => { try { if (phone() && YF[tab]) { const s = secs().find(x => x.tabs.some(t => t[0] === tab)); const to = YF[tab]; const q = s?.tabs.find(t => t[0] === to && ok(to)) || s?.tabs.find(t => !YF[t[0]] && ok(t[0])); if (q) tab = q[0]; } } catch (e) {} };
+  const mapTab = () => { try { if (phone() && YF[tab] && !window.SM) { const s = secs().find(x => x.tabs.some(t => t[0] === tab)); const to = YF[tab]; const q = s?.tabs.find(t => t[0] === to && ok(to)) || s?.tabs.find(t => !YF[t[0]] && ok(t[0])); if (q) tab = q[0]; } } catch (e) {} };
 
   // Undirflipar hlutans sem flögur efst í listanum (í tölvu eru þeir í vinstri stikunni)
   function secChips() {

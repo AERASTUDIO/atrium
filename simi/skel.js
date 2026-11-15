@@ -17,7 +17,7 @@
     bag: '<path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/>', cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>', plus: '<path d="M12 5v14M5 12h14"/>',
     bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>', search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
-    chev: '<path d="M9 6l6 6-6 6"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', clock: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4"/>',
+    chev: '<path d="M9 6l6 6-6 6"/>', back: '<path d="M15 18l-6-6 6-6"/>', play: '<path d="M8 5.5l10 6.5-10 6.5z"/>', cam: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>', note: '<path d="M5 4h14v12l-4 4H5z"/><path d="M9 9h6M9 13h4"/>', check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', clock: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4"/>',
     doc: '<path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M14 3.5v5h5"/>', card: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M3.5 10h17M7 15h4"/>',
     users: '<circle cx="9" cy="8.5" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 7M21 20a6 6 0 0 0-4-5.6"/>', mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M3.5 7.5l8.5 6 8.5-6"/>',
     chat: '<path d="M20.5 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 20.5 12z"/>', box: '<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>',
@@ -36,7 +36,8 @@
     card: (title, body, more = "", cls = "") => `<section class="smc${cls ? " " + cls : ""}">${title ? `<div class="smct"><i></i><h2>${title}</h2>${more}</div>` : ""}${body}</section>`,
     row: (attr, t, s, right = "") => `<a class="smr" ${attr}><span class="smrt"><b>${E(t)}</b>${s ? `<small>${E(s)}</small>` : ""}</span>${right}</a>`,
     pill: (t, tone = "") => `<span class="smp${tone ? " " + tone : ""}">${E(t)}</span>`,
-    empty: t => `<p class="smempty">${E(t)}</p>`
+    empty: t => `<p class="smempty">${E(t)}</p>`,
+    screens: [], after: [], adapt: [], E, tr, fold, N, phone
   };
 
   /* ---------- Nýlega opnað (Leita) ---------- */
@@ -133,14 +134,21 @@
     const v = document.getElementById("view"); if (!v) return;
     document.body.classList.add("sm");
     const t = tr(() => tab, ""), D = tr(() => DETAIL, null);
+    document.body.classList.remove("smdet", "smfr", "smfrd");
     let h = null;
     if (!D) { if (t === "yfirlit" && !tr(() => window.isVett?.(), false)) h = heimHTML(); else if (t === "leit") h = leitHTML(); else if (t === "meira") h = meiraHTML(); }
+    // Skjáir lotna 2–6 (simi/*.js) skrá sig í SM.screens: (tab, DETAIL) → HTML eða null
+    if (h == null) for (const f of SM.screens) { const r = tr(() => f(t, D), null); if (r != null) { h = r; break; } }
     if (h != null) {
+      document.body.classList.remove("s2detb", "s2cl");
+      if (/^<div class="smscr[^"]*\bsmd\b/.test(h)) document.body.classList.add("smdet");
       // Fyrstu skref (fyrstuskref.js) fer undir kveðjuna, ekki ofan við hana
       const fsk = v.querySelector(".fsk"); v.innerHTML = h; const sb = v.querySelector(".smheim .smbody"); if (fsk && sb) (sb.firstElementChild ? sb.firstElementChild.after(fsk) : sb.prepend(fsk));
       document.body.classList.add("simdag"); document.body.classList.remove("simhasact");
       if (t === "leit") { const q = document.getElementById("smq"); if (q && st.focus) { q.focus(); const n = q.value.length; q.setSelectionRange(n, n); } }
-    }
+      SM.after.forEach(f => tr(() => f(v, t, D), 0));
+    } else SM.adapt.forEach(f => tr(() => f(v, t, D), 0));   // tölvuskjár → símarammi (simi/rammi.js)
+    if (document.body.classList.contains("s2detb")) document.body.classList.add("smdet");
     bar();
   }
   document.addEventListener("input", e => { if (e.target.id !== "smq") return; st.q = e.target.value; const r = document.getElementById("smres"); if (!r) return; const tmp = document.createElement("div"); tmp.innerHTML = leitHTML(); const n = tmp.querySelector("#smres"); if (n) r.innerHTML = n.innerHTML; });

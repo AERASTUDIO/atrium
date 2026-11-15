@@ -251,6 +251,9 @@
     const D = tr(() => DETAIL, null), t = tr(() => tab, "");
     if (D !== st.clFor) { st.cl = false; st.clFor = D; }
     let h = null;
+    // 2.156.0: símaskelin (simi/*.js) teiknar lista og opin verkefni/tilboð í U2d – simi2 sér aðeins um dagatalið og Skrá tíma
+    const SMK = !!window.SM;
+    if (SMK && !(!D && calTabs().includes(t) && !st.calClassic)) return;
     if (D && !st.cl) {
       if (/^verk:/.test(D)) { const p = tr(() => findProj(D.slice(5)), null); if (p) h = verkView(p); }
       else if (/^tb:/.test(D)) { const id = D.slice(3), T = tr(() => [...salaAPI.TB(), ...salaAPI.PN()].find(x => x.id === id), null); if (T) h = tbView(T); }
