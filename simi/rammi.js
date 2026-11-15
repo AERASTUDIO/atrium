@@ -86,7 +86,7 @@
     const uh = v.querySelector(":scope > .uhead, :scope > .phead, :scope > div > .uhead:first-child");
     if (!uh) return false;
     const plus = uh.querySelector(".uhr .btn.primary, .phrow .btn.primary, .pnew");
-    v.querySelectorAll(".simsub").forEach(x => x.remove());
+    v.querySelectorAll(".simsub, .seg").forEach(x => { if (x.matches(".simsub") || [...x.querySelectorAll("[data-act^='tab:'],[data-tab]")].length > 1) x.remove(); });
     const extra = [...uh.querySelectorAll(".uhr > :not(.btn.primary), .seg")].filter(x => !x.matches(".spsup, .ptitle"));
     const head = document.createElement("div"); head.innerHTML = SM.frameHead(t, plusFrom(plus), plus ? txt(plus).replace(/^\+\s*/, "") : "") + SM.track(t);
     if (extra.length) { const x = document.createElement("div"); x.className = "smxtra"; extra.forEach(e => x.append(e)); head.append(x); }
@@ -121,9 +121,18 @@
     document.body.classList.add("smfr");
     v.classList.remove("smpage", "smdetv");
     if (D) { document.body.classList.add("smfrd", "smdet"); detify(v, D); return; }
+    // Spjall: listinn fær símahausinn; opið samtal er ýttur skjár (engin neðri stika, lyklaborðið felur ekki innsláttinn)
+    const sw = v.querySelector(".spwrap");
+    if (sw) { sw.querySelector(".spchans > .phead .ptitle")?.closest(".phrow")?.remove();
+      if (sw.classList.contains("simspc")) { document.body.classList.add("smdet"); v.querySelector(":scope > .smh, :scope > .smtrack")?.remove(); v.querySelectorAll(":scope > .smh, :scope > .smtrack").forEach(x => x.remove()); return; }
+      if (!pagify(v, t) && !v.querySelector(".smh")) v.insertAdjacentHTML("afterbegin", SM.frameHead(t) + SM.track(t)); return; }
     const sl = v.querySelector(".splist");
     if (sl) { listify(sl, t); return; }
-    if (!pagify(v, t)) { const s = secFor(t); if (s && s.k !== "heim" && !v.querySelector(".smh")) v.insertAdjacentHTML("afterbegin", SM.frameHead(t) + SM.track(t)); }
+    if (!pagify(v, t)) { const s = secFor(t); if (s && s.k !== "heim" && !v.querySelector(".smh")) {
+      // aðalhnappur síðunnar („+ Verk“, „+ Fundur“ …) verður grafít „+“ í hausnum
+      const pb = [...v.querySelectorAll(".btn.primary, .pnew")].find(b => /^\+/.test(txt(b)) && b.offsetParent !== null);
+      v.insertAdjacentHTML("afterbegin", SM.frameHead(t, plusFrom(pb), pb ? txt(pb).replace(/^\+\s*/, "") : "") + SM.track(t));
+      if (pb) { pb.style.display = "none"; if (!pb.getAttribute("data-act") && !pb.getAttribute("onclick")) v.querySelector(".smh .smib.gr")?.addEventListener("click", () => pb.click()); } } }
   });
   SM.after.push((v, t, D) => { if (!D && v.querySelector(".smyf")) document.body.classList.add("smfr"); });
 })();

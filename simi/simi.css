@@ -96,7 +96,7 @@
   html:not(#s1):not(#s2) body.kerfi.sm .smflt{display:flex;flex-direction:column;gap:8px}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .smtrk2{display:flex!important;flex-wrap:nowrap!important;gap:6px!important;overflow-x:auto;scrollbar-width:none;margin:0 -16px!important;padding:0 16px!important;background:none!important;border:0!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .smtrk2::-webkit-scrollbar{display:none}
-  html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip{flex:none!important;min-height:36px!important;height:36px!important;padding:0 14px!important;border-radius:18px!important;border:0!important;background:var(--surface)!important;color:var(--ink)!important;font:500 13px var(--font,inherit)!important;box-shadow:var(--e1)!important;white-space:nowrap}
+  html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip{flex:none!important;min-height:40px!important;height:40px!important;padding:0 15px!important;border-radius:20px!important;border:0!important;background:var(--surface)!important;color:var(--ink)!important;font:500 13px var(--font,inherit)!important;box-shadow:var(--e1)!important;white-space:nowrap}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip.on{background:var(--gra)!important;color:var(--on-gra)!important;box-shadow:none!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip em,html:not(#s1):not(#s2) body.kerfi.sm .smflt .uchip span{opacity:.75}
   html:not(#s1):not(#s2) body.kerfi.sm .smflt .smsel{display:flex!important;align-items:center;gap:8px;margin:0!important;font-size:13px;color:var(--muted)}
@@ -139,8 +139,56 @@
   html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .card,html:not(#s1):not(#s2) body.kerfi.sm #view.smpage .card{border-radius:22px!important}
   html:not(#s1):not(#s2) body.kerfi.sm.smfrd #view .split > .splist{display:none!important}
   html:not(#s1):not(#s2) body.kerfi.sm.smfrd #view .split > .spdet{display:block!important;position:static!important;width:auto!important;max-width:none!important;height:auto!important;box-shadow:none!important;background:none!important;border:0!important;padding:0!important;margin:0!important;transform:none!important}
-  html:not(#s1):not(#s2) body.kerfi.sm.smdet.pv nav.mbar.tbar.smbar{display:none!important}
+  html:not(#s1):not(#s2) body.kerfi.sm.smdet.pv nav.mbar.tbar.smbar,html:not(#s1):not(#s2) body.kerfi.sm.pv:has(#sheetwrap:not([hidden])) nav.mbar.tbar.smbar,html:not(#s1):not(#s2) body.kerfi.sm.pv.s2lock nav.mbar.tbar.smbar{display:none!important}
   html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .ukp b,html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .ukp strong,html:not(#s1):not(#s2) body.kerfi.sm .smyfb .yfk b{font-size:21px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;line-height:1.2}
   html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .spwin,html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .spexp,html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .spshr,html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .uback{display:none!important}
   html:not(#s1):not(#s2) body.kerfi.sm #view.smdetv .smdnav + * {margin-top:0!important}
+}
+
+/* ---------- Dagatal (2.157.0, simi/dagatal.js) ---------- */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2) body.kerfi.sm .smpillb{display:inline-flex;align-items:center;gap:4px;height:44px;padding:0 14px;border:0;border-radius:22px;background:var(--surface);color:var(--ink);font:600 13.5px var(--font,inherit);box-shadow:var(--e1);cursor:pointer}
+  html:not(#s1):not(#s2) body.kerfi.sm .smstrip{display:flex;align-items:center;gap:2px;padding:8px 4px!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smwk{flex:none;width:32px;height:56px;border:0;background:none;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  html:not(#s1):not(#s2) body.kerfi.sm .smdays{flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday{border:0;background:transparent;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:60px;font:inherit;color:var(--ink);cursor:pointer}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday small{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday b{font-size:17px;font-weight:600}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday i{width:5px;height:5px;border-radius:3px;background:transparent}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday i.y{background:var(--kacc,#2B63A6)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday.td b{color:var(--kacc,#2B63A6)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday.on{background:var(--gra);color:var(--on-gra)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday.on small{color:color-mix(in srgb,var(--on-gra) 70%,transparent)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday.on b{color:var(--on-gra)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smday.on i.y{background:var(--on-gra)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smdh{display:flex;align-items:baseline;gap:8px;padding:2px 4px 0}
+  html:not(#s1):not(#s2) body.kerfi.sm .smdh b{font-size:16px;font-weight:700;flex:1}
+  html:not(#s1):not(#s2) body.kerfi.sm .smdh span{font-size:12.5px;color:var(--muted)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smevs{display:flex;flex-direction:column;gap:10px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smev{display:flex;flex-direction:column;gap:3px;background:var(--surface);border-radius:16px;border-left:3px solid var(--evc);padding:12px 14px;color:var(--ink);box-shadow:var(--e1);cursor:pointer;min-height:44px}
+  html:not(#s1):not(#s2) body.kerfi.sm .smev small{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  html:not(#s1):not(#s2) body.kerfi.sm .smev b{font-size:15px;font-weight:600}
+  html:not(#s1):not(#s2) body.kerfi.sm .smev b.done{text-decoration:line-through;color:var(--muted)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smev span{font-size:12.5px;color:var(--muted)}
+  html:not(#s1):not(#s2) body.kerfi.sm .smfull{background:var(--surface);border-radius:18px;padding:0 14px;box-shadow:var(--e1);border:0!important;width:100%;text-align:left;font:inherit}
+}
+
+/* ---------- Vettvangur (2.157.0, vett-ui.js) í U2d: grafít lykilspjald og aðalhnappar, ferill fyrir flipa, 22 px spjöld ---------- */
+@media (max-width:1023px){
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vth h1{font-size:26px!important;font-weight:500!important;letter-spacing:-.02em;color:var(--ink)}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtl{font-size:13px;color:var(--muted)}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtcard{border-radius:22px!important;box-shadow:var(--e1)!important;border:0!important;background:var(--surface)!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtclk{background:var(--gra)!important;color:var(--on-gra)!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtclk .vtl{color:color-mix(in srgb,var(--on-gra) 72%,transparent)!important;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtclk b{color:var(--on-gra)!important;font-weight:500!important;font-variant-numeric:tabular-nums}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtclk .vtbtn.pri{background:var(--surface)!important;color:var(--gra)!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtbtn{min-height:48px!important;border-radius:24px!important;font-weight:600!important;box-shadow:none!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtbtn.pri{background:var(--gra)!important;color:var(--on-gra)!important;border:0!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtseg{background:color-mix(in srgb,var(--ink) 7%,var(--bg))!important;border-radius:999px!important;padding:4px!important;border:0!important;box-shadow:none!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtseg button{min-height:38px;border-radius:19px!important;font-weight:500;color:var(--muted)}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtseg button[aria-selected="true"]{background:var(--surface)!important;color:var(--ink)!important;font-weight:600;box-shadow:0 2px 6px rgba(15,23,32,.10)!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtseg i{font-style:normal;color:var(--kacc,#2B63A6);font-size:12px;margin-left:4px;background:none!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtr{min-height:58px}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtclk + .vtbtn{margin-top:4px}
+  html:not(#s1):not(#s2) body.kerfi.sm .vt .vtav{width:44px;height:44px;border-radius:22px;background:var(--gra)!important;color:var(--on-gra)!important;border:0!important}
 }

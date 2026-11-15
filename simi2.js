@@ -241,6 +241,7 @@
     } catch (e) { btn.disabled = false; btn.textContent = "Vista " + N(SK.h) + " klst."; msg(e?.message || "Vistun mistókst – reyndu aftur."); }
   }
   window.s2Skra = skra;
+  window.S2API = { dayItems, calTabs: () => calTabs() };
 
   /* ---------- Tengt við appið ---------- */
   const calTabs = () => { const s = tr(() => SECTIONS, []).find(x => x.k === "dagatal"); return s ? s.tabs.map(t => t[0]) : []; };
@@ -253,7 +254,7 @@
     let h = null;
     // 2.156.0: símaskelin (simi/*.js) teiknar lista og opin verkefni/tilboð í U2d – simi2 sér aðeins um dagatalið og Skrá tíma
     const SMK = !!window.SM;
-    if (SMK && !(!D && calTabs().includes(t) && !st.calClassic)) return;
+    if (SMK) return;   // 2.157.0: dagatalið líka (simi/dagatal.js notar dayItems hér að neðan)
     if (D && !st.cl) {
       if (/^verk:/.test(D)) { const p = tr(() => findProj(D.slice(5)), null); if (p) h = verkView(p); }
       else if (/^tb:/.test(D)) { const id = D.slice(3), T = tr(() => [...salaAPI.TB(), ...salaAPI.PN()].find(x => x.id === id), null); if (T) h = tbView(T); }

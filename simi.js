@@ -267,6 +267,7 @@
     w.addEventListener("keydown", e => { if (e.key === "Escape") w.remove(); });
   }
   function bar() {
+    if (window.SM?.bar) return SM.bar();   // 2.157.0: glerstika símaskeljarinnar (simi/skel.js)
     const tb = document.getElementById("tbar"); if (!tb) return;
     const t = cur(), D = det(), inDag = t === "yfirlit" && !D, inLeit = t === "leit" && !D, inTim = /^(timar|tfaer|tskyr|timyf|trk)$/.test(t) && !D;
     const B = (k, l, icn, on, extra = "") => `<button type="button" class="tab tb${k === "scan" || k === "skra" ? " simscan" : ""}" ${k === "scan" || k === "skra" ? `data-simk="${k}"` : `data-tab="${k}"`} aria-label="${l}"${on ? ' aria-current="page"' : ""}${extra}>${ico(icn, k === "scan" || k === "skra" ? 22 : 21)}<span class="tl">${l}</span></button>`;
