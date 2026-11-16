@@ -1062,17 +1062,34 @@
   const wd = w => { const x = d(w); return x ? ["sun", "mán", "þri", "mið", "fim", "fös", "lau"][x.getDay()] + " " + fmtD(w) : ""; };
   const lineSum = (r, y) => (r.linur || []).filter(l => !l.haus && l.flokkur !== "kostn").reduce((a, l) => a + Math.round((+l.magn || 0) * (+l.verd || 0)), 0);
 
+  /* 2.160.0: VSK af greiddum reikningum – eftir VSK-tímabilum (tveir mánuðir) ársins, raðað eftir greiðsludegi.
+     r.greitt er greiðsludagur (strengur) – eldri gögn geta haft { dags }. VSK eftir þrepum úr r.vskSund, annars r.vsk/r.vskP. */
+  const pdOf = r => String((typeof r.greitt === "string" ? r.greitt : r.greitt?.dags) || r.bokhald?.greidsla?.greitt || r.dags || "").slice(0, 10);
+  const vskOf = r => r.vskSund?.length ? r.vskSund.filter(x => x.net || x.vsk) : [{ p: r.vskP, vsk: +r.vsk || 0 }];
+  function vskGreitt(R) {
+    const y = today.getFullYear(), ys = String(y), cur = Math.floor(today.getMonth() / 2), P = [...Array(6)].map(() => ({ n: 0, vsk: 0, tot: 0, th: {} }));
+    R.filter(r => r.stada === "Greitt" && pdOf(r).startsWith(ys)).forEach(r => { const i = Math.floor((+pdOf(r).slice(5, 7) - 1) / 2); if (!(i >= 0 && i < 6)) return; const o = P[i];
+      o.n++; o.tot += +r.tot || 0; vskOf(r).forEach(x => { const v = +x.vsk || 0; o.vsk += v; const k = String(+x.p || 0); o.th[k] = (o.th[k] || 0) + v; }); });
+    const T = P.reduce((a, o) => a + o.vsk, 0), TT = P.reduce((a, o) => a + o.tot, 0), th = {}; P.forEach(o => Object.entries(o.th).forEach(([k, v]) => th[k] = (th[k] || 0) + v));
+    const thK = Object.keys(th).filter(k => +k > 0 && th[k]).sort((a, b) => b - a);
+    const tiles = P.map((o, i) => { const fut = i > cur, lab = MNs[i * 2] + "–" + MNs[i * 2 + 1];
+      const sub = fut ? "ekki hafið" : o.n ? `af ${E(kr(o.tot))} · ${o.n} ${o.n === 1 ? "reikningur" : "reikningar"}${thK.length > 1 ? "<br>" + thK.filter(k => o.th[k]).map(k => E(k + " %: " + kr(o.th[k]))).join(" · ") : ""}` : "ekkert greitt";
+      return `<div class="yvskp${i === cur ? " cur" : ""}${fut ? " fut" : ""}" title="${E("VSK-tímabil " + lab + " " + ys)}"><small>${E(lab)}</small><b>${fut ? "–" : yU(krN(o.vsk), "kr.")}</b><span>${sub}</span></div>`; }).join("");
+    const sumH = T ? `Samtals á árinu <b>${E(kr(T))}</b> í VSK af ${E(kr(TT))} greiddum${thK.length > 1 ? " (" + thK.map(k => E(k + " %: " + kr(th[k]))).join(" · ") + ")" : ""}. ` : "";
+    return ycard("VSK af greiddum reikningum " + ys, `<div class="yvsk">${tiles}</div><div class="usub" style="padding:12px 0 0">${sumH}Eftir greiðsludegi og VSK-tímabilum (tveir mánuðir). Ógildir reikningar eru ekki með.</div>`, "trk:gr");
+  }
+
   /* Yfirlit reikninga */
   U.rkyf = function () {
     const R = (S?.reikningar || []).filter(r => r.stada !== "Ógilt"), og = R.filter(r => r.stada !== "Greitt"), late = og.filter(r => r.gjalddagi && daysTo(r.gjalddagi) < 0);
-    const d30 = R.filter(r => r.stada === "Greitt" && daysTo(r.greitt?.dags || r.dags) >= -30);
+    const d30 = R.filter(r => r.stada === "Greitt" && daysTo(pdOf(r)) >= -30);
     const ub = window.rkUnbilledKr ? verkefni().map(p => { const u = rkUnbilled(p.id); return { p, h: sumT(u.es), kr: rkUnbilledKr(p.id) }; }).filter(x => x.h >= 0.5 || x.kr > 0).sort((a, b) => b.kr - a.kr) : [];
     const OI = window.rkOinnheimt ? rkOinnheimt() : { ub: 0, h: 0, gs: [], pn: [] };   // 2.150.2: ein skilgreining á óreikningsfærðu
     const PO = window.rkOrders ? rkOrders() : [], pnN = P => { try { return salaAPI.totals(P).net; } catch (e) { return 0; } };
     const sum = xs => xs.reduce((a, r) => a + (+r.tot || 0), 0), ubK = ub.reduce((a, x) => a + x.kr, 0) + PO.reduce((a, P) => a + pnN(P), 0), ubH = ub.reduce((a, x) => a + x.h, 0);
     const ogs = og.slice().sort((a, b) => String(a.gjalddagi || "9").localeCompare(String(b.gjalddagi || "9")));
     const nxt = ogs.find(r => r.gjalddagi && daysTo(r.gjalddagi) >= 0);
-    const dTo = (a, b) => { const x = d(a), y = d(b); return x && y ? Math.round((y - x) / 864e5) : null; }, pd = d30.map(r => dTo(r.dags, r.greitt?.dags)).filter(x => x != null && x >= 0);
+    const dTo = (a, b) => { const x = d(a), y = d(b); return x && y ? Math.round((y - x) / 864e5) : null; }, pd = d30.map(r => dTo(r.dags, pdOf(r))).filter(x => x != null && x >= 0);
     const n = (k, a, b) => k + " " + (k === 1 ? a : b);
     const kps = yfk([
       ["Óreikningsfært", krN(OI.ub), "kr.", OI.ub > 0 ? E([OI.gs.length ? n(OI.gs.length, "verkefni", "verkefni") + " · " + H(OI.h) + " klst." : "", OI.pn.length ? n(OI.pn.length, "pöntun", "pantanir") : ""].filter(Boolean).join(" · ")) : "Allt reikningsfært", "trk:oreikn"],
@@ -1080,7 +1097,7 @@
       ["Fram yfir gjalddaga", krN(sum(late)), "kr.", late.length ? `<i class="bad">${E(n(late.length, "reikningur", "reikningar"))} · elsti ${E(dgr(late.map(r => r.gjalddagi).sort()[0]))}</i>` : `<i class="ok">Allt á tíma</i>`, "trk:ogr"],
       /* 2.151.0: án Payday-tengingar og án greiðslna segir 0 kr. ekkert – þá er sagt hvernig greiðslur sjást */
       !d30.length && S?.stillingar?.reikn?.bokhald !== "payday" ? ["Greitt síðustu 30 daga", "–", "", `<a href="#" data-act="fsk:opna:fyrir">Tengdu Payday</a> til að sjá greiðslur`, ""] :
-      ["Greitt síðustu 30 daga", krN(sum(d30)), "kr.", d30.length ? E(n(d30.length, "reikningur", "reikningar")) + (pd.length ? ` · <i class="bl">að meðaltali ${Math.round(pd.reduce((a, x) => a + x, 0) / pd.length)} dagar að greiðast</i>` : "") : "Ekkert greitt", "trk:gr"]]);
+      ["Greitt síðustu 30 daga", krN(sum(d30)), "kr.", d30.length ? E(n(d30.length, "reikningur", "reikningar")) + " · þar af VSK " + E(kr(d30.reduce((a, r) => a + vskOf(r).reduce((b, x) => b + (+x.vsk || 0), 0), 0))) + (pd.length ? ` · <i class="bl">að meðaltali ${Math.round(pd.reduce((a, x) => a + x, 0) / pd.length)} dagar að greiðast</i>` : "") : "Ekkert greitt", "trk:gr"]]);
     // Ógreiddir eftir gjalddaga
     let ogH = "", lastG = null, shown = 0;
     ogs.slice(0, 6).forEach(r => { const g = r.gjalddagi || ""; if (g !== lastG) { lastG = g; ogH += `<div class="ygrp${g && daysTo(g) < 0 ? " bad" : ""}">${g ? "Gjalddagi " + E(fmtD(g)) + " · " + E(dgr(g)) : "Án gjalddaga"}</div>`; }
@@ -1098,7 +1115,7 @@
       + ycard("Ógreiddir reikningar", ogH || yempty("Engir ógreiddir reikningar."), "trk:ogr")
       + ycard("Pantanir án reiknings", (PO.length ? PO.slice(0, 4).map(P => yrow(`data-act="rkpn:${E(P.id)}" role="button" tabindex="0"`, P.nr, P.heiti && P.heiti !== "Pöntun" ? P.heiti : "", E(P.vidskiptavinur || ""), yam(pnN(P)))).join("") : yempty("Engar afhentar pantanir bíða reiknings."))
         + (skuld.length ? `<div class="uhch ysub"><h3>Skulda mest</h3></div>` + skuld.map(([k, o]) => yrow(`data-act="u1kpf:trk:ogr" role="button" tabindex="0"`, "", k, E(n(o.n, "reikningur", "reikningar")), yam(o.t))).join("") : ""), PO.length ? "trk" : "")
-      + `</div><div class="udash ydash y21">` + col + veltaSvid(R) + `</div>`;
+      + `</div><div class="udash ydash y21">` + col + veltaSvid(R) + `</div><div class="udash ydash y1">` + vskGreitt(R) + `</div>`;
   };
 
   /* Yfirlit verkefna */
