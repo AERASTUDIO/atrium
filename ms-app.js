@@ -71,6 +71,7 @@
   }
 
   const ICON = { folder: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    share: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 3v12M7 8l5-5 5 5"/></svg>',
     ext: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>' };
   /* ---------- Opna í tölvunni (frá 1.6.5) ----------
      Vafri má ekki opna möppu í Windows Explorer beint. Í staðinn: möppur → slóðin í samstilltu OneDrive-möppunni
@@ -115,7 +116,7 @@
   const typeOf = n => { const e = (n.split(".").pop() || "").toLowerCase(); return ODTYPE[e] || e.toUpperCase(); };
   function fileRow(it) {
     if (it.folder) return `<a class="lrow fl" ${odLink(it)}><div class="lm"><div class="lt">📁 ${esc(it.name)}</div><div class="ls">${esc(["Mappa", kb(it.size), it.folder.childCount ? it.folder.childCount + " atriði" : ""].filter(Boolean).join(" · "))}</div></div><div class="lr">${ICON.ext}</div></a>`;
-    return `<div class="lrow fl tap" data-act="msprev:${esc(it.id)}" data-pfid="${esc(it.id)}" draggable="true" role="button" tabindex="0"><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typeOf(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><a class="lr" ${odLink(it)} aria-label="${odMode() === "tolva" ? "Opna í tölvunni" : "Opna í OneDrive"}" onclick="event.stopPropagation()">${ICON.ext}</a></div>`;
+    return `<div class="lrow fl tap" data-act="msprev:${esc(it.id)}" data-pfid="${esc(it.id)}" draggable="true" role="button" tabindex="0"><div class="lm"><div class="lt">${esc(it.name)}</div><div class="ls">${esc([typeOf(it.name), kb(it.size), it.lastModifiedDateTime ? fmtDate(it.lastModifiedDateTime) : ""].filter(Boolean).join(" · "))}</div></div><span class="lr" style="gap:2px"><button type="button" class="flsh" data-act="msdeila:${esc(it.id)}" aria-label="Deila ${esc(it.name)} í pósti eða spjalli" title="Deila í pósti eða spjalli" onclick="event.stopPropagation();doAct(this.dataset.act)">${ICON.share}</button><a ${odLink(it)} aria-label="${odMode() === "tolva" ? "Opna í tölvunni" : "Opna í OneDrive"}" onclick="event.stopPropagation()">${ICON.ext}</a></span></div>`;
   }
 
   // 2.145.0: nýjustu skrár í möppu verkefnisins (fyrir Skrár-spjaldið á Yfirliti – verkyfir.js)
@@ -268,13 +269,50 @@
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px;word-break:break-word">${esc(it.name)}</h3>
         <iframe src="${esc(pv.getUrl)}" title="${esc(it.name)}" style="width:100%;height:min(72vh,900px);border:0;border-radius:10px;background:#fff"></iframe>
-        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button>${odMode() === "tolva" && offApp(it.name) ? `<a class="btn primary" ${odLink(it)}>Opna í forriti</a><a class="btn" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Á netinu</a>` : `<a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>`}</div>`;
+        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button><button type="button" class="btn" data-act="msdeila:${esc(id)}">Deila</button>${odMode() === "tolva" && offApp(it.name) ? `<a class="btn primary" ${odLink(it)}>Opna í forriti</a><a class="btn" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Á netinu</a>` : `<a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>`}</div>`;
     } catch (e) {
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px">${esc(it?.name || "Skrá")}</h3><div class="empty">Ekki hægt að forskoða þessa skrá í appinu${it ? "" : ": " + esc(e.message)}.</div>
-        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button>${it ? `<a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>` : ""}</div>`;
+        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button>${it ? `<button type="button" class="btn" data-act="msdeila:${esc(id)}">Deila</button><a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>` : ""}</div>`;
     }
     document.getElementById("pv-close").onclick = closeSheet;
+  }
+
+  /* ---------- Deila skrá (2.161.0) ----------
+     Skrá úr möppu verkefnis (eða hvaða drifi sem er) send í pósti – sem viðhengi ef hún er allt að 3 MB, annars sem tengill
+     (createLink: fyrst „anonymous“, svo „organization“, annars webUrl) – eða í spjalli (sama tilvísun og skrá úr SharePoint í spjalli). */
+  const MAXATT = 3 * 1048576;
+  const pidNow = () => { try { const d = String(DETAIL || ""); return d.startsWith("verk:") ? d.slice(5) : ""; } catch (e) { return ""; } };
+  const pathOf = it => String(it?.parentReference?.path || "").replace(/^.*?root:\/?/, "").split("/").filter(Boolean).map(decodeURIComponent).join(" › ");
+  async function shareSheet(arg) {
+    sheet.innerHTML = `<h3 id="sheet-h">Deila skrá</h3><div class="empty">Sæki upplýsingar um skrána…</div>`; sheetwrap.hidden = false;
+    let R; try { R = await resolveItem(arg); } catch (e) { sheet.innerHTML = `<h3 id="sheet-h">Deila skrá</h3><div class="msg err">Fann ekki skrána: ${esc(e.message || e)}</div><div class="actions"><button type="button" class="btn" id="msd-x">Loka</button></div>`; document.getElementById("msd-x").onclick = closeSheet; return; }
+    const { it, p } = R, pid = pidNow(), small = (+it.size || 0) <= MAXATT, spOk = !!window.spDeila && typeof DB !== "undefined" && !!DB?.commit;
+    if (it.folder) { closeSheet(); toast("Aðeins er hægt að deila skrám, ekki möppum."); return; }
+    sheet.innerHTML = `<h3 id="sheet-h">Deila skrá</h3>
+      <div class="card spref spprev"><small>${esc(typeOf(it.name))}</small><b>${esc(it.name)}</b><span>${esc([kb(it.size), pathOf(it)].filter(Boolean).join(" · "))}</span></div>
+      <p class="hint" style="margin:0 0 12px">${small ? "Í pósti fer skráin sem viðhengi." : "Skráin er stærri en 3 MB og fer því sem tengill í póstinum."} Í spjalli birtist hún sem skrá sem teymið opnar í ${esc(window.ODN ? ODN() : "SharePoint")}.</p>
+      <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="msd-x">Hætta við</button>${spOk ? `<button type="button" class="btn" id="msd-sp">Senda í spjalli</button>` : ""}<button type="button" class="btn primary" id="msd-po">Senda í pósti</button></div>`;
+    document.getElementById("msd-x").onclick = closeSheet;
+    const sp = document.getElementById("msd-sp");
+    if (sp) sp.onclick = () => spDeila("sp:" + it.id, { k: "sp:" + it.id, teg: "Skrá", heiti: it.name, sub: pathOf(it), url: it.webUrl, drive: it.parentReference?.driveId || null, id: it.id, mime: it.file?.mimeType || "" });
+    document.getElementById("msd-po").onclick = async () => {
+      if (!window.poCompose) { toast("Póstur er ekki í boði hér"); return; }
+      const b = document.getElementById("msd-po"); b.disabled = true; b.textContent = small ? "Sæki skrá…" : "Bý til tengil…";
+      const subject = it.name.replace(/\.[^.]+$/, "");
+      try {
+        if (small) {
+          const d = await MS.g(p), u = d?.["@microsoft.graph.downloadUrl"]; if (!u) throw new Error("Engin niðurhalsslóð");
+          const res = await fetch(u); if (!res.ok) throw new Error("Villa " + res.status); const bl = await res.blob();
+          poCompose({ subject, pid, atts: [{ name: it.name, type: it.file?.mimeType || bl.type || "application/octet-stream", size: bl.size, data: bl }] });
+        } else {
+          let url = null, sc = "";
+          for (const scope of ["anonymous", "organization"]) { try { const l = await MS.g(p + "/createLink", { method: "POST", body: { type: "view", scope } }); url = l?.link?.webUrl; if (url) { sc = scope; break; } } catch (e) {} }
+          poCompose({ subject, pid, body: `\n\n${it.name}:\n${url || it.webUrl}\n` });
+          toast(sc === "anonymous" ? "Tengill sem allir með slóðina geta opnað" : "Tengillinn virkar aðeins fyrir fólk í fyrirtækinu");
+        }
+      } catch (e) { b.disabled = false; b.textContent = "Senda í pósti"; const m = document.getElementById("f-msg"); if (m) m.innerHTML = `<div class="msg err">Tókst ekki að sækja skrána: ${esc(e.message || e)}</div>`; }
+    };
   }
 
   /* ---------- Fundargerð (.docx) ---------- */
@@ -471,6 +509,7 @@
     if (k === "mslogout") { atrJa("Aftengja Microsoft á þessu tæki?").then(j => { if (j) { MS.logout(); render(); } }); return; }
     if (!isOn()) { toast("Tengdu Microsoft fyrst (Stillingar)."); return; }
     if (k === "msprev") { preview(r.join(":")); return; }
+    if (k === "msdeila") { shareSheet(r.join(":")); return; }
     if (k === "msref") { const key = r.join(":"); VKerr = null; if (key && TREE[key]) delete TREE[key]; else VK = null; render(); return; }
     if (k === "msmk") { const p = findProj(r[0]); if (!p) return; if (!company()) return toast("Möppur verkefna eru stofnaðar af admin þar til SharePoint-síða fyrirtækisins er komin."); toast("Stofna möppu…"); mkProj(p.nafn).then(it => saveSnapshot(s => { const q = sFindP(s, p.id); if (q && !q.mappa) q.mappa = it.webUrl; s.odBidrod = (s.odBidrod || []).filter(x => x.verkefniId !== p.id); })).then(() => { VK = null; window.__mappaVilla = null; toast("Mappa stofnuð"); render(); }).catch(e => toast(e.message)); return; }
     if (k === "msfg") { toast("Bý til fundargerð…"); msFundargerd(r[0]); return; }

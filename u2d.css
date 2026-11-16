@@ -1766,3 +1766,7 @@ html:not(#u2a):not(#u2b) body.kerfi #view .vsyv{margin-top:18px}
 html:not(#u2a):not(#u2b) body.kerfi #view .vsyv > .ycard{margin:0}
 html:not(#u2a):not(#u2b) body.kerfi #view .vsr{display:inline-flex;align-items:center;gap:14px;flex:none}
 html:not(#u2a):not(#u2b) body.kerfi #view .spdet .kpis.u2hidkp,html:not(#u2a):not(#u2b) body.kerfi #view .kpis.u2hidkp{display:none!important}
+/* 2.161.0: Deila-hnappur á skrám í möppu verkefnis (ms-app.js fileRow) */
+html body.kerfi .lrow.fl .lr{display:flex;align-items:center}
+html body.kerfi .lrow.fl .lr > :is(a,.flsh){display:inline-grid;place-items:center;width:34px;height:34px;border-radius:999px;border:0;background:none;color:var(--muted);cursor:pointer;padding:0}
+html body.kerfi .lrow.fl .lr > :is(a,.flsh):hover{background:var(--hover);color:var(--ink)}

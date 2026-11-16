@@ -91,8 +91,8 @@
   window.spSendRef = async (email, texti, k) => { if (typeof DB === "undefined" || !DB?.commit || !email) return; const info = k ? spRefInfo(k) : null, r = dmKey(email), o = otherOf(r);
     const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");
     return DB.commit([{ path: "spjall/" + id, data: { id, ras: r, adilar: [me(), o].map(s => s.toLowerCase()).sort(), af: me(), nafn: window.USER?.nafn || me(), texti: texti || "", ...(info ? { ref: { k, teg: info.teg || REFT[k.split(":")[0]] || "", heiti: info.heiti, sub: info.sub || "" } } : {}), t: new Date().toISOString() } }]); };
-  window.spDeila = function (k) {
-    const info = spRefInfo(k); if (!info) { toast("Ekki hægt að deila þessu"); return; }
+  window.spDeila = function (k, R0) {   // 2.161.0: R0 = tilbúin tilvísun (t.d. skrá úr möppu verkefnis – ms-app.js)
+    const info = R0 ? { teg: R0.teg, heiti: R0.heiti, sub: R0.sub } : spRefInfo(k); if (!info) { toast("Ekki hægt að deila þessu"); return; }
     if (typeof DB === "undefined" || !DB?.commit) { toast("Spjall er ekki í boði hér"); return; }
     const ppl = users().filter(u => u.email !== me());
     sheet.innerHTML = `<h3 id="sheet-h">Deila í spjalli</h3><form id="spdf" novalidate>
@@ -104,7 +104,7 @@
     document.getElementById("spd-x").onclick = closeSheet;
     document.getElementById("spdf").onsubmit = async e => { e.preventDefault(); const r = document.getElementById("spd-til").value, texti = document.getElementById("spd-txt").value.trim(), o = otherOf(r);
       const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)).replace(/-/g, "");
-      const d = { id, ras: r, adilar: o ? [me(), o].map(s => s.toLowerCase()).sort() : [], af: me(), nafn: window.USER?.nafn || me(), texti, ref: { k, teg: info.teg || REFT[k.split(":")[0]] || "", heiti: info.heiti, sub: info.sub || "" }, t: new Date().toISOString() };
+      const d = { id, ras: r, adilar: o ? [me(), o].map(s => s.toLowerCase()).sort() : [], af: me(), nafn: window.USER?.nafn || me(), texti, ref: R0 || { k, teg: info.teg || REFT[k.split(":")[0]] || "", heiti: info.heiti, sub: info.sub || "" }, t: new Date().toISOString() };
       document.getElementById("spd-ok").disabled = true;
       try { await DB.commit([{ path: "spjall/" + id, data: d }]); closeSheet(); toast("Deilt með " + (o ? nameOf(o) : "# Almennt")); }
       catch (err) { document.getElementById("spd-ok").disabled = false; document.getElementById("f-msg").innerHTML = `<div class="msg err">${esc(err?.code || err?.message || "Villa")}</div>`; } };
