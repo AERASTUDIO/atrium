@@ -269,13 +269,15 @@
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px;word-break:break-word">${esc(it.name)}</h3>
         <iframe src="${esc(pv.getUrl)}" title="${esc(it.name)}" style="width:100%;height:min(72vh,900px);border:0;border-radius:10px;background:#fff"></iframe>
-        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button><button type="button" class="btn" data-act="msdeila:${esc(id)}">Deila</button>${odMode() === "tolva" && offApp(it.name) ? `<a class="btn primary" ${odLink(it)}>Opna í forriti</a><a class="btn" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Á netinu</a>` : `<a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>`}</div>`;
+        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button><button type="button" class="btn" id="pv-share">Deila</button>${odMode() === "tolva" && offApp(it.name) ? `<a class="btn primary" ${odLink(it)}>Opna í forriti</a><a class="btn" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Á netinu</a>` : `<a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>`}</div>`;
     } catch (e) {
       if (sheetwrap.hidden) return;
       sheet.innerHTML = `<h3 id="sheet-h" class="big" style="font-size:18px;margin:0 0 10px">${esc(it?.name || "Skrá")}</h3><div class="empty">Ekki hægt að forskoða þessa skrá í appinu${it ? "" : ": " + esc(e.message)}.</div>
-        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button>${it ? `<button type="button" class="btn" data-act="msdeila:${esc(id)}">Deila</button><a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>` : ""}</div>`;
+        <div class="actions" style="margin-top:12px"><button type="button" class="btn" id="pv-close">Loka</button>${it ? `<button type="button" class="btn" id="pv-share">Deila</button><a class="btn primary" href="${esc(it.webUrl)}" target="_blank" rel="noopener">Opna í OneDrive</a>` : ""}</div>`;
     }
     document.getElementById("pv-close").onclick = closeSheet;
+    // 2.162.1: smellir í spjaldinu fara ekki í gegnum data-act – Deila tengt beint
+    const sh = document.getElementById("pv-share"); if (sh) sh.onclick = () => shareSheet(id);
   }
 
   /* ---------- Deila skrá (2.161.0) ----------
