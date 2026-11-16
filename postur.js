@@ -434,7 +434,8 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
       <label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="po-sig" checked style="width:auto">Undirskrift</label>
       <div class="sigprev" id="po-sigprev">${poSigHTML(ORG.sigLogo)}</div>
       <div><div class="kind" style="margin-bottom:6px">Viðhengi</div><div id="po-atts" class="poatts"></div>
-        <label class="btn" style="display:inline-flex;margin-top:6px;cursor:pointer">📎 Bæta við skrá<input id="po-file" type="file" multiple hidden></label></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><label class="btn" style="display:inline-flex;cursor:pointer">📎 Bæta við skrá<input id="po-file" type="file" multiple hidden></label>${window.msProjFiles ? `<button type="button" class="btn" id="po-mappa" aria-expanded="false">📁 Úr möppu verkefnis</button>` : ""}</div>
+        <div id="po-pick" class="popick" hidden></div></div>
       ${mode === "new" ? `<label>Tengja við verkefni<select id="po-proj"><option value="">Ekkert</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${x.id === pid0 ? " selected" : ""}>${esc(x.nafn)}</option>`).join("")}</select></label>` : ""}
       ${src ? `<p class="hint">Upprunalegi pósturinn fylgir neðst${mode === "forward" && src.hasAttachments ? ", ásamt viðhengjum hans" : ""}.</p>` : ""}
       <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="po-c">Hætta við</button><button class="btn primary" id="po-s"${canSend ? "" : " disabled"}>Senda</button></div></form>`;
@@ -450,6 +451,36 @@ ${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decora
     const rl = document.getElementById("po-relog"); if (rl) rl.onclick = () => MS.login().then(() => { toast("Tengt – nú má senda"); poCompose(o); }).catch(e => toast(e.message));
     document.getElementById("po-file").onchange = e => { [...e.target.files].forEach(f => atts.push({ name: f.name, type: f.type || "application/octet-stream", size: f.size, data: f })); e.target.value = ""; drawAtts(); };
     document.getElementById("po-c").onclick = closeSheet;
+    /* 2.162.0: „Úr möppu verkefnis“ – skrár í möppu verkefnisins (ms-app.js msProjFiles). ≤ 3 MB → viðhengi, stærri → tengill í textann. */
+    { const mb = document.getElementById("po-mappa"), pk = document.getElementById("po-pick");
+      if (mb) { let FL = [], ppid = "", seq = 0;
+        const pidSel = () => document.getElementById("po-proj")?.value || pid0 || ppid;
+        const projOpts = cur => verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(x => `<option value="${esc(x.id)}"${x.id === cur ? " selected" : ""}>${esc(x.nafn)}</option>`).join("");
+        const list = () => { const q = (document.getElementById("po-pq")?.value || "").toLowerCase().trim(), L = document.getElementById("po-pl"); if (!L) return;
+          const xs = FL.filter(f => !q || (f.name + " " + f.mappa).toLowerCase().includes(q)).slice(0, 60);
+          L.innerHTML = xs.length ? xs.map(f => `<button type="button" class="popf" data-fid="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc([msTypeOf(f.name), msKb(f.size), f.mappa, f.size > 3 * 1048576 ? "fer sem tengill" : ""].filter(Boolean).join(" · "))}</small></button>`).join("") : `<div class="empty">${FL.length ? "Engin skrá fannst." : "Mappan er tóm."}</div>`; };
+        const load = async () => { const id = pidSel(), my = ++seq, p = id && findProj(id);
+          pk.innerHTML = `${document.getElementById("po-proj") || pid0 ? "" : `<label>Verkefni<select id="po-pp"><option value="">Veldu verkefni…</option>${projOpts(ppid)}</select></label>`}<div id="po-pb"></div>`;
+          const pp = document.getElementById("po-pp"); if (pp) pp.onchange = () => { ppid = pp.value; load(); };
+          const B = document.getElementById("po-pb");
+          if (!p) { B.innerHTML = `<div class="empty">${document.getElementById("po-proj") ? "Veldu verkefni í „Tengja við verkefni“ hér fyrir neðan." : "Veldu verkefni."}</div>`; return; }
+          B.innerHTML = `<div class="empty">Sæki skrár í möppu ${esc(p.nr || "")} ${esc(p.stutt || p.nafn || "")}…</div>`;
+          try { const xs = await msProjFiles(p); if (my !== seq) return;
+            if (xs == null) { B.innerHTML = `<div class="empty">Engin mappa fannst fyrir verkefnið.</div>`; return; }
+            FL = xs; B.innerHTML = `<input id="po-pq" type="search" placeholder="Leita í ${xs.length} skrám…" autocomplete="off" aria-label="Leita að skrá"><div class="popl" id="po-pl"></div>`;
+            document.getElementById("po-pq").oninput = list; list(); }
+          catch (e) { if (my === seq) B.innerHTML = `<div class="empty">Gat ekki sótt skrár: ${esc(e?.message || e)}</div>`; } };
+        mb.onclick = () => { pk.hidden = !pk.hidden; mb.setAttribute("aria-expanded", String(!pk.hidden)); if (!pk.hidden) load(); };
+        document.getElementById("po-proj")?.addEventListener("change", () => { if (!pk.hidden) load(); });
+        pk.addEventListener("click", async e => { const b = e.target.closest(".popf"); if (!b || b.disabled) return; const f = FL.find(x => x.id === b.dataset.fid); if (!f) return;
+          if (atts.some(a => a.name === f.name)) { toast(f.name + " er þegar viðhengi"); return; }
+          b.disabled = true; const sm = b.querySelector("small"), old = sm.textContent; sm.textContent = f.size > 3 * 1048576 ? "Bý til tengil…" : "Sæki…";
+          try { const m = await msMailFile(f.id);
+            if (m.att) { atts.push(m.att); drawAtts(); toast(f.name + " bætt við sem viðhengi"); }
+            else { const t = document.getElementById("po-body"); t.value = t.value.replace(/\s*$/, "") + `\n\n${f.name}:\n${m.link}\n`; toast(msLinkNote(m.sc)); }
+            sm.textContent = old + " · ✓ bætt við"; }
+          catch (er) { sm.textContent = "Tókst ekki: " + (er?.message || er); }
+          b.disabled = false; }); } }
     const bt = document.getElementById("po-body"); if (!("ontouchstart" in window)) setTimeout(() => { (document.getElementById("po-to-box") && !o.to ? document.querySelector("#po-to-box input") : bt).focus(); if (document.activeElement === bt) bt.setSelectionRange(0, 0); }, 60);
     document.getElementById("pocf").onsubmit = async ev => {
       ev.preventDefault(); msg(""); RF.forEach(f => f.flush());

@@ -284,6 +284,29 @@
   const MAXATT = 3 * 1048576;
   const pidNow = () => { try { const d = String(DETAIL || ""); return d.startsWith("verk:") ? d.slice(5) : ""; } catch (e) { return ""; } };
   const pathOf = it => String(it?.parentReference?.path || "").replace(/^.*?root:\/?/, "").split("/").filter(Boolean).map(decodeURIComponent).join(" › ");
+  // Skrá í póst: { att } ef ≤ 3 MB (sótt með downloadUrl), annars { link, sc } (createLink anonymous → organization → webUrl)
+  async function mailPayload(R) {
+    const { it, p } = R;
+    if ((+it.size || 0) <= MAXATT) {
+      const d = await MS.g(p), u = d?.["@microsoft.graph.downloadUrl"]; if (!u) throw new Error("Engin niðurhalsslóð");
+      const res = await fetch(u); if (!res.ok) throw new Error("Villa " + res.status); const bl = await res.blob();
+      return { att: { name: it.name, type: it.file?.mimeType || bl.type || "application/octet-stream", size: bl.size, data: bl } };
+    }
+    for (const scope of ["anonymous", "organization"]) { try { const l = await MS.g(p + "/createLink", { method: "POST", body: { type: "view", scope } }); if (l?.link?.webUrl) return { link: l.link.webUrl, sc: scope }; } catch (e) {} }
+    return { link: it.webUrl, sc: "" };
+  }
+  const linkNote = sc => sc === "anonymous" ? "Tengill sem allir með slóðina geta opnað" : "Tengillinn virkar aðeins fyrir fólk í fyrirtækinu";
+  window.msMailFile = async id => { const R = await resolveItem(id); return { name: R.it.name, ...(await mailPayload(R)) }; };
+  window.msLinkNote = linkNote;
+  // 2.162.0: skrár í möppu verkefnis (með undirmöppum) fyrir „Úr möppu verkefnis“ í póstformi (postur.js)
+  window.msProjFiles = async p => {
+    await verkMoppur(); const k = keyOf(p); if (!k) return null;
+    if (!TREE[k] || TREE[k].st !== "ok") await loadTree(k);
+    const t = TREE[k]; if (t?.st !== "ok") throw new Error(t?.err || "Gat ekki sótt skrár");
+    return [...t.items.filter(i => !i.folder).map(i => ({ ...i, mappa: "" })), ...t.items.filter(i => i.folder).flatMap(d => (d.kids || []).filter(x => !x.folder).map(x => ({ ...x, mappa: d.name })))]
+      .sort((a, b) => String(b.lastModifiedDateTime || "").localeCompare(String(a.lastModifiedDateTime || "")));
+  };
+  window.msTypeOf = n => typeOf(n); window.msKb = n => kb(n);
   async function shareSheet(arg) {
     sheet.innerHTML = `<h3 id="sheet-h">Deila skrá</h3><div class="empty">Sæki upplýsingar um skrána…</div>`; sheetwrap.hidden = false;
     let R; try { R = await resolveItem(arg); } catch (e) { sheet.innerHTML = `<h3 id="sheet-h">Deila skrá</h3><div class="msg err">Fann ekki skrána: ${esc(e.message || e)}</div><div class="actions"><button type="button" class="btn" id="msd-x">Loka</button></div>`; document.getElementById("msd-x").onclick = closeSheet; return; }
@@ -301,16 +324,9 @@
       const b = document.getElementById("msd-po"); b.disabled = true; b.textContent = small ? "Sæki skrá…" : "Bý til tengil…";
       const subject = it.name.replace(/\.[^.]+$/, "");
       try {
-        if (small) {
-          const d = await MS.g(p), u = d?.["@microsoft.graph.downloadUrl"]; if (!u) throw new Error("Engin niðurhalsslóð");
-          const res = await fetch(u); if (!res.ok) throw new Error("Villa " + res.status); const bl = await res.blob();
-          poCompose({ subject, pid, atts: [{ name: it.name, type: it.file?.mimeType || bl.type || "application/octet-stream", size: bl.size, data: bl }] });
-        } else {
-          let url = null, sc = "";
-          for (const scope of ["anonymous", "organization"]) { try { const l = await MS.g(p + "/createLink", { method: "POST", body: { type: "view", scope } }); url = l?.link?.webUrl; if (url) { sc = scope; break; } } catch (e) {} }
-          poCompose({ subject, pid, body: `\n\n${it.name}:\n${url || it.webUrl}\n` });
-          toast(sc === "anonymous" ? "Tengill sem allir með slóðina geta opnað" : "Tengillinn virkar aðeins fyrir fólk í fyrirtækinu");
-        }
+        const m = await mailPayload(R);
+        if (m.att) poCompose({ subject, pid, atts: [m.att] });
+        else { poCompose({ subject, pid, body: `\n\n${it.name}:\n${m.link}\n` }); toast(linkNote(m.sc)); }
       } catch (e) { b.disabled = false; b.textContent = "Senda í pósti"; const m = document.getElementById("f-msg"); if (m) m.innerHTML = `<div class="msg err">Tókst ekki að sækja skrána: ${esc(e.message || e)}</div>`; }
     };
   }

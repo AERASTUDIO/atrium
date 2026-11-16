@@ -1770,3 +1770,12 @@ html:not(#u2a):not(#u2b) body.kerfi #view .spdet .kpis.u2hidkp,html:not(#u2a):no
 html body.kerfi .lrow.fl .lr{display:flex;align-items:center}
 html body.kerfi .lrow.fl .lr > :is(a,.flsh){display:inline-grid;place-items:center;width:34px;height:34px;border-radius:999px;border:0;background:none;color:var(--muted);cursor:pointer;padding:0}
 html body.kerfi .lrow.fl .lr > :is(a,.flsh):hover{background:var(--hover);color:var(--ink)}
+/* 2.162.0: „Úr möppu verkefnis“ í póstformi (postur.js) */
+html body.kerfi .popick{margin-top:10px;padding:12px;border-radius:16px;background:var(--hover);display:flex;flex-direction:column;gap:8px}
+html body.kerfi .popick .empty{padding:10px 4px;text-align:left}
+html body.kerfi .popl{display:flex;flex-direction:column;max-height:280px;overflow:auto;gap:2px}
+html body.kerfi .popf{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;border:0;background:var(--surface);border-radius:12px;padding:9px 12px;cursor:pointer;font:inherit;color:var(--ink);min-height:44px}
+html body.kerfi .popf:hover{box-shadow:0 0 0 1px var(--line2)}
+html body.kerfi .popf b{font-size:14px;font-weight:600;word-break:break-word}
+html body.kerfi .popf small{font-size:12px;color:var(--muted)}
+html body.kerfi .popf:disabled{opacity:.6;cursor:progress}
