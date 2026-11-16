@@ -203,7 +203,7 @@ function closeMenu(){menuwrap.hidden=true; mbtn.setAttribute("aria-expanded","fa
 mbtn.addEventListener("click",()=>menuwrap.hidden?openMenu():closeMenu());
 document.getElementById("mscrim").addEventListener("click",closeMenu);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!menuwrap.hidden){closeMenu(); mbtn.focus();}});
-const pickTab=e=>{const b=e.target.closest(".tab"); if(!b) return;
+const pickTab=e=>{const b=e.target.closest(".tab"); if(!b||!b.dataset.tab) return; /* 2.163.0: Endurhlaða (.srefbtn) er ekki flipi */
   tab=b.dataset.tab; DETAIL=null; window.STSUB=null; closeMenu(); try{history.replaceState(null,"");}catch(e){} try{localStorage.setItem("aera-tab",tab)}catch(e){}; render(); window.scrollTo({top:0});};
 document.getElementById("mitems").addEventListener("click",pickTab); document.getElementById("sitems").addEventListener("click",pickTab); document.getElementById("tbar").addEventListener("click",pickTab);
 

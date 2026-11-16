@@ -155,7 +155,7 @@
       <div class="sdrow"><div class="sdmain"><span class="sdav">${E(String(me() || "?").slice(0, 2))}</span><span class="sdtx"><b>${E(nm)}</b><small>${E(U.email || "")}</small></span></div></div>
       <div class="sdrow"><a class="sdmain sdnav" data-act="tab:stillingar" role="button" tabindex="0"><span class="sdtx"><b>Stillingar</b></span>${ico("chev", 15)}</a></div>
       <div class="sdrow"><a class="sdmain sdnav" role="button" tabindex="0" onclick="document.getElementById('themebtn')?.click()"><span class="sdtx"><b>Útlit</b><small>Ljóst · dökkt · eftir tæki</small></span></a></div>
-      <div class="sdrow"><a class="sdmain sdnav" role="button" tabindex="0" onclick="window.atrEndurhlada?atrEndurhlada():location.reload()"><span class="sdtx"><b>Endurhlaða</b><small>Sækja nýjustu útgáfu og gögn</small></span></a></div>
+      <div class="sdrow"><a class="sdmain sdnav" role="button" tabindex="0" data-atrrel onclick="window.atrEndurhlada?atrEndurhlada():location.reload()"><span class="sdtx"><b>Endurhlaða</b><small>Sækja nýjustu útgáfu og gögn</small></span></a></div>
       <div class="sdrow"><a class="sdmain sdnav" role="button" tabindex="0" onclick="window.aeraSignOut&&aeraSignOut()"><span class="sdtx"><b>Skrá út</b></span></a></div></section></div>`;
   }
   /* ---------- 2.153.0: Mælaborð símans (tillaga A á striganum „Atrium – símaapp“) ----------

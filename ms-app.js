@@ -298,6 +298,8 @@
     return { link: it.webUrl, sc: "" };
   }
   const linkNote = sc => sc === "anonymous" ? "Tengill sem allir með slóðina geta opnað" : "Tengillinn virkar aðeins fyrir fólk í fyrirtækinu";
+  // 2.163.0: Endurhlaða – möppur og skrár verkefna sóttar upp á nýtt
+  window.msReset = () => { VK = null; VKerr = null; for (const k of Object.keys(TREE)) delete TREE[k]; };
   window.msMailFile = async id => { const R = await resolveItem(id); return { name: R.it.name, ...(await mailPayload(R)) }; };
   window.msLinkNote = linkNote;
   // 2.162.0: skrár í möppu verkefnis (með undirmöppum) fyrir „Úr möppu verkefnis“ í póstformi (postur.js)

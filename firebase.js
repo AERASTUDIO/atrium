@@ -3,7 +3,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import { getAuth, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch, getDocs, getDocsFromCache, getDocsFromServer }
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch, getDocs, getDocsFromCache, getDocsFromServer, disableNetwork, enableNetwork }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { firebaseConfig, MS_TENANT, MS_DOMAIN, ADMIN, LEGACY_EMAILS } from "./firebase-config.js";
 
@@ -145,6 +145,8 @@ onAuthStateChanged(auth, async user => {
       const sv = await getDocsFromServer(q); try { localStorage.setItem(k, String(Date.now())); } catch (e) {}
       return { docs: sv.docs.map(d => d.data()), fromCache: false };
     },
+    // 2.163.0: fljótleg endurnýjun (Endurhlaða) – tenging við Firestore rofin og opnuð aftur svo öll söfn í beinni samstillast við netþjóninn
+    async reconnect() { try { await disableNetwork(fs); } finally { await enableNetwork(fs); } },
     // 2.94.4: endurnýja innskráningarlykil (notað ef fyrsta lestur fær permission-denied rétt eftir innskráningu)
     async refresh() { try { await auth.currentUser?.getIdToken(true); } catch (e) {} },
     // 2.119.2: innskráningarlykill fyrir köll á Cloud Functions (t.d. reikningur úr Payday)

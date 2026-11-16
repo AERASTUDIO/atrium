@@ -1779,3 +1779,7 @@ html body.kerfi .popf:hover{box-shadow:0 0 0 1px var(--line2)}
 html body.kerfi .popf b{font-size:14px;font-weight:600;word-break:break-word}
 html body.kerfi .popf small{font-size:12px;color:var(--muted)}
 html body.kerfi .popf:disabled{opacity:.6;cursor:progress}
+/* 2.163.0: Endurhlaða – aðeins táknið snýst á meðan gögnin eru sótt (engin endurhleðsla síðunnar) */
+@keyframes atrspin{to{transform:rotate(360deg)}}
+html body.kerfi :is(.srefbtn,[data-atrrel]).atrspin svg{animation:atrspin .8s linear infinite}
+html body.kerfi :is(.srefbtn,[data-atrrel]).atrspin{pointer-events:none}

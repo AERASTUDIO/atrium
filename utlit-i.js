@@ -189,7 +189,6 @@
     sheetwrap.hidden = false; sheet.querySelector(".nyit")?.focus();
     sheet.querySelectorAll(".nyit").forEach(b => b.onclick = () => { closeSheet(); setTimeout(() => { try { (new Function(b.dataset.js))(); } catch (e) { console.warn(e); } }, 30); }); };
   // 2.131.4: endurhlaða – nýjasta útgáfa (service worker) og gögn
-  window.atrEndurhlada = async () => { try { const r = await navigator.serviceWorker?.getRegistration(); await r?.update(); } catch (e) {} location.reload(); };
   // Samanfelld stika (2.129.0): sjálfkrafa undir 1280 px nema notandinn hafi valið annað
   function railSet() { let pref = ""; try { pref = localStorage.getItem("atrium-stika") || ""; } catch (e) {}
     const on = wideScr() && (pref === "rail" || (!pref && !matchMedia("(min-width:1280px)").matches)); document.body.classList.toggle("srail", on);

@@ -349,11 +349,35 @@ viewEl.addEventListener("touchend",e=>{if(swX===null) return; const dx=e.changed
 /* Smellt á merkið → Yfirlit */
 function goHome(){DETAIL=null; DTAB="yfirlit"; tab="yfirlit"; try{history.replaceState(null,"");}catch(e){} try{localStorage.setItem("aera-tab",tab)}catch(e){} closeMenu?.(); render(); window.scrollTo({top:0});
   if(window.AERA_DEMO) return; // sýniútgáfa: ekki endurhlaða (þá hyrfu breytingar)
-  // Endurhlaða appið: athuga fyrst hvort ný útgáfa sé komin, svo sækja allt upp á nýtt
-  document.querySelectorAll("header .brand h1, .side .logo").forEach(el=>el.classList.add("reloading"));
-  const go=()=>location.reload(); const t=setTimeout(go,1500);
-  /* 2.145.16: ef ný útgáfa er að sækjast er beðið eftir henni (controllerchange í firebase.js hleður þá einu sinni) – ekki endurhlaðið tvisvar */
-  if("serviceWorker" in navigator) navigator.serviceWorker.getRegistration().then(async r=>{ await r?.update(); const w=r?.installing||r?.waiting; if(w&&navigator.serviceWorker.controller){ clearTimeout(t); window.__swWantReload=true; toast?.("Sæki nýja útgáfu…"); setTimeout(go,20000); return "bida"; } }).catch(()=>{}).then(x=>{ if(x==="bida") return; clearTimeout(t); setTimeout(go,150); }); else {clearTimeout(t); go();}}
+  window.atrEndurhlada?.(); }
+/* 2.163.0: Endurhlaða = fljótleg endurnýjun á sama stað – ekki endurhleðsla síðunnar (opnunarskjárinn birtist ekki).
+   Gögn: Firestore-tengingin rofin og opnuð (söfnin í beinni samstillast), póstur og möppur sótt aftur, skjárinn teiknaður á sama stað.
+   Ný útgáfa: aðeins þá er síðan endurhlaðin – staðurinn (flipi, opið atriði, undirflipi, skrun) geymdur og opnunarskjárinn styttur. */
+const STADUR_K="atr-stadur";
+function saveStadur(){try{const L=document.querySelector("#view .splist, #view .llist"); sessionStorage.setItem(STADUR_K,JSON.stringify({tab,DETAIL,DTAB,y:window.scrollY||0,vy:document.getElementById("view")?.scrollTop||0,ly:L?.scrollTop||0,t:Date.now()}));}catch(e){}}
+window.atrEndurhlada=async function(){
+  if(window.__atrRel) return; window.__atrRel=true;
+  const btns=[...document.querySelectorAll(".srefbtn,[data-atrrel]")]; btns.forEach(b=>b.classList.add("atrspin"));
+  const done=(msg)=>{window.__atrRel=false; btns.forEach(b=>b.classList.remove("atrspin")); if(msg) toast?.(msg);};
+  // 1) Ný útgáfa? Þá þarf að hlaða síðunni – á sama stað
+  try{ const r=await navigator.serviceWorker?.getRegistration(); await r?.update(); const w=r?.installing||r?.waiting;
+    if(w&&navigator.serviceWorker.controller){ saveStadur(); window.__swWantReload=true; toast?.("Sæki nýja útgáfu…"); try{w.postMessage?.({type:"SKIP_WAITING"});}catch(e){} setTimeout(()=>location.reload(),15000); return; } }catch(e){}
+  // 2) Nýjustu gögn án endurhleðslu – skrun allra skrunsvæða (síða, listi, spjald) geymt og sett aftur eftir teiknun
+  const y=window.scrollY, sel=e=>e.id?"#"+CSS.escape(e.id):e.classList.length?"."+[...e.classList].map(c=>CSS.escape(c)).join("."):null;
+  const SC=[...document.querySelectorAll("#view, #view *, .side *")].filter(e=>e.scrollTop>0||e.scrollLeft>0).map(e=>[sel(e),e.scrollTop,e.scrollLeft]).filter(x=>x[0]);
+  if(!window.AERA_DEMO){
+    try{ window.msReset?.(); window.poReload?.(); window.msTick?.(); }catch(e){}
+    try{ await Promise.race([DB?.reconnect?.(), new Promise(r=>setTimeout(r,6000))]); }catch(e){ console.warn("Endurhlaða",e); } }
+  try{ render(); requestAnimationFrame(()=>{ window.scrollTo(0,y); SC.forEach(([q,t,l])=>{ const el=document.querySelector(q); if(el){ el.scrollTop=t; el.scrollLeft=l; } }); }); }catch(e){}
+  done(navigator.onLine===false?"Án nettengingar – sýni vistuð gögn":"Uppfært");
+};
+/* Eftir endurhleðslu vegna nýrrar útgáfu: sami staður aftur */
+(function(){let o=null; try{o=JSON.parse(sessionStorage.getItem(STADUR_K)||"null"); sessionStorage.removeItem(STADUR_K);}catch(e){}
+  if(!o||Date.now()-o.t>120000) return;
+  if(TABS.includes(o.tab)) tab=o.tab; if(o.DTAB) DTAB=o.DTAB;
+  const t0=Date.now(), go=()=>{ if(Date.now()-t0>20000) return; if(typeof S==="undefined"||!S) return setTimeout(go,100);
+    try{ if(o.DETAIL&&!DETAIL){ DETAIL=o.DETAIL; render(); } requestAnimationFrame(()=>{ window.scrollTo(0,o.y||0); const v=document.getElementById("view"); if(v) v.scrollTop=o.vy||0; const L=document.querySelector("#view .splist, #view .llist"); if(L&&o.ly) L.scrollTop=o.ly; }); }catch(e){} };
+  go(); })();
 document.querySelectorAll("header .brand h1, .side .logo").forEach(el=>{el.setAttribute("role","link"); el.setAttribute("tabindex","0"); el.setAttribute("title","Yfirlit"); el.style.cursor="pointer";
   el.addEventListener("click",goHome); el.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault(); goHome();}});});
 /* ---------- Dagatalsskrá (.ics) og tilkynningar ---------- */

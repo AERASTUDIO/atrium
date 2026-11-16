@@ -109,7 +109,7 @@
       + SM.card("Þú", `<div class="smme"><span class="smav">${E(sk)}</span><span class="smrt"><b>${E(U.nafn || "")}</b><small>${E([role, U.email].filter(Boolean).join(" · "))}</small></span></div><div class="smrows">`
         + (stOk ? `<a class="smr smrl" role="button" tabindex="0" data-tab="stillingar"><span class="smri">${ic("gear", 18)}</span><span class="smrt"><b>Stillingar</b></span>${ic("chev", 16)}</a>` : "")
         + `<a class="smr smrl" role="button" tabindex="0" onclick="window.u2Utlit?u2Utlit():doAct('tab:stillingar')"><span class="smri">${ic("sun", 18)}</span><span class="smrt"><b>Útlit</b><small>Ljóst, dökkt eða sjálfvirkt</small></span>${ic("chev", 16)}</a>`
-        + `<a class="smr smrl" role="button" tabindex="0" onclick="location.reload()"><span class="smri">${ic("reload", 18)}</span><span class="smrt"><b>Endurhlaða</b><small>Útgáfa ${E(window.APP_VERSION || "")}</small></span></a>`
+        + `<a class="smr smrl" role="button" tabindex="0" data-atrrel onclick="window.atrEndurhlada?atrEndurhlada():location.reload()"><span class="smri">${ic("reload", 18)}</span><span class="smrt"><b>Endurhlaða</b><small>Útgáfa ${E(window.APP_VERSION || "")}</small></span></a>`
         + (window.signOut || window.logout ? `<a class="smr smrl" role="button" tabindex="0" onclick="(window.signOut||window.logout)()"><span class="smri">${ic("out", 18)}</span><span class="smrt"><b>Skrá út</b></span></a>` : "")
         + `</div>`) + `</div></div>`;
   }
