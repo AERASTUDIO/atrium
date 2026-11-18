@@ -47,14 +47,14 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
 
   const SYSTEM = (u, org, ctx) => [
     { type: "text", cache_control: { type: "ephemeral" }, text:
-`Þú ert Atrium-aðstoð – aðstoðarmaður innbyggður í Atrium, verkefna-, tíma- og reikningakerfi${org ? " fyrirtækisins " + org : ""}.
+`Þú ert Huginn – aðstoðarmaður innbyggður í Atrium (nafnið vísar í hrafn Óðins sem flýgur um heiminn og færir honum fréttir), verkefna-, tíma- og reikningakerfi${org ? " fyrirtækisins " + org : ""}.
 - Svaraðu alltaf á íslensku, stutt og hnitmiðað. Notaðu lista eða töflur aðeins þegar það hjálpar. Upphæðir í krónum með punkti sem þúsundaskil (t.d. 1.250.000 kr.), klukkustundir með kommu (t.d. 3,5 klst.).
 - Notaðu verkfærin til að sækja gögn – giskaðu aldrei á tölur, nöfn eða stöðu. Ef verkfæri skilar engu, segðu það.
 - Gögnin eru aðeins það sem notandinn hefur sjálfur aðgang að í appinu.
 - Skráningar: notaðu skra_tima. Það vistar ekkert – notandinn staðfestir tillöguna sjálfur. Segðu stuttlega hvað þú lagðir til.
 - Ef beðið er um eitthvað sem verkfærin ráða ekki við (t.d. breyta reikningi, senda póst), segðu hvar það er gert í appinu.
 - Vísaðu í verkefni með númeri og heiti (t.d. 2603 Skipholt).
-- Ef spurt er hver þú ert: Atrium-aðstoð, byggð á Claude frá Anthropic.` },
+- Ef spurt er hver þú ert: Huginn, aðstoð Atrium, byggður á Claude frá Anthropic.` },
     { type: "text", text: `Notandi: ${u.nafn || u.email} (${u.sk || "–"}), hlutverk: ${u.hlutverk || "starfsmadur"}.
 Í dag: ${ctx.dags || new Date().toISOString().slice(0, 10)} (${ctx.vikudagur || ""}).${ctx.skjar ? "\nNotandinn er með opið: " + String(ctx.skjar).slice(0, 300) : ""}` }
   ];
@@ -112,9 +112,9 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
         return res.json({ manudur: m, thak: C.thak, thakNotandi: C.thakNotandi, likan: C.likan, virk: C.virk, gengi: GENGI, notkun: months.docs.map(d => ({ manudur: d.id, ...d.data() })) });
       }
       if (req.method !== "POST") return res.status(405).send("POST");
-      if (!C.virk) return res.status(403).json({ villa: "Atrium-aðstoð er ekki virk í þessari uppsetningu (Stillingar › Einingar)." });
+      if (!C.virk) return res.status(403).json({ villa: "Huginn er ekki virkur í þessari uppsetningu (Stillingar › Einingar)." });
       const N = (await ref.get()).data() || {}, minn = N.notendur?.[u.email.replace(/\./g, "·")] || {};
-      if ((N.kr || 0) >= C.thak) return res.status(429).json({ villa: "Notkunarþaki mánaðarins er náð. Admin getur hækkað það í Stillingar › Atrium-aðstoð." });
+      if ((N.kr || 0) >= C.thak) return res.status(429).json({ villa: "Notkunarþaki mánaðarins er náð. Admin getur hækkað það í Stillingar › Huginn." });
       if (C.thakNotandi && (minn.kr || 0) >= C.thakNotandi) return res.status(429).json({ villa: "Þú hefur náð notkunarþaki þínu þennan mánuðinn." });
       const body = typeof req.body === "object" && req.body ? req.body : JSON.parse(req.body || "{}");
       const messages = clean(body.messages), ctx = body.samhengi || {}, L = LIKON[C.likan];
@@ -124,7 +124,7 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
         body: JSON.stringify({ model: L.id, max_tokens: 2000, system: SYSTEM(u, String(ctx.org || "").slice(0, 80), ctx), tools: TOOLS, messages })
       });
       const j = await r.json().catch(() => null);
-      if (!r.ok || !j) { logger.error("claude api", r.status, j); return res.status(502).json({ villa: r.status === 429 || r.status === 529 ? "Aðstoðin er upptekin – reyndu aftur eftir smá stund." : "Villa frá Claude (" + r.status + ")" + (j?.error?.message ? ": " + String(j.error.message).slice(0, 200) : "") }); }
+      if (!r.ok || !j) { logger.error("claude api", r.status, j); return res.status(502).json({ villa: r.status === 429 || r.status === 529 ? "Huginn er upptekinn – reyndu aftur eftir smá stund." : "Villa frá Claude (" + r.status + ")" + (j?.error?.message ? ": " + String(j.error.message).slice(0, 200) : "") }); }
       const k = kostn(L, j.usage || {}), key = u.email.replace(/\./g, "·"), inc = admin.firestore.FieldValue.increment;
       await ref.set({ kr: inc(k.kr), usd: inc(k.usd), n: inc(1), uppfaert: new Date().toISOString(), notendur: { [key]: { kr: inc(k.kr), n: inc(1), nafn: u.nafn || u.email } } }, { merge: true });
       res.json({ content: j.content, stop_reason: j.stop_reason, notkun: { kr: Math.round((N.kr || 0) + k.kr), thak: C.thak } });
@@ -143,7 +143,7 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
     const admins = Object.entries(nu).filter(([, x]) => x && x.virkur !== false && x.hlutverk === "admin").map(([e]) => e);
     const MN = ["janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", "ágúst", "september", "október", "nóvember", "desember"];
     const kr = n => Math.round(n || 0).toLocaleString("de-DE") + " kr.";
-    await send(admins, "claude", { title: "Atrium-aðstoð í " + MN[+m.slice(5) - 1], body: `${kr(N.kr)} (${N.n || 0} köll, þak ${kr(C.thak)})`, link: "#t=stillingar", tag: "claude-" + m });
+    await send(admins, "claude", { title: "Huginn í " + MN[+m.slice(5) - 1], body: `${kr(N.kr)} (${N.n || 0} köll, þak ${kr(C.thak)})`, link: "#t=stillingar", tag: "claude-" + m });
     logger.info("claudeSamantekt", { m, kr: N.kr, n: N.n });
   });
 
