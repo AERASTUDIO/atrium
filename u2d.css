@@ -1853,3 +1853,9 @@ html body.kerfi .vs3rk.bad>b,html body.kerfi .vs3rk.bad>small{color:#B13E36}
 html body.kerfi .uinnh{display:inline-flex;align-items:center;gap:6px;margin-left:12px}
 html body.kerfi .usvid>.uinnh:first-child{margin-left:0}
 @media (max-width:1023px){html body.kerfi .vs3rkg{grid-template-columns:1fr}}
+/* 2.167.0: Rukka tíma eftir á */
+html body.kerfi .vs3rkf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+html body.kerfi #sheet .rkeal{display:flex;flex-direction:column;gap:4px;max-height:50vh;overflow:auto;margin:8px 0 4px}
+html body.kerfi #sheet .rkeai{display:flex;flex-direction:row;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:12px;background:var(--hover);color:var(--ink);font-size:13.5px}
+html body.kerfi #sheet .rkeai span{display:flex;flex-direction:column;gap:1px}
+html body.kerfi #sheet .rkeai small{color:var(--muted);font-size:12px}

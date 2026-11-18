@@ -106,6 +106,28 @@
   let afkOpen = false;   // sundurliðun afkomu opin/lokuð – helst þegar spjaldið teiknast aftur
   document.addEventListener("click", e => { const t = e.target.closest?.("[data-vs3afk]"); if (!t) return; e.preventDefault(); e.stopPropagation(); afkOpen = !afkOpen;
     t.setAttribute("aria-expanded", afkOpen); document.querySelectorAll(".vs3afkbox").forEach(b => b.classList.toggle("open", afkOpen)); }, true);
+  /* 2.167.0: Rukka tíma eftir á (verkefni á föstu verði): velja tíma → merktir aukavinna (e.rukka) → nýr reikningur fyrir verkefnið */
+  document.addEventListener("click", ev => { const b = ev.target.closest("[data-rkea]"); if (!b) return; ev.preventDefault(); ev.stopPropagation(); rkEftirA(b.dataset.rkea); }, true);
+  function rkEftirA(pid) {
+    const p = tr(() => findProj(pid), null); if (!p) return;
+    const L = tr(() => faerslur(), []).filter(e => e.verkefniId === pid && !e.reikningur && !e.rukka && !e.live && !(e.vett && !e.stadfest)).sort((a, b) => String(b.date + (b.fra || "")).localeCompare(String(a.date + (a.fra || ""))));
+    const r = tr(() => rkRate(p), 0), nm = sk => tr(() => STARFS().find(x => x.sk === sk)?.nafn, "") || sk || "";
+    const dI = d => String(d || "").slice(8, 10) + "." + String(d || "").slice(5, 7) + ".";
+    sheet.innerHTML = `<h3 id="sheet-h">Rukka tíma eftir á</h3>
+      <p class="hint" style="margin:0 0 10px">${E(p.nr + " " + (p.stutt || ""))} er á föstu verði. Valdir tímar fara á reikning með tímagjaldi ${r ? E(KR(r)) + "/klst." : "– <b>ekkert tímagjald á verkefninu, settu það fyrst í Breyta</b>"}. Hinir verða áfram til yfirsýnar.</p>
+      <label class="chk" style="flex-direction:row;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="rkea-all" checked style="width:auto"> Allir (${E(H1(L.reduce((a, e) => a + (+e.timar || 0), 0)))} klst.)</label>
+      <div class="rkeal">${L.map(e => `<label class="chk rkeai"><input type="checkbox" value="${E(e.id)}" data-h="${+e.timar || 0}" checked style="width:auto"><span><b>${E(dI(e.date))}</b> ${E(H1(e.timar))} klst. · ${E(String(e.lysing || "").replace(/^\d\d\.\d\d – /, "").replace(/ \([\d,.]+ klst\.\)$/, ""))}<small>${E(nm(e.starfsmadur))}</small></span></label>`).join("") || '<div class="empty">Engir tímar.</div>'}</div>
+      <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="rkea-x">Hætta við</button><button type="button" class="btn primary" id="rkea-ok"${r ? "" : " disabled"}>Rukka valda tíma</button></div>`;
+    sheetwrap.hidden = false;
+    const boxes = () => [...sheet.querySelectorAll(".rkeal input[type=checkbox]")], ok = document.getElementById("rkea-ok");
+    const upd = () => { const sel = boxes().filter(x => x.checked), h = sel.reduce((a, x) => a + (+x.dataset.h || 0), 0); ok.textContent = sel.length ? `Rukka ${H1(h)} klst. · ${KR(h * r)}` : "Veldu tíma"; ok.disabled = !sel.length || !r; };
+    document.getElementById("rkea-all").onchange = e => { boxes().forEach(x => x.checked = e.target.checked); upd(); };
+    sheet.querySelector(".rkeal").onchange = upd; upd();
+    document.getElementById("rkea-x").onclick = closeSheet;
+    ok.onclick = async () => { const ids = new Set(boxes().filter(x => x.checked).map(x => x.value)); if (!ids.size) return; ok.disabled = true; ok.textContent = "Merki tíma…";
+      try { await saveSnapshot(s => { sTimes(s).forEach(e => { if (ids.has(String(e.id))) e.rukka = true; }); }); closeSheet(); toast(`${ids.size} ${ids.size === 1 ? "tími merktur" : "tímar merktir"} til reiknings`); setTimeout(() => doAct("rknew:" + pid), 150); }
+      catch (e) { ok.disabled = false; upd(); const m = document.getElementById("f-msg"); if (m) m.innerHTML = `<div class="msg err">${E(tr(() => errText(e), String(e.message || e)))}</div>`; } };
+  }
   window.u2VerkS3 = function (el, p) {
     const body = el.querySelector(".dbody"); if (!body || body.querySelector(".vs3")) return;
     const api = window.salaAPI, sts = stillOf().filter(x => !x.falin || x.n === p.stada), idx = sts.findIndex(x => x.n === p.stada);
@@ -146,9 +168,13 @@
       const col = (lab, val, sub, cls) => `<div class="vs3rk${cls ? " " + cls : ""}"><small>${E(lab)}</small><b>${val}</b><span>${sub}</span></div>`;
       const ihD = ih === "timar" ? "Allir tímar fara á reikning með tímagjaldi" : fast ? "Rukkað skv. tilboði – tímar til yfirsýnar nema merktir aukavinna" : "Innra starf – ekkert fer á reikning";
       const rateCol = ri.verd ? col("Tímagjald", E(KR(ri.verd)) + '<span class="vs3sm">/klst.</span>', E(ri.uppruni)) : col("Tímagjald", "Ekkert", E(ri.uppruni) + (ED() ? ` · <a href="#" class="vs3a" data-act="edit:verk:${E(p.id)}">Velja</a>` : ""), "bad");
-      const ubCol = ih === "ekki" ? "" : col(fast ? "Aukavinna óreikningsfærð" : "Óreikningsfært", E(KR(unb)), uh ? `${E(H1(fast ? auk : uh))} klst.${!ri.verd && uh ? " · án tímagjalds" : ""}` : "Ekkert óreikningsfært", !ri.verd && uh ? "bad" : "");
+      const kk = (u.ks || []).length, hh = fast ? auk : uh, sub = [hh ? `${H1(hh)} klst.${fast ? " aukavinna" : ""}` : (fast ? "Engin aukavinna" : "Engir tímar"), kk ? "útlagður kostnaður" : ""].filter(Boolean).join(" + ");
+      const ubCol = ih === "ekki" ? "" : col(fast ? "Rukkað umfram tilboð" : "Óreikningsfært", E(KR(unb)), E(sub) + (!ri.verd && hh ? " · án tímagjalds" : ""), !ri.verd && hh ? "bad" : "");
+      // 2.167.0: á föstu verði – tímar sem má rukka eftir á (ekki merktir aukavinna, ekki á reikningi)
+      const eftir = fast ? tr(() => faerslur(), []).filter(e => e.verkefniId === p.id && !e.reikningur && !e.rukka && !e.live && !(e.vett && !e.stadfest)) : [], eh = eftir.reduce((a, e) => a + (+e.timar || 0), 0);
+      const ft = fast && eftir.length && ED() ? `<div class="vs3rkf"><span>${E(H1(eh))} klst. skráðar sem eru ekki rukkaðar (til yfirsýnar).</span><button type="button" class="vs3b g sm" data-rkea="${E(p.id)}">Rukka tíma eftir á</button></div>` : "";
       return card("vs3rkc", hd("Hvernig er rukkað?", ED() ? `<a href="#" class="vs3a" data-act="edit:verk:${E(p.id)}">Breyta</a>` : ""),
-        `<div class="vs3rkg">${col("Innheimta", E(window.INNH_STUTT?.[ih] || ih), E(ihD))}${ih === "ekki" ? "" : rateCol}${ubCol}</div>`);
+        `<div class="vs3rkg">${col("Innheimta", E(window.INNH_STUTT?.[ih] || ih), E(ihD))}${ih === "ekki" ? "" : rateCol}${ubCol}</div>${ft}`);
     })() : "";
     // Tilboð og pantanir
     const trow = (T, isP) => `<button type="button" class="vs3r" data-open="tb:${E(T.id)}"><span class="vs3rt"><b>${E((T.nr || "") + " " + (T.heiti || (isP ? "Pöntun" : "Tilboð")))}</b><small>${E(isP ? "Pöntun" + (T.fra ? " · " + tr(() => fmtDate(T.fra), "") : "") : (T.dags ? tr(() => fmtDate(T.dags), "") : ""))}</small></span>${FIN() ? `<span class="vs3rv">${E(KR(tr(() => api.netOf(T), 0) || 0))}</span>` : ""}${tbStPill(T)}</button>`;
