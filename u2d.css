@@ -1836,3 +1836,7 @@ html:not(#cl1):not(#cl2):not(#cl3) body.kerfi .adrw.cldrw .clin textarea,html:no
 html:not(#cl1):not(#cl2) body .adrw.cldrw .clin:focus-within{border-color:var(--kacc,#2B63A6)}
 html:not(#cl1):not(#cl2):not(#cl3) body.kerfi .adrw.cldrw form.clin{min-height:0!important;height:auto!important;flex:none!important;align-items:flex-end;flex-wrap:nowrap!important;flex-direction:row!important}
 html:not(#cl1):not(#cl2) body .adrw.cldrw [data-clnew]{border:0!important;background:none!important;box-shadow:none!important;color:var(--kacc,#2B63A6);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:6px 4px}
+/* 2.165.1: rofi (usw) sést líka þegar slökkt er á honum – grá braut með ramma */
+html:not(#u2a):not(#u2b) body.pv.ui1 :is(.usw) input:not(:checked)+i{background:#AEB8C4!important}
+html:not(#u2a):not(#u2b) body.pv.ui1 :is(.usw) input:not(:checked)+i::after{background:#fff!important;box-shadow:0 1px 3px rgba(15,23,32,.25)!important}
+html:not(#u2a):not(#u2b) body.pv.ui1 .usw+small.m{margin-left:8px}
