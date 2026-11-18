@@ -244,14 +244,16 @@
         <label>Mánaðarþak fyrir fyrirtækið (kr.)<input id="cl-thak" type="number" min="100" step="100" value="${E(thak)}"></label>
         <label>Þak á hvern notanda á mánuði (kr., tómt = ekkert)<input id="cl-tn" type="number" min="0" step="100" value="${tn ? E(tn) : ""}"></label>
         <label>Líkan<select id="cl-lk"><option value="sonnet"${lk === "sonnet" ? " selected" : ""}>Claude Sonnet – bestu svörin (sjálfgefið)</option><option value="haiku"${lk === "haiku" ? " selected" : ""}>Claude Haiku – hraðara og um 20× ódýrara</option></select></label>
-        <div class="actions" style="justify-content:flex-start"><button type="submit" class="btn primary">Vista</button></div></form>
-        <p class="hint" style="margin:10px 0 0">Þegar þaki er náð svarar aðstoðin ekki fyrr en í næsta mánuði. Samantekt mánaðarins berst admin sem tilkynning 1. hvers mánaðar.</p>`)
+        </form>
+        <p class="hint" style="margin:10px 0 0">Breytingar vistast strax. Þegar þaki er náð svarar aðstoðin ekki fyrr en í næsta mánuði. Samantekt mánaðarins berst admin sem tilkynning 1. hvers mánaðar.</p>`)
       + sec("Um gögnin", `<p style="margin:0">Atrium-aðstoð byggir á gervigreindinni Claude frá Anthropic. Spurningar og þau gögn sem aðstoðin sækir til að svara (verkefni, tímar o.fl. sem notandinn sér í appinu) fara til Anthropic til vinnslu. Anthropic notar ekki gögn sem send eru um API-ið til að þjálfa líkön. Samtöl eru ekki vistuð í Atrium.</p>`);
   }
-  document.addEventListener("submit", e => { if (e.target?.id !== "clst") return; e.preventDefault();
-    const thak = Math.max(100, +document.getElementById("cl-thak").value || 3000), tn = Math.max(0, +document.getElementById("cl-tn").value || 0), lk = document.getElementById("cl-lk").value;
-    saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.claude = { ...(s.stillingar.claude || {}), thak, thakNotandi: tn || null, likan: lk }; }).then(() => toast("Vistað")).catch(err => toast(tr(() => errText(err), String(err))));
-  });
+  // 2.164.2: vistað um leið og breytt er (skjárinn teiknast oft upp á nýtt þegar gögn berast – þá týndist val sem beið eftir „Vista“)
+  const vistaSt = () => { const t = document.getElementById("cl-thak"), u = document.getElementById("cl-tn"), l = document.getElementById("cl-lk"); if (!t || !l) return;
+    const thak = Math.max(100, +t.value || 3000), tn = Math.max(0, +u?.value || 0), lk = l.value;
+    saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.claude = { ...(s.stillingar.claude || {}), thak, thakNotandi: tn || null, likan: lk }; }).then(() => toast("Vistað")).catch(err => toast(tr(() => errText(err), String(err)))); };
+  document.addEventListener("submit", e => { if (e.target?.id !== "clst") return; e.preventDefault(); vistaSt(); });
+  document.addEventListener("change", e => { if (["cl-thak", "cl-tn", "cl-lk"].includes(e.target?.id)) vistaSt(); });
   const addSt = () => { if (typeof STPAGES === "undefined") return false; STPAGES.claude = { l: "Atrium-aðstoð", d: "Notkun, mánaðarþak og líkan", s: ["Atrium-aðstoð", "Aðstoð", "Claude", "Notkun", "Þak"], adm: 1, fn: () => stillHTML() }; return true; };
   if (!addSt()) { const iv = setInterval(() => { if (addSt()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 
