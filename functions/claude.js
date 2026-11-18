@@ -63,7 +63,7 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
   function clean(msgs) {
     if (!Array.isArray(msgs) || !msgs.length || msgs.length > MAXMSG) throw new Error("Ógilt samtal");
     if (Buffer.byteLength(JSON.stringify(msgs)) > MAXBYTES) throw new Error("Samtalið er orðið of langt – byrjaðu nýtt samtal.");
-    return msgs.map((m, i) => {
+    const out = msgs.map((m, i) => {
       const role = m.role === "assistant" ? "assistant" : "user";
       if ((i % 2 === 0) !== (role === "user")) throw new Error("Ógild röð skilaboða");
       const c = typeof m.content === "string" ? [{ type: "text", text: m.content }] : m.content;
@@ -72,9 +72,15 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
         if (b.type === "text") return { type: "text", text: String(b.text || "").slice(0, 20000) || " " };
         if (b.type === "tool_use" && role === "assistant") return { type: "tool_use", id: String(b.id), name: String(b.name), input: b.input && typeof b.input === "object" ? b.input : {} };
         if (b.type === "tool_result" && role === "user") return { type: "tool_result", tool_use_id: String(b.tool_use_id), content: String(typeof b.content === "string" ? b.content : JSON.stringify(b.content ?? "")).slice(0, 60000), ...(b.is_error ? { is_error: true } : {}) };
-        throw new Error("Ógild tegund skilaboða");
-      }) };
+        // 2.164.2: hugsun Claude (thinking/redacted_thinking) fer óbreytt til baka – API-ið krefst þess í verkfæraumferðum
+        if (b.type === "thinking" && role === "assistant") return { type: "thinking", thinking: String(b.thinking || ""), signature: String(b.signature || "") };
+        if (b.type === "redacted_thinking" && role === "assistant") return { type: "redacted_thinking", data: String(b.data || "") };
+        if (role === "assistant") { logger.warn("claude: sleppi tegund", b.type); return null; }   // aðrar tegundir í svari Claude: sleppt
+        throw new Error("Ógild tegund skilaboða (" + String(b.type).slice(0, 30) + ")");
+      }).filter(Boolean) };
     });
+    out.forEach(m => { if (!m.content.length) m.content = [{ type: "text", text: " " }]; });
+    return out;
   }
 
   async function notandi(req) {
