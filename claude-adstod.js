@@ -106,15 +106,15 @@
     const n = new Date(), r = await fetch(URL_(), { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok },
       body: JSON.stringify({ messages, samhengi: { dags: iso(n), vikudagur: DN[n.getDay()], skjar: skjar(), org: window.ORG?.nafn || "" } }) });
     const j = await r.json().catch(() => null);
-    if (!r.ok) throw new Error(j?.villa || (r.status === 404 ? "Claude-aðstoð er ekki uppsett í þessari uppsetningu." : "Villa " + r.status));
+    if (!r.ok) throw new Error(j?.villa || (r.status === 404 ? "Atrium-aðstoð er ekki uppsett í þessari uppsetningu." : "Villa " + r.status));
     return j;
   }
   // Sýniútgáfan er ekki tengd Claude – stutt skýring í stað svars
   function demoSvar(messages) {
     const last = messages[messages.length - 1]; const txt = typeof last.content === "string" ? last.content : "";
-    if (/tím|skrá/i.test(txt) && messages.length === 1) { const p = VK()[0]; return Promise.resolve({ content: [{ type: "text", text: "Í sýniútgáfunni er Claude ekki tengdur, en svona lítur tillaga að skráningu út:" }, { type: "tool_use", id: "demo1", name: "skra_tima", input: { verkefni: p?.id, dags: iso(new Date()), fra: "09:00", til: "11:30", lysing: "Teiknivinna" } }], stop_reason: "tool_use" }); }
+    if (/tím|skrá/i.test(txt) && messages.length === 1) { const p = VK()[0]; return Promise.resolve({ content: [{ type: "text", text: "Í sýniútgáfunni er aðstoðin ekki tengd, en svona lítur tillaga að skráningu út:" }, { type: "tool_use", id: "demo1", name: "skra_tima", input: { verkefni: p?.id, dags: iso(new Date()), fra: "09:00", til: "11:30", lysing: "Teiknivinna" } }], stop_reason: "tool_use" }); }
     if (messages.length > 1) return Promise.resolve({ content: [{ type: "text", text: "Ég lagði til **2,5 klst.** á " + (VK()[0] ? pName(VK()[0]) : "verkefnið") + " í dag. Staðfestu hér fyrir ofan eða breyttu." }], stop_reason: "end_turn" });
-    return Promise.resolve({ content: [{ type: "text", text: "Í sýniútgáfunni er Claude-aðstoð ekki tengd. Í raunverulegu appi svarar Claude spurningum um verkefni, tíma, reikninga, tilboð og dagskrá – og leggur til tímaskráningar sem þú staðfestir." }], stop_reason: "end_turn" });
+    return Promise.resolve({ content: [{ type: "text", text: "Í sýniútgáfunni er Atrium-aðstoð ekki tengd. Í raunverulegu appi svarar hún spurningum um verkefni, tíma, reikninga, tilboð og dagskrá – og leggur til tímaskráningar sem þú staðfestir." }], stop_reason: "end_turn" });
   }
 
   async function run() {
@@ -201,11 +201,11 @@
   }
   window.claudeOpna = function (q) {
     if (!on()) return;
-    const html = `<div class="adh"><h2><span class="clhi">${IC}</span>Claude-aðstoð</h2><span><button type="button" class="smlnk" data-clnew>Nýtt samtal</button><button type="button" class="adx" aria-label="Loka" data-adclose>✕</button></span></div>
+    const html = `<div class="adh"><h2><span class="clhi">${IC}</span>Atrium-aðstoð</h2><span><button type="button" class="smlnk" data-clnew>Nýtt samtal</button><button type="button" class="adx" aria-label="Loka" data-adclose>✕</button></span></div>
       <div class="clbody" aria-live="polite"></div>
-      <form class="clin"><textarea rows="1" placeholder="Spurðu Claude…" aria-label="Spurning til Claude"></textarea><button type="submit" class="clsend" aria-label="Senda"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg></button></form>
-      <div class="clft"><span>Claude getur gert mistök – athugaðu tölur áður en þú notar þær.</span><span class="clnk"></span></div>`;
-    const d = atrDrawer(html, "Claude-aðstoð"); d.classList.add("cldrw");
+      <form class="clin"><textarea rows="1" placeholder="Spurðu aðstoðina…" aria-label="Spurning til Atrium-aðstoðar"></textarea><button type="submit" class="clsend" aria-label="Senda"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg></button></form>
+      <div class="clft"><span>Aðstoðin getur gert mistök – athugaðu tölur áður en þú notar þær.</span><span class="clnk"></span></div>`;
+    const d = atrDrawer(html, "Atrium-aðstoð"); d.classList.add("cldrw");
     const ta = d.querySelector("textarea"), fit = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 140) + "px"; };
     ta.addEventListener("input", fit);
     ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); d.querySelector(".clin").requestSubmit(); } });
@@ -245,24 +245,24 @@
         <label>Þak á hvern notanda á mánuði (kr., tómt = ekkert)<input id="cl-tn" type="number" min="0" step="100" value="${tn ? E(tn) : ""}"></label>
         <label>Líkan<select id="cl-lk"><option value="sonnet"${lk === "sonnet" ? " selected" : ""}>Claude Sonnet – bestu svörin (sjálfgefið)</option><option value="haiku"${lk === "haiku" ? " selected" : ""}>Claude Haiku – hraðara og um 20× ódýrara</option></select></label>
         <div class="actions" style="justify-content:flex-start"><button type="submit" class="btn primary">Vista</button></div></form>
-        <p class="hint" style="margin:10px 0 0">Þegar þaki er náð svarar Claude ekki fyrr en í næsta mánuði. Samantekt mánaðarins berst admin sem tilkynning 1. hvers mánaðar.</p>`)
-      + sec("Um gögnin", `<p style="margin:0">Spurningar og þau gögn sem Claude sækir til að svara (verkefni, tímar o.fl. sem notandinn sér í appinu) fara til Anthropic til vinnslu. Anthropic notar ekki gögn sem send eru um API-ið til að þjálfa líkön. Samtöl eru ekki vistuð í Atrium.</p>`);
+        <p class="hint" style="margin:10px 0 0">Þegar þaki er náð svarar aðstoðin ekki fyrr en í næsta mánuði. Samantekt mánaðarins berst admin sem tilkynning 1. hvers mánaðar.</p>`)
+      + sec("Um gögnin", `<p style="margin:0">Atrium-aðstoð byggir á gervigreindinni Claude frá Anthropic. Spurningar og þau gögn sem aðstoðin sækir til að svara (verkefni, tímar o.fl. sem notandinn sér í appinu) fara til Anthropic til vinnslu. Anthropic notar ekki gögn sem send eru um API-ið til að þjálfa líkön. Samtöl eru ekki vistuð í Atrium.</p>`);
   }
   document.addEventListener("submit", e => { if (e.target?.id !== "clst") return; e.preventDefault();
     const thak = Math.max(100, +document.getElementById("cl-thak").value || 3000), tn = Math.max(0, +document.getElementById("cl-tn").value || 0), lk = document.getElementById("cl-lk").value;
     saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.claude = { ...(s.stillingar.claude || {}), thak, thakNotandi: tn || null, likan: lk }; }).then(() => toast("Vistað")).catch(err => toast(tr(() => errText(err), String(err))));
   });
-  const addSt = () => { if (typeof STPAGES === "undefined") return false; STPAGES.claude = { l: "Claude-aðstoð", d: "Notkun, mánaðarþak og líkan", s: ["Claude-aðstoð", "Notkun", "Þak"], adm: 1, fn: () => stillHTML() }; return true; };
+  const addSt = () => { if (typeof STPAGES === "undefined") return false; STPAGES.claude = { l: "Atrium-aðstoð", d: "Notkun, mánaðarþak og líkan", s: ["Atrium-aðstoð", "Aðstoð", "Claude", "Notkun", "Þak"], adm: 1, fn: () => stillHTML() }; return true; };
   if (!addSt()) { const iv = setInterval(() => { if (addSt()) clearInterval(iv); }, 200); setTimeout(() => clearInterval(iv), 10000); }
 
   /* ---------- Hnappar: við bjölluna (tölva) og í haus símans ---------- */
   function hnappur() {
     let b = document.getElementById("u2claude");
     if (!on()) { b?.remove(); return; }
-    if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "u2claude"; b.className = "u2claude"; b.setAttribute("aria-label", "Claude-aðstoð"); b.title = "Claude-aðstoð"; b.innerHTML = IC; b.onclick = () => claudeOpna(); document.body.append(b); }
+    if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "u2claude"; b.className = "u2claude"; b.setAttribute("aria-label", "Atrium-aðstoð"); b.title = "Atrium-aðstoð"; b.innerHTML = IC; b.onclick = () => claudeOpna(); document.body.append(b); }
   }
   const wrapBell = () => { if (window.u1Bell && !window.u1Bell.__cl) { const o = window.u1Bell; window.u1Bell = function () { const r = o.apply(this, arguments); hnappur(); return r; }; window.u1Bell.__cl = 1; } };
-  const wrapSM = () => { if (window.SM?.bell && !SM.bell.__cl) { const o = SM.bell; SM.bell = function () { return (on() ? `<button type="button" class="smib smclaude" onclick="claudeOpna()" aria-label="Claude-aðstoð">${IC}</button>` : "") + o.apply(this, arguments); }; SM.bell.__cl = 1; } };
+  const wrapSM = () => { if (window.SM?.bell && !SM.bell.__cl) { const o = SM.bell; SM.bell = function () { return (on() ? `<button type="button" class="smib smclaude" onclick="claudeOpna()" aria-label="Atrium-aðstoð">${IC}</button>` : "") + o.apply(this, arguments); }; SM.bell.__cl = 1; } };
   wrapBell(); wrapSM();
   document.addEventListener("DOMContentLoaded", () => { wrapBell(); wrapSM(); });
   setInterval(() => { wrapBell(); wrapSM(); hnappur(); }, 1500);
