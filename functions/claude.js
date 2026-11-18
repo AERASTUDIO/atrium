@@ -79,6 +79,11 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
         throw new Error("Ógild tegund skilaboða (" + String(b.type).slice(0, 30) + ")");
       }).filter(Boolean) };
     });
+    /* 2.165.2: hugsun (thinking) er bundin við samtalið eins og það var þegar hún varð til. Aðeins hugsun í yfirstandandi umferð
+       (eftir síðustu spurningu notandans) fer áfram; eldri hugsun er felld niður – annars hafnar API-ið henni („Invalid signature“),
+       t.d. eftir að kerfisfyrirmæli breytast eða samtal heldur áfram eftir deploy. */
+    let start = 0; out.forEach((m, i) => { if (m.role === "user" && m.content.some(b => b.type === "text")) start = i; });
+    out.forEach((m, i) => { if (m.role === "assistant" && i < start) m.content = m.content.filter(b => b.type !== "thinking" && b.type !== "redacted_thinking"); });
     out.forEach(m => { if (!m.content.length) m.content = [{ type: "text", text: " " }]; });
     return out;
   }

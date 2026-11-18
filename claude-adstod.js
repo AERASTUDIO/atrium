@@ -103,8 +103,10 @@
   async function post(messages) {
     if (window.AERA_DEMO) return demoSvar(messages);
     const tok = await window.__DB?.idToken?.(); if (!tok) throw new Error("Ekki innskráð(ur)");
-    const n = new Date(), r = await fetch(URL_(), { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok },
-      body: JSON.stringify({ messages, samhengi: { dags: iso(n), vikudagur: DN[n.getDay()], skjar: skjar(), org: window.ORG?.nafn || "" } }) });
+    // 2.165.2: samhengið er fryst fyrir hverja spurningu (C.ctx) – kerfisfyrirmælin mega ekki breytast í miðri verkfæraumferð
+    const n = new Date(); C.ctx = C.ctx || { dags: iso(n), vikudagur: DN[n.getDay()], skjar: skjar(), org: window.ORG?.nafn || "" };
+    const r = await fetch(URL_(), { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok },
+      body: JSON.stringify({ messages, samhengi: C.ctx }) });
     const j = await r.json().catch(() => null);
     if (!r.ok) throw new Error(j?.villa || (r.status === 404 ? "Huginn er ekki uppsettur í þessari uppsetningu." : "Villa " + r.status));
     return j;
@@ -140,7 +142,7 @@
     t = String(t || "").trim(); if (!t || C.busy) return;
     // samtal verður að enda á svari Claude áður en ný spurning bætist við
     while (C.msgs.length && C.msgs[C.msgs.length - 1].role === "user") C.msgs.pop();
-    C.msgs.push({ role: "user", content: t }); C.ui.push({ u: t }); run();
+    C.ctx = null; C.msgs.push({ role: "user", content: t }); C.ui.push({ u: t }); run();
   }
 
   /* ---------- Staðfesta / breyta tillögu ---------- */
