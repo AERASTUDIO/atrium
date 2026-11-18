@@ -25,10 +25,27 @@
      Utan útlits I er sjálfgefið tímavinna (óbreytt hegðun). */
   const INNH = { timar: "Tímavinna – rukkað eftir unnum tímum", tilbod: "Fast verð – rukkað skv. tilboði eða pöntun", ekki: "Ekki rukkað" };
   window.INNH = INNH;
-  window.innheimtaOf = p => { if (!p) return window.ORG?.utlit === "I" ? "ekki" : "timar"; /* tímar án verkefnis = Innra */ if (INNH[p.innheimta]) return p.innheimta; if (INNH[CFG().innheimta]) return CFG().innheimta; /* 2.123.0: sjálfgefinn innheimtuháttur fyrirtækisins (Stillingar › Reikningar og fyrirtæki); tómt = sjálfvirkt eins og áður */ if (window.ORG?.utlit !== "I") return "timar";
+  /* 2.166.0: innheimta er alltaf vistuð á verkefninu (p.innheimta) og sýnd – engin falin sjálfvirkni. innhAgiskun (eldri reglan: svið
+     Leiga/Sala eða tilboð með vörum → fast verð) er aðeins notuð einu sinni til að vista innheimtu eldri verkefna (innhFlytja) og
+     sem varaleið fyrir verkefni sem hafa ekki enn fengið hana. Ný verkefni fá sjálfgefna innheimtu fyrirtækisins (eða fast verð úr tilboði með vörum). */
+  const innhAgiskun = p => { if (!p) return window.ORG?.utlit === "I" ? "ekki" : "timar"; /* tímar án verkefnis = Innra */ if (INNH[p.innheimta]) return p.innheimta; if (INNH[CFG().innheimta]) return CFG().innheimta; /* 2.123.0: sjálfgefinn innheimtuháttur fyrirtækisins (Stillingar › Reikningar og fyrirtæki); tómt = sjálfvirkt eins og áður */ if (window.ORG?.utlit !== "I") return "timar";
     const api = window.salaAPI; if (["leiga", "sala"].includes(p.deild)) return "tilbod";
     if (api) { const docs = [...api.TB(), ...api.PN()].filter(T => T.verkefniId === p.id || T.id === p.tilbodId || T.id === p.pontunId); if (docs.some(T => T.stada !== "Hafnað" && (T.linur || []).some(l => l.teg !== "vinna"))) return "tilbod"; }
     return INNH[CFG().innheimta] ? CFG().innheimta : "timar"; };
+  window.innhSjalfgefid = () => INNH[CFG().innheimta] ? CFG().innheimta : "timar";
+  window.innheimtaOf = p => { if (!p) return window.ORG?.utlit === "I" ? "ekki" : "timar"; return INNH[p.innheimta] ? p.innheimta : innhAgiskun(p); };
+  window.INNH_STUTT = { timar: "Tímavinna", tilbod: "Fast verð", ekki: "Ekki rukkað" };
+  // Eldri verkefni án vistaðrar innheimtu fá þá sem þau sýna núna – einu sinni, af admin/fjármálum (S.stillingar.innhFlutt)
+  let _innhF = false;
+  window.innhFlytja = () => { try {
+    if (_innhF || typeof S === "undefined" || !S?.verkefni?.length || S.stillingar?.innhFlutt || !(window.can && can("fjarmal"))) return;
+    const L = S.verkefni.filter(p => !INNH[p.innheimta]); _innhF = true;
+    if (!L.length) { saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.innhFlutt = new Date().toISOString(); }).catch(() => {}); return; }
+    const M = Object.fromEntries(L.map(p => [p.id, innhAgiskun(p)]));
+    saveSnapshot(s => { (s.verkefni || []).forEach(q => { if (!INNH[q.innheimta] && M[q.id]) q.innheimta = M[q.id]; }); s.stillingar = s.stillingar || {}; s.stillingar.innhFlutt = new Date().toISOString(); })
+      .then(() => console.info("innheimta vistuð á", L.length, "verkefnum")).catch(e => { _innhF = false; console.warn("innhFlytja", e); });
+  } catch (e) { console.warn(e); } };
+  setInterval(() => window.innhFlytja(), 8000);
   // Á færsla að fara á reikning? Tímavinna: já nema merkt „ekki rukka“; fast verð / ekki rukkað: aðeins ef merkt sem aukavinna (e.rukka)
   // 2.66.0: tímar af ógiltum reikningi eru alltaf reikningshæfir aftur – þeir voru rukkaðir einu sinni, óháð innheimtuhætti verkefnisins
   let _ogK = null, _ogT = new Set();
@@ -50,6 +67,15 @@
   window.rkUnbilled = obilled;
   // Krónur fyrir tímafærslur: hver færsla með gjaldi eigin þjónustu eða gjaldi verkefnisins (projRate)
   const esKr = (es, projRate) => es.reduce((a, e) => a + (+e.timar || 0) * (window.entryRate ? entryRate(e, projRate) : projRate), 0);
+  /* 2.166.0: hvaðan tímagjald verkefnis kemur – sama röð og rate(): eigið gjald → verkþáttur/verðskrá → sjálfgefið gjald fyrirtækis */
+  window.rateInfo = p => {
+    if (+p?.timagjald) return { verd: +p.timagjald, uppruni: "eigið tímagjald verkefnisins" };
+    const t = window.taxtiOf ? taxtiOf(p) : null;
+    const how = t ? (p?.taxti === t.id ? "verkþáttur verkefnisins" : (t.verkefni || []).includes(p?.nr) ? "tengt verkefninu í verðskrá" : t.sjalfgefid ? "sjálfgefið í verðskrá" : t.almennt ? "almennt í verðskrá" : "verðskrá") : "";
+    if (t && +t.verd) return { verd: +t.verd, uppruni: t.heiti + " · " + how, lina: t };
+    if (+RK().timagjald) return { verd: +RK().timagjald, uppruni: "sjálfgefið tímagjald fyrirtækisins" };
+    return { verd: 0, uppruni: t ? `„${t.heiti}“ er með ekkert verð í verðskrá` : "ekkert tímagjald fannst – veldu verkþátt eða settu tímagjald", lina: t || null };
+  };
   window.rkUnbilledKr = pid => { const u = obilled(pid), p = pid ? findProj(pid) : null; return esKr(u.es, rate(p)) + sumK(u.ks); };
   /* Óinnheimt (frá 1.6.0): óreikningsfærðir tímar × tímagjald + óreikningsfærður kostnaður, auk ógreiddra reikninga (með VSK) */
   window.rkOinnheimt = () => {

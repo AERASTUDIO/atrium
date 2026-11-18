@@ -137,8 +137,19 @@
       + tile(IC.clock, "Tímar", `${H1(hours)} klst.${live ? ' <span class="vs3live">● í gangi</span>' : ""}`, aklst ? `${pc} % af ${H1(aklst)} klst.` : ED() ? '<span class="vs3a">+ Setja áætlun</span>' : "Engin áætlun", 'data-act="dtab:timar" title="Sjá tímafærslur verkefnisins"', aklst ? `<span class="vs3bar${pc > 100 ? " over" : pc >= 80 ? " near" : ""}"><i style="width:${Math.min(100, pc)}%"></i></span>` : "")
       + (tr(() => ON("undirverk"), true) ? tile(IC.list, "Undirverk", `${ou.length}${(p.undirverk || []).length > ou.length ? ` <span class="vs3sm">af ${(p.undirverk || []).length}</span>` : ""}`, ED() ? '<span class="vs3a">+ Undirverk</span>' : "", 'data-act="dtab:undir"') : "")
       + (af ? tile(IC.bars, "Framlegð", E(KR(af.fr)), (af.pct == null ? "" : Math.round(af.pct * 100) + " % · ") + '<span class="vs3a vs3afkb">Sundurliðun</span>', `data-vs3afk="1" aria-expanded="${afkOpen}" title="Sýna eða fela sundurliðun afkomu"`, af.tbVid ? `<span class="vs3tvid" title="Samþykkt tilboð ${E(KR(af.tbVid))} án VSK – viðmið (tímavinna)">Tilboð ${E(af.tbVid >= 1e6 ? (Math.round(af.tbVid / 1e5) / 10).toString().replace(".", ",") + " m.kr." : KR(af.tbVid))}</span>` : "")
-        : FIN() && ih === "timar" ? tile(IC.bars, "Óreikningsfært", E(KR(unb)), unb ? '<span class="vs3a">Búa til reikning</span>' : "Ekkert óreikningsfært", unb ? `data-act="rknew:${E(p.id)}"` : 'data-act="tab:trk"') : "")
+        : FIN() && ih === "timar" ? tile(IC.bars, "Óreikningsfært", E(KR(unb)), unb ? '<span class="vs3a">Búa til reikning</span>' : (hours && window.rateInfo && !tr(() => rateInfo(p).verd, 1)) ? '<span class="t-red">Ekkert tímagjald</span>' : "Ekkert óreikningsfært", unb ? `data-act="rknew:${E(p.id)}"` : 'data-act="tab:trk"') : "")
       + `</div>`;
+    /* 2.166.0: Hvernig er rukkað? – innheimta, tímagjald og uppruni þess, óreikningsfært og aukavinna (aðeins fjármál) */
+    const rkC = FIN() && tr(() => ON("reikningar"), false) && window.rateInfo ? (() => {
+      const ri = tr(() => rateInfo(p), { verd: 0, uppruni: "" }), u = tr(() => rkUnbilled(p.id), { es: [], ks: [] }), uh = u.es.reduce((a, e) => a + (+e.timar || 0), 0);
+      const auk = ih !== "timar" ? u.es.filter(e => e.rukka).reduce((a, e) => a + (+e.timar || 0), 0) : 0, fast = ih === "tilbod";
+      const col = (lab, val, sub, cls) => `<div class="vs3rk${cls ? " " + cls : ""}"><small>${E(lab)}</small><b>${val}</b><span>${sub}</span></div>`;
+      const ihD = ih === "timar" ? "Allir tímar fara á reikning með tímagjaldi" : fast ? "Rukkað skv. tilboði – tímar til yfirsýnar nema merktir aukavinna" : "Innra starf – ekkert fer á reikning";
+      const rateCol = ri.verd ? col("Tímagjald", E(KR(ri.verd)) + '<span class="vs3sm">/klst.</span>', E(ri.uppruni)) : col("Tímagjald", "Ekkert", E(ri.uppruni) + (ED() ? ` · <a href="#" class="vs3a" data-act="edit:verk:${E(p.id)}">Velja</a>` : ""), "bad");
+      const ubCol = ih === "ekki" ? "" : col(fast ? "Aukavinna óreikningsfærð" : "Óreikningsfært", E(KR(unb)), uh ? `${E(H1(fast ? auk : uh))} klst.${!ri.verd && uh ? " · án tímagjalds" : ""}` : "Ekkert óreikningsfært", !ri.verd && uh ? "bad" : "");
+      return card("vs3rkc", hd("Hvernig er rukkað?", ED() ? `<a href="#" class="vs3a" data-act="edit:verk:${E(p.id)}">Breyta</a>` : ""),
+        `<div class="vs3rkg">${col("Innheimta", E(window.INNH_STUTT?.[ih] || ih), E(ihD))}${ih === "ekki" ? "" : rateCol}${ubCol}</div>`);
+    })() : "";
     // Tilboð og pantanir
     const trow = (T, isP) => `<button type="button" class="vs3r" data-open="tb:${E(T.id)}"><span class="vs3rt"><b>${E((T.nr || "") + " " + (T.heiti || (isP ? "Pöntun" : "Tilboð")))}</b><small>${E(isP ? "Pöntun" + (T.fra ? " · " + tr(() => fmtDate(T.fra), "") : "") : (T.dags ? tr(() => fmtDate(T.dags), "") : ""))}</small></span>${FIN() ? `<span class="vs3rv">${E(KR(tr(() => api.netOf(T), 0) || 0))}</span>` : ""}${tbStPill(T)}</button>`;
     const tpList = [...tbs.slice(0, 4).map(T => trow(T, false)), ...pns.slice(0, 3).map(P => trow(P, true))].join("");
@@ -171,7 +182,7 @@
     const vpC = dvs.length || ED() ? `<div class="vs3r4">${card("vs3vp", hd("Á vikuplani", `${ED() ? `<a href="#" class="vs3a" data-act="dvny3:${E(p.id)}">+ Verk</a>` : ""}<a href="#" class="vs3a" data-act="tab:pndag">Vikuplan →</a>`),
       dvs.length ? `<div class="vs3rs">${dvs.slice(0, 6).map(dvRow).join("")}</div>${dvs.length > 6 ? `<div class="vs3m">+ ${dvs.length - 6} í viðbót</div>` : ""}` : `<div class="vs3e"><b>Ekkert verk á vikuplani</b><small>Settu verk á dag og veldu hver tekur það</small></div>`)}</div>` : "";
     const wrap = document.createElement("div"); wrap.className = "vs3";
-    wrap.innerHTML = steps + `<div class="vs3r1">${next(p, ctx)}${staffC}</div>` + tiles + moreC + vpC + `<div class="vs3r3">${tpC}${fC}${cmC}</div>`;
+    wrap.innerHTML = steps + `<div class="vs3r1">${next(p, ctx)}${staffC}</div>` + tiles + rkC + moreC + vpC + `<div class="vs3r3">${tpC}${fC}${cmC}</div>`;
     // Færa hluta inn
     const sfb = wrap.querySelector(".vs3sfb"); staffNodes.forEach(n => sfb.append(n));
     const more = wrap.querySelector(".vs3more");

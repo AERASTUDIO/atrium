@@ -1840,3 +1840,16 @@ html:not(#cl1):not(#cl2) body .adrw.cldrw [data-clnew]{border:0!important;backgr
 html:not(#u2a):not(#u2b) body.pv.ui1 :is(.usw) input:not(:checked)+i{background:#AEB8C4!important}
 html:not(#u2a):not(#u2b) body.pv.ui1 :is(.usw) input:not(:checked)+i::after{background:#fff!important;box-shadow:0 1px 3px rgba(15,23,32,.25)!important}
 html:not(#u2a):not(#u2b) body.pv.ui1 .usw+small.m{margin-left:8px}
+/* 2.166.0: Hvernig er rukkað? (verkyfir.js) og innheimta í haus verkefnis */
+html body.kerfi .vs3rkc{margin-top:16px}
+html body.kerfi .vs3rkg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+html body.kerfi .vs3rk{background:var(--hover,#EEF1F4);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+html body.kerfi .vs3rk>small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+html body.kerfi .vs3rk>b{font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
+html body.kerfi .vs3rk>b .vs3sm{font-size:12px;color:var(--muted);margin-left:2px;font-weight:500}
+html body.kerfi .vs3rk>span{font-size:12px;color:var(--muted);line-height:1.4}
+html body.kerfi .vs3rk.bad{background:rgba(177,62,54,.07)}
+html body.kerfi .vs3rk.bad>b,html body.kerfi .vs3rk.bad>small{color:#B13E36}
+html body.kerfi .uinnh{display:inline-flex;align-items:center;gap:6px;margin-left:12px}
+html body.kerfi .usvid>.uinnh:first-child{margin-left:0}
+@media (max-width:1023px){html body.kerfi .vs3rkg{grid-template-columns:1fr}}
