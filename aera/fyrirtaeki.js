@@ -61,6 +61,7 @@ window.ORG = {
   pakkaval: true,
   leid: "complete",                  // verðleið (2.97.0): core · pro · complete – ræður hvaða pakkar eru opnir
   utlit: "I",                          // tölvuútlit I (frá 2.43.0, eins og Dev og party.is); síminn óbreyttur
+  claude: true,   // 2.164.0: Claude-aðstoð í boði (Cloud Function claude, CLAUDE=1 í functions/.env) – admin kveikir í Stillingar › Einingar
   einingar: { leiga: true, sala: true, deildir: true, pantanir: true },
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
   kerfi: true,

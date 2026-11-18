@@ -22,6 +22,7 @@ window.ORG = {
   sigLogo: "icons/atrium-doc-logo.png",
   docLogo: "icons/atrium-doc-logo.png",
   // Allar einingar sýndar; Verðskrá læst (verðlisti AERA)
+  claude: true,   // 2.164.0: Claude-aðstoð í boði (Cloud Function claude, CLAUDE=1 í functions/.env) – admin kveikir í Stillingar › Einingar
   einingar: { leiga: true, sala: true, verdskra: false },
   // Hönnunarkerfi (2.49.0, kerfi.css): ein leturstærðaröð, hnappar og reitir í tölvu og síma.
   kerfi: true,

@@ -45,6 +45,8 @@
     // 2.125.0: Rekstrarlínur (2.95.0) eru orðnar undirflokkar sviða (Stillingar › Svið) – ekki lengur sér eining; rlinur.js er virk þegar undirflokkar eru skilgreindir.
     // Frá 2.109.0: Innflutningur og kostnaðarverð (innflutningur.js) – tilboð úr verðum erlendra birgja, innkaup og tollskýrsla. Sjálfgefið óvirk.
     innflutningur:  ["Innflutningur og kostnaðarverð", "Tilboð reiknuð úr verðum erlendra birgja (tollverð, tollgengi, aukagjöld, flutningur, álagning), innkaup á pöntunum og tollskýrsla borin saman við áætlun", "sala", 1],
+    // 2.164.0: Claude-aðstoð (claude-adstod.js + Cloud Function claude) – aðeins þar sem ORG.claude = true; sjálfgefið óvirk
+    ...(window.ORG?.claude ? { claude: ["Claude-aðstoð", "Spurningar og skráningar í mæltu máli – Claude les það sem notandinn hefur aðgang að og leggur til tímaskráningar", null, 1] } : {}),
     deildir:        ["Deildir", "Leiga og Sala sem deildir: deildarval efst, verkefni merkt deild og Heim, verkefni og dagatal síuð", null, 1]
   };
   // Pakkar og tengingar (frá 2.14.0, einingatillagan 21.10.2026): einingarnar flokkaðar í kjarna, fimm pakka og tengingar.
@@ -76,7 +78,7 @@
     m365skrar:  ["Microsoft 365 – skrár", "Möppur verkefna á SharePoint/OneDrive, Mín skjöl, Nýlegt og skjalalisti", ["skjol", "onedrive"]],
     m365postur: ["Microsoft 365 – póstur", "Pósthólf, verkefnapóstur og póstþræðir á verkefnum", ["postur"]],
     spjall:     ["Spjall", "Spjallrásir og bein skilaboð milli starfsfólks", ["spjall"]],
-    claude:     ["Claude-aðstoð", "Spurningar og skráningar í mæltu máli", [], "Væntanlegt"]
+    claude:     ["Claude-aðstoð", "Spurningar og skráningar í mæltu máli", window.ORG?.claude ? ["claude"] : [], window.ORG?.claude ? undefined : "Væntanlegt"]
   };
   const PAKKI_AF = {}; [PAKKAR, TENGINGAR].forEach(G => Object.entries(G).forEach(([p, v]) => v[2].forEach(k => { PAKKI_AF[k] = p; })));
   // Útlit I (dev): Pantanir eru hluti af kjarnanum, alltaf virkar, ekki í pakkanum Vörulisti og lager

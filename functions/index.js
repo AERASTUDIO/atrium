@@ -828,3 +828,6 @@ exports.tollgengi = onRequest({ cors: true, maxInstances: 2 }, async (req, res) 
     res.set("Cache-Control", "public, max-age=3600").json({ dags: gm ? `${gm[3]}-${gm[2]}-${gm[1]}` : gd, k, fjoldi: Object.keys(k).length });
   } catch (e) { logger.error("tollgengi", e); res.status(500).json({ villa: String(e.message || e) }); }
 });
+
+/* 2.164.0: Claude-aðstoð (functions/claude.js) – aðeins þar sem .env.<verkefni> hefur CLAUDE=1 og ANTHROPIC_API_KEY er í Secret Manager */
+if (process.env.CLAUDE === "1") Object.assign(exports, require("./claude")({ db, admin, logger, onRequest, onSchedule, defineSecret, send, lc, TZ }));
