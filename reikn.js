@@ -45,6 +45,15 @@
     saveSnapshot(s => { (s.verkefni || []).forEach(q => { if (!INNH[q.innheimta] && M[q.id]) q.innheimta = M[q.id]; }); s.stillingar = s.stillingar || {}; s.stillingar.innhFlutt = new Date().toISOString(); })
       .then(() => console.info("innheimta vistuð á", L.length, "verkefnum")).catch(e => { _innhF = false; console.warn("innhFlytja", e); });
   } catch (e) { console.warn(e); } };
+  // 2.166.1: verkþáttur (verðskrárlína) líka vistaður á hverju verkefni – „Sjálfvirkt“ horfið (S.stillingar.taxtiFlutt)
+  let _txF = false;
+  window.taxtiFlytja = () => { try {
+    if (_txF || typeof S === "undefined" || !S?.verkefni?.length || S.stillingar?.taxtiFlutt || !S.stillingar?.innhFlutt || !(window.can && can("fjarmal")) || !window.taxtiOf || !VERD().lidir.length) return;
+    _txF = true; const M = Object.fromEntries(S.verkefni.filter(p => !(p.taxti && lidOf(p.taxti))).map(p => [p.id, taxtiOf(p)?.id || null]).filter(x => x[1]));
+    saveSnapshot(s => { (s.verkefni || []).forEach(q => { if (M[q.id] && !(q.taxti && lidOf(q.taxti))) q.taxti = M[q.id]; }); s.stillingar = s.stillingar || {}; s.stillingar.taxtiFlutt = new Date().toISOString(); })
+      .catch(e => { _txF = false; console.warn("taxtiFlytja", e); });
+  } catch (e) { console.warn(e); } };
+  setInterval(() => window.taxtiFlytja(), 9000);
   setInterval(() => window.innhFlytja(), 8000);
   // Á færsla að fara á reikning? Tímavinna: já nema merkt „ekki rukka“; fast verð / ekki rukkað: aðeins ef merkt sem aukavinna (e.rukka)
   // 2.66.0: tímar af ógiltum reikningi eru alltaf reikningshæfir aftur – þeir voru rukkaðir einu sinni, óháð innheimtuhætti verkefnisins
