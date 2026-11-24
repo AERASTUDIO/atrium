@@ -359,9 +359,16 @@ window.atrEndurhlada=async function(){
   if(window.__atrRel) return; window.__atrRel=true;
   const btns=[...document.querySelectorAll(".srefbtn,[data-atrrel]")]; btns.forEach(b=>b.classList.add("atrspin"));
   const done=(msg)=>{window.__atrRel=false; btns.forEach(b=>b.classList.remove("atrspin")); if(msg) toast?.(msg);};
-  // 1) Ný útgáfa? Þá þarf að hlaða síðunni – á sama stað
-  try{ const r=await navigator.serviceWorker?.getRegistration(); await r?.update(); const w=r?.installing||r?.waiting;
-    if(w&&navigator.serviceWorker.controller){ saveStadur(); window.__swWantReload=true; toast?.("Sæki nýja útgáfu…"); try{w.postMessage?.({type:"SKIP_WAITING"});}catch(e){} setTimeout(()=>location.reload(),15000); return; } }catch(e){}
+  // 1) Ný útgáfa? Þá þarf að hlaða síðunni – á sama stað.
+  //    2.167.1: borið saman við VERSION í sw.js af netinu – áður sást ný útgáfa ekki ef nýja sw.js var þegar orðin virk
+  //    (installing/waiting tóm) og appið sat þá áfram á gömlu útgáfunni þótt ýtt væri á Endurhlaða.
+  try{ const r=await navigator.serviceWorker?.getRegistration(); await r?.update().catch(()=>{});
+    let nv=null; try{ const t=await (await fetch(new URL("sw.js",document.baseURI).href+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/VERSION\s*=\s*"atrium-([\d.]+)"/); if(m&&typeof APP_VERSION!=="undefined"&&m[1]!==APP_VERSION) nv=m[1]; }catch(e){}
+    const w=r?.installing||r?.waiting;
+    if(nv||(w&&navigator.serviceWorker.controller)){ saveStadur(); window.__swWantReload=true; toast?.("Sæki nýja útgáfu"+(nv?" ("+nv+")":"")+"…");
+      try{w?.postMessage?.({type:"SKIP_WAITING"});}catch(e){}
+      // bíða eftir að nýja útgáfan sé virk (sett í skyndiminni), annars endurhlaða strax
+      const ready=()=>!r||(!r.installing&&!r.waiting); const t0=Date.now(); const go=()=>{ if(ready()||Date.now()-t0>12000) location.reload(); else setTimeout(go,300); }; setTimeout(go,300); return; } }catch(e){}
   // 2) Nýjustu gögn án endurhleðslu – skrun allra skrunsvæða (síða, listi, spjald) geymt og sett aftur eftir teiknun
   const y=window.scrollY, sel=e=>e.id?"#"+CSS.escape(e.id):e.classList.length?"."+[...e.classList].map(c=>CSS.escape(c)).join("."):null;
   const SC=[...document.querySelectorAll("#view, #view *, .side *")].filter(e=>e.scrollTop>0||e.scrollLeft>0).map(e=>[sel(e),e.scrollTop,e.scrollLeft]).filter(x=>x[0]);
