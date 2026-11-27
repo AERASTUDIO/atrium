@@ -831,3 +831,37 @@ exports.tollgengi = onRequest({ cors: true, maxInstances: 2 }, async (req, res) 
 
 /* 2.164.0: Claude-aðstoð (functions/claude.js) – aðeins þar sem .env.<verkefni> hefur CLAUDE=1 og ANTHROPIC_API_KEY er í Secret Manager */
 if (process.env.CLAUDE === "1") Object.assign(exports, require("./claude")({ db, admin, logger, onRequest, onSchedule, defineSecret, send, lc, TZ }));
+
+/* ---------- 2.171.0 (persónuvernd): varðveisla pöntunarsíðunnar (opinber/{t}) ----------
+   Einu sinni á dag:
+   1) 30 dögum eftir samþykki (stadfest) eða höfnun (hafnad) er nafn, undirskrift og athugasemd fjarlægð af opnu síðunni.
+      Áður er það fært í undirskriftir/{t} (lokað safn – aðeins admin les, sjá firestore.rules), því undirskrift á tilboði er
+      hvergi annars staðar geymd. Síðan sýnir áfram „Samþykkt <dags>“.
+   2) 90 dögum eftir að pöntun/tilboð lýkur (til, annars fra, annars gildir, annars samþykki/höfnun, annars síðasta uppfærsla)
+      er skjalinu eytt og reiturinn opinber tekinn af tilboðinu/pöntuninni. Tengillinn hættir þá að virka. */
+const OPB_HREINSA = 30, OPB_EYDA = 90;
+const dagarSidan = iso => { const t = Date.parse(String(iso || "")); return isFinite(t) ? (Date.now() - t) / 864e5 : null; };
+exports.opinberVardveisla = onSchedule({ schedule: "41 3 * * *", timeZone: TZ, timeoutSeconds: 300 }, async () => {
+  const snap = await db.collection("opinber").get(); let hr = 0, ey = 0;
+  for (const d of snap.docs) {
+    const o = d.data() || {}, t = d.id;
+    try {
+      const sv = o.stadfest || o.hafnad || null, hvad = o.stadfest ? "stadfest" : o.hafnad ? "hafnad" : null;
+      // Geyma persónuupplýsingar samþykkis/höfnunar í lokaða safninu áður en þær fara af opnu síðunni
+      const geyma = async () => { if (!sv || sv.hreinsad) return;
+        await db.doc("undirskriftir/" + t).set({ teg: o.teg || "pontun", nr: o.nr || "", heiti: o.heiti || "", vidskiptavinur: o.vidskiptavinur || null, hvad, ...sv, ...((o.svor || []).length ? { svor: o.svor } : {}), geymt: new Date().toISOString() }, { merge: true });
+        for (const c of ["tilbod", "pantanir"]) { const q = await db.collection(c).where("opinber", "==", t).get(); for (const x of q.docs) await x.ref.update({ undirskriftId: t }); } };
+      const lok = [o.til, o.fra, o.gildir, sv?.dags, o.uppfaert].map(d10).find(x => /^\d{4}-\d{2}-\d{2}$/.test(x));
+      if (lok && dagarSidan(lok + "T23:59:59Z") > OPB_EYDA) {
+        await geyma();
+        for (const c of ["tilbod", "pantanir"]) { const q = await db.collection(c).where("opinber", "==", t).get(); for (const x of q.docs) await x.ref.update({ opinber: admin.firestore.FieldValue.delete(), ...(sv ? { undirskriftId: t } : {}) }); }
+        await d.ref.delete(); ey++; continue;
+      }
+      if (sv && !sv.hreinsad && dagarSidan(sv.dags) > OPB_HREINSA) {
+        await geyma();
+        await d.ref.update({ [hvad]: { dags: sv.dags || null, hreinsad: true }, ...((o.svor || []).length ? { svor: admin.firestore.FieldValue.delete() } : {}), uppfaert: new Date().toISOString() }); hr++;
+      }
+    } catch (e) { logger.error("opinberVardveisla", t, e.message); }
+  }
+  if (hr || ey) logger.info("opinberVardveisla", { hreinsad: hr, eytt: ey, alls: snap.size });
+});

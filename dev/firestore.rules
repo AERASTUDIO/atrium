@@ -145,6 +145,9 @@ service cloud.firestore {
     // tilviljunarstrengur sem aðeins sá sem fær tengilinn þekkir. Hver sem er má SÆKJA eitt skjal eftir auðkenni (ekki lista),
     // og staðfesta pöntunina EINU SINNI: aðeins reitirnir stadfest og uppfaert mega breytast og stadfest verður að vera tómt fyrir.
     // Starfsfólk (active) býr til, uppfærir og eyðir.
+    // 2.171.0: nafn og undirskrift af pöntunarsíðunni, geymt 30 dögum eftir samþykki (Cloud Function opinberVardveisla skrifar). Aðeins admin les og eyðir.
+    match /undirskriftir/{t} { allow read, delete: if admin(); allow create, update: if false; }
+
     match /opinber/{t} {
       allow get: if true;
       allow list: if false;

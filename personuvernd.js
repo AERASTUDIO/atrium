@@ -50,12 +50,12 @@
         if (k === "timar") { ["faerslur", "nyjast"].forEach(f => (v?.[f] || []).forEach(e => { if (hasHit(e, q)) scrub(e); })); return; }
         if (k === "stillingar") { (v?.starfsmenn || []).forEach(x => { if (hasHit(x, q)) { x.nafn = NAFNHR; } }); return; }
         if (Array.isArray(v)) v.forEach(o => { if (hasHit(o, q) && !geymist(k, o)) { const id = o.id;
-          if ((k === "tilbod" || k === "pantanir") && o.opinber) { opb.add(o.opinber); delete o.opinber; }   // 2.170.0: opinbera afritið (pöntunarsíðan) fer líka
+          if ((k === "tilbod" || k === "pantanir") && (o.opinber || o.undirskriftId)) { [o.opinber, o.undirskriftId].filter(Boolean).forEach(x => opb.add(x)); delete o.opinber; delete o.undirskriftId; }   // 2.170.0: opinbera afritið (pöntunarsíðan) fer líka
           scrub(o); if (id) o.id = id; } });
       });
       (s.persvernd = s.persvernd || []).push({ dags: new Date().toISOString(), adgerd: "nafnhreinsun", af: window.USER?.email || "", fjoldi: n - held });
     });
-    for (const t of opb) { try { if (window.atrPub?.demo?.()) window.atrPub.ls().removeItem(window.atrPub.lsKey(t)); else await window.__DB?.commit?.([{ path: "opinber/" + t, del: true }]); } catch (e) { console.warn("opinber", e?.code || e); } }
+    for (const t of opb) { try { if (window.atrPub?.demo?.()) window.atrPub.ls().removeItem(window.atrPub.lsKey(t)); else for (const c of ["opinber", "undirskriftir"]) { try { await window.__DB?.commit?.([{ path: c + "/" + t, del: true }]); } catch (e) { console.warn(c, e?.code || e); } } } catch (e) { console.warn("opinber", e?.code || e); } }   // 2.171.0: líka geymda undirskriftin
     toast?.("Nafnhreinsað í " + (n - held) + ((n - held) % 10 === 1 && (n - held) % 100 !== 11 ? " færslu" : " færslum") + (opb.size ? ` · ${opb.size} ${opb.size === 1 ? "tengill á pöntunarsíðu fjarlægður" : "tenglar á pöntunarsíðu fjarlægðir"}` : "")); window._pvq = ""; render();
   }
 
