@@ -1,3 +1,4 @@
+:root{--r-kort:14px;--r-svif:16px;--r-innri:12px;--r-hn:10px;--r-merki:6px} /* U3 (2.172.0): horn – sjá tools/u3.py */
 /* Fágun (2.69.0) – útlit G: litir, áferð, texti, dýpt, tákn í spjöldum, stöðuflipar, númeramerki, gröf.
    Hlaðið á eftir kerfi.css. Bil og stærðir koma úr kerfi.css og eru óbreytt.
    2.131.2: Litapalletta Atrium gildir í öllum uppsetningum (Sonik og party.is líka) – utlit.css ræður aðeins innskráningu og opnunarskjá;
@@ -77,8 +78,8 @@ html:root body.kerfi #view .ukps > .ukp:hover::after{opacity:.9}
 .gnr{display:inline-block;font-size:11.5px;font-weight:500;letter-spacing:.02em;color:var(--muted);background:var(--gry-s);border-radius:6px;padding:2px 7px;margin-right:8px;vertical-align:1px;font-variant-numeric:tabular-nums}
 html:root body.kerfi #view .uhrow{transition:background .15s}
 html:root body.kerfi #view .uhrow:hover{background:var(--hover)}
-html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill{display:inline-flex;align-items:center;gap:6px;border-radius:999px!important;padding:3px 10px!important;font-size:12px!important;font-weight:500!important;background:var(--gry-s)!important;color:var(--ink2)!important;border:0!important}
-html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill::before{content:"";position:static!important;margin:0!important;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-merki)!important;padding:3px 10px!important;font-size:12px!important;font-weight:500!important;background:var(--gry-s)!important;color:var(--ink2)!important;border:0!important}
+html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill::before{content:none!important;display:none!important}
 html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill.t-blu{background:var(--acc-soft)!important;color:var(--kacc)!important}
 html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill.t-amb{background:var(--amb-s)!important;color:var(--t-amb)!important}
 html:root body.kerfi #view :is(.uhrow,.udsr,.urow,span,td,div) .upill.t-red{background:var(--red-s)!important;color:var(--t-red)!important}
@@ -138,7 +139,7 @@ html body #view .pback.pback.pback{font-size:0!important;width:36px!important;pa
 
 /* 2.103.3: áskriftarleið á upphafsskjá */
 .ustcol{display:flex;flex-direction:column;align-items:center;gap:28px}
-.ustleid{font-size:12px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);padding:7px 16px 7px 20px;border:1px solid var(--line);border-radius:999px}
+.ustleid{font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);padding:7px 16px 7px 20px;border:1px solid var(--line);border-radius:var(--r-merki)}
 .ustart.ustdark .ustleid{color:rgba(255,255,255,.62);border-color:rgba(255,255,255,.18)}
 
 /* 2.131.2: sömu litir í öllum uppsetningum – það sem utlit.css (Sonik, party.is) litaði sérstaklega inni í appinu */
@@ -160,7 +161,7 @@ html:not(#atrium-litir) body.kerfi :is(.upill,.pill,.dbadge):is(.t-red,.t-amb,.t
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq svg{display:none!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq[aria-current="page"]{color:#fff!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq .tbid{font-size:10.5px;line-height:16px;min-width:16px}
-  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .sgrp{font-size:10.5px!important;letter-spacing:.08em!important;text-transform:uppercase;color:#6B7684!important;font-weight:500!important;padding:8px 12px 4px!important;margin:0!important;border:0!important;background:none!important;height:auto!important}
+  html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .sgrp{font-size:12px!important;letter-spacing:0!important;text-transform:none;color:#6B7684!important;font-weight:500!important;padding:8px 12px 4px!important;margin:0!important;border:0!important;background:none!important;height:auto!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab:not(.tq)+.sgrp{margin-top:12px!important;padding-top:16px!important;border-top:1px solid #222C38!important;margin-left:6px!important;margin-right:6px!important;padding-left:6px!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side nav#sitems .tab.tq+.sgrp{margin-top:8px!important}
   html:not(#atrium-litir) body.kerfi.pv.ui1 .side .tbid{background:#2B63A6!important}

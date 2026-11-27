@@ -40,7 +40,7 @@
 body{font-family:var(--f-display);font-weight:400;letter-spacing:0;font-feature-settings:normal}
 h1,h2,h3,.hello,h2.big,.ptitle,.cal-head h2{font-weight:500!important;letter-spacing:-.01em}
 .t,.lt{font-weight:400}
-.viewtitle{font-weight:500;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.viewtitle{font-weight:500;font-size:13px;letter-spacing:0;text-transform:none;color:var(--muted)}
 .btn{font-weight:500;border-radius:12px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .nr{color:var(--muted);font-weight:400;letter-spacing:.02em}
@@ -54,7 +54,7 @@ h1,h2,h3,.hello,h2.big,.ptitle,.cal-head h2{font-weight:500!important;letter-spa
 .login-in .logo{height:0;display:none}
 
 /* Stöður: tónar af stáli í stað margra lita; aðeins „komið fram yfir“ fær áherslulit */
-.pill{font-weight:500;border-radius:999px}
+.pill{font-weight:500;border-radius:var(--r-merki)}
 .pill.pc-slate,.pill.pc-gray{background:var(--b0)!important;color:var(--muted)!important;box-shadow:inset 0 0 0 1px var(--line)}
 .pill.pc-violet{background:var(--b1)!important;color:var(--t0)!important}
 .pill.pc-blue{background:var(--b4)!important;color:var(--t3)!important}
@@ -78,7 +78,7 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 .tbar .tab[aria-current="page"]{background:none;color:var(--ink);font-weight:500}
 .tbar .tab[aria-current="page"] svg{color:var(--ink);transform:translateY(-1px)}
 .tbar .tab[aria-current="page"]::after{content:"";position:absolute;bottom:1px;width:4px;height:4px;border-radius:50%;background:var(--ink)}
-.tbar .tab .tdot{position:absolute;top:6px;left:calc(50% + 8px);min-width:8px;height:8px;border-radius:99px;background:var(--late)}
+.tbar .tab .tdot{position:absolute;top:6px;left:calc(50% + 8px);min-width:8px;height:8px;border-radius:var(--r-hn);background:var(--late)}
 @media (min-width:1024px){nav.mbar.tbar{display:none}}
 .side .tab{border-radius:12px;font-weight:400}
 .side .tab[aria-current="page"]{background:var(--raise);color:var(--ink);font-weight:500}
@@ -105,10 +105,10 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 .htile b{font-size:30px;font-weight:500;line-height:1}
 .htile span{font-size:13px;color:var(--muted)}
 .htile .hx{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
-.htile .hl{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--late-soft);color:var(--late);white-space:nowrap}
+.htile .hl{font-size:11px;padding:3px 8px;border-radius:var(--r-hn);background:var(--late-soft);color:var(--late);white-space:nowrap}
 
 /* Stillingar og Meira: listi af undirsíðum */
-.mgroup{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:22px 4px 8px}
+.mgroup{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);margin:22px 4px 8px}
 .mlist{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .mrow{appearance:none;width:100%;display:flex;align-items:center;gap:14px;min-height:56px;padding:8px 16px;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);font:inherit;text-align:left;cursor:pointer;text-decoration:none}
 .mrow:last-child{border-bottom:0}
@@ -345,7 +345,7 @@ body.onchat #fab{display:none!important}
 
 /* ---------- Skjöl appsins (1.7.0) ---------- */
 .inv{font-family:Manrope,sans-serif}.inv-logo{height:40px;width:auto;display:block;margin:0 0 10px}
-.stag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;margin-left:2px}
+.stag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:var(--r-hn);border:1px solid var(--line);color:var(--muted);white-space:nowrap;margin-left:2px}
 .pstag{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 2px}.pstag .stag{margin:0}
 .ptaxti{background:var(--bar0)!important;color:var(--ink)!important}
 
@@ -374,9 +374,9 @@ body.onchat #fab{display:none!important}
 .backrow.stuck{border-bottom-color:var(--line)}
 @media (min-width:1024px){.backrow{margin-inline:-40px;padding-inline:40px}}
 /* Starfsfólk á verkefni (1.9.3) */
-.sav{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:99px;background:var(--raise);color:var(--ink);font:500 10.5px var(--f-label);letter-spacing:.02em;flex:none}
+.sav{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:var(--r-hn);background:var(--raise);color:var(--ink);font:500 10.5px var(--f-label);letter-spacing:.02em;flex:none}
 .staffrow{display:flex;flex-wrap:wrap;gap:8px}
-.staff{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:99px;border:1px solid var(--line);font-size:14px}
+.staff{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:var(--r-hn);border:1px solid var(--line);font-size:14px}
 .savs{display:inline-flex;margin-left:4px;vertical-align:middle}.savs .sav{width:20px;height:20px;font-size:9px;margin-left:-4px;box-shadow:0 0 0 2px var(--bg)}
 .chks{display:flex;flex-wrap:wrap;gap:4px 16px}
 .dtabs{top:calc(env(safe-area-inset-top,0px) + var(--hdr,57px) + var(--bk,54px))}
@@ -422,7 +422,7 @@ body.onchat #fab{display:none!important}
 .tblr{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.tblr b{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
 .tblr .btn{min-height:34px;padding:4px 12px}
 @media (max-width:560px){.tbl.ed .tblr{flex-direction:row;width:100%;justify-content:space-between;align-items:center}}
-.kicker .tag,.lt .tag{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 8px;margin-left:4px;vertical-align:middle}
+.kicker .tag,.lt .tag{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:var(--r-hn);padding:1px 8px;margin-left:4px;vertical-align:middle}
 /* Neðri stika: jafn breiðir dálkar eftir fjölda hluta (fleiri einingar, t.d. Tilboð, frá 2.4.0) */
 nav.mbar.tbar{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
 nav.mbar.tbar:has(>:nth-child(7)) .tab{font-size:9.5px;letter-spacing:-.01em}

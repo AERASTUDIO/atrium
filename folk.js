@@ -10,7 +10,7 @@
   const dlab = iso => { const x = new Date(day(iso) + "T12:00"); return isNaN(x) ? "" : `${DN3[x.getDay()]} ${x.getDate()}. ${MS3[x.getMonth()]}`; };
   const css = document.createElement("style");
   css.textContent = `
-  .fk-sec { margin-top: 18px; } .fk-sec > h4 { margin: 0 0 8px; font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; display: flex; justify-content: space-between; }
+  .fk-sec { margin-top: 18px; } .fk-sec > h4 { margin: 0 0 8px; font-size:12px; font-weight: 500; color: var(--muted); text-transform:none; letter-spacing:0; display: flex; justify-content: space-between; }
   .fk-l { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface, #fff); }
   .fk-r { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; min-height: 48px; }
   .fk-r:last-child { border-bottom: 0; } a.fk-r { cursor: pointer; } a.fk-r:hover { background: color-mix(in srgb, var(--bg) 60%, transparent); }

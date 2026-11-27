@@ -52,13 +52,13 @@
   .vt .vtseg button { flex: 1 1 0; min-width: 0; white-space: nowrap; word-break: normal; overflow-wrap: normal; border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--muted); padding: 0 8px; min-height: 40px; border-radius: 9px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
   .vt .vtseg button[aria-selected="true"] { background: var(--surface, #fff); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(15,37,48,.08); }
   .vt .vtseg i { font-style: normal; font-size: 11.5px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--bg); display: inline-grid; place-items: center; padding: 0 6px; color: var(--muted); }
-  .vt .vtsec { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin: 6px 2px -4px; }
+  .vt .vtsec { font-size:12px; font-weight: 500; color: var(--muted); letter-spacing:0; text-transform:none; margin: 6px 2px -4px; }
   .vt .vtlist { overflow: hidden; }
   .vt .vtr { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; min-height: 60px; }
   .vt .vtr:last-child { border-bottom: 0; }
   .vt a.vtr { cursor: pointer; } .vt a.vtr:hover { background: color-mix(in srgb, var(--bg) 60%, transparent); }
   .vt .vtd { width: 44px; flex: none; text-align: center; line-height: 1.05; }
-  .vt .vtd b { display: block; font-size: 18px; font-weight: 500; } .vt .vtd span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .vt .vtd b { display: block; font-size: 18px; font-weight: 500; } .vt .vtd span { font-size:12px; color: var(--muted); text-transform:none; letter-spacing:0; }
   .vt .vtx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .vt .vtx b { font-size: 14.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .vt .vtx small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -8,7 +8,7 @@ body.simi1 .side .new{justify-content:center;padding:11px 14px;font-size:14.5px}
 body.simi1 .side .new svg{width:18px;height:18px}
 body.simi1 .side nav{display:flex;flex-direction:column;gap:2px}
 body.simi1 .side .tab{padding:10px 12px;font-size:15px}
-body.simi1 .side .sgrp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:14px 12px 4px}
+body.simi1 .side .sgrp{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:500;padding:14px 12px 4px}
 body.simi1 .side .sgrp:first-child{padding-top:2px}
 body.simi1 .side .sgrp:empty{padding:8px 0 0;margin-bottom:6px;border-bottom:1px solid var(--line)}
 body.simi1 .side .tab:hover{background:var(--b0)}
@@ -124,7 +124,7 @@ body.simi1.pv #sfoot2 .tl,body.simi1.pv #sfoot2 .sfn{display:none}
 body.simi1.pv #sfoot2 .tab{padding:8px 9px}
 body.simi1.pv #subnav2{display:block;position:fixed;top:64px;bottom:0;left:0;width:240px;box-sizing:border-box;padding:20px 12px;background:var(--raise);border-right:1px solid var(--line);overflow-y:auto;z-index:8}
 body.simi1.pv:not(.hassub) #subnav2{display:none}
-body.simi1.pv #subnav2 .snh{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:2px 12px 8px}
+body.simi1.pv #subnav2 .snh{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:500;padding:2px 12px 8px}
 body.simi1.pv #subnav2 .sni{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:14px;color:var(--ink);padding:9px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px}
 body.simi1.pv #subnav2 .sni:hover{background:var(--hover)}
 body.simi1.pv #subnav2 .sni[aria-current="page"]{background:var(--ink);color:var(--bg);font-weight:500}
@@ -176,7 +176,7 @@ body.simi1.pv.ui1 .topsearch input::placeholder{color:var(--ui1mu)}
 body.simi1.pv.ui1 .side .new{order:2;display:inline-flex;align-self:flex-start;background:#F4F6F8;color:var(--ui1side);border:0;padding:8px 16px;min-height:38px;margin:2px 0 4px}
 body.simi1.pv.ui1 #pvnew,body.simi1.pv.ui1 #subnav2{display:none!important}
 body.simi1.pv.ui1 .side nav#sitems{order:3;flex:none;flex-direction:column;align-items:stretch;gap:1px;overflow:visible}
-body.simi1.pv.ui1 .side .sgrp{display:block!important;width:auto;height:auto;background:none;margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ui1mu);font-weight:500;padding:9px 12px 2px}
+body.simi1.pv.ui1 .side .sgrp{display:block!important;width:auto;height:auto;background:none;margin:0;font-size:12px;letter-spacing:0;text-transform:none;color:var(--ui1mu);font-weight:500;padding:9px 12px 2px}
 body.simi1.pv.ui1 .side nav#sitems .tab{width:100%;padding:6px 12px;font-size:14px;color:var(--ui1tx);background:none;border-radius:10px;gap:10px}
 body.simi1.pv.ui1 .side nav#sitems .tab svg{display:inline-block;width:18px;height:18px;color:var(--ui1mu)}
 body.simi1.pv.ui1 .side nav#sitems .tab:hover{background:#363D45}
