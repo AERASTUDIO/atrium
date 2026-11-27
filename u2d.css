@@ -1897,3 +1897,12 @@ html body.kerfi .u3ok-on{color:var(--t-grn)!important}
 }
 /* 2.174.0: „Fleira“ í + Nýtt – textahnappur undir listanum */
 html body.kerfi #sheet .nyfleira{width:100%;margin-top:8px;justify-content:center}
+/* 2.174.0: verkefni vex úr línunni (View Transitions) – sama hraði og hliðarspjald í U3 */
+::view-transition-group(atr-opna){animation-duration:.26s;animation-timing-function:cubic-bezier(.23,1,.32,1)}
+::view-transition-old(atr-opna),::view-transition-new(atr-opna){height:100%;object-fit:none;object-position:top left}
+::view-transition-old(atr-opna){animation-duration:.08s}
+::view-transition-new(atr-opna){animation-duration:.16s}
+/* síðan sjálf skiptir strax – aðeins spjaldið vex, engin tvöföld mynd */
+::view-transition-old(root){animation:none;display:none}
+::view-transition-new(root){animation:none}
+html.vt-opna #view :is(.spdet,.dbody){animation:none!important}

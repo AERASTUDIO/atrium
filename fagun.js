@@ -24,7 +24,7 @@ function glyphs(){const w=document.createTreeWalker(document.body,NodeFilter.SHO
 /* ---------- U3 (2.173.0): viðbrögð þar sem smellt var ----------
    1) Táknið skiptir með mýkt (blur) þegar hnappurinn sem notandinn ýtti á teiknast upp á nýtt (t.d. Byrja ↔ Stöðva) – ekki við flipaskipti.
    2) Stutt jákvæð staðfesting („Afritað“, „Vistað“, „Skráð“) birtist á hnappnum sjálfum í stað tilkynningar neðst; annars venjuleg tilkynning. */
-const KORT='.ucard,.card,.spdet,.sheet,#sheet,.smcard,section';let LC=null;document.addEventListener('pointerdown',e=>{const b=e.target.closest?.('button,.btn,[data-act],a');if(!b)return;const r=b.getBoundingClientRect();LC={el:b,t:performance.now(),x:r.left+r.width/2,y:r.top+r.height/2,act:b.getAttribute('data-act'),kort:b.closest(KORT)};LC.ki=LC.kort?[...document.querySelectorAll(KORT)].indexOf(LC.kort):-1;},true);
+const KORT='.ucard,.card,.spdet,.sheet,#sheet,.smcard,section';let LC=null;document.addEventListener('pointerdown',e=>{const b=e.target.closest?.('button,.btn,[data-act],[data-open],a');if(!b)return;const r=b.getBoundingClientRect();LC={el:b,t:performance.now(),x:r.left+r.width/2,y:r.top+r.height/2,act:b.getAttribute('data-act'),kort:b.closest(KORT)};LC.ki=LC.kort?[...document.querySelectorAll(KORT)].indexOf(LC.kort):-1;},true);
 const nyr=ms=>LC&&performance.now()-LC.t<ms;
 const finna=()=>{if(!LC)return null;if(LC.el.isConnected)return LC.el;const a=LC.act&&document.querySelector(`[data-act="${CSS.escape(LC.act)}"]`);if(a)return a;const p=document.elementFromPoint(LC.x,LC.y);return p?.closest?.('button,.btn,[data-act]')||null;};
 function swap(){if(!nyr(900)||LC.el.isConnected)return;const merkja=b=>{if(!b||b.dataset.u3s)return;b.dataset.u3s=1;b.classList.add('u3swap');setTimeout(()=>b.classList.remove('u3swap'),400);};
@@ -37,4 +37,14 @@ const t0=window.toast;if(typeof t0==='function'){window.toast=function(t,undo,lb
      setTimeout(()=>{if(b.isConnected){b.replaceChildren(...was);b.classList.remove('u3ok','u3ok-on');b.style.minWidth='';b.removeAttribute('aria-live');}},1600);};
     requestAnimationFrame(()=>requestAnimationFrame(go));return;}}
  }catch(e){}return t0.apply(this,arguments);};}
+/* ---------- 2.174.0 (ráð 2 úr „10 design tips“): verkefni vex úr línunni ----------
+   Þegar færsla er opnuð úr lista og ekkert hliðarspjald er opið, vex línan sem smellt var á í spjaldið (View Transitions).
+   Ekki þegar skipt er á milli færslna með spjaldið opið (tugir sinnum á dag), ekki án stuðnings vafra og ekki með prefers-reduced-motion. */
+(()=>{const od=window.openDetail;if(typeof od!=='function'||!document.startViewTransition)return;const RM=matchMedia('(prefers-reduced-motion: reduce)');
+ window.openDetail=function(key){let row=null;try{if(!RM.matches&&(typeof DETAIL==='undefined'||!DETAIL)&&key&&nyr(800)){row=[...document.querySelectorAll('#view [data-open]')].find(e=>e.dataset.open===key&&e.offsetParent);}}catch(e){}
+  if(!row)return od.apply(this,arguments);const args=arguments,self=this,R=document.documentElement;
+  row.style.viewTransitionName='atr-opna';R.classList.add('vt-opna');
+  const t=document.startViewTransition(()=>{row.style.viewTransitionName='';od.apply(self,args);const p=document.querySelector('#view .spdet')||document.querySelector('#view .dbody')||document.querySelector('#view');p.style.viewTransitionName='atr-opna';});
+  t.finished.catch(()=>{}).finally(()=>{R.classList.remove('vt-opna');document.querySelectorAll('[style*="view-transition-name"]').forEach(e=>e.style.viewTransitionName='');});};
+ try{openDetail=window.openDetail;}catch(e){}})();
 let q=0;const run=()=>{q=0;try{deco()}catch(e){}try{glyphs()}catch(e){}try{swap()}catch(e){}};new MutationObserver(()=>{if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});run();})();
