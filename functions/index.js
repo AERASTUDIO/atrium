@@ -649,7 +649,7 @@ if (process.env.BOKHALD === "payday") {
       const tok = String(req.get("Authorization") || "").replace(/^Bearer\s+/i, ""); if (!tok) return res.status(401).send("Innskráningu vantar");
       const me = await admin.auth().verifyIdToken(tok), email = lc(me.email || "");
       const nu = (await db.doc("app/notendur").get()).data()?.notendur || {}, u = nu[email] || Object.values(nu).find(x => lc(x?.netfang) === email);
-      if (!u || u.virkur === false || !["admin", "bokari"].includes(u.hlutverk)) return res.status(403).send("Aðeins fjármál");
+      if (!u || u.virkur === false || u.hlutverk !== "admin") return res.status(403).send("Aðeins admin");
       const id = String(req.query.id || ""); if (!id) return res.status(400).send("id vantar");
       const s = await db.doc("reikningar/" + id).get(); const pid = s.exists ? s.data().bokhald?.pid : null; if (!pid) return res.status(404).send("Ekki í Payday");
       const r = await fetch(PD_URL + "/invoices/" + encodeURIComponent(pid) + "/pdf", { headers: { Authorization: "Bearer " + await pdToken(), "Api-Version": "alpha", Accept: "application/pdf" } });

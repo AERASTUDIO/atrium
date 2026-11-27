@@ -7,14 +7,15 @@
     // fjarmal: býr til og breytir reikningum, sér tíma og kostnað allra (firestore.rules framfylgir því sama)
     // eyda: eyðir verkefnum, viðskiptavinum og reikningum (frá 1.9.0; firestore.rules: delete aðeins admin)
     admin:       { heiti: "Admin",       notendur: true,  stillingar: true,  fjarmal: true,  eyda: true  },
-    bokari:      { heiti: "Bókari",      notendur: false, stillingar: false, fjarmal: true,  eyda: false },
     starfsmadur: { heiti: "Starfsmaður", notendur: false, stillingar: false, fjarmal: false, eyda: false },
     // vettvangur (2.97.0): lager og vettvangur – Í dag, klukka, skanni, afhending, myndir; aðeins eigin verk (vettvangur.js, firestore.rules)
     vettvangur:  { heiti: "Vettvangur",  notendur: false, stillingar: false, fjarmal: false, eyda: false, vettvangur: true }
   };
   let NU = null; // app/notendur
   window.USER = null; // innskráður notandi {email, nafn, sk, hlutverk, varaleid}
-  window.can = perm => !!(ROLES[window.VIEWAS?.hlutverk || USER?.hlutverk || "starfsmadur"] || {})[perm]; // VIEWAS = „Skoða sem“ (adgangur.js)
+  /* 2.169.0: hlutverkið Bókari lagt niður – notandi sem enn er skráður „bokari“ fær réttindi starfsmanns þar til admin breytir */
+  window.nh = h => (h === "bokari" || !h ? "starfsmadur" : h);
+  window.can = perm => !!(ROLES[nh(window.VIEWAS?.hlutverk || USER?.hlutverk)] || {})[perm]; // VIEWAS = „Skoða sem“ (adgangur.js)
   window.nuUsers = () => Object.entries(NU?.notendur || {}).map(([email, u]) => ({ email, ...u }))
     .sort((a, b) => (b.virkur - a.virkur) || (a.hlutverk === "admin" ? -1 : b.hlutverk === "admin" ? 1 : 0) || String(a.nafn).localeCompare(b.nafn, "is"));
   window.nuSet = d => { NU = d; };
@@ -25,7 +26,7 @@
   // Admin skrifar venjulegt netfang; það er geymt undir auðkenninu (lykill notendaskrárinnar) og netfangið sjálft í reitnum netfang.
   const gestKey = e => (!e || e.endsWith("@" + DOMAIN) || e.includes("#ext#") || !ORG.ms?.gestir) ? e : e.replace("@", "_") + "#ext#@" + ORG.ms.gestir;
   const synt = u => u.netfang || u.email;
-  const roleName = r => ROLES[r]?.heiti || r;
+  const roleName = r => ROLES[nh(r)]?.heiti || r;
   const MN = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."], p2 = n => String(n).padStart(2, "0");
   const when = t => { if (!t) return "aldrei"; const x = new Date(t); return `${x.getDate()}. ${MN[x.getMonth()]} ${x.getFullYear()} kl. ${p2(x.getHours())}:${p2(x.getMinutes())}`; };
 
@@ -60,7 +61,7 @@
     const row = u => `<div class="cfgrow"${u.virkur ? "" : ' style="opacity:.6"'}><div class="grow">${esc(u.nafn || u.email)} ${u.sk ? `<span class="nr">${esc(u.sk)}</span>` : ""} <span class="tag">${esc(roleName(u.hlutverk))}</span>${u.virkur ? "" : ' <span class="tag">Óvirkur</span>'}${lc(u.email) === lc(USER?.email) ? ' <span class="tag">Ég</span>' : ""}
         <div class="ls" style="font-size:12.5px;color:var(--muted)">${esc(synt(u))}${u.gestur ? " · gestur" : ""} · síðast inni ${esc(when(u.sidast))}</div></div>
       <div class="ctl">
-        <select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(u.nafn)}">${Object.keys(ROLES).map(r => `<option value="${r}"${r === u.hlutverk ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>
+        <select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(u.nafn)}">${Object.keys(ROLES).map(r => `<option value="${r}"${r === nh(u.hlutverk) ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>
         <button type="button" class="mini" data-act="nuren:${esc(u.email)}" aria-label="Breyta nafni og skammstöfun">✎</button>
         ${lc(u.email) === lc(USER?.email) ? "" : `<button type="button" class="mini" data-act="nuvirk:${esc(u.email)}" title="${u.virkur ? "Gera óvirkan – kemst ekki inn" : "Virkja aftur"}" style="width:auto;padding:0 10px">${u.virkur ? "Óvirkja" : "Virkja"}</button>`}
         ${u.virkur ? "" : `<button type="button" class="mini" data-act="nudel:${esc(u.email)}" aria-label="Eyða notanda">✕</button>`}
@@ -95,7 +96,7 @@
       const sub = u ? `${esc(synt(u))}${u.gestur ? " · gestur" : ""} · síðast inni ${esc(when(u.sidast))}` : `Án innskráningar – skráð í tímaskráningu og á verkefnum`;
       return `<div class="fkrow${off ? " off" : ""}"><span class="fkav${u ? "" : " no"}" aria-hidden="true">${esc(x.sk || ini(x.nafn))}</span>
         <div class="fkm"><div class="fkn"><b>${esc(x.nafn)}</b>${me(x) ? '<span class="tag">Ég</span>' : ""}${off ? '<span class="tag">Óvirkur</span>' : ""}</div><div class="fks">${sub}</div><div class="fks">${n} ${n === 1 ? "tímaskráning" : "tímaskráningar"}</div></div>
-        <div class="fkr">${u ? `<select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(x.nafn)}"${off ? " disabled" : ""}>${Object.keys(ROLES).map(r => `<option value="${r}"${r === u.hlutverk ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>`
+        <div class="fkr">${u ? `<select data-nurole="${esc(u.email)}" aria-label="Hlutverk ${esc(x.nafn)}"${off ? " disabled" : ""}>${Object.keys(ROLES).map(r => `<option value="${r}"${r === nh(u.hlutverk) ? " selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>`
           : `<button type="button" class="btn sm" data-act="fkgive:${esc(id)}">Gefa aðgang</button>`}
           <details class="fkmore"><summary class="btn sm" aria-label="Fleiri aðgerðir">⋯</summary><div>
             <button type="button" data-act="fkedit:${esc(id)}">Breyta nafni og skammstöfun</button>
@@ -105,7 +106,7 @@
     const nA = P.filter(x => x.u?.virkur).length, nS = P.filter(x => !x.u).length;
     return `<div class="fkhead"><div class="fkcount">${P.length} manns · ${nA} með aðgang${nS ? ` · ${nS} án innskráningar` : ""}</div><button type="button" class="btn primary" data-act="fkadd:">+ Bæta við</button></div>
       <div class="fklist">${P.map(row).join("")}</div>
-      <div class="fkhelp"><p><b>Hlutverk:</b> <b>Admin</b> stýrir fólki og stillingum. <b>Bókari</b> sér fjármál (reikninga, tíma og kostnað allra). <b>Starfsmaður</b> vinnur í verkefnum, tímum og gögnum.</p>
+      <div class="fkhelp"><p><b>Hlutverk:</b> <b>Admin</b> stýrir fólki og stillingum. Admin sér líka fjármál (reikninga, tíma og kostnað allra). <b>Starfsmaður</b> vinnur í verkefnum, tímum og gögnum.</p>
         <p><b>Án innskráningar:</b> manneskja sem ekki skráir sig inn sjálf (t.d. verktaki) en tímar eru skráðir á. „Gefa aðgang“ bætir við netfangi svo hún geti skráð sig inn.</p>
         <p>Innskráning er með Microsoft-aðgangi @${esc(DOMAIN)} – eða eigin netfangi fyrir gesti sem boðnir hafa verið í Entra (Users › Invite external user). Nýr notandi þarf líka að vera í Entra (Enterprise apps › ${esc(ORG.ms?.appNafn || "Atrium")} › Users and groups). Óvirkur notandi kemst ekki inn en tímarnir hans haldast.</p></div>`;
   };

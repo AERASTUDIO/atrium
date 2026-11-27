@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Atrium – þróunaruppsetning (Firebase-verkefnið atrium-499a2). Afrit; virku reglurnar eru í Firebase Console › Firestore › Rules.
     // Innskráning með Microsoft-aðgangi AERA (@aerastudio.is, fyrsti admin dagur@aerastudio.is).
-    // Notendaskráin er í app/notendur: { notendur: { "<netfang>": { nafn, sk, hlutverk: "admin"|"bokari"|"starfsmadur", virkur } } }
+    // Notendaskráin er í app/notendur: { notendur: { "<netfang>": { nafn, sk, hlutverk: "admin"|"starfsmadur"|"vettvangur", virkur } } }
 
     function signedIn() { return request.auth != null && request.auth.token.email != null; }
     function em() { return request.auth.token.email.lower(); }
@@ -37,8 +37,8 @@ service cloud.firestore {
     }
 
     function role() { return legacy() ? "admin" : users()[em()].hlutverk; }
-    // Fjármál: admin og bókari – búa til reikninga og sjá tíma og kostnað allra.
-    function fjarmal() { return active() && (legacy() || role() in ["admin", "bokari"]); }
+    // Fjármál: admin – býr til reikninga og sér tíma og kostnað allra. (2.169.0: hlutverkið bókari lagt niður)
+    function fjarmal() { return admin(); }
     // Vettvangur (2.97.0): lager og vettvangur – skráir tíma, afhendir og tekur á móti pöntunum, en stofnar hvorki verkefni,
     // tilboð, pantanir né viðskiptavini, breytir ekki tilboðum eða viðskiptavinum og sér aldrei reikninga (fjarmal()).
     function vett() { return active() && role() == "vettvangur"; }
@@ -50,13 +50,11 @@ service cloud.firestore {
     // app/state: stillingar, samtölur, netfangaskrá o.fl. (afgangurinn eftir skiptingu í söfn, frá 1.3.0).
     // Eftir flutning (skipting = 2) má ekki skrifa gömlu fylkin aftur inn – gamlar útgáfur appsins fá villu í stað þess að skrifa yfir.
     // 2.168.1: viðkvæmar stillingar – reikningsupplýsingar (banki, kt., bókhald), einingar, pakkar, Huginn og sjálfgefinn innheimtuháttur –
-    // breytir aðeins admin. Fjármál (bókari) mega hækka reikningsnúmerið (nastaNr) og sjalfFra; aðrar stillingar (t.d. næsta tilboðsnúmer) allir virkir.
+    // breytir aðeins admin; aðrar stillingar (t.d. næsta tilboðsnúmer) allir virkir notendur.
     function stG() { return resource == null ? {} : resource.data.get("stillingar", {}); }
     function stN() { return request.resource.data.get("stillingar", {}); }
     function stK() { return stN().diff(stG()).affectedKeys(); }
-    function rkK() { return stN().get("reikn", {}).diff(stG().get("reikn", {})).affectedKeys(); }
-    function stillingarLeyfi() { return admin() || (!stK().hasAny(["pakkar", "einingar", "claude", "innheimta"])
-      && (!stK().hasAny(["reikn"]) || (fjarmal() && rkK().hasOnly(["nastaNr", "sjalfFra"])))); }
+    function stillingarLeyfi() { return admin() || !stK().hasAny(["reikn", "pakkar", "einingar", "claude", "innheimta"]); }
     match /app/state {
       allow read: if active();
       allow write: if active() && stillingarLeyfi() && !(resource != null && resource.data.get("skipting", 0) >= 2
@@ -95,7 +93,7 @@ service cloud.firestore {
     function minPontun() { return !vett() || em() in resource.data.menn; }
     match /pantanir/{id}       { allow read, update: if active() && minPontun(); allow create: if skrif(); allow delete: if admin(); }
 
-    // Reikningar: aðeins fjármál (admin, bókari) lesa og skrifa (lestur takmarkaður 2.94.2); aðeins admin eyðir (frá 1.9.0).
+    // Reikningar: aðeins fjármál (admin) lesa og skrifa (lestur takmarkaður 2.94.2); aðeins admin eyðir (frá 1.9.0).
     match /reikningar/{id} {
       allow read: if fjarmal();
       allow create, update: if fjarmal();

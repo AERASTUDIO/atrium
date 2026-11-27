@@ -39,7 +39,7 @@
     "Álagning (%)": "Álagning ofan á kostnaðarverð þegar söluverð er reiknað úr verði birgja.",
     "Óvissuálag (% af tollverði)": "Varúðarálag ofan á tollverð þar til reynsla er komin af birgi.",
     // Aðgangur og fólk
-    "Réttindi hlutverka": "Hvað hvert hlutverk má: admin allt, bókari fjármál, starfsmaður sín verk, vettvangur aðeins eigin verk í síma.",
+    "Réttindi hlutverka": "Hvað hvert hlutverk má: admin allt (líka fjármál), starfsmaður sín verk, vettvangur aðeins eigin verk í síma.",
     "Gátlisti": "Atriði sem þarf að fara yfir svo aðgangur og öryggi séu rétt stillt.",
     "Nýlegar breytingar": "Hver breytti hverju nýlega – til að rekja breytingar.",
     // Einingar

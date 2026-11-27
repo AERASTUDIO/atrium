@@ -49,7 +49,7 @@
         faerslur: L.slice(0, 60).map(e => ({ dags: e.date, fra: e.fra, til: e.til, klst: +e.timar || 0, verkefni: e.nr || null, lysing: String(e.lysing || "").replace(/^\d\d\.\d\d – /, "").replace(/ \([\d,.]+ klst\.\)$/, ""), starfsmadur: e.starfsmadur, reikningsfaert: !!e.reikningur })) };
     },
     reikningar({ stada, fra, til }) {
-      if (!tr(() => can("fjarmal"), false)) return { villa: "Aðeins fjármál (admin og bókari) sjá reikninga." };
+      if (!tr(() => can("fjarmal"), false)) return { villa: "Aðeins admin sér reikninga." };
       const inR = range(fra, til), s = String(stada || "").toLowerCase();
       const L = (st()?.reikningar || []).filter(r => inR(r.dags) && (!s || String(r.stada || "").toLowerCase().includes(s)));
       const sum = k => L.reduce((a, r) => a + (+r[k] || 0), 0);

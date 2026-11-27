@@ -30,7 +30,7 @@ module.exports = ({ db, admin, logger, onRequest, onSchedule, defineSecret, send
       input_schema: { type: "object", properties: { id: { type: "string", description: "id eða nr verkefnis" } }, required: ["id"] } },
     { name: "timar", description: "Tímaskráningar sem notandinn hefur aðgang að á tímabili. Skilar samtölum eftir verkefni og starfsmanni og allt að 60 færslum.",
       input_schema: { type: "object", properties: { fra: { type: "string", description: "ÁÁÁÁ-MM-DD" }, til: { type: "string", description: "ÁÁÁÁ-MM-DD" }, verkefni: { type: "string", description: "id eða nr (valfrjálst)" }, starfsmadur: { type: "string", description: "skammstöfun, t.d. DM (valfrjálst)" }, oreikningsfaert: { type: "boolean", description: "aðeins tímar sem eru ekki komnir á reikning" } } } },
-    { name: "reikningar", description: "Reikningar (aðeins fyrir fjármál: admin og bókara). Skilar nr, viðskiptavini, upphæð, VSK, stöðu, dagsetningu og greiðsludegi.",
+    { name: "reikningar", description: "Reikningar (aðeins fyrir admin). Skilar nr, viðskiptavini, upphæð, VSK, stöðu, dagsetningu og greiðsludegi.",
       input_schema: { type: "object", properties: { stada: { type: "string", description: "t.d. Drög, Sent, Greitt, Ógilt (valfrjálst)" }, fra: { type: "string" }, til: { type: "string" } } } },
     { name: "tilbod", description: "Tilboð og staða þeirra (nr, heiti, viðskiptavinur, upphæð, staða, gildir til).",
       input_schema: { type: "object", properties: { stada: { type: "string" }, leit: { type: "string" } } } },

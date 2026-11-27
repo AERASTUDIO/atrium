@@ -167,11 +167,11 @@
   window.vidbForm = vidbForm;
 
   /* ---------- Starfsmannstákn (2.136.0): upphafsstafir; músarbendill sýnir fullt nafn, hlutverk og stöðu núna ---------- */
-  const ROLEH = { admin: "Admin", bokari: "Bókari", starfsmadur: "Starfsmaður", vettvangur: "Vettvangur" };
+  const ROLEH = { admin: "Admin", starfsmadur: "Starfsmaður", vettvangur: "Vettvangur" };
   window.atrStada = sk => { const P = folk().find(x => x.sk === sk) || { sk, nafn: sk, email: lc(tr(() => skEmail(sk), "")) }, n = new Date(), d = iso(n), nm = pad(n.getHours()) + ":" + pad(n.getMinutes());
     const R = atridi(P, [d]).get(d) || [], nu = R.filter(x => x.t && x.e && x.t <= nm && nm < x.e).sort((a, b) => String(b.e).localeCompare(String(a.e)))[0];
     const naest = R.filter(x => x.t && x.t > nm && x.k !== "t").sort((a, b) => String(a.t).localeCompare(String(b.t)))[0];
-    const u = tr(() => (window.nuUsers ? nuUsers() : []).find(x => x.sk === sk), null), hl = ROLEH[u?.hlutverk] || "";
+    const u = tr(() => (window.nuUsers ? nuUsers() : []).find(x => x.sk === sk), null), hl = ROLEH[window.nh ? nh(u?.hlutverk) : u?.hlutverk] || "";
     const st = nu ? `Upptekin(n) til ${nu.e} – ${nu.txt}` : R.some(x => x.k === "e" && !x.t) ? "Fjarverandi í dag" : naest ? `Laus núna · næst kl. ${naest.t}: ${naest.txt}` : "Laus núna";
     return { nafn: P.nafn || sk, hl, st, upptekin: !!nu }; };
   window.atrAv = (sk, tag) => { const s = tr(() => atrStada(sk), { nafn: sk, hl: "", st: "" }), ini = String(sk || "").slice(0, 2).toUpperCase();

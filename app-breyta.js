@@ -193,7 +193,7 @@ window.aeraStart=function(db){
   const rebuild=()=>{ if(P.ready.size<GOGN.COLS.length+2) return; const nd=GOGN.join(P); PENDING=Object.values(P.pend).some(Boolean);
     if(JSON.stringify(nd)!==JSON.stringify(S)){const fyrst=!S; S=nd; fyrst?render():renderData(); openFromHash();} else drawSync(); };
   const startSplit=()=>{ if(mode==="split") return; mode="split"; window.SPLIT=true; window.__DB=db; /* 2.56.0: pöntunarsíða (pantanir2.js) */ const fj=window.can&&can("fjarmal"); if(window.spStart) spStart(db); if(window.heimStart) heimStart(db);
-    for(const c of GOGN.COLS){ if(c.k==="reikningar"&&!fj&&!window.AERA_DEMO){P.cols[c.k]=[]; P.ready.add(c.k); continue;} // 2.94.2: reikningar aðeins fyrir fjármál (admin, bókari)
+    for(const c of GOGN.COLS){ if(c.k==="reikningar"&&!fj&&!window.AERA_DEMO){P.cols[c.k]=[]; P.ready.add(c.k); continue;} // 2.94.2: reikningar aðeins fyrir fjármál (admin)
     const vt=c.k==="pantanir"&&USER?.hlutverk==="vettvangur"&&!window.AERA_DEMO; // 2.98.0: vettvangur les aðeins sínar pantanir
     /* 2.145.16: tímafærslur (fjármál – allar færslur): síðustu 13 mánuðir í beinni; eldri lesnar einu sinni úr geymslu á tækinu (af netþjóni í mesta lagi vikulega).
        Sparar lestur og flýtir opnun þegar færslum fjölgar. Breytingar á eldri færslum héðan eru settar beint inn (onOps). */

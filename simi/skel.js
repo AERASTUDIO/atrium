@@ -102,7 +102,7 @@
     const grp = (title, xs) => xs.length ? SM.card(title, `<div class="smrows">${xs.map(x => `<a class="smr smrl" role="button" tabindex="0" data-tab="${E(first(x))}"><span class="smri">${ic(SIC[x.k] || "list", 18)}</span><span class="smrt"><b>${E(x.l)}</b></span>${cnt[x.k] ? `<span class="smn">${cnt[x.k]}</span>` : ""}${ic("chev", 16)}</a>`).join("")}</div>`) : "";
     const VINNA = ["idag", "tilbod", "pantanir", "verkefni", "timar", "fjarmal", "dagatal", "verkdag"], SAM = ["postur", "spjall"];
     const U = window.VIEWAS || window.USER || {}, sk = String(U.sk || tr(() => ME(), "") || "?").slice(0, 2).toUpperCase();
-    const role = tr(() => ({ admin: "Admin", bokari: "Bókari", starfsmadur: "Starfsmaður", vettvangur: "Vettvangur" })[window.ROLE || U.hlutverk] || U.hlutverk || "", "");
+    const role = tr(() => ({ admin: "Admin", starfsmadur: "Starfsmaður", vettvangur: "Vettvangur" })[window.nh ? nh(window.ROLE || U.hlutverk) : (window.ROLE || U.hlutverk)] || "", "");
     const stOk = tr(() => !window.tabOn || tabOn("stillingar"), true);
     return `<div class="smscr smmeira">${SM.head("Meira", "Öll svæði", `<div class="smhr">${SM.ib("search", "Leita", 'data-tab="leit"')}${SM.bell()}</div>`)}<div class="smbody">`
       + grp("Vinna", secs.filter(x => VINNA.includes(x.k))) + grp("Samskipti", secs.filter(x => SAM.includes(x.k))) + grp("Skrár", secs.filter(x => !VINNA.includes(x.k) && !SAM.includes(x.k)))

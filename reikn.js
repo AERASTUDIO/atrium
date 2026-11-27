@@ -183,7 +183,7 @@
      uppfærast með pöntuninni (línur, afsláttur, aukagjöld úr skilauppgjöri) og verða tilbúin (lifandi = false, tilbuid) við skil eða
      afhendingu söluvara. Staðgreitt: greiddur reikningur (kvittun) um leið og greiðsla er skráð. Valfrjálst (dkSjalf): tilbúin drög
      fara sjálfkrafa í DK ef ekkert vantar. Aðeins pantanir frá virkjun (sjalfFra) – eldri fara áfram handvirkt um „Pantanir án reiknings“.
-     Keyrir í appi fjármálanotanda (reglur: aðeins admin/bókari skrifa reikninga); auðkenni draga = "pn" + id pöntunar svo tveir
+     Keyrir í appi fjármálanotanda (reglur: aðeins admin skrifar reikninga); auðkenni draga = "pn" + id pöntunar svo tveir
      notendur búi ekki til tvenn drög. R.sjalf, R.lifandi, R.tilbuid. */
   const AUTO_ST = ["Staðfest", "Afhent", "Skilað", "Lokið"];
   const autoOn = () => RK().sjalfvirkt !== false && !!(window.ON && ON("pantanir"));
@@ -527,7 +527,7 @@
     a.download = fileBase(R) + ".xlsx"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast(TT() + " sótt sem Excel");
   }
 
-  // Reikningar: allir starfsmenn sjá þá, en aðeins admin og bókari búa til, breyta og senda (firestore.rules framfylgir).
+  // Reikningar: allir starfsmenn sjá þá, en aðeins admin býr til, breytir og sendir (firestore.rules framfylgir).
   const FJ = () => !!MCP && (!window.can || can("fjarmal"));
   /* ---------- Reikningspakki fyrir bókhaldskerfi (2.90.0) ----------
      Sameiginlegt snið sem tenging við Payday eða DK (síðar, um Cloud Function) þýðir yfir á sitt API. Þangað til má sækja hann sem CSV. */
@@ -658,7 +658,7 @@
 
   window.rkAct = async function (k, r) {
     const id = r.join(":");
-    if (["rknew", "rkpn", "rkdk", "rkkredit", "rkresend", "rkpdgr", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin og bókari geta breytt reikningum.");
+    if (["rknew", "rkpn", "rkdk", "rkkredit", "rkresend", "rkpdgr", "rkod", "rksend", "rkpaid", "rkdel", "rkogilda", "rkbok", "rkcfg"].includes(k) && !FJ()) return toast("Aðeins admin getur breytt reikningum.");
     if (k === "rknew") { openForm(id || null); return; }
     if (k === "rkpn") { billOrders(id); return; }
     if (k === "rkdk") { const R = findR(id); if (!R) return; const v = vidbunadur(R); if (v.length) return toast("Vantar: " + v.join(", "));

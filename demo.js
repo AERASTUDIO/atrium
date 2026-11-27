@@ -91,7 +91,7 @@ function sampleState() {
         D("dv7", 8, "Fundur með verkkaupa", ["JJ"], { kl: "13:00", verkefniId: "p1" }), D("dv8", 9, "Yfirfara tilboð vikunnar", ["JJ"]), D("dv9", 10, "Uppsetning á staðnum", ["HS", "GG"], { til: day(mo + 11), verkefniId: "p3" })]; })(),
     netfangaskra: [],
     stillingar: {
-      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Bókari" }, ...(window.ORG?.utlit === "I" ? [{ sk: "OK", nafn: "Ólafur Kristinsson" }] : [])],
+      starfsmenn: [{ sk: "JJ", nafn: "Jóna Jónsdóttir", eg: true }, { sk: "GG", nafn: "Gunnar Gunnarsson", eg: false }, { sk: "HS", nafn: "Helga Sigurðardóttir" }, { sk: "SB", nafn: "Sigrún Birgisdóttir" }, ...(window.ORG?.utlit === "I" ? [{ sk: "OK", nafn: "Ólafur Kristinsson" }] : [])],
       vikumark: 40,
       thjonusta: window.ORG?.utlit === "I" ? ["Ráðgjöf", "Hönnun", "Framkvæmd", "Viðhald", "Rekstur"] : ["Hönnun", "Ráðgjöf", "Framkvæmd", "Almennt"],
       reikn: { nafn: (window.ORG?.nafn || "Fyrirtækið") + " (sýnishorn)", kt: "000000-0000", heimilisfang: "Sýnigata 1", vsknr: "", netfang: "demo@" + (window.ORG?.len || "aera.example"), simi: "", banki: "", timagjald: 10000, frestur: 14, nastaNr: 1003 },
@@ -196,16 +196,16 @@ function rikari(g) {
     { id: "t3", conv: "demo-conv-4", verkefniId: "p8", efni: "Ráðstefna – fjöldi gesta", tengt: iso(-2), af: "Jóna" });
 }
 
-// Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar), ?demo=bokari = bókari (Sigrún).
+// Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar). (2.169.0: hlutverkið bókari lagt niður)
 const now = new Date().toISOString();
 const notendur = { notendur: {
   "jona@demo.example": { nafn: "Jóna Jónsdóttir", sk: "JJ", hlutverk: "admin", virkur: true, stofnad: iso(-30), breytt: iso(-30), sidast: now },
   "gunnar@demo.example": { nafn: "Gunnar Gunnarsson", sk: "GG", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-20), breytt: iso(-20), sidast: iso(-1) },
   "helga@demo.example": { nafn: "Helga Sigurðardóttir", sk: "HS", hlutverk: "starfsmadur", virkur: false, stofnad: iso(-60), breytt: iso(-5), sidast: iso(-9) },
-  "sigrun@demo.example": { nafn: "Sigrún Bókari", sk: "SB", hlutverk: "bokari", virkur: true, stofnad: iso(-10), breytt: iso(-10), sidast: iso(-2) }
+  "sigrun@demo.example": { nafn: "Sigrún Birgisdóttir", sk: "SB", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-10), breytt: iso(-10), sidast: iso(-2) }
 } };
 const demoRole = new URLSearchParams(location.search).get("demo");
-const email = demoRole === "starfsmadur" ? "gunnar@demo.example" : demoRole === "bokari" ? "sigrun@demo.example" : "jona@demo.example";
+const email = demoRole === "starfsmadur" ? "gunnar@demo.example" : "jona@demo.example";
 const user = { email, ...notendur.notendur[email] };
 
 // Gagnagrunnur í minni: sama viðmót og firebase.js lætur appið fá (get / set / tx / watch / commit / watchCol).
@@ -238,13 +238,13 @@ const db = {
   // 2.145.16: sama viðmót og firebase.js (allt safnið lesið einu sinni)
   async getColOnce(name) { return { docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])), fromCache: true }; },
   watchCol(name, filter, cb, onErr) {
-    const fj = ["admin", "bokari"].includes(user.hlutverk), own = name === "timar" || name === "kostnadur";
+    const fj = user.hlutverk === "admin", own = name === "timar" || name === "kostnadur";
     const f = () => { if (own && !fj && !(filter && filter[0] === "eigandi" && filter[1] === email)) return onErr && onErr({ code: "permission-denied" });
       cb({ docs: Object.keys(store).filter(p => p.startsWith(name + "/") && p.split("/").length === 2).map(p => structuredClone(store[p])).filter(d => !filter || (filter[2] === "array-contains" ? (d[filter[0]] || []).includes(filter[1]) : filter[2] === ">=" ? d[filter[0]] >= filter[1] : filter[2] === "<" ? d[filter[0]] < filter[1] : d[filter[0]] === filter[1])), pending: false, fromCache: false }); };
     (colw[name] = colw[name] || []).push(f); setTimeout(f, 0); return () => {};
   }
 };
-// Starfsmaður/bókari í sýniútgáfu: gögnin eru þegar flutt (admin flytur í raun einu sinni).
+// Starfsmaður í sýniútgáfu: gögnin eru þegar flutt (admin flytur í raun einu sinni).
 if (user.hlutverk !== "admin") {
   const sk2em = Object.fromEntries(Object.entries(notendur.notendur).map(([e, u]) => [u.sk, e]));
   const ow = x => sk2em[x.starfsmadur || x.sk] || "jona@demo.example";
