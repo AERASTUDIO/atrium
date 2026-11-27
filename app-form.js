@@ -102,7 +102,7 @@ function enhanceForm(){
       const isKeep=keep.some(k=>ch.id===k||ch.querySelector?.(`#${k}, input[name="${k}"]`)||(k==="f-client"&&ch.id==="f-client-new"));
       if(!isKeep) box.append(ch);});
     if(box.children.length){f.querySelector("#f-msg").before(more);
-      if([...box.querySelectorAll("input:not([type=checkbox]),textarea")].some(i=>i.value)) more.open=true;}}
+      if([...box.querySelectorAll("input:not([type=checkbox]),textarea")].some(i=>i.value&&i.value!==i.defaultValue)) more.open=true; /* 2.174.0: sjálfgefin gildi (t.d. tímagjald) opna ekki „Fleiri valkostir“ */}}
   const note=document.createElement("p"); note.className="hint reqnote"; note.innerHTML='<span class="req">*</span> þarf að fylla út'; f.querySelector("#f-msg").before(note);
   const first=f.querySelector("input:not([type=hidden]):not([type=checkbox]),select"); if(first&&!("ontouchstart" in window)) setTimeout(()=>first.focus(),50);
 }

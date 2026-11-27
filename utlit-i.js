@@ -185,9 +185,17 @@
       ["Skjal", "Word, Excel eða tengill", I('<path d="M6 3.5h9l3.5 3.5v13.5H6z"/>'), "window.skOpenNew&&skOpenNew(null)", on("skjol") && window.skOpenNew],
       ["Póstur", "Nýr tölvupóstur", I('<path d="M3.5 6h17v12h-17zM3.5 6l8.5 7 8.5-7"/>'), "window.poCompose&&poCompose({})", on("postur") && window.poCompose]
     ].filter(x => x[4] && mcp);
-    sheet.innerHTML = `<h3 id="sheet-h">Búa til</h3><div class="nymenu">${X.map(([t, d, ic, js]) => `<button type="button" class="nyit" data-js="${esc(js)}">${ic}<span><b>${esc(t)}</b><small>${esc(d)}</small></span></button>`).join("")}</div><div class="actions"><button type="button" class="btn" onclick="closeSheet()">Hætta við</button></div>`;
+    /* 2.174.0 (lög Hicks): fjórir algengustu fyrst, rest undir „Fleira“. Röðin lærist af notkun hvers notanda (localStorage, aðeins þægindi);
+       án notkunar: Tími, Verkefni, Tilboð, Pöntun. Ekkert hverfur – „Fleira“ sýnir allt. */
+    let NOT = {}; try { NOT = JSON.parse(localStorage.getItem("atrium-nytt") || "{}") || {}; } catch (e) {}
+    const GRUNN = ["Tími", "Verkefni", "Tilboð", "Pöntun", "Fundur", "Viðskiptavinur"], rank = t => { const i = GRUNN.indexOf(t); return i < 0 ? 99 : i; };
+    const R = X.slice().sort((a, b) => ((NOT[b[0]] || 0) - (NOT[a[0]] || 0)) || (rank(a[0]) - rank(b[0])));
+    const SYNA = R.length <= 5 ? R.length : 4, btn = ([t, d, ic, js], fl) => `<button type="button" class="nyit${fl ? " nyfl" : ""}" data-js="${esc(js)}" data-t="${esc(t)}"${fl ? " hidden" : ""}>${ic}<span><b>${esc(t)}</b><small>${esc(d)}</small></span></button>`;
+    sheet.innerHTML = `<h3 id="sheet-h">Búa til</h3><div class="nymenu">${R.slice(0, SYNA).map(x => btn(x)).join("")}${R.slice(SYNA).map(x => btn(x, 1)).join("")}</div>${R.length > SYNA ? `<button type="button" class="btn nyfleira" aria-expanded="false">Fleira (${R.length - SYNA})</button>` : ""}<div class="actions"><button type="button" class="btn" onclick="closeSheet()">Hætta við</button></div>`;
     sheetwrap.hidden = false; sheet.querySelector(".nyit")?.focus();
-    sheet.querySelectorAll(".nyit").forEach(b => b.onclick = () => { closeSheet(); setTimeout(() => { try { (new Function(b.dataset.js))(); } catch (e) { console.warn(e); } }, 30); }); };
+    const fl = sheet.querySelector(".nyfleira"); if (fl) fl.onclick = () => { sheet.querySelectorAll(".nyfl").forEach(x => x.hidden = false); fl.remove(); sheet.querySelector(".nyfl")?.focus(); };
+    sheet.querySelectorAll(".nyit").forEach(b => b.onclick = () => { try { NOT[b.dataset.t] = (NOT[b.dataset.t] || 0) + 1; localStorage.setItem("atrium-nytt", JSON.stringify(NOT)); } catch (e) {}
+      closeSheet(); setTimeout(() => { try { (new Function(b.dataset.js))(); } catch (e) { console.warn(e); } }, 30); }); };
   // 2.131.4: endurhlaða – nýjasta útgáfa (service worker) og gögn
   // Samanfelld stika (2.129.0): sjálfkrafa undir 1280 px nema notandinn hafi valið annað
   function railSet() { let pref = ""; try { pref = localStorage.getItem("atrium-stika") || ""; } catch (e) {}

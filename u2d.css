@@ -1895,3 +1895,5 @@ html body.kerfi .u3ok-on{color:var(--t-grn)!important}
   html:not(#u3a):not(#u3b) body.kerfi :is(#view,#sheet,.spurn,.smain) :is(a.vs3a,a.shkw,a.maplnk,a.plink,.uhch a,button.smlnk,.uhch .lnk,.uhch button.ulink,#view a.lnk,#view .lrow a:not(.btn))::after{content:"";position:absolute;inset:-13px -8px}
   html:not(#u3a):not(#u3b) body.kerfi :is(#view,#sheet) input[type=checkbox]{width:22px!important;height:22px!important}
 }
+/* 2.174.0: „Fleira“ í + Nýtt – textahnappur undir listanum */
+html body.kerfi #sheet .nyfleira{width:100%;margin-top:8px;justify-content:center}
