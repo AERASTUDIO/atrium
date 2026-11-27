@@ -190,7 +190,12 @@
     }
     if (k === "nudel") {
       if (u.virkur) return;
-      atrJa(`Eyða ${u.nafn} úr notendaskránni?\n\nTímaskráningar haldast.`).then(j => { if (j) nuSave(n => { delete n[email]; }); });
+      /* 2.170.0 (persónuvernd): persónuleg skjöl notandans fara líka – stillingar hans (notandi), skeiðklukka, tilkynningatæki og tímatillögur */
+      atrJa(`Eyða ${u.nafn} úr notendaskránni?\n\nTímaskráningar haldast. Persónulegar stillingar, skeiðklukka, tilkynningar og tímatillögur notandans eru fjarlægðar.`).then(async j => { if (!j) return;
+        await nuSave(n => { delete n[email]; });
+        const id = String(u.netfang || email).toLowerCase(), D = window.__DB;
+        if (D?.commit) for (const c of ["notandi", "klukka", "tilkynningar", "tillogur"]) { try { await D.commit([{ path: c + "/" + id, del: true }]); } catch (e) { console.warn("eyða", c, e?.code || e); } }
+      });
     }
   };
   document.addEventListener("change", async e => {

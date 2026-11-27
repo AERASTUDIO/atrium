@@ -44,32 +44,42 @@
     const held = (R.reikningar || []).filter(o => geymist("reikningar", o)).length;
     if (!await atrJa(`Nafnhreinsa „${q}“ í ${n - held} færslum?\n\nAllur texti sem inniheldur leitarorðið verður „${NAFNHR}“. Þetta er ekki hægt að afturkalla.` + (held ? `\n\n${held} reikningar yngri en 7 ára haldast óbreyttir vegna bókhaldsskyldu.` : "") + ((R.notendur || []).length ? `\n\nNotendaaðgangar breytast ekki – gerðu notandann óvirkan í Stillingar › Fólk.` : ""))) return;
     const scrub = x => { if (Array.isArray(x)) return x.map(scrub); if (x && typeof x === "object") { Object.keys(x).forEach(k => { x[k] = scrub(x[k]); }); return x; } return match(x, q) ? NAFNHR : x; };
-    await saveSnapshot(s => {
+    const opb = new Set();
+    await saveSnapshot(s => {   // (mut getur keyrt oftar en einu sinni – Set heldur hverjum tengli einu sinni)
       Object.entries(s).forEach(([k, v]) => {
         if (k === "timar") { ["faerslur", "nyjast"].forEach(f => (v?.[f] || []).forEach(e => { if (hasHit(e, q)) scrub(e); })); return; }
         if (k === "stillingar") { (v?.starfsmenn || []).forEach(x => { if (hasHit(x, q)) { x.nafn = NAFNHR; } }); return; }
-        if (Array.isArray(v)) v.forEach(o => { if (hasHit(o, q) && !geymist(k, o)) { const id = o.id; scrub(o); if (id) o.id = id; } });
+        if (Array.isArray(v)) v.forEach(o => { if (hasHit(o, q) && !geymist(k, o)) { const id = o.id;
+          if ((k === "tilbod" || k === "pantanir") && o.opinber) { opb.add(o.opinber); delete o.opinber; }   // 2.170.0: opinbera afritið (pöntunarsíðan) fer líka
+          scrub(o); if (id) o.id = id; } });
       });
       (s.persvernd = s.persvernd || []).push({ dags: new Date().toISOString(), adgerd: "nafnhreinsun", af: window.USER?.email || "", fjoldi: n - held });
     });
-    toast?.("Nafnhreinsað í " + (n - held) + " færslum"); window._pvq = ""; render();
+    for (const t of opb) { try { if (window.atrPub?.demo?.()) window.atrPub.ls().removeItem(window.atrPub.lsKey(t)); else await window.__DB?.commit?.([{ path: "opinber/" + t, del: true }]); } catch (e) { console.warn("opinber", e?.code || e); } }
+    toast?.("Nafnhreinsað í " + (n - held) + ((n - held) % 10 === 1 && (n - held) % 100 !== 11 ? " færslu" : " færslum") + (opb.size ? ` · ${opb.size} ${opb.size === 1 ? "tengill á pöntunarsíðu fjarlægður" : "tenglar á pöntunarsíðu fjarlægðir"}` : "")); window._pvq = ""; render();
   }
 
   function yfirlysing() {
     const O = window.ORG || {}, pv = PV(), co = E(O.nafn || "fyrirtækið"), net = E(pv.netfang || O.admin?.email || "");
+    // 2.170.0: vinnsluaðilar sem eru virkir í þessari uppsetningu
+    const huginn = !!(window.ON && ON("claude")), bk = (typeof S !== "undefined" && S?.stillingar?.reikn?.bokhald) || "", bokh = bk === "payday" ? "Payday" : bk === "dk" ? "DK (dkPlus)" : "";
     const sec = (t, b) => `<div class="ush2"><span>${t}</span></div><div class="pvtxt">${b}</div>`;
     return `<div class="card ucard pvy">`
       + sec("Ábyrgðaraðili", `<p><b>${co}</b> ber ábyrgð á persónuupplýsingum í þessu appi.${net ? ` Fyrirspurnir og beiðnir: <a href="mailto:${net}">${net}</a>.` : ""} Atrium er þróað og rekið af AERA Studio ehf., sem er vinnsluaðili fyrir hönd ${co}.</p>`)
       + sec("Hvaða upplýsingar eru geymdar", `<ul>
-        <li><b>Notendur:</b> nafn, netfang, hlutverk og hvenær síðast var skráð inn.</li>
+        <li><b>Notendur:</b> nafn, netfang, hlutverk, hvenær síðast var skráð inn og hvort notandinn var virkur í mánuðinum (vegna áskriftar).</li>
         <li><b>Tímaskráning starfsfólks:</b> dagsetning, tími, verkefni og lýsing.</li>
         <li><b>Viðskiptavinir og tengiliðir:</b> nafn, kennitala, heimilisfang, netfang og sími – það sem þarf vegna tilboða, pantana og reikninga.</li>
-        <li><b>Verkefnagögn:</b> fundir og þátttakendur, tenglar á skjöl og póstþræði sem tengdir eru verkefnum, spjall milli starfsfólks.</li></ul>`)
+        <li><b>Verkefnagögn:</b> fundir og þátttakendur, tenglar á skjöl og póstþræði sem tengdir eru verkefnum, spjall milli starfsfólks.</li>
+        <li><b>Samþykki viðskiptavina:</b> þegar viðskiptavinur samþykkir tilboð eða pöntun á tengli frá ${co} eru nafn hans, undirskrift, athugasemd og tímasetning vistuð. Tengillinn er langur tilviljunarstrengur og aðeins sá sem fær hann getur opnað síðuna.</li></ul>`)
       + sec("Tilgangur og heimild", `<p>Til að halda utan um verkefni, tíma, tilboð, pantanir og reikninga. Heimildin er samningur við viðskiptavini og starfsfólk, lagaskylda (bókhald) og lögmætir hagsmunir af skipulagi vinnunnar (6. gr. reglugerðar (ESB) 2016/679 og 9. gr. laga nr. 90/2018).</p>`)
       + sec("Hvar gögnin eru", `<ul>
         <li><b>Google Firebase</b> (Firestore og innskráning) – gagnagrunnur ${co}${pv.svaedi ? ", hýstur í " + E(pv.svaedi) : ""}.</li>
         <li><b>Microsoft 365</b> – innskráning, skjöl á SharePoint/OneDrive og póstur. Appið les þau með heimild notandans; þau eru ekki afrituð í gagnagrunninn.</li>
-        <li><b>GitHub Pages</b> – hýsir sjálft appið (kóðann). Engin gögn ${co} eru þar.</li></ul>
+        <li><b>GitHub Pages</b> – hýsir sjálft appið (kóðann). Engin gögn ${co} eru þar.</li>
+        <li><b>Google Firebase Cloud Messaging</b> – ýtitilkynningar í síma og tölvu, ef notandi kveikir á þeim. Aðeins auðkenni tækisins og texti tilkynningarinnar.</li>${huginn ? `
+        <li><b>Anthropic</b> (Bandaríkjunum) – Huginn, aðstoð í appinu. Spurningin og þau gögn sem Huginn sækir til að svara (t.d. verkefni, tímar, viðskiptavinir) eru send til Claude hjá Anthropic. Huginn sér aðeins það sem notandinn hefur sjálfur aðgang að og vistar ekkert án staðfestingar. Samkvæmt viðskiptaskilmálum Anthropic eru gögnin ekki notuð til að þjálfa líkön. Samtöl eru ekki geymd í Atrium, aðeins notkun hvers notanda í krónum á mánuði.</li>` : ""}${bokh ? `
+        <li><b>${bokh}</b> – bókhaldskerfi ${co}. Reikningar og upplýsingar um greiðendur (nafn, kennitala, heimilisfang, netfang) eru sendar þangað.</li>` : ""}</ul>
         <p>Appið notar engar rakningar, auglýsingar eða greiningartól. Letur og forritasöfn eru hýst í appinu sjálfu. Á tækinu geymist afrit af gögnunum svo appið virki án nets; það er hreinsað við útskráningu.${window.ON && ON("qr") ? " Myndavélin er aðeins notuð til að lesa QR-merki, á tækinu sjálfu – engar myndir eru vistaðar eða sendar." : ""}</p>`)
       + sec("Varðveisla", `<p>Reikningar og bókhaldsgögn eru geymd í 7 ár vegna bókhaldslaga. Önnur gögn eru geymd meðan þeirra er þörf vegna verkefna og viðskipta og er eytt eða þau nafnhreinsuð þegar þess er óskað og ekkert mælir gegn því.</p>`)
       + sec("Réttindi þín", `<p>Þú átt rétt á að fá að vita hvaða upplýsingar eru geymdar um þig og fá afrit af þeim, láta leiðrétta þær, láta eyða þeim eða takmarka vinnslu, og andmæla vinnslu. Hafðu samband við ${co}${net ? ` (<a href="mailto:${net}">${net}</a>)` : ""}. Þú getur einnig kvartað til <a href="https://www.personuvernd.is" target="_blank" rel="noopener">Persónuverndar</a>.</p>`)

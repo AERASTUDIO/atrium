@@ -130,16 +130,16 @@ service cloud.firestore {
     }
 
     // Persónulegar stillingar notanda (t.d. útlit Heim-skjás), frá 1.5.0: aðeins hann sjálfur.
-    match /notandi/{email} { allow read, write: if active() && email == em(); }
+    match /notandi/{email} { allow read, write: if active() && email == em(); allow delete: if admin(); }   // 2.170.0: admin eyðir við eyðingu notanda
 
     // Tilkynningar (2.64.0): tæki (FCM-auðkenni) og val hvers notanda – aðeins hann sjálfur. Cloud Functions lesa með stjórnandaaðgangi.
-    match /tilkynningar/{email} { allow read, write: if active() && email == em(); }
+    match /tilkynningar/{email} { allow read, write: if active() && email == em(); allow delete: if admin(); }
 
     // Tímatillögur úr Microsoft 365 (2.67.0): Cloud Functions skrifa, notandinn les aðeins sínar.
-    match /tillogur/{email} { allow read: if active() && email == em(); allow write: if false; }
+    match /tillogur/{email} { allow read: if active() && email == em(); allow create, update: if false; allow delete: if admin(); }
 
     // Skeiðklukka: eitt skjal á hvern notanda (netfang), aðeins hann sjálfur.
-    match /klukka/{email} { allow read, write: if active() && email == em(); }
+    match /klukka/{email} { allow read, write: if active() && email == em(); allow delete: if admin(); }
 
     // Pöntunarsíða viðskiptavinar (2.56.0): eitt skjal á hverja pöntun sem hefur fengið tengil. Auðkennið (t) er langur
     // tilviljunarstrengur sem aðeins sá sem fær tengilinn þekkir. Hver sem er má SÆKJA eitt skjal eftir auðkenni (ekki lista),
