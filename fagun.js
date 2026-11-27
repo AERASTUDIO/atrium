@@ -47,4 +47,15 @@ const t0=window.toast;if(typeof t0==='function'){window.toast=function(t,undo,lb
   const t=document.startViewTransition(()=>{row.style.viewTransitionName='';od.apply(self,args);const p=document.querySelector('#view .spdet')||document.querySelector('#view .dbody')||document.querySelector('#view');p.style.viewTransitionName='atr-opna';});
   t.finished.catch(()=>{}).finally(()=>{R.classList.remove('vt-opna');document.querySelectorAll('[style*="view-transition-name"]').forEach(e=>e.style.viewTransitionName='');});};
  try{openDetail=window.openDetail;}catch(e){}})();
-let q=0;const run=()=>{q=0;try{deco()}catch(e){}try{glyphs()}catch(e){}try{swap()}catch(e){}};new MutationObserver(()=>{if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});run();})();
+/* ---------- 2.176.0 (álagspróf): stórar tölur passa, styttur texti læsilegur ----------
+   1) Lykiltala (≥ 22 px, tala með einingu) sem kemst ekki fyrir: letrið minnkar í skrefum (minnst 16 px) í stað þess að flæða eða styttast.
+   2) Texti sem styttist með … fær title með öllum textanum þegar músin fer yfir (ódýrt – aðeins við hover). */
+// passa(): stórar tölur – og stök orð í lykilflísum (t.d. „Starfsmaður“) – minnka um 1 px í senn (minnst 16 px) í stað þess að styttast
+const TALA=/^[\s\-−+]*[\d.,]+\s*(kr\.?|klst\.?|%|stk\.?)?\s*$/;
+function passa(){for(const e of document.querySelectorAll('#view b,#view strong,#view .ubig,#view .vs3tx b,#view .ukp b,#view .yfk b,#view [class*="num"]')){const t=e.textContent;if(e.dataset.fit===t||!(TALA.test(t)||(/^\S{1,24}$/.test(t.trim())&&e.matches('.yfk b,.ukp b,.vs3tx b,.ubig'))))continue;e.dataset.fit=t;e.style.fontSize='';
+  const cs=getComputedStyle(e);let fs=parseFloat(cs.fontSize);const box=e.parentElement;if(fs<18||!box||!box.clientWidth)continue;let n=0;
+  const of=()=>box.scrollWidth>box.clientWidth+1||(e.clientWidth&&e.scrollWidth>e.clientWidth+1)||e.getBoundingClientRect().right>box.getBoundingClientRect().right+1;
+  while(of()&&fs>16&&n++<12){fs-=1;e.style.fontSize=fs+'px';}}}
+document.addEventListener('mouseover',e=>{const el=e.target.closest?.('#view *,#sheet *');if(!el||el.title||el.children.length>2)return;const cs=getComputedStyle(el);
+  if(cs.textOverflow==='ellipsis'&&el.scrollWidth>el.clientWidth+1){const t=el.textContent.trim();if(t)el.title=t;}},{passive:true});
+let q=0;const run=()=>{try{passa()}catch(e){}q=0;try{deco()}catch(e){}try{glyphs()}catch(e){}try{swap()}catch(e){}};new MutationObserver(()=>{if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});run();})();

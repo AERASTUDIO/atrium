@@ -224,6 +224,39 @@ else if (window.salaPrufa && window.ON && ON("tilbod")) { const st = store["app/
  ["s2", "almennt", [], "jona@demo.example", "Jóna Jónsdóttir", "Þau eru í möppu verkefnisins 👍", -1],
  ["s3", "dm:gunnar@demo.example|jona@demo.example", ["gunnar@demo.example", "jona@demo.example"], "gunnar@demo.example", "Gunnar Gunnarsson", "Geturðu kíkt á teikningarnar áður en þær fara til viðskiptavinar?", 0]
 ].forEach(([id, ras, adilar, af, nafn, texti, off]) => { store["spjall/" + id] = { id, ras, adilar, af, nafn, texti, t: new Date(Date.now() + off * 864e5 - 36e5).toISOString() }; });
+// 2.176.0 – Álagspróf (skill „break-ui“): ?demo&verst setur versta raunhæfa tilvik í sýnigögnin, ?demo&tomt tæmir listana.
+// Aðeins í sýniútgáfu (demo.js er aldrei hlaðið annars). Gildin eru raunhæf íslensk dæmi, ekki rusl: löng fyrirtækjaheiti,
+// löng nöfn og netföng, eins stafs heiti, risaupphæðir, 0 og 1 (eintala), vantar valkvæða reiti, margir á verki, langt orð án bila.
+(() => { const QV = new URLSearchParams(location.search), st = store["app/state"];
+  if (QV.has("verst")) {
+    const LANGT_FYR = "Hjúkrunarheimilið Grund – dvalar- og hjúkrunarheimili aldraðra ses.", LANGT_VERK = "Endurhönnun og stækkun móttöku- og veitingarýmis á 1. og 2. hæð – áfangi III (viðbót við samning frá mars 2025)";
+    const NETF = "gudmundur.sigurbjorn.thorvaldsson@hjukrunarheimilid-grund-reykjavik.is", ORD = "Vaðlaheiðarvegavinnuverkfærageymsluskúraútidyralyklakippuhringur";
+    const V = st.vidskiptavinir || [];
+    if (V[0]) Object.assign(V[0], { name: LANGT_FYR, netfang: NETF, tengilidur: "Guðmundur Sigurbjörn Þorvaldsson-Kjartansson", heimilisfang: "Hringbraut 50, 3. hæð til vinstri (gengið inn frá Sólvallagötu)" });
+    if (V[1]) Object.assign(V[1], { name: "Ó", netfang: "", simi: "", tengilidur: "", kennitala: "" });
+    if (V[2]) Object.assign(V[2], { name: "Þórður & Sigþrúður <Ráðgjöf> sf.", netfang: "thordur@th-s.is" });
+    const nafnV = id => (V.find(v => v.id === id) || {}).name;
+    (st.verkefni || []).forEach((p, i) => {
+      if (p.vskId) p.vidskiptavinur = nafnV(p.vskId) || p.vidskiptavinur; if (p.vkId) p.verkkaupi = nafnV(p.vkId) || p.verkkaupi;
+      if (i === 0) { p.stutt = LANGT_VERK; p.starfsmenn = ["JJ", "GG", "HS", "SB", "ÁÞ", "ÓK", "ÆB", "ÐÖ", "ÝR", "EÁ", "ÞÞ", "ÚL"]; p.timar = 1234.5; p.aklst = 1000; p.tilbod = 1234567890; p.lysing = ORD + " – " + "https://aerastudio.sharepoint.com/sites/AERA/Shared%20Documents/AERA/Verkefni/2026-21%20Endurh%C3%B6nnun/Teikningar/Lokaútgáfa_v12_LOKA_raunverulega-loka.pdf"; }
+      if (i === 1) { p.stutt = "X"; p.timar = 1; p.aklst = 1; p.skiladagur = null; p.starfsmenn = []; }
+      if (i === 2) { p.stutt = ORD; p.timar = 0; p.tilbod = 0; }
+      if (i === 3) { p.vidskiptavinur = null; p.vskId = null; p.skiladagur = "2031-12-31"; }
+      p.nafn = p.nr + " " + p.stutt;
+      (p.undirverk || []).forEach((u, k) => { if (k === 0) u.heiti = u.nr + " " + "Forhönnun, þarfagreining og kostnaðaráætlun fyrir allar hæðir hússins"; });
+    });
+    const F = st.timar?.faerslur || []; if (F[0]) Object.assign(F[0], { lysing: "Fundur með verkkaupa, arkitekt og burðarþolshönnuði um breytingar á stigahúsi og flóttaleiðum", timar: 23.75 });
+    if (F[1]) Object.assign(F[1], { lysing: ORD, timar: 0.25 });
+    (st.fundir || []).forEach((f, i) => { if (i === 0) f.name = "Samráðsfundur verkkaupa, hönnuða og byggingarstjóra um breytingar á útboðsgögnum"; });
+    (st.kostnadur || []).forEach(k => { k.lysing = "Efniskaup hjá BYKO Breidd – timbur, skrúfur, lím og festingar (sjá kvittun)"; k.upphaed = 98765432; });
+    (st.reikningar || []).forEach((r, i) => { if (r.kaupandi) r.kaupandi = { ...r.kaupandi, name: LANGT_FYR, netfang: NETF }; if (i === 0) r.nr = 1000001; });
+    (st.tilbod || []).forEach((t, i) => { if (i === 0) { t.heiti = LANGT_VERK; t.vidskiptavinur = LANGT_FYR; (t.linur || []).forEach((l, k) => { if (k === 0) { l.heiti = "Hátalarakerfi – 2×L-Acoustics Kara II, 2×SB18, magnari LA12X og allar snúrur"; l.magn = 1000; } }); } if (i === 1) { t.heiti = "Ó"; } });
+    const S2 = st.stillingar?.starfsmenn; if (S2) [["ÁÞ", "Ásdís Þórunn Ármannsdóttir-Wiśniewska"], ["ÓK", "Óli"], ["ÆB", "Æsa Björk"], ["ÐÖ", "Daði Örn"], ["ÝR", "Ýr"], ["EÁ", "Einar Ágúst"], ["ÞÞ", "Þór Þórsson"], ["ÚL", "Úlfur Logi"]].forEach(([sk, nafn]) => { if (!S2.some(x => x.sk === sk)) S2.push({ sk, nafn }); });
+    notendur.notendur["gunnar@demo.example"].nafn = "Guðmundur Sigurbjörn Þorvaldsson-Kjartansson";
+  }
+  if (QV.has("tomt")) { ["verkefni", "fundir", "kostnadur", "reikningar", "tilbod", "pantanir", "skjol", "postar", "thraedir", "dagsverk"].forEach(k => { if (Array.isArray(st[k])) st[k] = []; }); if (st.timar) st.timar.faerslur = [];
+    Object.keys(store).filter(k => k.startsWith("spjall/")).forEach(k => delete store[k]); }
+})();
 const watchers = {}, colw = {};
 const snap = path => ({ exists: store[path] != null, data: () => structuredClone(store[path]), pending: false, fromCache: false });
 const notify = path => { (watchers[path] || []).forEach(cb => cb(snap(path))); const seg = path.split("/"); if (seg.length === 2 && seg[0] !== "app") (colw[seg[0]] || []).forEach(f => f()); };

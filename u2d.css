@@ -1906,3 +1906,36 @@ html body.kerfi #sheet .nyfleira{width:100%;margin-top:8px;justify-content:cente
 ::view-transition-old(root){animation:none;display:none}
 ::view-transition-new(root){animation:none}
 html.vt-opna #view :is(.spdet,.dbody){animation:none!important}
+
+/* ---------- 2.176.0: Álagspróf (break-ui) – versta raunhæfa tilvik (?demo&verst) ---------- */
+/* Langt orð án bila (heiti, slóðir) brotnar frekar en að flæða út fyrir. Ekki á tölur og töflur – upphæðir brotna aldrei í miðju. */
+html body.kerfi :is(#view,#sheet,.spurn) :is(h1,h2,h3,h4,p,li,.usub,.lm,.ls,.uvs span,.lys,.cmt,.athtx,.dbody .card > div:not([class])){overflow-wrap:break-word}
+/* anywhere (leyfir að mjókka) aðeins þar sem breiddin er föst – annars getur dálkur skroppið í einn staf */
+html body.kerfi #view :is(.viewtitle,.u2pt,.lifin){overflow-wrap:anywhere}
+html body.kerfi #view .usvid{flex-wrap:wrap;row-gap:6px}
+html body.kerfi #view .usub a.plink{white-space:normal}
+/* Aukalínur sem bera upphæð mega fara í tvær línur í stað þess að styttast („Óreikningsfært · 504.528.760 kr.“) */
+html:not(#u3a):not(#u3b):not(#u3c):not(#u3d) body.kerfi #view :is(.urow span.t,.t > span.m,.smrt small,.smrt b.t,.yfkp span,.ystep span,.ubr span,.vs3tx .vs3tvid){white-space:normal!important;text-overflow:clip!important;overflow:visible!important}
+/* Dagatalsfærsla: endar á … í stað þess að klippast í miðju tákni */
+html body.kerfi #view .clab em{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Vörustikur: stikur mega mjókka (min-width:0), heiti styttast */
+html body.kerfi #view .vyb{min-width:0}
+html body.kerfi #view .vyb > :is(.vyl,.vyv){max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Smáspjöld (Tímar, Undirverk, Framlegð): þegar ekki er pláss fer aukatextinn til hægri í næstu línu – lykiltalan heldur stærð sinni */
+html:not(#u3a):not(#u3b):not(#u3c) body.kerfi #view .vs3t{flex-wrap:wrap;row-gap:6px;box-shadow:var(--e1)} /* U3: fín lína, ekki svífandi skuggi */
+html:not(#u3a):not(#u3b):not(#u3c) body.kerfi #view .vs3t > .vs3tx{flex:1 0 auto;min-width:0}
+html:not(#u3a):not(#u3b):not(#u3c) body.kerfi #view .vs3t > .vs3ts{margin-left:auto;white-space:nowrap;max-width:100%}
+/* Álagspróf: á starfsmannaspjaldi eru aðgerðir í röðinni sjálfri – nafnadálkur tekur ekki frá pláss fyrir þær og hnappar fara niður ef þarf */
+html:not(#u3a):not(#u3b):not(#u3c):not(#u3d) body.kerfi #view .fkhead{flex-wrap:wrap;row-gap:10px}
+html:not(#u3a):not(#u3b):not(#u3c):not(#u3d) body.kerfi #view .fkhead > .udl{flex:1 1 220px;min-width:0;padding-right:0!important}
+html:not(#u3a):not(#u3b):not(#u3c):not(#u3d) body.kerfi #view .fkhead > .uact{padding-right:0!important;flex-wrap:wrap}
+@media (max-width:420px){html:not(#u3a):not(#u3b):not(#u3c) body.kerfi #view .vs3t > .vs3ts{white-space:normal}}
+/* Álagspróf: þröngir skjáir – fyrirsagnaraðir og slóðir brotna í stað þess að flæða út */
+@media (max-width:480px){
+  html body.kerfi #view .uhch{flex-wrap:wrap;row-gap:4px;column-gap:10px}
+  html:not(#u3a):not(#u3b):not(#u3c) body.kerfi #view .uhch > h3{flex:1 1 auto!important;min-width:0;overflow-wrap:break-word}
+  html body.kerfi #view .udh2 .usvid{width:auto!important;max-width:100%;min-width:0}
+  html body.kerfi #view .udh2 .usvid > *{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  html body.kerfi #view .udl > .usub{flex-wrap:wrap;min-width:0}
+  html body.kerfi #view .udl > .usub > *{min-width:0;overflow-wrap:anywhere}
+}
