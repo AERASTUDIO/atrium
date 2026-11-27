@@ -356,7 +356,7 @@ function goHome(){DETAIL=null; DTAB="yfirlit"; tab="yfirlit"; try{history.replac
 const STADUR_K="atr-stadur";
 function saveStadur(){try{const L=document.querySelector("#view .splist, #view .llist"); sessionStorage.setItem(STADUR_K,JSON.stringify({tab,DETAIL,DTAB,y:window.scrollY||0,vy:document.getElementById("view")?.scrollTop||0,ly:L?.scrollTop||0,t:Date.now()}));}catch(e){}}
 /* 2.168.0: ný útgáfa = APP_VERSION í index.html uppsetningarinnar (af netinu) er önnur en sú sem keyrir. Hver uppsetning ber sig saman
-   við sína eigin útgáfu (dev: nýjasta; aera/sonik/party/demo: fest útgáfa í utgafa.json), ekki við sw.js sem fylgir alltaf nýjasta kóðanum. */
+   við sína eigin útgáfu (dev: nýjasta; aera/sonik/party/demo: fest útgáfa í utgafur.txt), ekki við sw.js sem fylgir alltaf nýjasta kóðanum. */
 window.atrNyUtgafa=async function(){ try{ const u=new URL("index.html",location.href); u.search="?v="+Date.now(); const t=await (await fetch(u.href,{cache:"no-store"})).text(); const m=t.match(/APP_VERSION="([\d.]+)"/); const nyrri=(x,y)=>{const A=x.split(".").map(Number),B=y.split(".").map(Number);for(let i=0;i<3;i++){if((A[i]||0)!==(B[i]||0))return (A[i]||0)>(B[i]||0);}return false;}; return m&&typeof APP_VERSION!=="undefined"&&nyrri(m[1],APP_VERSION)?m[1]:null; /* 2.168.0: aðeins nýrri útgáfa (ekki eldri síða úr skyndiminni án nets) */ }catch(e){ return null; } };
 window.atrEndurhlada=async function(){
   if(window.__atrRel) return; window.__atrRel=true;

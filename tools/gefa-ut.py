@@ -14,10 +14,13 @@ import json, os, re, shutil, subprocess, sys
 
 ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FEST = ["aera", "sonik", "party", "demo"]
-UF = os.path.join(ROT, "utgafa.json")
+UF = os.path.join(ROT, "utgafur.txt")
 
-def lesa(): return json.load(open(UF, encoding="utf-8")) if os.path.exists(UF) else {}
-def vista(d): open(UF, "w", encoding="utf-8").write(json.dumps(dict(sorted(d.items())), ensure_ascii=False, indent=2) + "\n")
+def lesa():
+    if not os.path.exists(UF): return {}
+    L = [l.split("#")[0].split("=") for l in open(UF, encoding="utf-8")]
+    return {a.strip(): b.strip() for a, b in (x for x in L if len(x) == 2)}
+def vista(d): open(UF, "w", encoding="utf-8").write("# Útgáfa sem hver uppsetning notar (tools/gefa-ut.py). Dev fylgir alltaf nýjasta kóðanum.\n" + "".join(f"{m} = {v}\n" for m, v in sorted(d.items())))
 def ver_rot():
     m = re.search(r'APP_VERSION="([\d.]+)"', open(os.path.join(ROT, "app.html"), encoding="utf-8").read()); return m.group(1)
 

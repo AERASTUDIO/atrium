@@ -16,11 +16,13 @@ ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPPSETNINGAR = ["aera", "sonik", "party", "demo", "dev"]  # undirmöppur; sniðmátið er app.html í rótinni
 
 # 2.168.0 – ÚTGÁFUR: dev keyrir alltaf nýjasta kóðann í rótinni. Aðrar uppsetningar geta verið FESTAR við afrit af útgáfu
-# í ut/<útgáfa>/ (búið til með tools/gefa-ut.py). utgafa.json segir hvaða útgáfu hver uppsetning notar, t.d. {"aera": "2.167.1"}.
-# Uppsetning sem er ekki í utgafa.json notar rótina (nýjasta kóðann). Letur, lib/, icons/ og pontun/ eru áfram sameiginleg.
+# í ut/<útgáfa>/ (búið til með tools/gefa-ut.py). utgafur.txt segir hvaða útgáfu hver uppsetning notar, ein lína á uppsetningu, t.d. „aera = 2.167.1“ (ekki .json – .gitignore útilokar json-skrár).
+# Uppsetning sem er ekki í utgafur.txt notar rótina (nýjasta kóðann). Letur, lib/, icons/ og pontun/ eru áfram sameiginleg.
 def festar():
-    f = os.path.join(ROT, "utgafa.json")
-    return json.load(open(f, encoding="utf-8")) if os.path.exists(f) else {}
+    f = os.path.join(ROT, "utgafur.txt")
+    if not os.path.exists(f): return {}
+    L = [l.split("#")[0].split("=") for l in open(f, encoding="utf-8")]
+    return {a.strip(): b.strip() for a, b in (x for x in L if len(x) == 2)}
 
 def kodaskrar(src):
     """Skrár kóðans sem app.html hleður (js/css í rótinni og simi/) – það sem er afritað í ut/<útgáfa>/."""

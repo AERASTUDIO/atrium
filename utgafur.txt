@@ -1,0 +1,5 @@
+# Útgáfa sem hver uppsetning notar (tools/gefa-ut.py). Dev fylgir alltaf nýjasta kóðanum.
+aera = 2.167.1
+demo = 2.167.1
+party = 2.167.1
+sonik = 2.167.1
