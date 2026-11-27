@@ -56,6 +56,7 @@ input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg)
 .ok b{color:var(--grn);font-weight:500}
 .msg{padding:40px 16px;text-align:center;color:var(--muted)}
 .err{color:var(--red);font-size:13px}
+.pvt{margin:2px 0 10px;font-size:12px;line-height:1.5;color:var(--muted)}.pvt a{color:inherit}
 .foot{margin-top:28px;text-align:center;font-size:11.5px;color:var(--muted)}
 .t-grn{color:var(--grn)}.t-amb{color:var(--amb)}.t-blu{color:var(--acc)}
 @media (max-width:560px){h1{font-size:24px}.top .co{display:none}td,th{padding:8px 10px}}
@@ -175,6 +176,7 @@ function draw(d, confirm, read) {
       <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
       <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
       <label class="chk"><input type="checkbox" id="ok">${d.skilmalar ? "Ég hef lesið skilmálana og staðfesti pöntunina" : "Ég staðfesti pöntunina"}</label>
+      ${pvTxt(c)}
       <div class="err" id="er" role="alert"></div>
       <div><button class="btn" id="go">Staðfesta pöntun</button></div></form>`}</section>
     <div class="foot">${E(c.nafn || "")}${c.vefur ? " · " + E(c.vefur) : ""} · Atrium</div>`;
@@ -207,11 +209,12 @@ function drawA(d, confirm, read) {
     <div class="sub">${E([d.vidskiptavinur, d.tengilidur].filter(Boolean).join(" · "))} &nbsp; <span class="st ${stt[1]}">${stt[0]}</span></div>
     <section class="card"><div class="kv">${h ? `<div><small>Vinna</small><b>${E(h)}</b></div>` : ""}<div><small>Upphæð með VSK</small><b>${+d.upphaed ? kr(Math.round(d.upphaed * (1 + (+d.vskP || 24) / 100))) : "Rukkað samkvæmt tímaskráningu"}</b></div><div><small>Verkefni</small><b>${E(d.nr)} ${E(d.verkefni || "")}</b></div></div></section>
     <section class="card"><div class="ch">Lýsing</div><div class="terms">${E(d.heiti || "")}</div></section>
-    <section class="card" id="conf">${st ? `<div class="ok">${st.undirskrift ? `<img src="${st.undirskrift}" alt="Undirskrift">` : ""}<div><b>✓ Aukaverkið er samþykkt</b><div class="sub">${E(st.nafn)} · ${E(dl(st.dags))} kl. ${E(String(st.dags).slice(11, 16))}</div></div></div>` : d.stada === "Hafnað" ? `<div class="sub">Aukaverkið hefur verið afturkallað. Hafðu samband við ${E(c.nafn || "okkur")} ef spurningar vakna.</div>` : `<div class="ch">Samþykkja aukaverk</div><form id="f" novalidate>
+    <section class="card" id="conf">${st ? `<div class="ok">${st.undirskrift ? `<img src="${st.undirskrift}" alt="Undirskrift">` : ""}<div><b>✓ Aukaverkið er samþykkt</b><div class="sub">${hver(st)}</div></div></div>` : d.stada === "Hafnað" ? `<div class="sub">Aukaverkið hefur verið afturkallað. Hafðu samband við ${E(c.nafn || "okkur")} ef spurningar vakna.</div>` : `<div class="ch">Samþykkja aukaverk</div><form id="f" novalidate>
       <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
       <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
       <label>Athugasemd (valfrjálst)<textarea id="at" rows="2" maxlength="1000"></textarea></label>
       <label class="chk"><input type="checkbox" id="ok">Ég samþykki aukaverkið${+d.upphaed ? " og að það verði rukkað" : ""}</label>
+      ${pvTxt(c, "samþykkja")}
       <div class="err" id="er" role="alert"></div>
       <div><button class="btn" id="go">Samþykkja aukaverk</button></div></form>`}</section>
     <div class="foot">${E(c.nafn || "")}${c.vefur ? " · " + E(c.vefur) : ""} · Atrium</div>`;
@@ -246,6 +249,7 @@ function drawQ(d, confirm, read) {
       <label>Nafn<input id="nm" autocomplete="name" value="${E(d.tengilidur || "")}" required></label>
       <div class="sig"><canvas id="sg" width="600" height="200" aria-label="Undirskrift – skrifaðu með fingri eða mús"></canvas><button type="button" id="clr">Hreinsa</button><span>Undirskrift</span></div>
       <label class="chk"><input type="checkbox" id="ok">${d.skilmalar ? "Ég hef lesið skilmálana og samþykki tilboðið" : "Ég samþykki tilboðið"}</label>
+      ${pvTxt(c, "samþykkja")}
       <div class="err" id="er" role="alert"></div>
       <div><button class="btn" id="go">Samþykkja tilboð</button></div></form>`}</section>
     ${!st && !hf ? `<section class="card" id="svar"><div class="ch">Spurningar eða breytingar?</div>
@@ -277,7 +281,7 @@ function thanksQ(d, back) {
   </div>`;
   document.getElementById("tyv").onclick = () => { back(); window.scrollTo(0, 0); };
 }
-function doneQ(s, c) { return `<div class="ok">${s.undirskrift ? `<img src="${s.undirskrift}" alt="Undirskrift">` : ""}<div><b>✓ Tilboðið er samþykkt</b><div class="sub">${E(s.nafn)} · ${E(dl(s.dags))} kl. ${E(String(s.dags).slice(11, 16))}</div>${s.athugasemd ? `<div class="sub">„${E(s.athugasemd)}“</div>` : ""}<div class="sub">${E(c.nafn || "Við")} staðfest${c.nafn ? "ir" : "um"} og ${c.nafn ? "hefur" : "höfum"} samband.</div></div></div><div class="pr"><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>`; }
+function doneQ(s, c) { return `<div class="ok">${s.undirskrift ? `<img src="${s.undirskrift}" alt="Undirskrift">` : ""}<div><b>✓ Tilboðið er samþykkt</b><div class="sub">${hver(s)}</div>${s.athugasemd ? `<div class="sub">„${E(s.athugasemd)}“</div>` : ""}<div class="sub">${E(c.nafn || "Við")} staðfest${c.nafn ? "ir" : "um"} og ${c.nafn ? "hefur" : "höfum"} samband.</div></div></div><div class="pr"><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>`; }
 // Undirskrift og innsending – sameiginlegt fyrir pöntun og tilboð
 function sign(d, confirm, after, label, twice) {
   const cv = document.getElementById("sg"), g = cv.getContext("2d"); let dr = false, any = false, last;
@@ -311,7 +315,10 @@ function thanks(d, back) {
   </div>`;
   document.getElementById("tyv").onclick = () => { back(); window.scrollTo(0, 0); };
 }
-function done(s) { return `<div class="ok">${s.undirskrift ? `<img src="${s.undirskrift}" alt="Undirskrift">` : ""}<div><b>✓ Pöntunin er staðfest</b><div class="sub">${E(s.nafn)} · ${E(dl(s.dags))} kl. ${E(String(s.dags).slice(11, 16))}</div>${s.athugasemd ? `<div class="sub">„${E(s.athugasemd)}“</div>` : ""}<div class="sub">Staðfesting verður líka send í tölvupósti.</div></div></div><div class="pr"><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>`; }
+/* 2.171.0 (persónuvernd): hver geymir nafn og undirskrift, og hvernig samþykki birtist eftir að þau eru fjarlægð af síðunni (30 dögum eftir samþykki) */
+function pvTxt(c, so = "staðfesta") { c = c || {}; return `<p class="pvt">Með því að ${so} eru nafn þitt, undirskrift og athugasemd vistuð hjá <b>${E(c.nafn || "fyrirtækinu")}</b> vegna þessa máls. Þau eru fjarlægð af þessari síðu eftir 30 daga.${c.netfang ? ` Fyrirspurnir: <a href="mailto:${E(c.netfang)}">${E(c.netfang)}</a>.` : ""}</p>`; }
+function hver(s) { const t = s.dags ? `${E(dl(s.dags))} kl. ${E(String(s.dags).slice(11, 16))}` : ""; return s.hreinsad ? `${t}<br><small>Nafn og undirskrift hafa verið fjarlægð af þessari síðu.</small>` : [E(s.nafn || ""), t].filter(Boolean).join(" · "); }
+function done(s) { return `<div class="ok">${s.undirskrift ? `<img src="${s.undirskrift}" alt="Undirskrift">` : ""}<div><b>✓ Pöntunin er staðfest</b><div class="sub">${hver(s)}</div>${s.athugasemd ? `<div class="sub">„${E(s.athugasemd)}“</div>` : ""}<div class="sub">Staðfesting verður líka send í tölvupósti.</div></div></div><div class="pr"><button type="button" class="btn2" onclick="window.print()">Prenta eða vista sem PDF</button></div>`; }
 </script>
 </body>
 </html>
