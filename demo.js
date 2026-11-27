@@ -196,16 +196,17 @@ function rikari(g) {
     { id: "t3", conv: "demo-conv-4", verkefniId: "p8", efni: "Ráðstefna – fjöldi gesta", tengt: iso(-2), af: "Jóna" });
 }
 
-// Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar). (2.169.0: hlutverkið bókari lagt niður)
+// Notendur sýniútgáfu. ?demo = admin (Jóna), ?demo=starfsmadur = starfsmaður (Gunnar), ?demo=vettvangur = vettvangur (Vala, 2.176.1). (2.169.0: hlutverkið bókari lagt niður)
 const now = new Date().toISOString();
 const notendur = { notendur: {
   "jona@demo.example": { nafn: "Jóna Jónsdóttir", sk: "JJ", hlutverk: "admin", virkur: true, stofnad: iso(-30), breytt: iso(-30), sidast: now },
   "gunnar@demo.example": { nafn: "Gunnar Gunnarsson", sk: "GG", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-20), breytt: iso(-20), sidast: iso(-1) },
   "helga@demo.example": { nafn: "Helga Sigurðardóttir", sk: "HS", hlutverk: "starfsmadur", virkur: false, stofnad: iso(-60), breytt: iso(-5), sidast: iso(-9) },
-  "sigrun@demo.example": { nafn: "Sigrún Birgisdóttir", sk: "SB", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-10), breytt: iso(-10), sidast: iso(-2) }
+  "sigrun@demo.example": { nafn: "Sigrún Birgisdóttir", sk: "SB", hlutverk: "starfsmadur", virkur: true, stofnad: iso(-10), breytt: iso(-10), sidast: iso(-2) },
+  "vala@demo.example": { nafn: "Vala Vettvangsdóttir", sk: "VV", hlutverk: "vettvangur", virkur: true, stofnad: iso(-8), breytt: iso(-8), sidast: iso(-1) }
 } };
 const demoRole = new URLSearchParams(location.search).get("demo");
-const email = demoRole === "starfsmadur" ? "gunnar@demo.example" : "jona@demo.example";
+const email = demoRole === "starfsmadur" ? "gunnar@demo.example" : demoRole === "vettvangur" ? "vala@demo.example" : "jona@demo.example";
 const user = { email, ...notendur.notendur[email] };
 
 // Gagnagrunnur í minni: sama viðmót og firebase.js lætur appið fá (get / set / tx / watch / commit / watchCol).

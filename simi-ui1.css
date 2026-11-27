@@ -2,7 +2,7 @@
 @media (max-width:1023px){
 /* app.css: @media (min-width:1024px) */
 body.simi1{padding-left:248px}
-body.simi1 .side{display:flex;flex-direction:column;gap:14px;position:fixed;left:0;top:0;bottom:0;width:248px;box-sizing:border-box;z-index:9;background:var(--surface);border-right:1px solid var(--line);padding:22px 14px 18px;overflow:auto}
+body.simi1 .side{display:flex;flex-direction:column;gap:14px;position:fixed;left:0;top:0;bottom:0;width:248px;box-sizing:border-box;z-index:9;border-right:1px solid var(--line);padding:22px 14px 18px;overflow:auto}
 body.simi1 .side .logo{height:40px;margin:0 10px 6px}
 body.simi1 .side .new{justify-content:center;padding:11px 14px;font-size:14.5px}
 body.simi1 .side .new svg{width:18px;height:18px}
@@ -11,7 +11,6 @@ body.simi1 .side .tab{padding:10px 12px;font-size:15px}
 body.simi1 .side .sgrp{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:500;padding:14px 12px 4px}
 body.simi1 .side .sgrp:first-child{padding-top:2px}
 body.simi1 .side .sgrp:empty{padding:8px 0 0;margin-bottom:6px;border-bottom:1px solid var(--line)}
-body.simi1 .side .tab:hover{background:var(--b0)}
 body.simi1 .side .sfoot{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 body.simi1 .side .sfoot .syncbtn{margin:0}
 body.simi1 .app{max-width:1120px;padding-inline:40px;padding-block:0 48px}
@@ -19,7 +18,7 @@ body.simi1 header{margin-inline:-40px;padding:16px 40px 14px}
 body.simi1 header .brand h1{visibility:hidden}
 body.simi1 h2.big{font-size:30px;margin-top:26px}
 body.simi1 .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
-body.simi1 .kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+body.simi1 .kpis{gap:12px}
 body.simi1 .card{padding:16px 18px}
 body.simi1 nav.mbar,body.simi1 #menuwrap,body.simi1 .fab,body.simi1 .foot .syncbtn{display:none!important}
 body.simi1 .sheet{top:50%;bottom:auto;left:50%;right:auto;transform:translate(-50%,-50%);width:min(600px,calc(100vw - 48px));max-height:86vh;border-radius:20px;padding:22px 26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
@@ -29,7 +28,7 @@ body.simi1 .cday{min-height:92px;align-items:stretch;padding:6px;gap:3px}
 body.simi1 .cday .n{align-self:flex-start}
 body.simi1 .cday .dots{display:none}
 body.simi1 .clab{display:flex;flex-direction:column;gap:2px;min-width:0}
-body.simi1 .clab em{font:500 11.5px/1.35 var(--f-label);font-style:normal;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 5px;border-radius:5px;border-left:3px solid var(--c);background:var(--b0);color:var(--ink)}
+body.simi1 .clab em{font:500 11.5px/1.35 var(--f-label);font-style:normal;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 5px;border-radius:5px;border-left:3px solid var(--c);color:var(--ink)}
 body.simi1 .clab em.more{border-left:0;background:none;color:var(--muted)}
 body.simi1 .cday[aria-pressed="true"] .clab em{background:rgba(255,255,255,.16);color:var(--on-accent);border-left-color:var(--on-accent)}
 body.simi1 .side .tc{white-space:nowrap}
@@ -73,12 +72,9 @@ body.simi1 .cday .clab em:nth-child(n+3):not(.more){display:block}
 body.simi1 .cday .clab em:nth-child(n+4):not(.more){display:none}
 
 /* app.css: @media (min-width:1024px) */
-body.simi1.pv .side{background:var(--raise);gap:8px;padding-top:18px;padding-bottom:14px}
+body.simi1.pv .side{padding-top:18px;padding-bottom:14px}
 body.simi1.pv .side .logo,body.simi1.pv .side .cobrand{margin-bottom:2px}
-body.simi1.pv .side .new{padding:9px 14px}
 body.simi1.pv .side nav{gap:1px}
-body.simi1.pv .side .tab,body.simi1.pv #sfoot2 .tab{padding:7px 12px;font-size:14.5px}
-body.simi1.pv .side .sgrp{padding:10px 12px 3px}
 @media (max-height:760px){body.simi1.pv .side .tab,body.simi1.pv #sfoot2 .tab{padding:5px 12px}
 body.simi1.pv .side .sgrp{padding:7px 12px 2px}
 body.simi1.pv .side{gap:6px;padding-top:12px}
@@ -87,7 +83,7 @@ body.simi1.pv #sextra,body.simi1.pv .side .sfoot{display:none}
 body.simi1.pv .side .tab[aria-current="page"]{background:var(--ink);color:var(--bg);font-weight:500}
 body.simi1.pv .side .tab[aria-current="page"] svg{color:var(--bg)}
 body.simi1.pv .side .tab:not([aria-current="page"]):hover{background:var(--hover)}
-body.simi1.pv #sfoot2{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+body.simi1.pv #sfoot2{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;}
 body.simi1.pv .sfu{gap:10px}
 body.simi1.pv .sfav{flex:none;width:30px;height:30px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500}
 body.simi1.pv .sfu[aria-current="page"] .sfav{background:var(--bg);color:var(--ink)}
@@ -119,7 +115,7 @@ body.simi1.pv .side nav#sitems .tab{padding:8px 10px}
 body.simi1.pv .side .cobrand .logo{width:110px}
 }
 body.simi1.pv .side .new{order:2;flex:none;margin:0;padding:0 16px;min-height:40px;width:auto}
-body.simi1.pv #sfoot2{order:3;margin:0;padding:0;border:0;flex-direction:row;align-items:center;gap:2px;flex:none}
+body.simi1.pv #sfoot2{margin:0;padding:0;border:0;flex-direction:row;align-items:center;gap:2px;flex:none}
 body.simi1.pv #sfoot2 .tl,body.simi1.pv #sfoot2 .sfn{display:none}
 body.simi1.pv #sfoot2 .tab{padding:8px 9px}
 body.simi1.pv #subnav2{display:block;position:fixed;top:64px;bottom:0;left:0;width:240px;box-sizing:border-box;padding:20px 12px;background:var(--raise);border-right:1px solid var(--line);overflow-y:auto;z-index:8}
@@ -169,7 +165,6 @@ body.simi1.pv .mgrid{display:none}
 body.simi1.pv.ui1{padding-top:0;padding-left:248px;--ui1side:#2A3441;--ui1hi:#4B5664;--ui1tx:#E4E8EC;--ui1mu:#AEB7BF}
 body.simi1.pv.ui1 .side{top:0;bottom:0;left:0;right:auto;width:248px;height:auto;flex-direction:column;align-items:stretch;gap:6px;padding:14px 12px 12px;background:var(--ui1side);border:0;color:var(--ui1tx);overflow-y:auto}
 body.simi1.pv.ui1 .side .cobrand{order:0;margin:2px 8px 8px}
-body.simi1.pv.ui1 .side .logo,body.simi1.pv.ui1 .side .colog{filter:brightness(0) invert(1);opacity:.92}
 body.simi1.pv.ui1 .topsearch{order:1;position:static;width:auto;margin:0;background:#363D45;border:0;color:var(--ui1mu);min-height:40px;border-radius:10px}
 body.simi1.pv.ui1 .topsearch input{color:var(--ui1tx);background:transparent}
 body.simi1.pv.ui1 .topsearch input::placeholder{color:var(--ui1mu)}
@@ -217,7 +212,7 @@ body.simi1.pv.ui1 .spfilt input{flex:1;border:0;background:transparent;font:inhe
 body.simi1.pv.ui1 .spfilt kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-radius:5px;padding:0 5px}
 body.simi1.pv.ui1 .spdet{position:relative;overflow-y:auto;background:var(--surface,#fff);padding:0 32px 32px}
 body.simi1.pv.ui1 .spdet .dtabs{margin-inline:-32px;padding-inline:32px;top:0}
-body.simi1.pv.ui1 .spexp{position:absolute;top:16px;right:20px;z-index:5;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+body.simi1.pv.ui1 .spexp{position:absolute;right:20px;z-index:5;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--muted);display:grid;place-items:center;cursor:pointer}
 body.simi1.pv.ui1 .spempty{height:100%;display:grid;place-items:center;color:var(--muted);font-size:14px}
 body.simi1.pv.ui1 .h2tiles{display:none}
 body.simi1.pv.ui1 .h2logo{display:flex;justify-content:center;padding:40px 0 10px;opacity:.85}
@@ -293,7 +288,6 @@ body.simi1 nav.mbar.tbar{display:none}
 body.simi1 .htiles{grid-template-columns:repeat(4,minmax(0,1fr))}
 
 /* brand.css: @media (min-width:1024px) */
-body.simi1 .spwrap{grid-template-columns:260px minmax(0,1fr)}
 body.simi1 .spchans{flex-direction:column;overflow:visible}
 body.simi1 .spch{max-width:none}
 body.simi1 .spcm small{max-width:170px}

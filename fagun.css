@@ -48,13 +48,13 @@ html:root body.kerfi #view :is(td,.nr,.sdtm,.cday .n){font-variant-numeric:tabul
 /* Hreimlitur: einn blár, notaður sparlega */
 html:root body.kerfi #view :is(.uhch a,.ush a,.uhch .more){color:var(--kacc)!important;font-weight:500!important}
 html:root body.kerfi #view .urow a,html:root body.kerfi #view .urow .t{color:var(--ink)!important}
-html:root body.kerfi :is(#view,#sheetwrap) .btn.primary{background:var(--kacc)!important;border-color:transparent!important;color:var(--on-kacc,#fff)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 1px 2px rgba(15,23,32,.18)!important}
+html:root body.kerfi :is(#view,#sheetwrap) .btn.primary{background:var(--kacc)!important;border-color:transparent!important;color:var(--on-kacc,#fff)!important;}
 html:root body.kerfi :is(#view,#sheetwrap) .btn:not(.primary):not(.pnew){background:var(--surface)!important;border-color:var(--line2)!important;box-shadow:0 1px 1px rgba(15,23,32,.04)}
 html:root body.kerfi :is(#view,#sheetwrap) :is(.chipbtn[aria-pressed="true"],.seg button[aria-pressed="true"]){background:var(--acc-soft)!important;color:var(--kacc)!important;border-color:color-mix(in srgb,var(--kacc) 35%,transparent)!important}
 /* Reitir: ívið dekkri flötur, skýr fókus */
 html:root body.kerfi #sheetwrap :is(input,select,textarea):not([type=checkbox]):not([type=radio]){background:var(--field)!important;border-color:var(--line2)!important}
 html:root body.kerfi :is(#view,#sheetwrap) :is(input,select,textarea):focus{outline:none!important;border-color:var(--kacc)!important;box-shadow:0 0 0 3px var(--acc-soft)!important}
-html:root body.kerfi #view select:not(.mini){color:var(--ink)!important}
+
 /* Staða: punktur + daufur texti í sama lit */
 html:root body.kerfi #view .t-red{color:var(--t-red)!important} html:root body.kerfi #view .t-amb{color:var(--t-amb)!important} html:root body.kerfi #view .t-grn{color:var(--t-grn)!important}
 /* Framvindustikur: þunnar, ávalar, hreimlitur */

@@ -65,7 +65,7 @@ body.qropen{overflow:hidden}
 .qrsec{display:flex;flex-direction:column;gap:6px}
 .qrseg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 @media (min-width:420px){.qrseg{grid-template-columns:repeat(4,1fr)}}
-.qrseg button{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.qrseg button{border:1px solid var(--line);background:var(--raise);color:var(--ink);font:inherit;cursor:pointer}
 .qrseg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .qrdmf>div{display:flex;gap:8px}
 .qrdmf input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--ink)}

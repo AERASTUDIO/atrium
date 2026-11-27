@@ -51,13 +51,13 @@
   body.simi1 .spdet .simmoved{display:none!important}
   body.simi1 .spdet .udh2>*{min-width:0;max-width:100%}
   body.simi1 .spdet .ukps,body.simi1 .spdet .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  body.simi1 .spdet .dtabs,body.simi1 .spdet .uvt{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap;margin-inline:-16px;padding-inline:16px}
+  body.simi1 .spdet .dtabs,body.simi1 .spdet .uvt{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap;}
   body.simi1 .spdet .dtabs::-webkit-scrollbar,body.simi1 .spdet .uvt::-webkit-scrollbar{display:none}
   body.simi1 .spdet .dtabs button,body.simi1 .spdet .uvt button{flex:none;white-space:nowrap}
   body.simi1 .spdet table{display:block;overflow-x:auto}
   body.simi1 .uback{margin:8px 0 2px!important}
   /* Aðgerðastika neðst á spjaldi */
-  body.simi1 .simact{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:22;display:flex;gap:8px;padding:10px 16px;background:var(--bg);border-top:1px solid var(--line)}
+  body.simi1 .simact{position:fixed;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:22;display:flex;gap:8px;padding:10px 16px;background:var(--bg);border-top:1px solid var(--line)}
   body.simi1 .simact .btn{flex:1 1 0;min-width:0;justify-content:center;min-height:46px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   body.simi1 .simact .btn.primary{flex:1.6 1 0}
   body.simi1.simhasact .app{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))!important}
@@ -109,7 +109,7 @@
   body.simi1 .sdrow:last-child{border-bottom:0}
   body.simi1 .sdrow.late .sdtm{color:#B4472E}
   body.simi1 .sdmain{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:10px 0 10px 12px;color:inherit;text-decoration:none;cursor:pointer;min-height:44px}
-  body.simi1 .sdtm{width:44px;flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  body.simi1 .sdtm{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
   body.simi1 .sdtx{display:flex;flex-direction:column;min-width:0}
   body.simi1 .sdtx b{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   body.simi1 .sdtx small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -132,7 +132,7 @@
   /* Neðri stika: fimm hlutir, Skanna í miðju sem dökkur hringur */
   body.simi1.pv nav.mbar.tbar{padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))!important;background:var(--surface,#fff)!important;border-top:1px solid var(--line)!important}
   body.simi1.pv nav.mbar.tbar .tab{flex:1 1 0;min-width:0;padding:4px 0!important;gap:2px!important;font-size:10.5px!important;color:var(--muted)}
-  body.simi1.pv nav.mbar.tbar .tab[aria-current="page"]{color:var(--ink);font-weight:500}
+  
   body.simi1.pv nav.mbar.tbar .tab .tc,body.simi1.pv nav.mbar.tbar .tab .tdot{display:none!important}
   body.simi1.pv nav.mbar.tbar .tab.simscan{color:var(--ink)}
   body.simi1.pv nav.mbar.tbar .tab.simscan svg{box-sizing:content-box;padding:9px;border-radius:50%;background:var(--ink);color:var(--bg);margin-top:-14px;box-shadow:0 4px 12px var(--shadow,rgba(0,0,0,.2))}
@@ -184,7 +184,7 @@
   body.simi1[data-tab="dagatal"] #view>:not(.phead):not(.simact){margin-inline:12px}
   /* Spjall: listi rásanna og samtal hvort á eftir öðru */
   body.simi1 .spwrap{display:block!important;grid-template-columns:none!important}
-  body.simi1 .spchans{flex-direction:column!important}
+  
   body.simi1 .spconv{height:auto!important;min-height:50vh}
   /* Til baka í stillingum */
   body.simi1 .simback{display:inline-flex;align-items:center;gap:4px;margin:10px 0 4px!important}
