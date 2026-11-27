@@ -10,12 +10,26 @@ Frá 2.6.0 eru ALLAR uppsetningar í undirmöppu (líka AERA), svo hver fær sit
 Rót geymslunnar (index.html) er aðeins tilvísun á aera/.
 ATH: "id" í <m>/manifest.webmanifest verður að vera full slóð, t.d. "/sonik/" (frá 2.96.1 á atrium.aerastudio.is; áður "/atrium/sonik/" á github.io) – Chrome les id miðað við lénið,
 svo "./" gæfi öllum uppsetningum sama auðkenni og ein uppsetning kæmi í stað annarrar (lagað í 2.6.1)."""
-import json, os, sys
+import json, os, re, sys
 
 ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPPSETNINGAR = ["aera", "sonik", "party", "demo", "dev"]  # undirmöppur; sniðmátið er app.html í rótinni
 
-def smida(m, src):
+# 2.168.0 – ÚTGÁFUR: dev keyrir alltaf nýjasta kóðann í rótinni. Aðrar uppsetningar geta verið FESTAR við afrit af útgáfu
+# í ut/<útgáfa>/ (búið til með tools/gefa-ut.py). utgafa.json segir hvaða útgáfu hver uppsetning notar, t.d. {"aera": "2.167.1"}.
+# Uppsetning sem er ekki í utgafa.json notar rótina (nýjasta kóðann). Letur, lib/, icons/ og pontun/ eru áfram sameiginleg.
+def festar():
+    f = os.path.join(ROT, "utgafa.json")
+    return json.load(open(f, encoding="utf-8")) if os.path.exists(f) else {}
+
+def kodaskrar(src):
+    """Skrár kóðans sem app.html hleður (js/css í rótinni og simi/) – það sem er afritað í ut/<útgáfa>/."""
+    L = re.findall(r'<script src="([^"]+)"', src) + re.findall(r'<link rel="stylesheet" href="([^"]+)"', src)
+    L += re.findall(r'ROT\("([^"]+)"\)', src)  # einingar sóttar með import(ROT("…")) – firebase.js, demo.js
+    if "firebase.js" in L: L.append("firebase-config.js")  # firebase.js sækir ./firebase-config.js við hlið sér
+    return sorted({x.split("?")[0] for x in L if not re.match(r"^(https?:|//|icons/|fonts/|lib/)", x) and x != "fyrirtaeki.js"})
+
+def smida(m, src, ver=None):
     h = src
     def rep(a, b):
         nonlocal h
@@ -29,8 +43,12 @@ def smida(m, src):
     if os.path.exists(os.path.join(ROT, m, "apple-touch-icon.png")):
         rep('<link rel="icon" type="image/png" href="icons/atrium-icon-192.png">', f'<link rel="icon" type="image/png" href="{m}/icon-192.png?v=2">')
         rep('<link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">', f'<link rel="apple-touch-icon" href="{m}/apple-touch-icon.png?v=2">')
+    if ver:  # fest útgáfa: kóðaskrár sóttar úr ut/<útgáfa>/ (fyrirtaeki.js, manifest, tákn og utlit.css áfram úr <m>/)
+        for f in kodaskrar(src):
+            h = h.replace(f'<script src="{f}"', f'<script src="ut/{ver}/{f}"').replace(f'<link rel="stylesheet" href="{f}"', f'<link rel="stylesheet" href="ut/{ver}/{f}"').replace(f'ROT("{f}")', f'ROT("ut/{ver}/{f}")')
+        h = h.replace('(uppsetning: ' + m + ').', f'(uppsetning: {m}, fest útgáfa {ver} – ut/{ver}/app.html).', 1)
     if os.path.exists(os.path.join(ROT, m, "utlit.css")):
-        rep('<link rel="stylesheet" href="brand.css">', f'<link rel="stylesheet" href="brand.css">\n<link rel="stylesheet" href="{m}/utlit.css">')
+        rep('<link rel="stylesheet" href="brand.css">' if not ver else f'<link rel="stylesheet" href="ut/{ver}/brand.css">', (f'<link rel="stylesheet" href="brand.css">' if not ver else f'<link rel="stylesheet" href="ut/{ver}/brand.css">') + f'\n<link rel="stylesheet" href="{m}/utlit.css">')
     return h
 
 def main():
@@ -40,18 +58,24 @@ def main():
         import importlib.util
         sp = importlib.util.spec_from_file_location("simi_css", os.path.join(ROT, "tools", "simi_css.py")); mod = importlib.util.module_from_spec(sp); sp.loader.exec_module(mod); mod.main()
     src = open(os.path.join(ROT, "app.html"), encoding="utf-8").read()
-    urelt = []
+    F = festar(); urelt = []
     for m in UPPSETNINGAR:
         for f in ("fyrirtaeki.js", "manifest.webmanifest"):
             assert os.path.exists(os.path.join(ROT, m, f)), f"{m}/{f} vantar"
         mid = json.load(open(os.path.join(ROT, m, "manifest.webmanifest"), encoding="utf-8")).get("id", "")
         assert mid.startswith("/") and mid.endswith(f"/{m}/"), f"{m}/manifest.webmanifest: id verður að vera full slóð sem endar á /{m}/ (er {mid!r})"
-        p = os.path.join(ROT, m, "index.html"); ny = smida(m, src)
+        ver = F.get(m)
+        if ver:
+            sp = os.path.join(ROT, "ut", ver, "app.html"); assert os.path.exists(sp), f"{m}: útgáfa {ver} er ekki til (ut/{ver}/app.html) – keyrðu tools/gefa-ut.py"
+            msrc = open(sp, encoding="utf-8").read()
+        else: msrc = src
+        p = os.path.join(ROT, m, "index.html"); ny = smida(m, msrc, ver)
         gamalt = open(p, encoding="utf-8").read() if os.path.exists(p) else None
         if gamalt != ny:
             urelt.append(m)
             if not athuga: open(p, "w", encoding="utf-8").write(ny)
     if athuga and urelt: sys.exit("Úrelt: " + ", ".join(f"{m}/index.html" for m in urelt) + " – keyrðu python3 tools/uppsetningar.py")
     print(("Úrelt: " if athuga else "Uppfært: ") + (", ".join(urelt) or "ekkert – allt í lagi"))
+    if not athuga: print("Útgáfur: " + ", ".join(f"{m}={F.get(m) or 'nýjasta'}" for m in UPPSETNINGAR))
 
 main()

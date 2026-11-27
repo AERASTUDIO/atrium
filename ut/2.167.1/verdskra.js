@@ -1,0 +1,98 @@
+/* Verðskrá (frá 1.6.0): tímagjald eftir verkþáttum. Birtist efst í Skjöl og stýrir tímagjaldi á reikningum.
+   Gögn: S.stillingar.verdskra = { lidir: [{ id, heiti, verd, sjalfgefid, verkefni: [verknúmer] }], vsk, vskSkra, athugasemd, uppfaert, af }
+   Ef ekkert er vistað gildir DEF hér að neðan (verðskrá AERA Studio 18.10.2026).
+   Tímagjald verkefnis: 1) eigið tímagjald verkefnis (p.timagjald), 2) verkþáttur valinn á verkefni (p.taxti),
+   3) verkþáttur sem listar verknúmerið, 4) sjálfgefinn verkþáttur, 5) sjálfgefið tímagjald í Reikningsstillingum. */
+(function () {
+  const DEF = {
+    // 2.22.0: sjálfgefnir liðir koma úr uppsetningunni (ORG.verdskra í <m>/fyrirtaeki.js) – ekki lengur verðskrá AERA hjá öllum
+    lidir: (window.ORG && window.ORG.verdskra) || [],
+    v: 2,
+    // 2.122.4: sjálfgefið á VSK-skrá (24 %) – áður ekki á VSK-skrá (staða AERA fyrir 11.2026)
+    vsk: 24, vskSkra: true,
+    athugasemd: ""
+  };
+  // Vistuð verðskrá eldri en v2 fær nýju línurnar (Sonik, Almenn vinna) bætt við þar til hún er vistuð aftur
+  window.VERD = () => { const v = (typeof CFG === "function" && CFG().verdskra) || null; if (!(v && Array.isArray(v.lidir) && v.lidir.length)) return DEF;
+    if ((v.v || 1) < 2 && DEF.lidir.length) { const lidir = v.lidir.concat(DEF.lidir.filter(l => ["sonik", "almenn"].includes(l.id) && !v.lidir.some(x => x.id === l.id || x.heiti === l.heiti))); return { ...DEF, ...v, lidir }; }
+    return { ...DEF, ...v }; };
+  /* 2.123.0: ein verðlína fyrir hverja tegund vinnu – vinnulínur vörulistans (Tilboð › Þjónustur, t.d. „Hljóðmaður 9.500 kr./klst.“)
+     eru líka valkostir þegar tími er skráður, svo sama verð gildir á tilboði og í tímaskráningu. Breytt í Vörulista; id = "v:<vöru-id>". */
+  const VINNA = () => { try { const api = window.salaAPI; if (!api || !(window.ON && (ON("tilbod") || ON("leiga") || ON("sala")))) return [];
+    return api.VR().filter(v => v.tegund === "vinna" && /klst/.test(v.eining || "") && +v.soluverd > 0).map(v => ({ id: "v:" + v.id, heiti: v.heiti, verd: +v.soluverd, vara: true })); } catch (e) { return []; } };
+  window.vinnuLinur = () => { const L = VERD().lidir, nofn = new Set(L.map(l => String(l.heiti).toLowerCase())); return L.concat(VINNA().filter(v => !nofn.has(String(v.heiti).toLowerCase()))); };
+  const lid = id => VERD().lidir.find(l => l.id === id) || (String(id || "").startsWith("v:") ? VINNA().find(l => l.id === id) : null);
+  // Þjónusta (verkþáttur) verkefnis; tímar án verkefnis fá línuna merkta „Án verkefnis“
+  window.taxtiOf = p => (p?.taxti && lid(p.taxti)) || (p ? VERD().lidir.find(l => (l.verkefni || []).includes(p.nr)) : VERD().lidir.find(l => l.almennt)) || VERD().lidir.find(l => l.sjalfgefid) || null;
+  window.lidOf = lid;
+  // Þjónusta tímafærslu: eigin (e.taxti) ef valin, annars þjónusta verkefnisins
+  window.svcOf = e => (e?.taxti && lid(e.taxti)) || taxtiOf(e?.verkefniId ? findProj(e.verkefniId) : null);
+  // Tímagjald færslu: ef færslan hefur aðra þjónustu en verkefnið gildir verð þeirrar línu, annars tímagjald verkefnisins (base)
+  window.entryRate = (e, base) => { const p = e?.verkefniId ? findProj(e.verkefniId) : null, own = e?.taxti && lid(e.taxti);
+    return own && own.id !== taxtiOf(p)?.id ? +own.verd : base; };
+  // Val á þjónustu í tímaskráningarformi (tómt = eltir verkefnið)
+  window.taxtiSelect = (id, cur) => { const o = l => `<option value="${esc(l.id)}"${cur === l.id ? " selected" : ""}>${esc(l.heiti)} · ${esc(num(l.verd))} kr./klst.</option>`, L = vinnuLinur(), a = L.filter(l => !l.vara), b = L.filter(l => l.vara);
+    if (!L.length) return ""; return `<label>Tegund vinnu<select id="${id}"><option value="">Eins og verkefnið</option>${a.map(o).join("")}${b.length ? (a.length ? `<optgroup label="Úr vörulista">${b.map(o).join("")}</optgroup>` : b.map(o).join("")) : ""}</select></label>`; };
+  window.rateOf = p => +(p?.timagjald || taxtiOf(p)?.verd || 0);
+  const kr0 = n => num(Math.round(+n || 0));
+  const fj = () => !!(window.can && can("stillingar"));
+  let EDIT = false;
+
+  const sjaVerd = () => !window.can || can("fjarmal");   // 2.145.16: tímagjald (verðskrá) aðeins fyrir admin og bókara
+  window.vsSja = sjaVerd;
+  window.vsCard = () => { if (!sjaVerd() || !(VERD().lidir || []).length) return ""; const v = VERD(), lo = Math.min(...v.lidir.map(l => +l.verd || 0)), hi = Math.max(...v.lidir.map(l => +l.verd || 0));
+    return `<div class="viewtitle">Fest</div>${llist([`<div class="lrow tap" ${tapAttr("verdskra", "aera")}><div class="ll">${(typeof EI !== "undefined" && EI.rk) || ""}</div><div class="lm"><div class="lt">Verðskrá ${esc(ORG.nafn)}</div><div class="ls">Tímagjald ${esc(kr0(lo))}${hi !== lo ? "–" + esc(kr0(hi)) : ""} kr./klst. án VSK · ${v.lidir.length} verkþættir</div></div>${CHEV}</div>`])}`; };
+
+  window.dVerdskra = function () {
+    const v = VERD(), vp = +v.vsk || 24, vs = !!v.vskSkra;
+    const rows = v.lidir.map((l, i) => EDIT ? `<tr><td><input data-vs="heiti:${i}" value="${esc(l.heiti)}" aria-label="Verkþáttur"></td><td class="r"><input data-vs="verd:${i}" inputmode="numeric" value="${esc(String(l.verd || ""))}" aria-label="Verð" style="text-align:right;max-width:120px"></td>
+        <td><label class="vsdef"><input type="radio" name="vsdef" value="${i}"${l.sjalfgefid ? " checked" : ""}> Sjálfgefið</label><label class="vsdef"><input type="radio" name="vsalm" value="${i}"${l.almennt ? " checked" : ""}> Án verkefnis</label></td><td><input data-vs="verkefni:${i}" value="${esc((l.verkefni || []).join(", "))}" placeholder="Verknúmer, t.d. 2026-04" aria-label="Verkefni"></td><td><button type="button" class="mini" data-act="vs:del:${i}" aria-label="Eyða línu">✕</button></td></tr>`
+      : `<tr><td>${esc(l.heiti)}${l.sjalfgefid ? ' <span class="tag">sjálfgefið</span>' : ""}${l.almennt ? ' <span class="tag">tímar án verkefnis</span>' : ""}${(l.verkefni || []).length ? `<div class="ls">Gildir fyrir ${esc(l.verkefni.join(", "))}</div>` : ""}</td><td class="r">${esc(kr0(l.verd))}</td><td class="r">${esc(kr0(l.verd * vp / 100))}</td><td class="r"><b>${esc(kr0(l.verd * (1 + vp / 100)))}</b></td></tr>`).join("");
+    const head = EDIT ? `<tr><th>Verkþáttur</th><th class="r">Verð án VSK</th><th></th><th>Á verkefni</th><th></th></tr>` : `<tr><th>Verkþáttur</th><th class="r">Verð án VSK (kr./klst.)</th><th class="r">VSK ${vp}% (kr.)</th><th class="r">Verð með VSK (kr./klst.)</th></tr>`;
+    const lo = Math.min(...v.lidir.map(l => +l.verd || 0)), hi = Math.max(...v.lidir.map(l => +l.verd || 0));
+    const used = verkefni().filter(p => !isDone(p)).map(p => [p, taxtiOf(p)]);
+    return backBar() + `<div class="kicker"><span class="kind">Skjal</span>${v.uppfaert ? `<span class="pill">Uppfært ${esc(fmtDate(v.uppfaert))}</span>` : ""}</div>
+      <h2 class="big" style="margin-top:6px">Verðskrá ${esc(ORG.nafn)}</h2>
+      <p class="sub">Tímagjald ${esc(ORG.nafn)} er ${esc(kr0(lo))}${hi !== lo ? "–" + esc(kr0(hi)) : ""} kr. á klukkustund án VSK, eftir tegund verks.</p>
+      <div class="viewtitle">Tímagjald</div><div class="tw"><table class="vstab">${`<thead>${head}</thead>`}<tbody>${rows}</tbody></table></div>
+      ${(() => { const vl = vinnuLinur().filter(l => l.vara); return vl.length ? `<div class="viewtitle" style="margin-top:18px">Vinnulínur úr vörulista</div><p class="hint" style="margin:0 0 8px">Sömu línur og á tilboðum – líka hægt að velja þær þegar tími er skráður. Verðinu er breytt í <a href="#" data-act="tab:vvinna">Vörulista</a>.</p><div class="tw"><table class="vstab"><tbody>${vl.map(l => `<tr><td>${esc(l.heiti)}</td><td class="r">${esc(kr0(l.verd))} kr./klst.</td></tr>`).join("")}</tbody></table></div>` : (ON("bunadur") && !ON("leiga") && !ON("sala") ? `<p class="hint" style="margin-top:14px">Vörulistinn (þjónustuliðir á tilboðum) er hér: <a href="#" data-act="tab:vvinna">Opna Vörulista →</a></p>` : ""); })()}
+      ${EDIT ? `<div class="links" style="margin-top:8px"><button type="button" class="btn" data-act="vs:add">+ Lína</button></div>
+        <label class="chk" style="margin-top:12px"><input type="checkbox" id="vs-skra"${vs ? " checked" : ""}> Félagið er á VSK-skrá (VSK ${vp}% leggst á reikninga)</label>
+        <label>Athugasemd<textarea id="vs-ath">${esc(v.athugasemd || "")}</textarea></label>
+        <div class="links" style="margin-top:12px"><button type="button" class="btn primary" data-act="vs:save">Vista verðskrá</button><button type="button" class="btn" data-act="vs:cancel">Hætta við</button></div>`
+        : `<p class="hint" style="margin-top:8px">${esc(v.athugasemd || "")} ${vs ? "Félagið er á VSK-skrá." : "<b>Félagið er ekki á VSK-skrá – reikningar eru án VSK.</b>"}</p>
+        ${fj() ? `<div class="links"><button type="button" class="btn" data-act="vs:edit">✎ Breyta verðskrá</button><button type="button" class="btn" onclick="window.print()">Prenta / PDF</button></div>` : `<div class="links"><button type="button" class="btn" onclick="window.print()">Prenta / PDF</button></div>`}`}
+      <div class="viewtitle">Tímagjald verkefna í gangi</div>${llist(used.map(([p, l]) => lrow("verk:" + p.id, { title: `<span class="nr">${esc(p.nr)}</span>&nbsp; ${esc(p.stutt || p.nafn)}`, sub: esc(p.timagjald ? "Eigið tímagjald verkefnis" : l ? l.heiti : "Ekkert tímagjald"), right: `<span class="lc">${esc(kr0(rateOf(p)))} kr./klst.</span>` })))}
+      <p class="hint">Tímagjald verkefnis: eigið tímagjald (ef skráð) › verkþáttur valinn á verkefni › verkþáttur sem nefnir verknúmerið › sjálfgefinn verkþáttur. Tímar án verkefnis fá línuna merkta „tímar án verkefnis“. Á hverri tímaskráningu má velja aðra þjónustu – þá gildir verð þeirrar línu. Breyta má fyrir hvert verkefni undir Breyta verkefni og við reikningsfærslu.</p>`;
+  };
+
+  function read() {
+    const v = VERD(), lidir = v.lidir.map((l, i) => {
+      const g = k => document.querySelector(`[data-vs="${k}:${i}"]`)?.value ?? "";
+      return { id: l.id || ("l" + Date.now().toString(36) + i), heiti: g("heiti").trim(), verd: parseKr(g("verd")) || 0, sjalfgefid: document.querySelector(`input[name="vsdef"][value="${i}"]`)?.checked || false, almennt: document.querySelector(`input[name="vsalm"][value="${i}"]`)?.checked || false,
+        verkefni: g("verkefni").split(/[,\s]+/).map(s => s.trim()).filter(Boolean) };
+    }).filter(l => l.heiti);
+    if (!lidir.some(l => l.sjalfgefid) && lidir.length) lidir[0].sjalfgefid = true;
+    return { ...v, v: 2, lidir, vskSkra: !!document.getElementById("vs-skra")?.checked, athugasemd: document.getElementById("vs-ath")?.value || "" };
+  }
+  window.vsAct = function (r) {
+    const [op, a] = r;
+    if (op === "edit") { EDIT = true; render(); return; }
+    if (op === "cancel") { EDIT = false; render(); return; }
+    if (op === "add" || op === "del") { const v = read(); if (op === "add") v.lidir.push({ id: "l" + Date.now().toString(36), heiti: "Nýr verkþáttur", verd: v.lidir.find(l => l.sjalfgefid)?.verd || 10000 }); else v.lidir.splice(+a, 1);
+      TMP = v; render(); return; }
+    if (op === "save") { const v = read(); if (!v.lidir.length) return toast("Verðskráin þarf að minnsta kosti eina línu.");
+      if (v.lidir.some(l => !(l.verd > 0))) return toast("Skráðu verð á allar línur.");
+      saveSnapshot(s => { s.stillingar = s.stillingar || {}; s.stillingar.verdskra = { ...v, uppfaert: new Date().toISOString(), af: window.USER?.email || "" };
+        /* 2.122.4: „á VSK-skrá“ og VSK % reikninga eru sami hluturinn – haldið í takt */ s.stillingar.reikn = { ...(s.stillingar.reikn || {}), vsk: v.vskSkra ? (+v.vsk || 24) : 0 }; })
+        .then(() => { EDIT = false; TMP = null; toast("Verðskrá vistuð"); }).catch(e => toast(errText(e))); }
+  };
+  // Tímabundin útgáfa á meðan línum er bætt við/eytt í breytingaham (áður en vistað er)
+  let TMP = null; const base = window.VERD; window.VERD = () => (EDIT && TMP) || base();
+  // Einingin Verðskrá óvirk (t.d. læst í uppsetningu, ORG.einingar.verdskra = false – frá 2.7.2): engin verðskrá birtist
+  // og tímagjald kemur aðeins úr verkefninu sjálfu eða Reikningsstillingum.
+  const on = () => !window.ON || ON("verdskra");
+  const W = (n, off) => { const f = window[n]; window[n] = (...a) => on() ? f(...a) : off(...a); };
+  W("taxtiOf", () => null); W("svcOf", () => null); W("entryRate", (e, b) => b); W("taxtiSelect", () => "");
+  W("rateOf", p => +(p?.timagjald || (typeof CFG === "function" && CFG().reikn?.timagjald) || 0)); W("vsCard", () => ""); W("dVerdskra", () => null);
+})();

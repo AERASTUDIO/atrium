@@ -1,0 +1,181 @@
+// Tenging appsins við Firebase: innskráning (eingöngu Microsoft-aðgangar fyrirtækisins, frá 1.6.1) og gagnagrunnur (Firestore).
+// Appið sjálft (index.html) veit ekkert um Firebase; það fær hlut `db` með get/set/tx/watch og `db.user` (innskráður notandi).
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAuth, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence, doc, getDoc, getDocFromServer, setDoc, onSnapshot, runTransaction, collection, query, where, writeBatch, getDocs, getDocsFromCache, getDocsFromServer, disableNetwork, enableNetwork }
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { firebaseConfig, MS_TENANT, MS_DOMAIN, ADMIN, LEGACY_EMAILS } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+// Innskráning helst þótt appinu sé lokað (frá 1.7.0) – notandinn skráir sig út með „Skrá út“ eða er gerður óvirkur af admin.
+const persistReady = setPersistence(auth, browserLocalPersistence).catch(e => console.warn("setPersistence", e));
+// Staðbundið afrit í símanum/tölvunni: appið virkar án nets og samstillir þegar netið kemur aftur.
+const fs = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), ignoreUndefinedProperties: true });
+
+const ref = path => doc(fs, ...path.split("/"));
+const login = document.getElementById("login");
+const loginMsg = document.getElementById("login-msg");
+const showLogin = (msg = "") => { login.hidden = false; loginMsg.textContent = msg; };
+const lc = s => String(s || "").trim().toLowerCase();
+
+async function signIn(provider) {
+  loginMsg.textContent = "";
+  await persistReady;
+  try { await signInWithPopup(auth, provider); }
+  catch (e) {
+    // Sumir símar leyfa ekki sprettiglugga – þá er farið á innskráningarsíðuna í staðinn.
+    if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(e.code)) {
+      try { await signInWithRedirect(auth, provider); } catch (e2) { showLogin("Innskráning tókst ekki: " + (e2.code || e2.message)); }
+    } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") {
+      showLogin("Innskráning tókst ekki: " + (e.code || e.message));
+    }
+  }
+}
+const msLogin = gestur => {
+  const p = new OAuthProvider("microsoft.com");
+  // select_account: Microsoft spyr um aðgang en notar innskráningu sem er þegar til staðar í vafranum (MFA samkvæmt reglum Entra).
+  // Gestir (2.99.0): án domain_hint, svo Microsoft vísi þeim á eigin innskráningu (t.d. Gmail með kóða í pósti).
+  p.setCustomParameters(gestur ? { tenant: MS_TENANT, prompt: "select_account" } : { tenant: MS_TENANT, prompt: "select_account", domain_hint: MS_DOMAIN });
+  signIn(p);
+};
+// 2.108.0: munað hvor hnappurinn var valinn – gestur (utan léns fyrirtækisins) má ekki skrá sig inn um „Starfsfólk“
+const leid = v => { try { sessionStorage.setItem("atr:leid", v); } catch (e) {} };
+document.getElementById("login-ms").addEventListener("click", () => { leid("s"); msLogin(false); });
+document.getElementById("login-gestur")?.addEventListener("click", () => { leid("g"); msLogin(true); });
+getRedirectResult(auth).catch(e => showLogin("Innskráning tókst ekki: " + (e.code || e.message)));
+
+// Skrá út (2.44.0, persónuvernd): auk innskráningar hverfa gögn fyrirtækisins af tækinu – afrit Firestore í vafranum (IndexedDB),
+// Microsoft-lyklar og staðbundnar stillingar þessarar uppsetningar. Aðrar uppsetningar á sama léni (eigið forskeyti) haldast.
+window.aeraSignOut = async () => {
+  try { await signOut(auth); } catch (e) {}
+  try { await terminate(fs); await clearIndexedDbPersistence(fs); } catch (e) { console.warn("clearIndexedDbPersistence", e); }
+  try { if (window.ORG?.lsForskeyti) localStorage.clear(); else { const L = window.localStorage, ADRAR = /^(demo|dev|party|sonik|[a-z0-9]+):/; for (let i = L.length - 1; i >= 0; i--) { const k = L.key(i); if (k && (!ADRAR.test(k) || k.startsWith("u1seen:"))) L.removeItem(k); } } } catch (e) {}
+  try { sessionStorage.clear(); } catch (e) {}
+  location.reload();
+};
+
+// Les notendaskrána (app/notendur). Skilar null ef aðgangur fæst ekki.
+async function readUsers() {
+  try { const s = await getDocFromServer(ref("app/notendur")); return { ok: true, exists: s.exists(), data: s.exists() ? s.data() : null }; }
+  catch (e) {
+    if (e.code === "permission-denied") return { ok: false, denied: true };
+    try { const s = await getDoc(ref("app/notendur")); return { ok: true, exists: s.exists(), data: s.exists() ? s.data() : null, cached: true }; }
+    catch (e2) { return { ok: false, error: e2 }; }
+  }
+}
+
+let started = false;
+onAuthStateChanged(auth, async user => {
+  if (!user) { showLogin(); return; }
+  const prov = user.providerData?.[0]?.providerId || "";
+  const email = lc(user.email || user.providerData?.[0]?.email);
+  const legacy = false; // Google-varaleiðin var lögð niður í 1.6.1
+  // 2.99.0: gestir (B2B í Microsoft-umhverfi fyrirtækisins, t.d. verktakar) mega skrá sig inn með eigin netfangi.
+  // Aðgangurinn ræðst af notendaskránni (Stillingar › Notendur), ekki léninu; reglurnar (firestore.rules) krefjast þess sama.
+  const ms = prov === "microsoft.com" && !!email;
+  const gestur = ms && !email.endsWith("@" + MS_DOMAIN);
+  const deny = async m => { await signOut(auth); showLogin(m); };
+  { let v = ""; try { v = sessionStorage.getItem("atr:leid") || ""; sessionStorage.removeItem("atr:leid"); } catch (e) {}
+    if (v === "s" && gestur) return deny(`${email} er gestaaðgangur. Skráðu þig inn með hnappnum „Gestur“.`); }
+  if (!legacy && !ms) return deny(prov === "microsoft.com" ? "Microsoft gaf ekki upp netfang fyrir þennan aðgang. Hafðu samband við admin." : `${email || "Þessi aðgangur"} hefur ekki aðgang að appinu. Skráðu þig inn með Microsoft-aðgangi @${MS_DOMAIN}.`);
+
+  let r = await readUsers();
+  // Fyrsta skipti (ný uppsetning): notendaskráin er ekki til – fyrsti admin (fyrirtaeki.js) stofnar hana við fyrstu innskráningu.
+  // Reglurnar leyfa það aðeins því netfangi og aðeins ef skráin er ekki til.
+  if (ms && email === lc(ADMIN.email) && ((r.ok && !r.exists) || r.denied)) {
+    const now = new Date().toISOString();
+    const data = { notendur: { [lc(ADMIN.email)]: { nafn: ADMIN.nafn, sk: ADMIN.sk, hlutverk: "admin", virkur: true, stofnad: now, breytt: now } }, uppfaert: now };
+    try { await setDoc(ref("app/notendur"), data); r = { ok: true, exists: true, data }; } catch (e) { console.warn("Gat ekki stofnað notendaskrá", e); }
+  }
+  if (!r.ok && !legacy) {
+    return deny(r.denied ? `${email} hefur ekki aðgang að appinu. Biddu admin um að bæta þér við í Stillingum › Notendur.` : "Gat ekki athugað aðgang (ekkert net?). Reyndu aftur.");
+  }
+  const users = r.data?.notendur || {};
+  let me = users[email];
+  if (ms && !(me && me.virkur)) return deny(me ? `Aðgangur ${email} hefur verið gerður óvirkur.` : `${email} hefur ekki aðgang að appinu. Biddu admin um að bæta þér við í Stillingum › Notendur.`);
+  if (legacy) me = { ...(users[lc(ADMIN.email)] || { nafn: ADMIN.nafn, sk: ADMIN.sk }), hlutverk: "admin", virkur: true, varaleid: true };
+
+  login.hidden = true;
+  if (started) return; started = true;
+  const U = { email, nafn: me.nafn || user.displayName || email, sk: me.sk || "", hlutverk: me.hlutverk || "starfsmadur", varaleid: !!me.varaleid, provider: prov, gestur };
+  // Gestur hefur hvorki pósthólf, dagatal né OneDrive hjá fyrirtækinu – Microsoft-tengingin (ms.js) er ekki boðin honum.
+  window.MS_GESTUR = gestur;
+
+  // Skrá síðustu innskráningu (hljóðlaust; mistekst ef reglur leyfa ekki).
+  if (ms) runTransaction(fs, async t => {
+    const s = await t.get(ref("app/notendur")); if (!s.exists()) return;
+    const d = s.data(); if (!d.notendur?.[email]) return;
+    d.notendur[email].sidast = new Date().toISOString(); t.set(ref("app/notendur"), d);
+  }).catch(() => {});
+  // Notkun (2.97.0): hver notandi skráir sig sem virkan í mánuðinum (UTC) – s = skrifstofa, v = vettvangur. Grunnur áskriftar (Stillingar › Áskrift).
+  if (ms) { const mo = new Date().toISOString().slice(0, 7); setDoc(ref("app/notkun"), { [mo]: { [email]: U.hlutverk === "vettvangur" ? "v" : "s" } }, { merge: true }).catch(() => {}); }
+
+  window.aeraStart({
+    email, user: U,
+    async get(path) { const s = await getDoc(ref(path)); return { exists: s.exists(), data: () => s.data() }; },
+    // Ekki beðið eftir svari netþjóns: skrifin geymast staðbundið strax og fara upp þegar netið er til staðar.
+    set(path, data) { return setDoc(ref(path), data); },
+    // Breyting á nýjustu útgáfu skjalsins á netþjóni – svo breytingar tveggja notenda á sama tíma skrifi ekki yfir hvor aðra.
+    tx(path, fn) {
+      return runTransaction(fs, async t => {
+        const s = await t.get(ref(path)); const out = fn(s.exists() ? s.data() : {});
+        t.set(ref(path), out); return out;
+      });
+    },
+    // Mörg skrif í einu (hópur): set eða delete á einstök skjöl. Skipt í búta (Firestore leyfir 500 í hóp); síðasta skrifið fer síðast.
+    async commit(list) {
+      for (let i = 0; i < list.length; i += 400) {
+        const b = writeBatch(fs);
+        for (const o of list.slice(i, i + 400)) o.del ? b.delete(ref(o.path)) : b.set(ref(o.path), o.data);
+        await b.commit();
+      }
+    },
+    // Fylgist með heilu safni (t.d. "verkefni"), mögulega síuðu: filter = [reitur, gildi, aðgerð?] (t.d. ["eigandi", netfang] eða ["adilar", netfang, "array-contains"]).
+    watchCol(name, filter, cb, onErr) {
+      const q = filter ? query(collection(fs, name), where(filter[0], filter[2] || "==", filter[1])) : collection(fs, name);
+      return onSnapshot(q, { includeMetadataChanges: true },
+        s => cb({ docs: s.docs.map(d => d.data()), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);
+    },
+    // 2.145.16: allt safnið lesið einu sinni (ekki í beinni). Úr geymslu á tækinu ef hún er nýrri en maxAge (ms), annars af netþjóni.
+    async getColOnce(name, { maxAge = 7 * 864e5, key } = {}) {
+      const k = "atr-col-" + (key || name), t = +(localStorage.getItem(k) || 0), q = collection(fs, name);
+      if (Date.now() - t < maxAge) { try { const c = await getDocsFromCache(q); if (!c.empty) return { docs: c.docs.map(d => d.data()), fromCache: true }; } catch (e) {} }
+      const sv = await getDocsFromServer(q); try { localStorage.setItem(k, String(Date.now())); } catch (e) {}
+      return { docs: sv.docs.map(d => d.data()), fromCache: false };
+    },
+    // 2.163.0: fljótleg endurnýjun (Endurhlaða) – tenging við Firestore rofin og opnuð aftur svo öll söfn í beinni samstillast við netþjóninn
+    async reconnect() { try { await disableNetwork(fs); } finally { await enableNetwork(fs); } },
+    // 2.94.4: endurnýja innskráningarlykil (notað ef fyrsta lestur fær permission-denied rétt eftir innskráningu)
+    async refresh() { try { await auth.currentUser?.getIdToken(true); } catch (e) {} },
+    // 2.119.2: innskráningarlykill fyrir köll á Cloud Functions (t.d. reikningur úr Payday)
+    async idToken() { return auth.currentUser ? auth.currentUser.getIdToken() : null; },
+    watch(path, cb, onErr) {
+      return onSnapshot(ref(path), { includeMetadataChanges: true },
+        s => cb({ exists: s.exists(), data: () => s.data(), pending: s.metadata.hasPendingWrites, fromCache: s.metadata.fromCache }), onErr);
+    }
+  });
+});
+
+// Sjálfvirk uppfærsla: þegar appið er opnað aftur er athugað hvort ný útgáfa sé komin,
+// og ef svo er endurhleðst appið sjálft (gerist þegar VERSION í sw.js er hækkað).
+if ("serviceWorker" in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  /* 2.145.16: ný útgáfa endurhleður appið ekki lengur sjálf eftir á (það olli tvöfaldri endurhleðslu: endurhlaða → 5–10 s → aftur).
+     Ef notandinn bað um endurhleðslu (smellti á merkið) og ný útgáfa var að sækjast er beðið eftir henni og hlaðið einu sinni.
+     Annars birtist lítil tilkynning með „Endurhlaða“ og nýja útgáfan tekur gildi næst þegar appið er opnað. */
+  window.__swWantReload = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    if (window.__swWantReload) { reloading = true; location.reload(); return; }
+    // 2.168.0: aðeins ef útgáfa ÞESSARAR uppsetningar breyttist (sw.js fylgir nýjasta kóðanum – festar uppsetningar fá annars falska tilkynningu)
+    Promise.resolve(window.atrNyUtgafa ? window.atrNyUtgafa() : "?").then(nv => { if (!nv) return; try { (window.toast || (() => {}))("Ný útgáfa af appinu er komin", () => { reloading = true; location.reload(); }, "Endurhlaða"); } catch (e) {} });
+  });
+  navigator.serviceWorker.register(new URL("sw.js", document.baseURI).href, { updateViaCache: "none" }).then(reg => {
+    const check = () => reg.update().catch(() => {});
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") check(); });
+    setInterval(check, 30 * 60 * 1000);
+  }).catch(() => {});
+}

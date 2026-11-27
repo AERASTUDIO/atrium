@@ -1,0 +1,667 @@
+/* Pósthólf í appinu (Microsoft Graph, Mail.Read): lesa innhólf og möppur, leita, opna póst,
+   tengja póstþráð við verkefni (S.thraedir – aðeins tilvísun í conversationId, ekki afrit) og vista viðhengi í möppu verkefnisins.
+   Nýir póstar í tengdum þræði birtast sjálfkrafa á síðu verkefnisins því þráðurinn er sóttur beint úr pósthólfinu. */
+(function () {
+  const SEL = "$select=id,subject,from,receivedDateTime,bodyPreview,webLink,isRead,hasAttachments,conversationId,flag,importance,isDraft";
+  const FOLD = [["inbox", "Innhólf"], ["aera", ORG.postholf ? "Verkefnapóstur" : ORG.postmappa], ["sentitems", "Sent"], ["tengilidir", "Tengiliðir"]];
+  let filt = "", FOLDERS = null, foldBusy = false;
+  let fold = "inbox", q = "", list = null, next = null, loading = false, err = null, aeraId = null, target = null; // target = verkefni sem verið er að finna pósta fyrir
+  const MSG = {}, ATT = {};
+  /* Sameiginlegt pósthólf (frá 1.9.5): ORG.postholf, t.d. aera@ – verkefnapóstur sem allir með aðgang sjá í heild.
+     Hver póstur er lesinn úr því pósthólfi sem hann kom úr (BOX: póst-id → "/users/…"; annars "/me"). */
+  const SH = String(ORG.postholf || "").trim().toLowerCase(), SHB = SH ? `/users/${encodeURIComponent(SH)}` : null;
+  const BOX = {}, mb = id => BOX[id] || "/me";
+  const noteBox = (xs, b) => { if (b && b !== "/me") (xs || []).forEach(m => { if (m && m.id) BOX[m.id] = b; }); };
+  window.poBox = (xs, b) => noteBox(xs, b);
+  let curBox = "/me";
+  const msOn = () => !!(window.MS && MS.on());
+  const CONV = {}; // póst-id → conversationId
+  const THR = () => S?.thraedir || [];
+  const noteConv = xs => (xs || []).forEach(m => { if (m && m.id && m.conversationId) CONV[m.id] = m.conversationId; });
+  const convOf = gid => CONV[gid] || MSG[gid]?.conversationId || (list || []).concat(window.MS_OFL || []).find(x => x.id === gid)?.conversationId || null;
+  const linked = gid => { const c = convOf(gid); return c ? THR().find(t => t.conv === c) : null; };
+  const cleanSubj = x => String(x || "").replace(/^\s*((re|fw|fwd|sv|aw|vs|tr|antw)\s*(\[\d+\])?\s*:\s*)+/i, "").trim() || "(ekkert efni)";
+  // Tengja/aftengja heilan þráð (upsert eftir conversationId). Notað líka af ms-app.js (sjálfvirk flokkun).
+  window.poLinkConv = (conv, pid, efni, af) => saveSnapshot(s => { s.thraedir = s.thraedir || []; const t = s.thraedir.find(x => x.conv === conv);
+    if (!pid) { s.thraedir = s.thraedir.filter(x => x.conv !== conv); return; }
+    if (t) t.verkefniId = pid; else s.thraedir.push({ id: newId(), conv, verkefniId: pid, efni: cleanSubj(efni), tengt: new Date().toISOString(), af: af || window.USER?.email || "" }); });
+  window.poCleanSubj = cleanSubj;
+  // Skilaboð í þræði, sótt beint úr pósthólfinu (geymt í minni í 2 mín.)
+  const TC = {};
+  function thread(conv) {
+    const c = TC[conv]; if (c && (c.busy || Date.now() - c.at < (window.__TCTTL ?? 120000))) return c;
+    TC[conv] = { at: Date.now(), busy: true, msgs: c?.msgs || null, err: null };
+    const qs = `/messages?$filter=${encodeURIComponent(`conversationId eq '${conv.replace(/'/g, "''")}'`)}&$top=50&${SEL}`;
+    Promise.all([SHB ? MS.g(SHB + qs).then(j => (noteBox(j.value, SHB), j.value || [])).catch(() => []) : [], MS.g("/me" + qs).then(j => j.value || [])])
+      .then(([a, b]) => { const key = m => (m.receivedDateTime || "") + "|" + (m.subject || "") + "|" + (m.from?.emailAddress?.address || "");
+        const seen = new Set(a.map(key)), xs = a.concat(b.filter(m => !seen.has(key(m)))).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime)));
+        noteConv(xs); const same = c?.msgs && c.msgs.map(m => m.id + (m.isRead ? 1 : 0)).join() === xs.map(m => m.id + (m.isRead ? 1 : 0)).join(); TC[conv] = { at: Date.now(), msgs: xs }; if (!same) rr(); })
+      .catch(e => { TC[conv] = { at: Date.now(), msgs: c?.msgs || [], err: e.message }; rr(); });
+    return TC[conv];
+  }
+  const fromName = m => m.from?.emailAddress?.name || m.from?.emailAddress?.address || "";
+  const when = iso => { const x = new Date(iso), t = new Date(); return x.toDateString() === t.toDateString() ? x.toTimeString().slice(0, 5) : fmtDate(iso); };
+
+  async function folderPath() {
+    if (fold !== "aera") return `/me/mailFolders/${fold}/messages`;
+    if (SHB) return `${SHB}/mailFolders/inbox/messages`;
+    if (!aeraId) { const f = encodeURIComponent(`displayName eq '${ORG.postmappa.replace(/'/g, "''")}'`); let xs = (await MS.g(`/me/mailFolders?$filter=${f}&$select=id`)).value; if (!xs.length) xs = (await MS.g(`/me/mailFolders/inbox/childFolders?$filter=${f}&$select=id`)).value; if (!xs.length) throw new Error("Engin póstmappa sem heitir ${ORG.postmappa}."); aeraId = xs[0].id; }
+    return `/me/mailFolders/${aeraId}/messages`;
+  }
+  async function load(more) {
+    if (loading) return; loading = true; err = null;
+    try {
+      let j;
+      if (!(more && next)) curBox = fold === "aera" && SHB ? SHB : "/me";
+      if (more && next) j = await MS.g(next);
+      else if (q) { // 2.83.0: leitað bæði í eigin pósthólfi og sameiginlega pósthólfinu; nýjast efst
+        const qs = `/messages?$search=${encodeURIComponent('"' + q.replace(/"/g, "") + '"')}&$top=40&${SEL}`;
+        const [a, b] = await Promise.all([MS.g("/me" + qs).then(x => x.value || []), SHB ? MS.g(SHB + qs).then(x => (noteBox(x.value, SHB), x.value || [])).catch(() => []) : []]);
+        const seen = new Set(a.map(m => m.id)); j = { value: a.concat(b.filter(m => !seen.has(m.id))).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime))) }; }
+      else { const fp = await folderPath();
+        // 2.144.1: ef Microsoft svarar 5xx við röðuðum lista er reynt aftur án $orderby (pósthólf skila nýjasta fyrst sjálfgefið)
+        try { j = await MS.g(`${fp}?$top=30&$orderby=receivedDateTime%20desc&${SEL}`); }
+        catch (e5) { if (!(e5.status >= 500)) throw e5; j = await MS.g(`${fp}?$top=25&${SEL}`); (j.value || []).sort((x, y) => String(y.receivedDateTime).localeCompare(String(x.receivedDateTime))); } }
+      noteConv(j.value); noteBox(j.value, curBox); list = more ? (list || []).concat(j.value || []) : (j.value || []); next = j["@odata.nextLink"] || null;
+    } catch (e) { err = curBox !== "/me" && (e.status === 403 || e.status === 404 || /denied|scope/i.test(e.message)) ? `Þú hefur ekki aðgang að ${SH} enn. Admin veitir aðgang í Exchange (Full Access) og appið þarf heimildina Mail.Read.Shared – tengstu Microsoft aftur eftir það.` : e.message; if (!more) list = []; }
+    loading = false; render();
+  }
+  const reset = () => { list = null; next = null; };
+  window.poReload = () => { reset(); err = null; load(false); };
+
+  /* ---------- Listi ---------- */
+  const flagged = m => m.flag?.flagStatus === "flagged";
+  const row = (m, n) => { const L = linked(m.id), p = L && findProj(L.verkefniId), g = !L && window.msGuessProj ? findProj(msGuessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address)) : null;
+    const qa = MCP && WR() ? `<span class="poqa" onclick="event.stopPropagation()"><button type="button" title="${m.isRead === false ? "Merkja lesið" : "Merkja ólesið"}" data-act="poread:${esc(m.id)}:${m.isRead === false ? 1 : 0}">${m.isRead === false ? "◉" : "○"}</button><button type="button" title="${flagged(m) ? "Taka flagg" : "Flagga"}" data-act="poflag:${esc(m.id)}:${flagged(m) ? 0 : 1}">⚑</button><button type="button" title="Setja í safn" data-act="pomove:${esc(m.id)}:archive">⤓</button><button type="button" title="Eyða" data-act="pomove:${esc(m.id)}:deleteditems">🗑</button></span>` : "";
+    return `<div class="lrow tap porow${m.isRead === false ? " unread" : ""}${flagged(m) ? " flagged" : ""}" ${tapAttr("post", m.id)}><div class="ll"><span class="podot"></span></div>
+      <div class="lm"><div class="lt"><span class="pofrom">${esc(m.isDraft ? "[Drög] " + people(m.toRecipients || []) : fromName(m))}</span>${m.importance === "high" ? ' <span class="poimp" title="Mikilvægt">!</span>' : ""}${m.hasAttachments ? " 📎" : ""}${flagged(m) ? ' <span class="poflg" title="Flaggað">⚑</span>' : ""}</div><div class="ls" style="color:var(--ink)">${esc(m.subject || "(ekkert efni)")}${n > 1 ? ` <span class="pocount" title="${n} póstar í þræðinum">${n}</span>` : ""}</div><div class="ls">${esc((m.bodyPreview || "").slice(0, 110))}</div>
+      ${p ? `<span class="pill" style="margin-top:4px">${esc(p.nr)} ${esc(p.stutt)}</span>` : ""}</div>
+      <div class="lr" style="flex-direction:column;align-items:flex-end;gap:6px"><span class="lc">${esc(when(m.receivedDateTime))}</span>${qa}
+      ${!L && MCP ? (target ? `<button type="button" class="btn" data-act="polink:${esc(m.id)}:${esc(target)}" style="padding:4px 10px;min-height:30px">Tengja</button>` : g ? `<button type="button" class="btn" data-act="polink:${esc(m.id)}:${esc(g.id)}" style="padding:4px 10px;min-height:30px" title="Tengja við ${esc(g.nafn)}">→ ${esc(g.nr)}</button>` : "") : ""}</div></div>`; };
+
+  /* ---------- Möppur og aðgerðir eins og í Outlook (2.29.0): lesið/ólesið, flagg, safn, eyða, færa (Mail.ReadWrite) ---------- */
+  const WR = () => !!(window.MS && (MS.can("Mail.ReadWrite") || window.ORG?.utlit === "I"));
+  const WK = [["inbox", "Innhólf"], ["drafts", "Drög"], ["sentitems", "Sent"], ["archive", "Safn"], ["deleteditems", "Eytt"], ["junkemail", "Ruslpóstur"]];
+  async function loadFolders() {
+    if (foldBusy) return; foldBusy = true;
+    try { const xs = (await MS.g(`/me/mailFolders?$top=60&$select=id,displayName,unreadItemCount,totalItemCount,wellKnownName`)).value || [];
+      const wk = {}; await Promise.all(WK.map(([k]) => MS.g(`/me/mailFolders/${k}?$select=id,unreadItemCount,totalItemCount`).then(f => { wk[k] = f; }).catch(() => {})));
+      FOLDERS = { all: xs, wk }; } catch (e) { FOLDERS = { all: [], wk: {}, err: e.message }; }
+    foldBusy = false; render();
+  }
+  const unreadOf = k => FOLDERS?.wk?.[k]?.unreadItemCount || 0;
+  const permErr = e => /403|denied|scope|Access is denied|ErrorAccessDenied/i.test(e?.message || "") || e?.status === 403;
+  const needRW = () => toast("Appið þarf heimildina Mail.ReadWrite. Tengstu Microsoft aftur (Stillingar › Microsoft 365) og samþykktu.");
+  // 2.114.8: margar teikningar í röð (póstur, þráður, lesið) sameinaðar í eina – flakk milli pósta á að vera hratt
+  let rrq = 0; const rr = () => { if (rrq) return; rrq = requestAnimationFrame(() => { rrq = 0; render(); }); };
+  const upd = (id, f) => { (list || []).forEach(m => { if (m.id === id) f(m); }); if (MSG[id]) f(MSG[id]); };
+  async function setRead(id, v, quiet) { const before = (list || []).find(m => m.id === id)?.isRead; upd(id, m => { m.isRead = v; });
+    // 2.114.8: sjálfvirkt „lesið“ teiknar ekki allt aftur (það endurhlóð póstinn) – aðeins röðin í listanum uppfærist
+    const soft = () => document.querySelectorAll(`[data-open="post:${CSS.escape(id)}"]`).forEach(r => r.classList.toggle("unread", !v));
+    if (quiet) soft(); else render();
+    try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { isRead: v } }); if (FOLDERS?.wk?.[fold]) FOLDERS.wk[fold].unreadItemCount = Math.max(0, unreadOf(fold) + (v ? -1 : 1)); if (!quiet) render(); }
+    catch (e) { upd(id, m => { m.isRead = before; }); AUTO.delete(id); render(); if (!quiet) permErr(e) ? needRW() : toast(e.message); else if (!AUTOERR) { AUTOERR = 1; toast(permErr(e) ? "Gat ekki merkt póst lesinn – appið vantar skrifaðgang að póstinum" : "Gat ekki merkt póst lesinn – reyni aftur næst"); } } }
+  const AUTO = new Set(), CVDONE = new Set(); let AUTOERR = 0;
+  const soft2 = cv => { if (!cv) return; (list || []).filter(x => x.conversationId === cv).forEach(x => document.querySelectorAll(`[data-open="post:${CSS.escape(x.id)}"]`).forEach(r => r.classList.toggle("unread", (list || []).some(y => y.conversationId === cv && y.isRead === false)))); };
+  async function setFlag(id, on) { upd(id, m => { m.flag = { flagStatus: on ? "flagged" : "notFlagged" }; }); render();
+    try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { flag: { flagStatus: on ? "flagged" : "notFlagged" } } }); }
+    catch (e) { upd(id, m => { m.flag = { flagStatus: on ? "notFlagged" : "flagged" }; }); render(); permErr(e) ? needRW() : toast(e.message); } }
+  async function moveTo(id, dest) {
+    const nm = WK.find(x => x[0] === dest)?.[1] || FOLDERS?.all?.find(f => f.id === dest)?.displayName || "möppu";
+    try { await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}/move`, { method: "POST", body: { destinationId: dest } });
+      list = (list || []).filter(m => m.id !== id); if (DETAIL === "post:" + id) DETAIL = null; FOLDERS = null; toast(dest === "deleteditems" ? "Fært í Eytt" : "Fært í " + nm); render(); }
+    catch (e) { permErr(e) ? needRW() : toast(e.message); } }
+  // 2.88.3: ein aðgerðaröð – Svara · Svara öllum · Áframsenda, svo tákn (flagga, safn, eyða) og ⋯ fyrir annað
+  const IC = { flag: '<path d="M5 21V4h11l-1.5 4L16 12H5"/>', arch: '<rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11h14V8M10 12h4"/>', del: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>' };
+  const ic = k => `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+  window.poToolbar = function (id, m) {
+    if (!MCP) return `<div class="poact"><a class="btn" href="${esc(m.webLink)}" target="_blank" rel="noopener">Opna í Outlook ↗</a></div>`;
+    const fl = flagged(m), opts = [...WK.filter(([k]) => k !== fold && k !== "drafts"), ...(FOLDERS?.all || []).filter(f => !f.wellKnownName && !WK.some(([k]) => FOLDERS.wk[k]?.id === f.id)).map(f => [f.id, f.displayName])];
+    return `<div class="poact"><div class="poreply"><button type="button" class="btn primary" data-act="poreply:reply:${esc(id)}">Svara</button><button type="button" class="btn" data-act="poreply:replyAll:${esc(id)}">Svara öllum</button><button type="button" class="btn" data-act="poreply:forward:${esc(id)}">Áframsenda</button></div>
+      <div class="poicons"><button type="button" class="btn poic${fl ? " on" : ""}" data-act="poflag:${esc(id)}:${fl ? 0 : 1}" title="${fl ? "Taka flagg" : "Flagga"}" aria-label="${fl ? "Taka flagg" : "Flagga"}">${ic("flag")}</button><button type="button" class="btn poic" data-act="pomove:${esc(id)}:archive" title="Setja í safn" aria-label="Setja í safn">${ic("arch")}</button><button type="button" class="btn poic danger" data-act="pomove:${esc(id)}:deleteditems" title="Eyða" aria-label="Eyða">${ic("del")}</button>
+      <details class="pomore"><summary class="btn poic" aria-label="Fleiri aðgerðir">⋯</summary><div><button type="button" data-act="poread:${esc(id)}:${m.isRead === false ? 1 : 0}">${m.isRead === false ? "Merkja lesið" : "Merkja ólesið"}</button><label class="pomvl">Færa í möppu<select data-pomove="${esc(id)}" aria-label="Færa í möppu"><option value="">Veldu möppu…</option>${opts.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join("")}</select></label><a href="${esc(m.webLink)}" target="_blank" rel="noopener">Opna í Outlook ↗</a></div></details></div></div>`;
+  };
+  document.addEventListener("click", e => { document.querySelectorAll("#view details.pomore[open]").forEach(d => { if (!d.contains(e.target) || e.target.closest("button,a")) d.removeAttribute("open"); }); }, true);
+  document.addEventListener("change", e => { const id = e.target.dataset?.pomove; if (id && e.target.value) moveTo(id, e.target.value); });
+
+  function vTengilidir() {
+    const t = q.toLowerCase(), all = contacts(), xs = all.filter(c => !t || c.a.toLowerCase().includes(t) || (c.n || "").toLowerCase().includes(t) || (c.v || "").toLowerCase().includes(t));
+    const inBook = a => BOOK().some(x => x.a.toLowerCase() === a.toLowerCase());
+    return `<form id="poq" class="leitbox" style="margin-top:8px"><input id="poqi" type="search" placeholder="Leita að tengilið…" value="${esc(q)}" enterkeyhint="search" autocomplete="off"></form>
+      <div class="${FSEL() ? "fsels" : "stat-row"}" style="margin-top:10px">${FSEL() ? fsel(FOLD.map(([k, l]) => ["pofold:" + k, l, fold === k]), "Mappa") : FOLD.map(([k, l]) => `<button type="button" class="chipbtn" data-act="pofold:${k}" aria-pressed="${fold === k}">${l}</button>`).join("")}<button type="button" class="chipbtn" data-act="poharv:" title="Sækja netföng úr pósti">↻</button></div>
+      <p class="hint" style="margin:10px 0 0">${all.length} tengiliðir · safnast sjálfkrafa úr pósti sem þú sendir og færð, og úr Viðskiptavinum. Þeir sem þú sendir oftast á eru efstir.</p>
+      ${xs.length ? `<div class="llist" style="margin-top:8px">${xs.slice(0, 300).map(c => `<div class="lrow"><div class="ll"><span class="avat">${esc((c.n || c.a).trim()[0]?.toUpperCase() || "?")}</span></div><div class="lm"><div class="lt">${esc(c.n || c.a)}</div><div class="ls">${esc([c.n ? c.a : "", c.v].filter(Boolean).join(" · "))}</div></div>
+        <div class="lr" style="gap:6px">${MCP ? `<button type="button" class="btn" data-act="poto:${esc(c.a)}" style="padding:4px 10px;min-height:30px">✉</button>` : ""}${MCP && inBook(c.a) ? `<button type="button" class="btn" data-act="pofor:${esc(c.a)}" style="padding:4px 10px;min-height:30px" aria-label="Gleyma ${esc(c.a)}">✕</button>` : ""}</div></div>`).join("")}</div>` : `<div class="empty" style="margin-top:16px">${q ? "Enginn fannst." : "Engir tengiliðir ennþá. Ýttu á ↻ til að sækja netföng úr póstinum."}</div>`}`;
+  }
+  // 2.83.0: póstar í sama þræði í einni línu (nýjasti pósturinn sýndur, fjöldi í þræðinum við efnið)
+  const grouped = () => { const g = new Map(); shown().forEach(m => { const k = m.conversationId || m.id, x = g.get(k); if (x) { x[1]++; if (m.isRead === false) x[0] = { ...x[0], isRead: false }; } else g.set(k, [m, 1]); }); return [...g.values()]; };
+  const shown = () => (list || []).filter(m => !filt || (filt === "unread" ? m.isRead === false : filt === "flag" ? flagged(m) : filt === "att" ? m.hasAttachments : filt === "otengt" ? !linked(m.id) : true));
+  function foldBar() {
+    if (window.ORG?.utlit !== "I") return `<div class="${FSEL() ? "fsels" : "stat-row"}" style="margin-top:10px">${FSEL() ? fsel(FOLD.map(([k, l]) => ["pofold:" + k, l, fold === k]), "Mappa") : FOLD.map(([k, l]) => `<button type="button" class="chipbtn" data-act="pofold:${k}" aria-pressed="${fold === k}">${l}</button>`).join("")}<button type="button" class="chipbtn" data-act="poref:" aria-label="Uppfæra">↻</button></div>`;
+    if (!FOLDERS && !foldBusy) loadFolders();
+    const F = [["inbox", "Innhólf"], ...(ORG.postholf || ORG.postmappa ? [["aera", ORG.postholf ? "Verkefnapóstur" : ORG.postmappa]] : []), ["drafts", "Drög"], ["sentitems", "Sent"], ["archive", "Safn"], ["deleteditems", "Eytt"], ["junkemail", "Ruslpóstur"]];
+    const custom = (FOLDERS?.all || []).filter(f => !f.wellKnownName && !WK.some(([k]) => FOLDERS.wk[k]?.id === f.id) && f.displayName !== ORG.postmappa);
+    const chip = (k, l) => { const n = unreadOf(k); return `<button type="button" class="chipbtn" data-act="pofold:${esc(k)}" aria-pressed="${fold === k}">${esc(l)}${n && k !== "sentitems" && k !== "drafts" ? ` <b class="pocnt">${n}</b>` : ""}</button>`; };
+    /* 2.126.0: aðalmöppurnar þrjár sem flipar, hinar í „Fleiri“ – áður 9 hnappar í þremur línum sem tóku þriðjung listans */
+    const MAIN = F.filter(([k]) => ["inbox", "aera", "sentitems"].includes(k)), REST = F.filter(([k]) => !["inbox", "aera", "sentitems"].includes(k));
+    const inRest = !MAIN.some(([k]) => k === fold);
+    const more = `<label class="posel pomore${inRest ? " on" : ""}"><select data-pofold aria-label="Fleiri möppur"><option value="">${inRest ? "" : "Fleiri…"}</option>${REST.map(([k, l]) => `<option value="${esc(k)}"${fold === k ? " selected" : ""}>${esc(l)}${unreadOf(k) && k !== "drafts" ? " (" + unreadOf(k) + ")" : ""}</option>`).join("")}${custom.map(f => `<option value="${esc(f.id)}"${inRest && fold === f.id ? " selected" : ""}>${esc(f.displayName)}${f.unreadItemCount ? " (" + f.unreadItemCount + ")" : ""}</option>`).join("")}<option value="tengilidir"${fold === "tengilidir" ? " selected" : ""}>Tengiliðir</option></select></label>`;
+    return `<div class="pofolds2" style="margin-top:10px"><div class="seg pofseg" role="tablist" aria-label="Mappa">${MAIN.map(([k, l]) => { const n = unreadOf(k); return `<button type="button" role="tab" data-act="pofold:${esc(k)}" aria-selected="${fold === k}">${esc(l)}${n && k !== "sentitems" ? ` <b class="pocnt">${n}</b>` : ""}</button>`; }).join("")}</div>${more}<button type="button" class="btn sm poref" data-act="poref:" aria-label="Uppfæra" title="Uppfæra">↻</button></div>`
+      + `<div class="stat-row pofilt" style="margin-top:8px">${[["", "Allt"], ["unread", "Ólesið"], ["flag", "Flaggað"], ["att", "Viðhengi"], ["otengt", "Ótengt verkefni"]].map(([k, l]) => `<button type="button" class="chipbtn sm" data-act="pofilt:${k}" aria-pressed="${filt === k}">${l}${k === "unread" && list ? " · " + list.filter(m => m.isRead === false).length : ""}</button>`).join("")}</div>`;
+  }
+  document.addEventListener("change", e => { if (e.target.matches?.("[data-pofold]") && e.target.value) { if (e.target.value === "tengilidir") { doAct("pofold:tengilidir"); return; } fold = e.target.value; q = ""; reset(); render(); } });
+  window.vPostur = function () {
+    if (!msOn()) return `<div class="empty" style="margin-top:16px">Tengdu Microsoft til að sjá pósthólfið þitt í appinu.${window.msMissing ? msMissing() : ""}</div>`;
+    if (fold === "tengilidir") return vTengilidir();
+    if (!list && !loading) { load(false); harvest(false).catch(() => {}); }
+    const tp = target && findProj(target);
+    return `${tp ? `<div class="card" style="margin:8px 0;display:flex;align-items:center;gap:10px"><div class="grow">Finndu pósta fyrir <b>${esc(tp.nr)} ${esc(tp.stutt)}</b> og ýttu á „Tengja“.</div><button type="button" class="btn" data-act="potarget:">Lokið</button></div>` : ""}
+      <form id="poq" class="leitbox${window.ORG?.utlit === "I" ? " poqf" : ""}" style="margin-top:8px"><input id="poqi" type="search" placeholder="Leita í pósti – nafn, efni, texti…" value="${esc(q)}" enterkeyhint="search" autocomplete="off"></form>
+      ${q ? `<div class="posrch">Leitarniðurstöður fyrir „${esc(q)}“ <button type="button" class="chipbtn sm" data-act="poclr:">Hreinsa leit</button></div>` : ""}
+      ${window.ORG?.utlit === "I" && !MS.can("Mail.ReadWrite") ? `<div class="uwarn info" style="margin-top:10px"><i></i><span><b>Ný heimild:</b> til að merkja lesið, flagga, færa og eyða þarf appið að fá að breyta pósti (Mail.ReadWrite). Tengstu Microsoft aftur og samþykktu.</span><button type="button" class="btn" onclick="MS.login().then(()=>{toast('Tengt – heimild samþykkt');render()}).catch(e=>toast(e.message))">Tengjast aftur</button></div>` : ""}
+      ${q ? "" : foldBar()}
+      ${err ? `<div class="msg err" style="margin-top:10px">${esc(err)} <button type="button" class="btn sm" style="margin-left:6px" onclick="this.disabled=true;window.poReload&&poReload()">Reyna aftur</button></div>` : ""}
+      ${list == null || (loading && !list?.length) ? `<div class="empty" style="margin-top:16px">Sæki pósta…</div>` : shown().length ? `<div class="llist" style="margin-top:8px">${grouped().map(([m, n]) => row(m, n)).join("")}</div>${next ? `<button type="button" class="btn" data-act="pomore:" style="width:100%;margin-top:10px">${loading ? "Sæki…" : "Sækja fleiri"}</button>` : ""}` : `<div class="empty" style="margin-top:16px">${q ? "Ekkert fannst." : filt ? "Engir póstar passa við síuna." : "Engir póstar í möppunni."}</div>`}
+      <p class="hint" style="margin-top:10px">Pósturinn er lesinn og sendur beint í gegnum Outlook (sendir póstar vistast í Sent).</p>`;
+  };
+
+  /* ---------- Einn póstur ---------- */
+  const LOADING = new Set();
+  async function loadMsg(id, silent) {
+    if (LOADING.has(id)) return; LOADING.add(id);
+    try {
+      const QS = `?$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,body,webLink,hasAttachments,bodyPreview,conversationId,isRead,flag,importance`;
+      // Opnað úr tilkynningu (2.65.1): ef pósturinn finnst ekki í eigin pósthólfi er reynt í sameiginlega pósthólfinu
+      try { MSG[id] = await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}` + QS); }
+      catch (e0) { /* 2.147.1: pósturinn getur verið í hinu pósthólfinu (t.d. tilboð sent úr eigin pósthólfi en skráð við verkefnapóstinn) – reynt í báðum */
+        const other = mb(id) === "/me" ? SHB : "/me"; if (!other) throw e0;
+        try { MSG[id] = await MS.g(`${other}/messages/${encodeURIComponent(id)}` + QS); BOX[id] = other; }
+        catch (e1) { throw new Error("Pósturinn fannst ekki – hann gæti hafa verið færður eða honum eytt í Outlook."); } }
+      noteConv([MSG[id]]); const m = MSG[id], html = m.body?.contentType === "html" ? m.body.content || "" : "", hasCid = /src\s*=\s*["']?cid:/i.test(html);
+      if (m.hasAttachments || hasCid) {
+        // contentId er aðeins til á fileAttachment, svo það er ekki valið í listanum (annars villa frá Graph)
+        const all = (await MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline`)).value || [];
+        const used = new Set();
+        if (hasCid) {
+          let body = html;
+          // 2.114.8: myndir í texta sóttar samhliða (ekki ein í einu)
+          const imgs = all.filter(a => /^image\//i.test(a.contentType || "") && a.size < 8 * 1024 * 1024 && (a.isInline || all.length < 15));
+          const got = await Promise.all(imgs.map(a => MS.g(`${mb(id)}/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(a.id)}`).then(f => [a, f]).catch(() => null)));
+          for (const x of got) { if (!x) continue; const [a, f] = x; const cid = String(f.contentId || "").replace(/^<|>$/g, "");
+            if (f.contentBytes && cid && body.includes("cid:" + cid)) { body = body.split("cid:" + cid).join(`data:${a.contentType};base64,${f.contentBytes}`); used.add(a.id); } }
+          m.body = { ...m.body, content: body };
+        }
+        ATT[id] = all.filter(a => !used.has(a.id) && !a.isInline);
+      }
+    } catch (e) { if (!silent) MSG[id] = { _err: e.message }; }
+    finally { LOADING.delete(id); }
+    if (!silent) rr();
+  }
+  // 2.114.8: næstu póstar í listanum sóttir fyrirfram svo þeir opnast strax
+  const forsaekja = id => { const xs = list || [], i = xs.findIndex(m => m.id === id); if (i < 0) return;
+    [xs[i + 1], xs[i + 2], xs[i - 1]].filter(Boolean).forEach(m => { if (!MSG[m.id]) loadMsg(m.id, true); }); };
+  const people = xs => (xs || []).map(r => r.emailAddress?.name || r.emailAddress?.address).filter(Boolean).join(", ");
+  window.dPost = function (id) {
+    if (!msOn()) return backBar() + `<h2 class="big">Póstur</h2><div class="empty">Tengdu Microsoft til að lesa póstinn í appinu.</div>`;
+    const m = MSG[id]; if (!m) { loadMsg(id); return backBar() + `<div class="empty" style="margin-top:20px">Sæki póst…</div>`; }
+    setTimeout(() => forsaekja(id), 300);
+    if (m._err) return backBar() + `<div class="msg err">${esc(m._err)}</div>`;
+    // 2.145.7: þegar póstur er opnaður merkjast líka ólesnir póstar í sama þræði (listinn sýnir þráðinn sem ólesinn ef einhver póstur í honum er ólesinn)
+    if (window.ORG?.utlit === "I" && MCP) { const cv = m.conversationId || (list || []).find(x => x.id === id)?.conversationId;
+      const ids = [...new Set([...(m.isRead === false ? [id] : []), ...(list || []).filter(x => x.isRead === false && cv && x.conversationId === cv).map(x => x.id)])].filter(x => !AUTO.has(x));
+      if (ids.length) { ids.forEach(x => AUTO.add(x)); setTimeout(() => Promise.all(ids.map(x => setRead(x, true, true))).then(() => { soft2(cv); rr(); }), 1200); }
+      // Líka ólesnir póstar í þræðinum sem eru ekki í listanum (aðrar möppur / eldri en það sem var sótt)
+      if (cv && !CVDONE.has(cv)) { CVDONE.add(cv); setTimeout(() => MS.g(`${mb(id)}/messages?$filter=${encodeURIComponent(`conversationId eq '${cv.replace(/'/g, "''")}'`)}&$select=id,isRead&$top=50`)
+        .then(r => Promise.all((r?.value || []).filter(x => x.isRead === false && !AUTO.has(x.id)).map(x => { AUTO.add(x.id); return setRead(x.id, true, true); })))
+        .then(() => { soft2(cv); rr(); }).catch(() => CVDONE.delete(cv)), 1500); } }
+    const L = linked(id), p = L && findProj(L.verkefniId), g = !L && window.msGuessProj ? findProj(msGuessProj((m.subject || "") + " " + (m.bodyPreview || ""), m.from?.emailAddress?.address)) : null, atts = ATT[id] || [];
+    const html = m.body?.contentType === "html" ? m.body.content : `<pre style="white-space:pre-wrap;font:inherit">${esc(m.body?.content || "")}</pre>`;
+    const doc = `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>body{font:14px/1.5 -apple-system,Segoe UI,Inter,sans-serif;color:#14181c;background:#fff;margin:14px;word-wrap:break-word}img{max-width:100%;height:auto}table{max-width:100%}</style></head><body>${html}</body></html>`;
+    return backBar() + `<div class="kicker"><span class="kind">Póstur</span>${p ? `<span class="pill">${esc(p.nr)}</span>` : ""}</div>
+      <h2 class="big" style="margin-top:6px">${esc(m.subject || "(ekkert efni)")}</h2>
+      <p class="sub" style="margin-bottom:4px"><b style="color:var(--ink)">${esc(fromName(m))}</b>${m.from?.emailAddress?.address ? ` &lt;${esc(m.from.emailAddress.address)}&gt;` : ""} · ${esc(fmtDate(m.receivedDateTime))} kl. ${esc(new Date(m.receivedDateTime).toTimeString().slice(0, 5))}</p>
+      <p class="hint" style="margin:0 0 4px">Til: ${esc(people(m.toRecipients))}${m.ccRecipients?.length ? " · Afrit: " + esc(people(m.ccRecipients)) : ""}</p>
+      ${poToolbar(id, m)}
+      ${MCP ? `<div class="potengja"><span class="potl">${L ? "Tengt verkefni" : "Tengja"}</span>${g ? `<button type="button" class="uchip on" data-act="polink:${esc(id)}:${esc(g.id)}" title="Tengja þráðinn við ${esc(g.nr)} ${esc(g.stutt || "")}">+ ${esc(g.nr)}</button>` : ""}<label class="posel"><select data-polink="${esc(id)}" aria-label="Tengja þráðinn við verkefni"><option value="">${L ? "Aftengja þráðinn" : g ? "Annað verkefni…" : "Verkefni…"}</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${L && L.verkefniId === x.id ? " selected" : ""}>${esc(x.nr ? x.nr + " " : "")}${esc(x.stutt || x.nafn)}</option>`).join("")}</select></label>${tbSel(id, m)}${stofnaOpts().length ? `<label class="posel postofna"><select data-postofna="${esc(id)}" aria-label="Stofna úr póstinum"><option value="">+ Stofna…</option>${stofnaOpts().map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>` : ""}</div>` : ""}
+      ${(() => { const T = m.conversationId && window.salaAPI ? [...salaAPI.TB(), ...salaAPI.PN()].find(x => x.postConv === m.conversationId) : null; return T ? `<p class="hint" style="margin:8px 0 0">Þráðurinn tilheyrir ${T.pontun ? "pöntun" : "tilboði"} <a class="plink" data-open="tb:${esc(T.id)}">${esc(T.nr)} ${esc(T.heiti || "")}</a>.</p>` : ""; })()}
+      ${p ? `<p class="hint" style="margin:8px 0 0">Þráðurinn er tengdur við ${esc(p.nr)} ${esc(p.stutt || "")}. Nýir póstar í sama þræði birtast sjálfkrafa á síðu verkefnisins.</p>` : ""}
+      ${atts.length ? `<div class="viewtitle">Viðhengi · ${atts.length}</div><div class="llist poatts">${atts.map(a => `<div class="lrow"><div class="ll"><span class="potyp">${esc((String(a.name).match(/\.([a-z0-9]{2,4})$/i)?.[1] || "skjal").toUpperCase())}</span></div><div class="lm"><div class="lt">${esc(a.name)}</div><div class="ls">${esc(kb(a.size))}</div></div>
+        <div class="lr" style="gap:6px"><button type="button" class="btn" data-act="poprev:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Forskoða</button><button type="button" class="btn" data-act="poatt:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px">Sækja</button>${p && MCP ? `<button type="button" class="btn" data-act="posave:${esc(id)}:${esc(a.id)}" style="padding:4px 10px;min-height:30px" title="Vista í ${esc(p.nr)} › 01 Móttekið">→ Mappa</button>` : ""}</div></div>`).join("")}</div>
+        ${p ? `<p class="hint" style="margin-top:6px">„→ Mappa“ vistar viðhengið í ${esc(p.nr)} › 01 Móttekið í ${ODN()}.</p>` : `<p class="hint" style="margin-top:6px">Tengdu póstinn við verkefni til að geta vistað viðhengi í möppu þess.</p>`}` : ""}
+      ${(() => { // 2.83.0: samtalið í tímaröð – elsti póstur efst, sá sem er opinn sýndur í heild á sínum stað
+        const frame = `<iframe class="pobody" sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(doc)}" title="Efni pósts"></iframe>`;
+        const c = m.conversationId ? thread(m.conversationId) : null, xs = (c?.msgs || []).slice();
+        if (!xs.some(x => x.id === id)) xs.push(m);
+        if (xs.length < 2) return frame;
+        /* 2.126.0: opni pósturinn efst í heild; aðrir póstar samtalsins fyrir neðan, nýjasti fyrst (áður elsti efst – opni pósturinn gat verið langt niðri) */
+        xs.sort((a, b) => String(b.receivedDateTime).localeCompare(String(a.receivedDateTime)));
+        const me = String(MS.user()?.email || "").toLowerCase(), hm = iso => fmtDate(iso) + " kl. " + new Date(iso).toTimeString().slice(0, 5);
+        const fra = x => String(x.from?.emailAddress?.address || "").toLowerCase() === me ? "Þú" : fromName(x);
+        const adrir = xs.filter(x => x.id !== id), nr = x => xs.length - xs.indexOf(x);
+        return frame + `<div class="viewtitle" style="margin-top:18px">Aðrir póstar í samtalinu · ${adrir.length}</div><div class="pocv">${adrir.map(x =>
+          `<div class="pocv-it tap${x.isRead === false ? " unread" : ""}" ${tapAttr("post", x.id)}><div class="pocv-h"><span class="pocv-n">${nr(x)}</span><b>${esc(fra(x))}</b><span class="m">${esc(hm(x.receivedDateTime))}</span>${x.hasAttachments ? '<span class="m" aria-label="Viðhengi">📎</span>' : ""}</div><div class="ls">${esc((x.bodyPreview || "").slice(0, 160))}</div></div>`).join("")}</div>`;
+      })()}`;
+  };
+
+  /* ---------- Stofna verkefni, pöntun eða tilboð úr pósti (2.83.0) ----------
+     Formið opnast í hliðarspjaldi (ekki yfir póstinum) svo hægt er að lesa póstinn á meðan. Fyllt út frá sendanda og efni. */
+  const stofnaOpts = () => [["verk", "Verkefni"], ...(window.ON && ON("pantanir") && window.FAB_EXT?.pantanir ? [["pontun", "Pöntun"]] : []), ...(window.tbOK && tbOK() && window.FAB_EXT?.ltilbod ? [["tilbod", "Tilboð"]] : [])];
+  const OPINN = ["gmail.com", "hotmail.com", "outlook.com", "live.com", "icloud.com", "yahoo.com", "simnet.is", "internet.is", "visir.is", "mi.is", "talnet.is"];
+  function stofna(typ, mid) {
+    const m = MSG[mid]; if (!m) return;
+    const me = String(MS.user()?.email || "").toLowerCase(), fromMe = String(m.from?.emailAddress?.address || "").toLowerCase() === me;
+    const who = fromMe ? (m.toRecipients || [])[0]?.emailAddress || {} : m.from?.emailAddress || {};
+    const em = String(who.address || "").toLowerCase(), nm = who.name && who.name !== who.address ? who.name : "", dom = em.split("@")[1] || "";
+    const vs = window.vskList ? vskList() : (S?.vidskiptavinir || []), has = (c, f) => [c.netfang, c.netfangT].some(x => x && f(String(x).toLowerCase()));
+    const v = vs.find(c => has(c, x => x === em)) || (dom && !OPINN.includes(dom) ? vs.find(c => has(c, x => x.endsWith("@" + dom))) : null);
+    const subj = cleanSubj(m.subject), conv = m.conversationId, before = new Set((S?.verkefni || []).map(p => p.id));
+    if (innerWidth >= 1024) document.body.classList.add("sidesheet"); // í síma: venjulegur gluggi
+    if (typ === "verk") { kind = "verk"; openSheet(); } // kind: tegund forms í app-form.js
+    else { window.__poPend = conv ? { conv, box: mb(mid), t: Date.now() } : null; if (typ === "pontun") FAB_EXT.pantanir(); else FAB_EXT.ltilbod(); } // 2.95.1: þráðurinn fylgir nýju tilboði/pöntun
+    const set = (id, val, force) => { const el = document.getElementById(id); if (!el || val == null || val === "") return; if (el.tagName === "SELECT" && ![...el.options].some(o => o.value === String(val))) return; if (!force && el.value && el.tagName !== "SELECT") return; el.value = val; el.dispatchEvent(new Event("change", { bubbles: true })); };
+    const P = { verk: ["f-name", "f-client"], pontun: ["pn-heiti", "pn-client", "pn-teng", "pn-net"], tilbod: ["tb-heiti", "tb-client", "tb-teng", "tb-net"] }[typ];
+    set(P[2], nm); set(P[3], em); set(P[0], subj); if (v) set(P[1], v.id, true);
+    if (typ === "pontun") set("pn-upp", "postur", true);
+    document.getElementById("sheet-h")?.insertAdjacentHTML("afterend", `<p class="hint pofromh">Úr pósti frá <b>${esc(nm || em)}</b>${v ? ` · viðskiptavinur: ${esc(v.name)}` : em ? " · enginn viðskiptavinur með þetta netfang" : ""}</p>`);
+    const ob = new MutationObserver(() => { if (!sheetwrap.hidden) return; ob.disconnect(); document.body.classList.remove("sidesheet"); window.__poPend = null;
+      if (typ === "verk" && conv) { const n = (S?.verkefni || []).find(p => !before.has(p.id)); if (n) poLinkConv(conv, n.id, m.subject).then(() => toast("Póstþráðurinn tengdur við " + n.nr)); } });
+    ob.observe(sheetwrap, { attributes: true, attributeFilter: ["hidden"] });
+  }
+  document.addEventListener("change", e => { const id = e.target.dataset?.postofna; if (id && e.target.value) { const k = e.target.value; e.target.value = ""; stofna(k, id); } });
+
+  async function link(gid, pid) {
+    let conv = convOf(gid), m = MSG[gid] || (list || []).concat(window.MS_OFL || []).find(x => x.id === gid);
+    try { if (!conv) { m = await MS.g(`${mb(gid)}/messages/${encodeURIComponent(gid)}?$select=id,subject,conversationId`); noteConv([m]); conv = m.conversationId; } } catch (e) { return toast(e.message); }
+    if (!conv) return toast("Fann ekki þráð póstsins.");
+    await poLinkConv(conv, pid, m?.subject);
+    if (window.MS_OFL) window.MS_OFL = MS_OFL.filter(x => x.conversationId !== conv);
+    delete TC[conv];
+    toast(pid ? "Þráður tengdur við " + (findProj(pid)?.nr || "verkefni") : "Þráður aftengdur");
+  }
+  async function attBlob(mid, aid) {
+    const a = await MS.g(`${mb(mid)}/messages/${encodeURIComponent(mid)}/attachments/${encodeURIComponent(aid)}`);
+    if (!a.contentBytes) throw new Error("Þessa tegund viðhengis er ekki hægt að sækja hér. Opnaðu póstinn í Outlook.");
+    const bin = atob(a.contentBytes), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return { blob: new Blob([u], { type: a.contentType || "application/octet-stream" }), name: a.name };
+  }
+
+
+  /* ---------- Senda póst (Mail.Send) ---------- */
+  const b64 = async data => { const u = data instanceof Uint8Array ? data : new Uint8Array(await data.arrayBuffer()); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+  const addrs = v => String(v || "").split(/[,;]\s*/).map(x => x.trim()).filter(Boolean).map(x => { const m = x.match(/<([^>]+)>/); return { emailAddress: { address: (m ? m[1] : x).trim() } }; });
+  const validA = v => addrs(v).every(a => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a.emailAddress.address));
+  const toHtml = t => `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt">${esc(t).replace(/\n/g, "<br>")}</div>`;
+  /* Netfangaskrá: allir sem póstur hefur borist frá eða verið sendur til (S.netfangaskra [{a,n,t,c}]) + Viðskiptavinir */
+  const BOOK = () => S?.netfangaskra || [];
+  const contacts = () => { const m = new Map();
+    BOOK().forEach(x => m.set(x.a.toLowerCase(), { a: x.a, n: x.n || "", t: x.t || "", c: x.c || 0 }));
+    vskList().forEach(c => [[c.netfang, c.name], [c.netfangT, c.tengilidur || c.name]].forEach(([a, n]) => { if (!a) return; const k = a.toLowerCase(), o = m.get(k); m.set(k, { a, n: o?.n || n || "", t: o?.t || "", c: (o?.c || 0) + 0.5, v: c.name }); }));
+    return [...m.values()].sort((x, y) => (y.c - x.c) || String(y.t).localeCompare(String(x.t))); };
+  // Bæta við/uppfæra í netfangaskrá (ein vistun)
+  async function remember(list, sent) {
+    const me = (MS.user()?.email || "").toLowerCase(), now = new Date().toISOString();
+    const xs = list.filter(r => r?.a && /@/.test(r.a) && r.a.toLowerCase() !== me && !/no-?reply|noreply|mailer-daemon|notifications?@/i.test(r.a));
+    if (!xs.length) return;
+    let changed = false;
+    const book = BOOK().map(x => ({ ...x })), idx = new Map(book.map((x, i) => [x.a.toLowerCase(), i]));
+    xs.forEach(r => { const k = r.a.toLowerCase(), i = idx.get(k);
+      if (i == null) { book.push({ a: r.a, n: r.n || "", t: r.t || now, c: sent ? 1 : 0.2 }); idx.set(k, book.length - 1); changed = true; }
+      else { const o = book[i]; if (r.n && !o.n) { o.n = r.n; changed = true; } if (sent) { o.c = (o.c || 0) + 1; o.t = now; changed = true; } else if (r.t && r.t > (o.t || "")) { o.t = r.t; changed = true; } } });
+    if (!changed) return;
+    book.sort((x, y) => (y.c - x.c) || String(y.t).localeCompare(String(x.t)));
+    await saveSnapshot(st => { st.netfangaskra = book.slice(0, 800); });
+  }
+  // Safna netföngum úr Sent og Innhólfi (einu sinni á dag á hverju tæki)
+  async function harvest(force) {
+    let last = 0; try { last = +localStorage.getItem("aera-harvest") || 0; } catch (e) {}
+    if (!force && Date.now() - last < 20 * 3600 * 1000) return;
+    try { localStorage.setItem("aera-harvest", String(Date.now())); } catch (e) {}
+    const r = [];
+    const sent = (await MS.g(`/me/mailFolders/sentitems/messages?$top=200&$orderby=sentDateTime%20desc&$select=toRecipients,ccRecipients,sentDateTime`)).value || [];
+    sent.forEach(m => [...(m.toRecipients || []), ...(m.ccRecipients || [])].forEach(x => r.push({ a: x.emailAddress?.address, n: x.emailAddress?.name, t: m.sentDateTime, s: 1 })));
+    const inb = (await MS.g(`/me/mailFolders/inbox/messages?$top=200&$orderby=receivedDateTime%20desc&$select=from,receivedDateTime`)).value || [];
+    inb.forEach(m => r.push({ a: m.from?.emailAddress?.address, n: m.from?.emailAddress?.name, t: m.receivedDateTime }));
+    // telja sendingar sem vægi
+    const cnt = new Map(); r.filter(x => x.s && x.a).forEach(x => cnt.set(x.a.toLowerCase(), (cnt.get(x.a.toLowerCase()) || 0) + 1));
+    const me = (MS.user()?.email || "").toLowerCase(), book = BOOK().map(x => ({ ...x })), idx = new Map(book.map((x, i) => [x.a.toLowerCase(), i]));
+    r.forEach(x => { if (!x.a || !/@/.test(x.a) || x.a.toLowerCase() === me || /no-?reply|noreply|mailer-daemon|notifications?@/i.test(x.a)) return; const k = x.a.toLowerCase(), i = idx.get(k);
+      if (i == null) { book.push({ a: x.a, n: x.n || "", t: x.t, c: (cnt.get(k) || 0) + 0.2 }); idx.set(k, book.length - 1); }
+      else { const o = book[i]; if (!o.n && x.n) o.n = x.n; if ((x.t || "") > (o.t || "")) o.t = x.t; if (force || !o._h) { o.c = Math.max(o.c || 0, (cnt.get(k) || 0) + 0.2); } } });
+    book.forEach(o => delete o._h); book.sort((x, y) => (y.c - x.c) || String(y.t).localeCompare(String(x.t)));
+    await saveSnapshot(st => { st.netfangaskra = book.slice(0, 800); });
+  }
+  window.poHarvest = harvest;
+
+  /* Viðtakendareitur eins og í Outlook: nöfn sem flísar, tillögur um leið og skrifað er */
+  function rcptField(id, init) {
+    const box = document.getElementById(id + "-box"), hid = document.getElementById(id), inp = box.querySelector("input"), sug = document.getElementById(id + "-sug");
+    let chips = addrs(init).map(x => ({ a: x.emailAddress.address, n: (contacts().find(c => c.a.toLowerCase() === x.emailAddress.address.toLowerCase()) || {}).n || "" })), act = -1, cur = [];
+    const sync = () => { hid.value = chips.map(c => c.a).join(", "); box.querySelectorAll(".rchip").forEach(e => e.remove());
+      chips.forEach((c, i) => inp.insertAdjacentHTML("beforebegin", `<span class="rchip${/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.a) ? "" : " bad"}" title="${esc(c.a)}">${esc(c.n || c.a)}<button type="button" data-ri="${i}" aria-label="Fjarlægja ${esc(c.a)}">✕</button></span>`));
+      box.querySelectorAll("[data-ri]").forEach(b => b.onclick = e => { e.stopPropagation(); chips.splice(+b.dataset.ri, 1); sync(); inp.focus(); }); };
+    const add = (a, n) => { a = a.trim().replace(/[,;]+$/, ""); if (!a) return; if (!chips.some(c => c.a.toLowerCase() === a.toLowerCase())) chips.push({ a, n: n || (contacts().find(c => c.a.toLowerCase() === a.toLowerCase()) || {}).n || "" }); inp.value = ""; hide(); sync(); };
+    const hide = () => { sug.hidden = true; act = -1; };
+    const show = () => { const t = inp.value.trim().toLowerCase(); if (!t) return hide();
+      cur = contacts().filter(c => !chips.some(x => x.a.toLowerCase() === c.a.toLowerCase()) && (c.a.toLowerCase().includes(t) || (c.n || "").toLowerCase().split(/\s+/).some(w => w.startsWith(t)) || (c.n || "").toLowerCase().startsWith(t) || (c.v || "").toLowerCase().startsWith(t))).slice(0, 7);
+      if (!cur.length) return hide(); act = 0;
+      sug.innerHTML = cur.map((c, i) => `<button type="button" class="rsug${i === act ? " on" : ""}" data-si="${i}"><b>${esc(c.n || c.a)}</b>${c.n ? `<small>${esc(c.a)}</small>` : ""}${c.v && c.v !== c.n ? `<small>${esc(c.v)}</small>` : ""}</button>`).join(""); sug.hidden = false;
+      sug.querySelectorAll("[data-si]").forEach(b => b.onmousedown = e => { e.preventDefault(); const c = cur[+b.dataset.si]; add(c.a, c.n); inp.focus(); }); };
+    const mark = () => sug.querySelectorAll(".rsug").forEach((b, i) => b.classList.toggle("on", i === act));
+    inp.addEventListener("input", () => { if (/[,;]\s*$/.test(inp.value)) return add(inp.value); show(); });
+    inp.addEventListener("keydown", e => {
+      if (!sug.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) { e.preventDefault(); act = (act + (e.key === "ArrowDown" ? 1 : -1) + cur.length) % cur.length; mark(); return; }
+      if (e.key === "Enter" || e.key === "Tab") { if (!sug.hidden && cur[act]) { e.preventDefault(); add(cur[act].a, cur[act].n); return; } if (inp.value.trim()) { if (e.key === "Enter") e.preventDefault(); add(inp.value); } return; }
+      if (e.key === "Backspace" && !inp.value && chips.length) { chips.pop(); sync(); }
+      if (e.key === "Escape") hide(); });
+    inp.addEventListener("blur", () => setTimeout(() => { if (inp.value.trim()) add(inp.value); hide(); }, 120));
+    box.addEventListener("click", () => inp.focus());
+    sync();
+    return { flush: () => { if (inp.value.trim()) add(inp.value); } };
+  }
+
+  /* Undirskrift (íslenska og enska) – ein á hvern notanda: stillingar.undirskriftir[netfang].
+     stillingar.undirskrift (eldri, sameiginleg) gildir áfram fyrir fyrsta admin þar til hann vistar sína eigin. */
+  const SIGKEY = () => window.USER?.email || "";
+  const SIG = () => {
+    const own = (CFG().undirskriftir || {})[SIGKEY()];
+    const first = !window.USER || window.USER.varaleid || window.USER.email === ORG.admin.email;
+    const base = first ? { nafn: ORG.admin.nafn, titillIS: ORG.admin.titillIS || "", titillEN: ORG.admin.titillEN || "", netfang: ORG.admin.email, ...(CFG().undirskrift || {}) }
+                       : { nafn: window.USER?.nafn || MS.user()?.name || "", titillIS: "", titillEN: "", netfang: window.USER?.email || "" };
+    return { kvedja: "Kveðja / Best regards", fyrirtaeki: ORG.nafn, simi: "", vefur: "", ...base, ...(own || {}) };
+  };
+  const LOGO_URL = new URL(ORG.sigLogo, document.baseURI).href, LOGO_CID = "logo@" + ORG.len;
+  window.poSigHTML = (logo, o) => { const g = { ...SIG(), ...(o || {}) }, E = x => esc(x || ""), web = String(g.vefur || "").replace(/^https?:\/\//, "");
+    return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Manrope,Calibri,Arial,Helvetica,sans-serif;color:#121416">
+${g.kvedja ? `<tr><td colspan="2" style="padding:0 0 14px 0;font-size:10.5pt;color:#121416">${E(g.kvedja)},</td></tr>` : ""}
+<tr><td style="padding:0 16px 0 0;vertical-align:middle"><img src="${logo}" width="140" height="44" alt="${E(ORG.nafn)}" style="display:block;border:0;width:140px;height:44px"></td>
+<td style="border-left:2px solid #2F3742;padding:2px 0 2px 16px;vertical-align:middle;font-size:10pt;line-height:15pt">
+<span style="font-size:11.5pt;font-weight:bold;color:#121416">${E(g.nafn)}</span><br>
+<span style="color:#7C8896">${[g.titillIS, g.titillEN].filter(Boolean).map(E).join(" &middot; ")}</span><br>
+<span style="color:#121416">${E(g.fyrirtaeki)}</span><br>
+${g.netfang ? `<a href="mailto:${E(g.netfang)}" style="color:#2F3742;text-decoration:none">${E(g.netfang)}</a>` : ""}${g.simi ? `<br><span style="color:#121416">S. / Tel. ${E(g.simi)}</span>` : ""}${web ? `<br><a href="https://${E(web)}" style="color:#2F3742;text-decoration:none">${E(web)}</a>` : ""}
+</td></tr></table>`; };
+  let logoB64 = null;
+  const logoAtt = async () => { if (!logoB64) logoB64 = await b64(await (await fetch(ORG.sigLogo)).blob());
+    return { "@odata.type": "#microsoft.graph.fileAttachment", name: "aera-logo.png", contentType: "image/png", contentBytes: logoB64, isInline: true, contentId: LOGO_CID }; };
+  window.poSigCopy = async () => { const h = poSigHTML(LOGO_URL);
+    try { await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([h], { type: "text/html" }), "text/plain": new Blob([document.createRange().createContextualFragment(h).textContent.replace(/\n\s*/g, "\n").trim()], { type: "text/plain" }) })]); toast("Undirskrift afrituð – límdu hana í undirskriftastillingar Outlook"); }
+    catch (e) { toast("Gat ekki afritað – veldu undirskriftina og afritaðu handvirkt."); } };
+  const sig = () => "\n\n";
+  window.poSigSettingsHTML = () => { const g = SIG(), f = (k, l, ex = "") => `<label>${l}<input id="sg-${k}" value="${esc(g[k] || "")}" ${ex}></label>`;
+    return `<div class="viewtitle">Undirskrift í pósti</div>
+      <p class="hint" style="margin:0 0 8px">Birtist neðst í póstum sem eru sendir úr appinu, á íslensku og ensku, með merki ${esc(ORG.nafn)}.</p>
+      <div class="sigprev" id="sg-prev">${poSigHTML(ORG.sigLogo)}</div>
+      ${f("kvedja", "Kveðja")}${f("nafn", "Nafn")}
+      <div class="two">${f("titillIS", "Starfsheiti (íslenska)")}${f("titillEN", "Starfsheiti (enska)")}</div>
+      ${f("fyrirtaeki", "Fyrirtæki")}
+      <div class="two">${f("netfang", "Netfang", 'type="email"')}${f("simi", "Sími (valfrjálst)", 'inputmode="tel" placeholder="+354 …"')}</div>
+      ${f("vefur", "Vefsíða (valfrjálst)", 'placeholder="' + esc(ORG.vefur || "") + '"')}
+      <div class="links"><button type="button" class="btn" data-act="posigsave">Vista undirskrift</button><button type="button" class="btn" data-act="posigcopy">Afrita fyrir Outlook</button></div>
+      <p class="hint" style="margin-top:6px">„Afrita fyrir Outlook“ setur undirskriftina á klippiborðið. Límdu hana svo í Outlook › Stillingar › Undirskriftir til að nota hana líka þar.</p>`; };
+  const sgRead = () => { const o = {}; ["kvedja", "nafn", "titillIS", "titillEN", "fyrirtaeki", "netfang", "simi", "vefur"].forEach(k => { const el = document.getElementById("sg-" + k); if (el) o[k] = el.value.trim(); }); return o; };
+  document.addEventListener("input", e => { if (e.target.id?.startsWith("sg-")) { const p = document.getElementById("sg-prev"); if (p) p.innerHTML = poSigHTML("icons/sig-logo.png", sgRead()); } });
+
+  // 2.84.0: svara í þræði (conversationId) – nýjasti pósturinn í þræðinum sóttur og svarað á hann, til ákveðins viðtakanda
+  window.poReplyConv = async function ({ conv, box, to, body, pid, onSent, fallback }) {
+    try {
+      const qs = `/messages?$filter=${encodeURIComponent(`conversationId eq '${String(conv).replace(/'/g, "''")}'`)}&$top=50&$select=id,subject,from,toRecipients,ccRecipients,receivedDateTime,conversationId,hasAttachments`;
+      const boxes = [...new Set([box || "/me", ...(SHB ? [SHB] : []), "/me"])];
+      let xs = [];
+      for (const b of boxes) { try { const j = await MS.g(b + qs); (j.value || []).forEach(m => { BOX[m.id] = b; xs.push(m); }); } catch (e) {} }
+      xs = xs.filter((m, i, A) => A.findIndex(x => x.id === m.id) === i).sort((a, b) => String(b.receivedDateTime).localeCompare(String(a.receivedDateTime)));
+      if (!xs.length) throw new Error("nofound");
+      const m = xs[0]; MSG[m.id] = MSG[m.id] || m; noteConv([m]);
+      poCompose({ mode: "reply", mid: m.id, forceTo: to, body, pid, onSent });
+    } catch (e) { if (fallback) fallback(); else toast("Fann ekki upprunalega póstinn – sendu nýjan póst."); }
+  };
+  window.poCompose = function (o = {}) {
+    if (!msOn()) { toast("Tengdu Microsoft fyrst (Stillingar)."); return; }
+    const mode = o.mode || "new", src = o.mid ? MSG[o.mid] : null, atts = (o.atts || []).slice();
+    const title = { new: "Nýr póstur", reply: "Svara", replyAll: "Svara öllum", forward: "Áframsenda" }[mode];
+    const canSend = MS.can("Mail.Send");
+    const pid0 = o.pid || (o.mid && linked(o.mid)?.verkefniId) || "";
+    const subj = o.subject != null ? o.subject : src ? ((mode === "forward" ? "FW: " : "RE: ") + (src.subject || "").replace(/^(re|fw|fwd|sv|áfr):\s*/i, "")) : "";
+    sheet.innerHTML = `<h3 id="sheet-h">${title}</h3>
+      ${canSend ? "" : `<div class="msg err" style="margin-bottom:10px">Appið hefur ekki enn leyfi til að senda póst. Tengstu Microsoft aftur og samþykktu nýju heimildina.<br><button type="button" class="btn" style="margin-top:8px" id="po-relog">Tengjast aftur</button></div>`}
+      <form id="pocf" novalidate>
+      ${mode === "reply" || mode === "replyAll" ? `<p class="hint" style="margin:0">Til: ${esc(o.forceTo ? o.forceTo : mode === "reply" ? fromName(src) : [fromName(src), people(src.toRecipients), people(src.ccRecipients)].filter(Boolean).join(", "))}</p>` :
+        `<div class="rfield"><span class="lbl">Til <span class="req">*</span></span><div class="rbox" id="po-to-box"><input autocomplete="off" inputmode="email" aria-label="Viðtakendur" placeholder="Nafn eða netfang"></div><div class="rsugs" id="po-to-sug" hidden></div><input type="hidden" id="po-to"></div>
+         <div class="rfield"><span class="lbl">Afrit (cc)</span><div class="rbox" id="po-cc-box"><input autocomplete="off" inputmode="email" aria-label="Afrit"></div><div class="rsugs" id="po-cc-sug" hidden></div><input type="hidden" id="po-cc"></div>`}
+      ${SHB && mode === "new" ? `<label>Frá<select id="po-from"><option value="sh"${o.pid || (o.mid && BOX[o.mid]) ? " selected" : ""}>${esc(SH)} (verkefnapóstur)</option><option value="me"${o.pid ? "" : " selected"}>${esc(MS.user()?.email || "Mitt netfang")}</option></select></label>` : ""}
+      ${SHB && mode !== "new" && BOX[o.mid] ? `<p class="hint" style="margin:0">Sent frá ${esc(SH)}</p>` : ""}
+      ${mode === "new" ? `<label><span class="lbl">Efni <span class="req">*</span></span><input id="po-subj" value="${esc(subj)}" autocomplete="off"></label>` : `<p class="hint" style="margin:0">Efni: ${esc(subj)}</p>`}
+      <label>Texti<textarea id="po-body" rows="8">${esc(o.body != null ? o.body : sig())}</textarea></label>
+      <label class="chk" style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14.5px"><input type="checkbox" id="po-sig" checked style="width:auto">Undirskrift</label>
+      <div class="sigprev" id="po-sigprev">${poSigHTML(ORG.sigLogo)}</div>
+      <div><div class="kind" style="margin-bottom:6px">Viðhengi</div><div id="po-atts" class="poatts"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><label class="btn" style="display:inline-flex;cursor:pointer">📎 Bæta við skrá<input id="po-file" type="file" multiple hidden></label>${window.msProjFiles ? `<button type="button" class="btn" id="po-mappa" aria-expanded="false">📁 Úr möppu verkefnis</button>` : ""}</div>
+        <div id="po-pick" class="popick" hidden></div></div>
+      ${mode === "new" ? `<label>Tengja við verkefni<select id="po-proj"><option value="">Ekkert</option>${verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || b.nr.localeCompare(a.nr)).map(x => `<option value="${esc(x.id)}"${x.id === pid0 ? " selected" : ""}>${esc(x.nafn)}</option>`).join("")}</select></label>` : ""}
+      ${src ? `<p class="hint">Upprunalegi pósturinn fylgir neðst${mode === "forward" && src.hasAttachments ? ", ásamt viðhengjum hans" : ""}.</p>` : ""}
+      <div id="f-msg"></div><div class="actions"><button type="button" class="btn" id="po-c">Hætta við</button><button class="btn primary" id="po-s"${canSend ? "" : " disabled"}>Senda</button></div></form>`;
+    sheet.closest(".sheet").classList.add("wide"); sheetwrap.hidden = false;
+    const drawAtts = () => { document.getElementById("po-atts").innerHTML = atts.length ? atts.map((a, i) => `<span class="chipbtn" style="display:inline-flex;gap:6px;align-items:center">📎 <button type="button" class="poattpv" data-pv="${i}" title="Forskoða ${esc(a.name)}">${esc(a.name)}</button> <small>${esc(kb(a.size))}</small><button type="button" class="btn sm" data-pv="${i}" style="padding:2px 8px;min-height:0">Forskoða</button><button type="button" class="x" data-rm="${i}" aria-label="Fjarlægja">✕</button></span>`).join(" ") : `<span class="hint">Engin.</span>`;
+      sheet.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { atts.splice(+b.dataset.rm, 1); drawAtts(); });
+      // 2.73.0: forskoða viðhengi (t.d. PDF tilboðs eða pöntunar) áður en sent er – 2.95.1: í glugga yfir póstinum (ekki í vafra)
+      sheet.querySelectorAll("[data-pv]").forEach(b => b.onclick = () => { const a = atts[+b.dataset.pv]; if (!a) return; const bl = a.data instanceof Blob ? a.data : new Blob([a.data], { type: a.type || "application/octet-stream" });
+        pvOverlay(bl, a.name); }); };
+    drawAtts();
+    { const sc = document.getElementById("po-sig"), sp = document.getElementById("po-sigprev"); if (sc) sc.onchange = () => { sp.hidden = !sc.checked; }; }
+    const RF = ["po-to", "po-cc"].filter(x => document.getElementById(x + "-box")).map(x => rcptField(x, x === "po-to" ? o.to || "" : o.cc || ""));
+    const rl = document.getElementById("po-relog"); if (rl) rl.onclick = () => MS.login().then(() => { toast("Tengt – nú má senda"); poCompose(o); }).catch(e => toast(e.message));
+    document.getElementById("po-file").onchange = e => { [...e.target.files].forEach(f => atts.push({ name: f.name, type: f.type || "application/octet-stream", size: f.size, data: f })); e.target.value = ""; drawAtts(); };
+    document.getElementById("po-c").onclick = closeSheet;
+    /* 2.162.0: „Úr möppu verkefnis“ – skrár í möppu verkefnisins (ms-app.js msProjFiles). ≤ 3 MB → viðhengi, stærri → tengill í textann. */
+    { const mb = document.getElementById("po-mappa"), pk = document.getElementById("po-pick");
+      if (mb) { let FL = [], ppid = "", seq = 0;
+        const pidSel = () => document.getElementById("po-proj")?.value || pid0 || ppid;
+        const projOpts = cur => verkefni().slice().sort((a, b) => (isDone(a) - isDone(b)) || String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })).map(x => `<option value="${esc(x.id)}"${x.id === cur ? " selected" : ""}>${esc(x.nafn)}</option>`).join("");
+        const list = () => { const q = (document.getElementById("po-pq")?.value || "").toLowerCase().trim(), L = document.getElementById("po-pl"); if (!L) return;
+          const xs = FL.filter(f => !q || (f.name + " " + f.mappa).toLowerCase().includes(q)).slice(0, 60);
+          L.innerHTML = xs.length ? xs.map(f => `<button type="button" class="popf" data-fid="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc([msTypeOf(f.name), msKb(f.size), f.mappa, f.size > 3 * 1048576 ? "fer sem tengill" : ""].filter(Boolean).join(" · "))}</small></button>`).join("") : `<div class="empty">${FL.length ? "Engin skrá fannst." : "Mappan er tóm."}</div>`; };
+        const load = async () => { const id = pidSel(), my = ++seq, p = id && findProj(id);
+          pk.innerHTML = `${document.getElementById("po-proj") || pid0 ? "" : `<label>Verkefni<select id="po-pp"><option value="">Veldu verkefni…</option>${projOpts(ppid)}</select></label>`}<div id="po-pb"></div>`;
+          const pp = document.getElementById("po-pp"); if (pp) pp.onchange = () => { ppid = pp.value; load(); };
+          const B = document.getElementById("po-pb");
+          if (!p) { B.innerHTML = `<div class="empty">${document.getElementById("po-proj") ? "Veldu verkefni í „Tengja við verkefni“ hér fyrir neðan." : "Veldu verkefni."}</div>`; return; }
+          B.innerHTML = `<div class="empty">Sæki skrár í möppu ${esc(p.nr || "")} ${esc(p.stutt || p.nafn || "")}…</div>`;
+          try { const xs = await msProjFiles(p); if (my !== seq) return;
+            if (xs == null) { B.innerHTML = `<div class="empty">Engin mappa fannst fyrir verkefnið.</div>`; return; }
+            FL = xs; B.innerHTML = `<input id="po-pq" type="search" placeholder="Leita í ${xs.length} skrám…" autocomplete="off" aria-label="Leita að skrá"><div class="popl" id="po-pl"></div>`;
+            document.getElementById("po-pq").oninput = list; list(); }
+          catch (e) { if (my === seq) B.innerHTML = `<div class="empty">Gat ekki sótt skrár: ${esc(e?.message || e)}</div>`; } };
+        mb.onclick = () => { pk.hidden = !pk.hidden; mb.setAttribute("aria-expanded", String(!pk.hidden)); if (!pk.hidden) load(); };
+        document.getElementById("po-proj")?.addEventListener("change", () => { if (!pk.hidden) load(); });
+        pk.addEventListener("click", async e => { const b = e.target.closest(".popf"); if (!b || b.disabled) return; const f = FL.find(x => x.id === b.dataset.fid); if (!f) return;
+          if (atts.some(a => a.name === f.name)) { toast(f.name + " er þegar viðhengi"); return; }
+          b.disabled = true; const sm = b.querySelector("small"), old = sm.textContent; sm.textContent = f.size > 3 * 1048576 ? "Bý til tengil…" : "Sæki…";
+          try { const m = await msMailFile(f.id);
+            if (m.att) { atts.push(m.att); drawAtts(); toast(f.name + " bætt við sem viðhengi"); }
+            else { const t = document.getElementById("po-body"); t.value = t.value.replace(/\s*$/, "") + `\n\n${f.name}:\n${m.link}\n`; toast(msLinkNote(m.sc)); }
+            sm.textContent = old + " · ✓ bætt við"; }
+          catch (er) { sm.textContent = "Tókst ekki: " + (er?.message || er); }
+          b.disabled = false; }); } }
+    const bt = document.getElementById("po-body"); if (!("ontouchstart" in window)) setTimeout(() => { (document.getElementById("po-to-box") && !o.to ? document.querySelector("#po-to-box input") : bt).focus(); if (document.activeElement === bt) bt.setSelectionRange(0, 0); }, 60);
+    document.getElementById("pocf").onsubmit = async ev => {
+      ev.preventDefault(); msg(""); RF.forEach(f => f.flush());
+      const to = val("po-to"), cc = val("po-cc"), subject = mode === "new" ? val("po-subj") : subj, text = val("po-body"), pid = mode === "new" ? val("po-proj") : pid0;
+      if (mode === "new" || mode === "forward") { if (!to) return msg("Settu inn viðtakanda.", "err"); if (!validA(to) || (cc && !validA(cc))) return msg("Athugaðu netföngin.", "err"); }
+      if (mode === "new" && !subject) return msg("Skrifaðu efni.", "err");
+      if (atts.some(a => a.size > 3 * 1024 * 1024)) return msg("Viðhengi mega mest vera 3 MB hvert. Deildu stærri skrám með tengli úr OneDrive.", "err");
+      const btn = document.getElementById("po-s"); btn.disabled = true; btn.textContent = "Sendi…";
+      try {
+        const fa = await Promise.all(atts.map(async a => ({ "@odata.type": "#microsoft.graph.fileAttachment", name: a.name, contentType: a.type, contentBytes: await b64(a.data) })));
+        const withSig = document.getElementById("po-sig")?.checked, sigH = withSig ? "<br>" + poSigHTML("cid:" + LOGO_CID) : "";
+        if (withSig) fa.push(await logoAtt());
+        if (mode === "new") {
+          var sbox = SHB && val("po-from") === "sh" ? SHB : "/me";
+          // 2.84.0: búin til drög og þau send – þá er þráður póstsins (conversationId) þekktur, t.d. til að svara síðar í sama þræði
+          const msgB = { subject, body: { contentType: "HTML", content: toHtml(text) + sigH }, toRecipients: addrs(to), ccRecipients: addrs(cc), attachments: fa };
+          var sentInfo = { conv: null, box: sbox };
+          if (sbox === "/me" && MS.can("Mail.ReadWrite")) {
+            const dr = await MS.g("/me/messages", { method: "POST", body: msgB });
+            await MS.g(`/me/messages/${encodeURIComponent(dr.id)}/send`, { method: "POST", body: {} });
+            sentInfo.conv = dr.conversationId || null;
+          } else {
+            await MS.g(sbox + "/sendMail", { method: "POST", body: { message: msgB, saveToSentItems: true } });
+            sentInfo.lookup = true; // þráðurinn fundinn í Sent eftir á (sameiginlegt pósthólf eða án Mail.ReadWrite)
+          }
+        } else {
+          const fn = { reply: "createReply", replyAll: "createReplyAll", forward: "createForward" }[mode];
+          const box = mb(o.mid);
+          const dr = await MS.g(`${box}/messages/${encodeURIComponent(o.mid)}/${fn}`, { method: "POST", body: {} });
+          const patch = { body: { contentType: "HTML", content: toHtml(text) + sigH + "<br>" + (dr.body?.content || "") } };
+          if (o.forceTo) { patch.toRecipients = addrs(o.forceTo); patch.ccRecipients = []; } // svar í þræði til ákveðins viðtakanda (t.d. viðskiptavinar)
+          if (mode === "forward") { patch.toRecipients = addrs(to); if (cc) patch.ccRecipients = addrs(cc); }
+          await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}`, { method: "PATCH", body: patch });
+          for (const a of fa) await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}/attachments`, { method: "POST", body: a });
+          await MS.g(`${box}/messages/${encodeURIComponent(dr.id)}/send`, { method: "POST", body: {} });
+          var sentInfo = { conv: src?.conversationId || dr.conversationId || null, box };
+        }
+        toast("Póstur sendur"); closeSheet();
+        const rc = mode === "reply" ? [{ a: src.from?.emailAddress?.address, n: src.from?.emailAddress?.name }] : mode === "replyAll" ? [src.from, ...(src.toRecipients || []), ...(src.ccRecipients || [])].map(x => ({ a: x?.emailAddress?.address, n: x?.emailAddress?.name })) : [...addrs(to), ...addrs(cc)].map(x => ({ a: x.emailAddress.address, n: (contacts().find(c => c.a.toLowerCase() === x.emailAddress.address.toLowerCase()) || {}).n || "" }));
+        remember(rc, true).catch(() => {});
+        if (typeof sentInfo !== "undefined" && sentInfo.lookup && o.onSent) for (let i = 0; i < 3 && !sentInfo.conv; i++) { await new Promise(z => setTimeout(z, 1500));
+          try { const xs = (await MS.g(`${sentInfo.box}/mailFolders/sentitems/messages?$top=10&$orderby=sentDateTime%20desc&$select=subject,conversationId`)).value || []; sentInfo.conv = xs.find(x => x.subject === subject)?.conversationId || null; } catch (e) {} }
+        if (o.onSent) try { await o.onSent({ text, subject, ...(typeof sentInfo !== "undefined" ? sentInfo : {}) }); } catch (e) {}
+        if (pid) setTimeout(() => linkSent(subject, pid, typeof sbox !== "undefined" ? sbox : "/me"), 3000);
+      } catch (e) { btn.disabled = false; btn.textContent = "Senda"; msg(esc(/403|denied|scope|SendAs|ErrorSendAsDenied/i.test(e.message) || e.status === 403 ? (SHB ? `Appið hefur ekki leyfi til að senda${val("po-from") === "sh" || BOX[o.mid] ? " frá " + SH + " (vantar Send as í Exchange eða Mail.Send.Shared)" : ""}. Tengstu Microsoft aftur og samþykktu heimildina.` : "Appið hefur ekki leyfi til að senda. Tengstu Microsoft aftur og samþykktu heimildina.") : e.message), "err"); }
+    };
+  };
+  // Eftir sendingu: finna sendan póst og tengja hann við verkefnið
+  async function linkSent(subject, pid, box) {
+    box = box || "/me";
+    try { const xs = (await MS.g(`${box}/mailFolders/sentitems/messages?$top=10&$orderby=sentDateTime%20desc&$select=id,subject,sentDateTime,conversationId`)).value;
+      const m = xs.find(x => (x.subject || "") === subject); if (!m || !m.conversationId) return; noteConv([m]); noteBox([m], box);
+      const t = THR().find(x => x.conv === m.conversationId); if (t && t.verkefniId === pid) { delete TC[m.conversationId]; return render(); }
+      await poLinkConv(m.conversationId, pid, m.subject);
+    } catch (e) {}
+  }
+
+  /* ---------- Eldri afrit (S.postar) úr gamla pósthólfinu ----------
+     Einu sinni, hjá admin: leita að hverju gömlu tengdu afriti í núverandi pósthólfi. Finnist það, er þráðurinn tengdur
+     og afritið fjarlægt; annars er það merkt ekkiFannst og sýnt sem „Eldri tenging“ á verkefninu. Ótengd afrit eru fjarlægð. */
+  let migrating = false;
+  window.poMigrate = async function () {
+    if (migrating || !msOn() || !S || !(window.can && can("stillingar"))) return;
+    const old = (S.postar || []).filter(m => m.verkefniId && !m.ekkiFannst); const loose = (S.postar || []).some(m => !m.verkefniId);
+    if (!old.length && !loose) return; migrating = true;
+    const found = {}, miss = [];
+    try {
+      for (const m of old.slice(0, 40)) {
+        try { const sub = cleanSubj(m.efni), j = await MS.g(`/me/messages?$search=${encodeURIComponent('"' + sub.replace(/"/g, "").slice(0, 120) + '"')}&$top=15&$select=id,subject,conversationId,receivedDateTime`);
+          const hit = (j.value || []).find(x => cleanSubj(x.subject).toLowerCase() === sub.toLowerCase() && x.conversationId);
+          if (hit) found[m.id] = { conv: hit.conversationId, pid: m.verkefniId, efni: sub }; else miss.push(m.id);
+        } catch (e) { miss.push(m.id); }
+      }
+      await saveSnapshot(s => { s.thraedir = s.thraedir || [];
+        for (const k in found) { const f = found[k]; if (!s.thraedir.some(t => t.conv === f.conv)) s.thraedir.push({ id: newId(), conv: f.conv, verkefniId: f.pid, efni: f.efni, tengt: new Date().toISOString(), af: "flutt úr eldra pósthólfi" }); }
+        s.postar = (s.postar || []).filter(m => m.verkefniId && !found[m.id]); s.postar.forEach(m => { if (miss.includes(m.id)) m.ekkiFannst = true; });
+        if (!s.postar.length) delete s.postar; });
+      const n = Object.keys(found).length; if (n || miss.length) toast(`Póstar fluttir: ${n} þræðir tengdir${miss.length ? `, ${miss.length} fundust ekki (eldri tengingar)` : ""}`);
+    } finally { migrating = false; }
+  };
+
+  window.poAct = async function (k, r) {
+    if (k === "posigsave") { const o = sgRead(); saveSnapshot(st => { st.stillingar = st.stillingar || {}; if (SIGKEY()) { st.stillingar.undirskriftir = st.stillingar.undirskriftir || {}; st.stillingar.undirskriftir[SIGKEY()] = o; } else st.stillingar.undirskrift = o; }).then(() => toast("Undirskrift vistuð")); return; }
+    if (k === "posigcopy") { poSigCopy(); return; }
+    if (k === "ponew") { poCompose({ pid: r[0] || null, subject: r[0] && findProj(r[0]) ? findProj(r[0]).nr + " " + findProj(r[0]).stutt + " – " : "" }); return; }
+    if (k === "poreply") { poCompose({ mode: r[0], mid: r.slice(1).join(":") }); return; }
+    if (k === "pofold") { fold = r[0]; q = ""; reset(); render(); return; }
+    if (k === "pofilt") { filt = r[0] || ""; render(); return; }
+    if (k === "poread") { setRead(r[0], r[1] === "1"); return; }
+    if (k === "poflag") { setFlag(r[0], r[1] === "1"); return; }
+    if (k === "pomove") { const [id, dest] = [r.slice(0, -1).join(":"), r[r.length - 1]]; if (dest === "deleteditems" && !await atrJa("Færa póstinn í Eytt?")) return; moveTo(id, dest); return; }
+    if (k === "poharv") { toast("Sæki netföng úr pósti…"); harvest(true).then(() => toast("Tengiliðir uppfærðir")).catch(e => toast(e.message)); return; }
+    if (k === "poto") { poCompose({ to: r.join(":") }); return; }
+    if (k === "pofor") { const a = r.join(":").toLowerCase(); atrJa("Gleyma " + a + "?\n\nNetfangið hverfur úr tillögum þegar þú skrifar viðtakanda.").then(j => { if (j) saveSnapshot(st => { st.netfangaskra = (st.netfangaskra || []).filter(x => x.a.toLowerCase() !== a); }); }); return; }
+    if (k === "poclr") { q = ""; reset(); render(); return; }
+    if (k === "poref") { reset(); FOLDERS = null; render(); return; }
+    if (k === "pomore") { load(true); render(); return; }
+    if (k === "potarget") { target = r[0] || null; render(); return; }
+    if (k === "polink") { link(r[0], r[1]); return; }
+    if (k === "pounl") { const t = THR().find(x => x.id === r[0]); if (t) atrJa("Aftengja þráðinn „" + t.efni + "“ frá verkefninu?").then(j => { if (j) poLinkConv(t.conv, null).then(() => toast("Þráður aftengdur")); }); return; }
+    if (k === "poleg") { atrJa("Fjarlægja þessa eldri tengingu?").then(j => { if (j) saveSnapshot(st => { st.postar = (st.postar || []).filter(x => x.id !== r[0]); }); }); return; }
+    if (k === "pothr") { delete TC[r.join(":")]; render(); return; }
+    if (k === "pofind") { target = r[0]; const p = findProj(target); q = p ? p.stutt : ""; reset(); DETAIL = null; tab = "postur"; render(); window.scrollTo({ top: 0 }); return; }
+    // Forskoða viðhengi (1.9.2): PDF, myndir og texti beint; Office-skjöl eru afrituð í Mín skjöl › Viðhengi og forskoðuð þaðan
+    if (k === "poprev") { toast("Sæki viðhengi…"); attBlob(r[0], r[1]).then(async ({ blob, name }) => {
+        if (/\.(docx?|xlsx?|pptx?|odt|ods|odp|rtf)$/i.test(name) && window.odSaveMine) {
+          if (!await atrJa(`Til að forskoða „${name}“ er afrit vistað í Mín skjöl › Viðhengi í OneDrive. Halda áfram?`)) return;
+          const it = await odSaveMine("Viðhengi", name, blob, blob.type); doAct(window.msPrevAct ? msPrevAct(it) : "msprev:" + it.id);
+        } else blobPreview(blob, name);
+      }).catch(e => toast(e.message)); return; }
+    if (k === "poatt") { toast("Sæki viðhengi…"); attBlob(r[0], r[1]).then(({ blob, name }) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }).catch(e => toast(e.message)); return; }
+    if (k === "posave") { const L = linked(r[0]), p = L && findProj(L.verkefniId); if (!p) return toast("Tengdu póstinn við verkefni fyrst.");
+      toast("Vista í " + p.nr + "…");
+      attBlob(r[0], r[1]).then(async ({ blob, name }) => { const dir = await msProjSub(p, "01", "01 Móttekið"); await msSaveFile(dir, name, blob, blob.type, false); toast("Vistað í " + dir.replace(ORG.od.verkefni + "/", "").replace(/\//g, " › ")); }).catch(e => toast(e.message)); return; }
+  };
+  document.addEventListener("submit", e => { if (e.target.id === "poqi" || e.target.id === "poq") { e.preventDefault(); q = (document.getElementById("poqi")?.value || "").trim(); reset(); render(); } });
+  document.addEventListener("input", e => { if (e.target.id === "poqi" && fold === "tengilidir") { q = e.target.value.trim(); const pos = e.target.selectionStart; render(); const n = document.getElementById("poqi"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } } });
+  document.addEventListener("change", e => { const id = e.target.dataset?.polink; if (id != null) link(id, e.target.value || null); });
+  // 2.95.1: þráð má líka tengja við tilboð eða pöntun (postConv) – póstarnir birtast þá á síðu hennar, svör rata í tilkynningar
+  // 2.95.1: forskoðun í appinu, ofan á póstglugganum (window.open opnaði vafrann í heimaskjáappi og glataði samhenginu)
+  function pvOverlay(bl, name) {
+    const u = URL.createObjectURL(bl), t = bl.type || "", ext = (String(name).split(".").pop() || "").toLowerCase();
+    const pdf = t === "application/pdf" || ext === "pdf", img = /^image\//.test(t) || /^(png|jpe?g|gif|webp)$/.test(ext);
+    const w = document.createElement("div"); w.className = "pvov"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true"); w.setAttribute("aria-label", "Forskoðun " + name);
+    w.innerHTML = `<div class="pvbox"><div class="pvhd"><b>${esc(name)}</b><a class="btn" href="${u}" download="${esc(name)}">Sækja</a><button type="button" class="btn primary pvx">Loka</button></div>
+      <div class="pvbd">${pdf ? '<div class="bppdf"><div class="empty">Opna PDF…</div></div>' : img ? `<img src="${u}" alt="${esc(name)}">` : '<div class="empty">Ekki hægt að forskoða þessa tegund skráar í appinu. Notaðu Sækja.</div>'}</div></div>`;
+    document.body.append(w);
+    const kd = e => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); close(); } };
+    const close = () => { w.remove(); document.removeEventListener("keydown", kd, true); setTimeout(() => URL.revokeObjectURL(u), 1000); };
+    document.addEventListener("keydown", kd, true); w.querySelector(".pvx").onclick = close; w.addEventListener("click", e => { if (e.target === w) close(); });
+    if (pdf) { const el = w.querySelector(".bppdf"); (typeof renderPdf === "function" ? renderPdf(bl, el) : Promise.reject(new Error("PDF-birting ekki tiltæk"))).catch(e => { el.innerHTML = `<div class="empty">Ekki tókst að birta PDF (${esc(e?.message || "villa")}). Notaðu Sækja.</div>`; }); }
+  }
+  function tbSel(id, m) {
+    const api = window.salaAPI; if (!api || !m?.conversationId || !((window.tbOK && tbOK()) || (window.ON && ON("pantanir")))) return "";
+    const T0 = [...api.PN(), ...api.TB()].find(x => x.postConv === m.conversationId), opn = x => !["Lokið", "Hafnað", "Skilað"].includes(x.stada) || (T0 && T0.id === x.id);
+    const srt = xs => xs.filter(opn).sort((a, b) => String(b.nr).localeCompare(String(a.nr), "is", { numeric: true })), P = srt(api.PN()), T = srt(api.TB());
+    const op = x => `<option value="${esc(x.id)}"${T0 && T0.id === x.id ? " selected" : ""}>${esc(x.nr)} ${esc(String(x.heiti || "").slice(0, 40))}${x.vidskiptavinur ? " · " + esc(String(x.vidskiptavinur).slice(0, 24)) : ""}</option>`;
+    if (!P.length && !T.length) return "";
+    return `<label class="posel"><select data-potb="${esc(id)}" aria-label="Tengja þráðinn við tilboð eða pöntun"><option value="">${T0 ? "Aftengja frá " + esc(T0.nr) : "Tilboð eða pöntun…"}</option>${P.length ? `<optgroup label="Pantanir">${P.map(op).join("")}</optgroup>` : ""}${T.length ? `<optgroup label="Tilboð">${T.map(op).join("")}</optgroup>` : ""}</select></label>`;
+  }
+  async function linkTb(gid, tid) {
+    let conv = convOf(gid);
+    try { if (!conv) { const m = await MS.g(`${mb(gid)}/messages/${encodeURIComponent(gid)}?$select=id,subject,conversationId`); noteConv([m]); conv = m.conversationId; } } catch (e) { return toast(e.message); }
+    if (!conv) return toast("Fann ekki þráð póstsins.");
+    const box = mb(gid), api = window.salaAPI, T = tid && api ? [...api.TB(), ...api.PN()].find(x => String(x.id) === String(tid)) : null;
+    try { await saveSnapshot(s => { [...(s.tilbod || []), ...(s.pantanir || [])].forEach(x => { if (x.postConv === conv && String(x.id) !== String(tid)) { delete x.postConv; delete x.postBox; }
+      if (tid && String(x.id) === String(tid)) { x.postConv = conv; x.postBox = box; } }); }); } catch (e) { return toast(window.errText ? errText(e) : String(e)); }
+    toast(T ? `Þráður tengdur við ${T.pontun ? "pöntun" : "tilboð"} ${T.nr}` : "Þráður aftengdur frá tilboði/pöntun"); render();
+  }
+  document.addEventListener("change", e => { const id = e.target.dataset?.potb; if (id != null) linkTb(id, e.target.value || null); });
+  document.addEventListener("search", e => { if (e.target.id === "poqi" && !e.target.value && q) { q = ""; reset(); render(); } }, true);
+
+  // Póstþræðir á síðu verkefnis – sóttir beint úr pósthólfinu, svo nýir póstar í þræðinum birtast sjálfkrafa
+  // Ósvarað (2.67.0): síðasti póstur í þræðinum er frá utanaðkomandi (ekki @lén fyrirtækisins) og eldri en sólarhringur
+  const osvDays = ms => { const m = ms && ms[0], a = String(m?.from?.emailAddress?.address || "").toLowerCase(), dom = String(ORG.len || "").toLowerCase();
+    if (!m || !a || (dom && a.endsWith("@" + dom)) || (SH && a === SH)) return 0; const d = (Date.now() - new Date(m.receivedDateTime)) / 864e5; return d >= 1 ? Math.floor(d) : 0; };
+  const osv = ms => { const n = osvDays(ms); return n ? ` · <b style="color:var(--t-red,#c0392b)">Ósvarað í ${n} ${n === 1 ? "dag" : "daga"}</b>` : ""; };
+  window.poOsvarad = p => THR().filter(t => t.verkefniId === p.id).map(t => TC[t.conv]?.msgs).filter(Boolean).reduce((a, ms) => Math.max(a, osvDays(ms)), 0);
+  window.poProjSection = function (p) {
+    const ts = THR().filter(t => t.verkefniId === p.id), leg = (S?.postar || []).filter(m => m.verkefniId === p.id).sort((a, b) => String(b.dags).localeCompare(String(a.dags)));
+    const x = id => MCP ? `<button type="button" class="btn" data-act="${id}" style="padding:4px 10px;min-height:30px" aria-label="Aftengja">✕</button>` : "";
+    const msg = m => `<div class="lrow tap fl" ${tapAttr("post", m.id)}><div class="ll">${EI.mail}</div><div class="lm"><div class="lt">${esc(fromName(m))}${m.hasAttachments ? " · viðhengi" : ""}</div><div class="ls">${esc(fmtDate(m.receivedDateTime))} · ${esc((m.bodyPreview || "").slice(0, 90))}</div></div>${CHEV}</div>`;
+    const blk = t => { const c = msOn() ? thread(t.conv) : null, ms = c?.msgs;
+      return `<div class="pothr"><div class="lrow"><div class="lm"><div class="lt">${esc(t.efni)}</div><div class="ls">${ms ? ms.length + (ms.length === 1 ? " póstur" : " póstar") + (ms[0] ? " · síðast " + esc(fmtDate(ms[0].receivedDateTime)) : "") + osv(ms) : msOn() ? "Sæki þráð…" : "Tengdu Microsoft til að sjá póstana"}${c?.err ? " · " + esc(c.err) : ""}</div></div><div class="lr">${x("pounl:" + t.id)}</div></div>
+        ${ms && ms.length ? (ms.length > 6 ? `<div class="hint" style="margin:4px 0 0 12px">${ms.length - 6} eldri póstar í þræðinum – opnaðu póst til að sjá allt samtalið</div>` : "") + ms.slice(0, 6).reverse().map(msg).join("") : ""}</div>`; }; // 2.83.0: í tímaröð, nýjasti neðst
+    const legRow = m => `<div class="lrow"><div class="ll">${EI.mail}</div><a class="lm" href="${esc(m.url || "#")}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><div class="lt">${esc(m.efni)}</div><div class="ls">${esc([m.fra, fmtDate(m.dags)].filter(Boolean).join(" · "))}</div></a><div class="lr">${x("poleg:" + m.id)}</div></div>`;
+    return `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">Póstþræðir${ts.length ? " · " + ts.length : ""}${MCP && msOn() ? `<a class="plink" data-act="pofind:${esc(p.id)}" style="margin-left:auto">Finna pósta</a><a class="plink" data-act="ponew:${esc(p.id)}">+ Nýr póstur</a>` : ""}</div>
+      ${ts.length ? `<div class="llist">${ts.map(blk).join("")}</div>` : msOn() ? `<div class="hint" style="margin:0">Engir þræðir tengdir ennþá. Opnaðu póst og veldu „Tengja þráðinn við verkefni“.</div>` : ""}
+      ${leg.length ? `<div class="viewtitle">Eldri tengingar · ${leg.length}</div><p class="hint" style="margin:0 0 6px">Úr gamla pósthólfinu (dagur@sonik.is). Þessir póstar fundust ekki í núverandi pósthólfi og verða ekki uppfærðir.</p><div class="llist">${leg.map(legRow).join("")}</div>` : ""}`;
+  };
+  /* ---------- Póstþráður tilboðs/pöntunar (2.86.0) ---------- */
+  // Póstarnir í þræðinum í tímaröð (elsti efst) – á síðu tilboðs, pöntunar og verkefnis
+  window.poConvHTML = function (conv, title, noTitle) {
+    if (!conv) return "";
+    if (!msOn()) return `<div class="viewtitle">${esc(title || "Póstsamskipti")}</div><p class="hint" style="margin:0">Tengdu Microsoft til að sjá póstana.</p>`;
+    const c = thread(conv), xs = (c?.msgs || []).slice().sort((a, b) => String(a.receivedDateTime).localeCompare(String(b.receivedDateTime)));
+    const me = String(MS.user()?.email || "").toLowerCase(), fra = x => { const a = String(x.from?.emailAddress?.address || "").toLowerCase(); return a === me || (SH && a === SH) ? "Við" : fromName(x); };
+    return `${noTitle ? "" : `<div class="viewtitle">${esc(title || "Póstsamskipti")}${xs.length ? " · " + xs.length : ""}</div>`}${!xs.length ? `<p class="hint" style="margin:0">${c?.busy ? "Sæki póstana…" : "Engir póstar fundust í þræðinum."}</p>` : `<div class="pocv">${xs.map(x => `<div class="pocv-it tap${x.isRead === false ? " unread" : ""}" ${tapAttr("post", x.id)}><div class="pocv-h"><b>${esc(fra(x))}</b><span class="m">${esc(fmtDate(x.receivedDateTime))} kl. ${esc(new Date(x.receivedDateTime).toTimeString().slice(0, 5))}</span></div><div class="ls">${esc((x.bodyPreview || "").slice(0, 220))}</div></div>`).join("")}</div>`}`;
+  };
+  // Nýjasti pósturinn í þræðinum (sækir þráðinn ef þarf) – fyrir tilkynningar um svar viðskiptavinar
+  window.poConvLast = function (conv) { if (!conv || !msOn()) return null; const c = thread(conv); const xs = (c?.msgs || []); return xs[0] || null; };
+  window.poIsOurs = m => { const a = String(m?.from?.emailAddress?.address || "").toLowerCase(), me = String(MS.user()?.email || "").toLowerCase(), dom = String(ORG.len || "").toLowerCase(); return a === me || (SH && a === SH) || (!!dom && a.endsWith("@" + dom)); };
+  window.poUnread = () => (list || []).filter(m => m.isRead === false).length;
+})();

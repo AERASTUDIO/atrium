@@ -1,4 +1,4 @@
-<!doctype html><!-- SJÁLFVIRKT BÚIÐ TIL úr ../app.html með tools/uppsetningar.py (uppsetning: demo). Ekki breyta hér. --><!-- SNIÐMÁT: ekki opnað beint. tools/uppsetningar.py býr til aera/index.html, sonik/index.html … úr þessari skrá. --><html lang="is"><head><meta charset="utf-8"><base href="../"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><meta name="theme-color" id="themecolor" content="#121416">
+<!doctype html><!-- SJÁLFVIRKT BÚIÐ TIL úr ../app.html með tools/uppsetningar.py (uppsetning: demo, fest útgáfa 2.167.1 – ut/2.167.1/app.html). Ekki breyta hér. --><!-- SNIÐMÁT: ekki opnað beint. tools/uppsetningar.py býr til aera/index.html, sonik/index.html … úr þessari skrá. --><html lang="is"><head><meta charset="utf-8"><base href="../"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><meta name="theme-color" id="themecolor" content="#121416">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Atrium">
 <link rel="manifest" href="demo/manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="icons/atrium-favicon.svg"><link rel="icon" type="image/png" href="icons/atrium-icon-192.png"><link rel="apple-touch-icon" href="icons/atrium-apple-touch-icon.png">
@@ -9,10 +9,10 @@ if(window.AERA_DEMO){try{Object.defineProperty(window,"localStorage",{value:wind
 <script src="demo/fyrirtaeki.js"></script>
 <script>/* Uppsetningar á sama léni (t.d. /sonik/) fá sitt eigið svæði í localStorage svo stillingar og Microsoft-lyklar blandist ekki */
 if(window.ORG&&ORG.lsForskeyti){try{const L=window.localStorage,p=ORG.lsForskeyti;Object.defineProperty(window,"localStorage",{configurable:true,value:{getItem:k=>L.getItem(p+k),setItem:(k,v)=>L.setItem(p+k,v),removeItem:k=>L.removeItem(p+k),clear:()=>{for(let i=L.length-1;i>=0;i--){const k=L.key(i);if(k&&k.startsWith(p))L.removeItem(k);}},key:i=>{const ks=[];for(let j=0;j<L.length;j++){const k=L.key(j);if(k&&k.startsWith(p))ks.push(k.slice(p.length));}return ks[i]??null;},get length(){let n=0;for(let j=0;j<L.length;j++)if((L.key(j)||"").startsWith(p))n++;return n;}}});}catch(e){}}</script>
-<script src="kjarni.js"></script>
+<script src="ut/2.167.1/kjarni.js"></script>
 <script>/* Merki fyrirtækis (uppsetningar) birtist við hlið Atrium */if((ORG.merki||ORG.logo||{}).ljos||(ORG.merki||ORG.logo||{}).dokk)document.documentElement.classList.add("hasco");</script>
-<script src="ms.js"></script>
-<script src="gogn.js"></script>
+<script src="ut/2.167.1/ms.js"></script>
+<script src="ut/2.167.1/gogn.js"></script>
 </head><body>
 <div id="splash" aria-label="Atrium hleðst" role="status"><div class="spl-in"><svg class="lmark" viewBox="-4 -4 108 108" aria-hidden="true"><polygon points="0.00,0.00 72.00,0.00 58.00,14.00 0.00,14.00" fill="#DFE5EA"/><polygon points="0.00,14.00 58.00,14.00 72.00,28.00 0.00,28.00" fill="#93A0AD"/><polygon points="72.00,0.00 72.00,28.00 58.00,14.00" fill="#4B5664"/><polygon points="100.00,0.00 100.00,72.00 86.00,58.00 86.00,0.00" fill="#DFE5EA"/><polygon points="86.00,0.00 86.00,58.00 72.00,72.00 72.00,0.00" fill="#93A0AD"/><polygon points="100.00,72.00 72.00,72.00 86.00,58.00" fill="#4B5664"/><polygon points="100.00,100.00 28.00,100.00 42.00,86.00 100.00,86.00" fill="#DFE5EA"/><polygon points="100.00,86.00 42.00,86.00 28.00,72.00 100.00,72.00" fill="#93A0AD"/><polygon points="28.00,100.00 28.00,72.00 42.00,86.00" fill="#4B5664"/><polygon points="0.00,100.00 0.00,28.00 14.00,42.00 14.00,100.00" fill="#DFE5EA"/><polygon points="14.00,100.00 14.00,42.00 28.00,28.00 28.00,100.00" fill="#93A0AD"/><polygon points="0.00,28.00 28.00,28.00 14.00,42.00" fill="#4B5664"/></svg><img class="lword" src="icons/atrium-ordmerki-dokk.svg" alt=""></div></div>
 <script>/* 2.93.0: merki fyrirtækisins á opnunarskjánum, jafnhátt Atrium-merkinu */(function(){try{const l=(window.ORG&&(ORG.merki||ORG.logo))||{},src=l.dokk||l.ljos,w=document.querySelector("#splash .spl-in");if(!src||!w||ORG.nafn==="Atrium")return;w.insertAdjacentHTML("beforeend",'<span class="spl-sep" aria-hidden="true"></span><img class="spl-co" alt="">');const i=w.querySelector(".spl-co");i.src=src;i.alt=ORG.nafn||"";document.getElementById("splash").classList.add("hasco2");}catch(e){}})();</script>
@@ -24,16 +24,16 @@ const login=()=>{const l=document.getElementById("login"); return !!(l&&!l.hidde
 const tick=()=>{if(done)return; if(Date.now()-t0>15000||login())return end(); if(ready()&&Date.now()-t0>=MIN)return end(); setTimeout(tick,120);};
 window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <link rel="preload" href="fonts/web/Manrope-500.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="app.css">
-<link rel="stylesheet" href="brand.css">
-<link rel="stylesheet" href="qr.css">
-<link rel="stylesheet" href="simi-ui1.css">
-<link rel="stylesheet" href="simi.css">
-<link rel="stylesheet" href="simi2.css">
-<link rel="stylesheet" href="simi/simi.css">
-<link rel="stylesheet" href="kerfi.css">
-<link rel="stylesheet" href="fagun.css">
-<link rel="stylesheet" href="u2d.css">
+<link rel="stylesheet" href="ut/2.167.1/app.css">
+<link rel="stylesheet" href="ut/2.167.1/brand.css">
+<link rel="stylesheet" href="ut/2.167.1/qr.css">
+<link rel="stylesheet" href="ut/2.167.1/simi-ui1.css">
+<link rel="stylesheet" href="ut/2.167.1/simi.css">
+<link rel="stylesheet" href="ut/2.167.1/simi2.css">
+<link rel="stylesheet" href="ut/2.167.1/simi/simi.css">
+<link rel="stylesheet" href="ut/2.167.1/kerfi.css">
+<link rel="stylesheet" href="ut/2.167.1/fagun.css">
+<link rel="stylesheet" href="ut/2.167.1/u2d.css">
 
 <aside class="side" aria-label="Valmynd"><span class="cobrand"><img class="colog" alt=""><span class="cosep" aria-hidden="true"></span><span class="logo" role="img" aria-label="Atrium"></span></span>
 <button type="button" class="btn primary new" onclick="openFab()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Nýtt</button>
@@ -54,68 +54,68 @@ window.atriumSplashEnd=end; setTimeout(tick,120);})();</script>
 <p>Skráðu þig inn hjá <span id="login-co">AERA Studio</span>.</p><script>document.getElementById("login-co").textContent=ORG.nafn;(function(){const l=ORG.merki||ORG.logo||{},i=document.getElementById("login-colog");if(l.dokk||l.ljos){i.src=l.dokk||l.ljos;i.alt=ORG.nafn;/* 2.93.2: merkin hlið við hlið, jafnhá – eins og á opnunarskjánum */const g=document.querySelector("#login .llogo"),w=document.createElement("div");w.className="lpair";i.before(w);if(g)w.append(g);w.insertAdjacentHTML("beforeend",'<span class="lsep" aria-hidden="true"></span>');w.append(i);}else i.remove();})();</script><div class="lval"><button type="button" class="lopt pri" id="login-ms">Starfsfólk</button><button type="button" class="lopt" id="login-gestur">Gestur</button></div><style>#login .lval{display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px;margin:28px 0 0;align-self:center}@media (min-width:640px){#login .lval{flex-direction:row;width:480px;max-width:90vw!important}#login .lval .lopt{flex:1;white-space:nowrap}}#login .lopt{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-height:56px;padding:14px 18px;border-radius:14px;border:1.5px solid currentColor;background:transparent;color:inherit;font:inherit;font-size:16px;font-weight:600;cursor:pointer;opacity:.9}#login .lopt.pri{background:var(--accent,#2a7289);border-color:transparent;color:#fff;opacity:1}#login .lopt:hover{opacity:1}</style><div id="login-msg" role="alert"></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="xlsx.js"></script>
-<script src="skjalagerd.js"></script>
-<script type="module">const ROT=f=>new URL(f,document.baseURI).href; /* full slóð: Safari tekur ekki mið af <base> í import() (2.8.2) */ if(window.AERA_DEMO) import(ROT("demo.js")); else if(window.ORG.firebase) import(ROT("firebase.js")); else { /* uppsetning án gagnagrunns (enn sem komið er) */ document.getElementById("login").hidden=false; document.getElementById("login-msg").textContent="Þessi uppsetning er ekki enn tengd gagnagrunni. Sýniútgáfan virkar: bættu ?demo aftan við slóðina."; document.getElementById("login-ms").disabled=true; }</script>
+<script src="ut/2.167.1/xlsx.js"></script>
+<script src="ut/2.167.1/skjalagerd.js"></script>
+<script type="module">const ROT=f=>new URL(f,document.baseURI).href; /* full slóð: Safari tekur ekki mið af <base> í import() (2.8.2) */ if(window.AERA_DEMO) import(ROT("ut/2.167.1/demo.js")); else if(window.ORG.firebase) import(ROT("ut/2.167.1/firebase.js")); else { /* uppsetning án gagnagrunns (enn sem komið er) */ document.getElementById("login").hidden=false; document.getElementById("login-msg").textContent="Þessi uppsetning er ekki enn tengd gagnagrunni. Sýniútgáfan virkar: bættu ?demo aftan við slóðina."; document.getElementById("login-ms").disabled=true; }</script>
 <script>/* 2.77.0: gluggahamur (#…&w=1) – eigin gluggi án vinstri stiku, t.d. Verkdagatal */ if(/[#&]w=1\b/.test(location.hash)) document.addEventListener("DOMContentLoaded",()=>document.body.classList.add("solowin"));</script>
 <script>const APP_VERSION="2.167.1"; // hækka hér og VERSION í sw.js (alltaf eins)</script>
-<script src="app-grunnur.js"></script>
-<script src="app-listar.js"></script>
-<script src="app-skyrslur.js"></script>
-<script src="app-sidur.js"></script>
-<script src="app-stillingar.js"></script>
-<script src="app-form.js"></script>
-<script src="app-breyta.js"></script>
-<script src="ms-app.js"></script>
-<script src="fundabod.js"></script>
-<script src="rlinur.js"></script>
-<script src="vettvangur.js"></script>
-<script src="vett-ui.js"></script>
-<script src="velja.js"></script>
-<script src="folk.js"></script>
-<script src="hausflipar.js"></script>
-<script src="askrift.js"></script>
-<script src="verdskra.js"></script>
-<script src="spurn.js"></script>
-<script src="reikn.js"></script>
-<script src="sala.js"></script><script src="bunadarlisti.js"></script><script src="prufugogn.js"></script><script src="deildir.js"></script>
-<script src="heim2.js"></script>
-<script src="skjol.js"></script>
-<script src="postur.js"></script>
-<script src="spjall.js"></script>
-<script src="heim.js"></script>
-<script src="fyrstuskref.js"></script>
-<script src="hjalp.js"></script>
-<script src="skjalasafn.js"></script>
-<script src="adgangur.js"></script>
-<script src="notendur.js"></script>
-<script src="vista.js"></script>
-<script src="personuvernd.js"></script>
-<script src="utlit-i.js"></script>
-<script src="ui1-skjair.js"></script>
-<script src="dagteymi.js"></script>
-<script src="qr.js"></script>
-<script src="simi.js"></script>
-<script src="simi2.js"></script>
-<script src="simi/skel.js"></script>
-<script src="simi/rammi.js"></script>
-<script src="simi/dagatal.js"></script>
-<script src="claude-adstod.js"></script>
-<script src="u2fall.js"></script>
-<script src="samraemi.js"></script>
-<script src="u2sel.js"></script>
-<script src="verkyfir.js"></script>
-<script src="u2rada.js"></script>
-<script src="u2fleiri.js"></script>
-<script src="snjall.js"></script>
-<script src="pantanir2.js"></script><script src="innflutningur.js"></script>
-<script src="lif.js"></script>
-<script src="fagun.js"></script>
-<script src="dagval.js"></script>
-<script src="fjolval.js"></script>
-<script src="snidmat.js"></script>
-<script src="stadur.js"></script>
-<script src="tilkynningar.js"></script>
-<script src="verkplus.js"></script>
+<script src="ut/2.167.1/app-grunnur.js"></script>
+<script src="ut/2.167.1/app-listar.js"></script>
+<script src="ut/2.167.1/app-skyrslur.js"></script>
+<script src="ut/2.167.1/app-sidur.js"></script>
+<script src="ut/2.167.1/app-stillingar.js"></script>
+<script src="ut/2.167.1/app-form.js"></script>
+<script src="ut/2.167.1/app-breyta.js"></script>
+<script src="ut/2.167.1/ms-app.js"></script>
+<script src="ut/2.167.1/fundabod.js"></script>
+<script src="ut/2.167.1/rlinur.js"></script>
+<script src="ut/2.167.1/vettvangur.js"></script>
+<script src="ut/2.167.1/vett-ui.js"></script>
+<script src="ut/2.167.1/velja.js"></script>
+<script src="ut/2.167.1/folk.js"></script>
+<script src="ut/2.167.1/hausflipar.js"></script>
+<script src="ut/2.167.1/askrift.js"></script>
+<script src="ut/2.167.1/verdskra.js"></script>
+<script src="ut/2.167.1/spurn.js"></script>
+<script src="ut/2.167.1/reikn.js"></script>
+<script src="ut/2.167.1/sala.js"></script><script src="ut/2.167.1/bunadarlisti.js"></script><script src="ut/2.167.1/prufugogn.js"></script><script src="ut/2.167.1/deildir.js"></script>
+<script src="ut/2.167.1/heim2.js"></script>
+<script src="ut/2.167.1/skjol.js"></script>
+<script src="ut/2.167.1/postur.js"></script>
+<script src="ut/2.167.1/spjall.js"></script>
+<script src="ut/2.167.1/heim.js"></script>
+<script src="ut/2.167.1/fyrstuskref.js"></script>
+<script src="ut/2.167.1/hjalp.js"></script>
+<script src="ut/2.167.1/skjalasafn.js"></script>
+<script src="ut/2.167.1/adgangur.js"></script>
+<script src="ut/2.167.1/notendur.js"></script>
+<script src="ut/2.167.1/vista.js"></script>
+<script src="ut/2.167.1/personuvernd.js"></script>
+<script src="ut/2.167.1/utlit-i.js"></script>
+<script src="ut/2.167.1/ui1-skjair.js"></script>
+<script src="ut/2.167.1/dagteymi.js"></script>
+<script src="ut/2.167.1/qr.js"></script>
+<script src="ut/2.167.1/simi.js"></script>
+<script src="ut/2.167.1/simi2.js"></script>
+<script src="ut/2.167.1/simi/skel.js"></script>
+<script src="ut/2.167.1/simi/rammi.js"></script>
+<script src="ut/2.167.1/simi/dagatal.js"></script>
+<script src="ut/2.167.1/claude-adstod.js"></script>
+<script src="ut/2.167.1/u2fall.js"></script>
+<script src="ut/2.167.1/samraemi.js"></script>
+<script src="ut/2.167.1/u2sel.js"></script>
+<script src="ut/2.167.1/verkyfir.js"></script>
+<script src="ut/2.167.1/u2rada.js"></script>
+<script src="ut/2.167.1/u2fleiri.js"></script>
+<script src="ut/2.167.1/snjall.js"></script>
+<script src="ut/2.167.1/pantanir2.js"></script><script src="ut/2.167.1/innflutningur.js"></script>
+<script src="ut/2.167.1/lif.js"></script>
+<script src="ut/2.167.1/fagun.js"></script>
+<script src="ut/2.167.1/dagval.js"></script>
+<script src="ut/2.167.1/fjolval.js"></script>
+<script src="ut/2.167.1/snidmat.js"></script>
+<script src="ut/2.167.1/stadur.js"></script>
+<script src="ut/2.167.1/tilkynningar.js"></script>
+<script src="ut/2.167.1/verkplus.js"></script>
 
 </body></html>

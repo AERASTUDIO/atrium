@@ -1,0 +1,416 @@
+/* Síður og aðgerðir: yfirlitssíður, undirsíður verkefna/undirverka, doAct, bendingar, .ics
+   Hluti af aðalkóða appsins (klofinn úr index.html í 1.9.0). Venjulegt (ekki module) script: allar skrárnar deila
+   sömu víðværu breytum og hlaðast í þeirri röð sem index.html telur þær upp. */
+/* ---------- Yfirlitssíður ---------- */
+// Hæð hauss → CSS-breytan --hdr svo „Til baka“-röðin festist beint undir honum; lína birtist þegar röðin er föst
+(()=>{const h=document.querySelector("header"); if(!h) return; const set=()=>document.documentElement.style.setProperty("--hdr",h.getBoundingClientRect().height+"px");
+  if(window.ResizeObserver) new ResizeObserver(set).observe(h); set();
+  addEventListener("scroll",()=>{const b=document.querySelector(".backrow"); if(b) document.documentElement.style.setProperty("--bk",b.offsetHeight+"px"); if(b) b.classList.toggle("stuck",b.getBoundingClientRect().top<=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hdr"))+1&&scrollY>20);},{passive:true});})();
+const backBar=()=>`<div class="backrow"><button class="back" onclick="goBack()" aria-label="Til baka" title="Til baka"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span class="sr">Til baka</span></button>${window.spDeila&&window.spRefInfo&&DETAIL&&spRefInfo(DETAIL)?`<button type="button" class="newwin dshr" onclick="spDeila(DETAIL)" title="Deila í spjalli"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 4z"/><path d="M12 8v5M9.5 10.5h5"/></svg>Deila</button>`:""}<button type="button" class="newwin" onclick="openNewWin()" title="Opna í nýjum glugga – vinna í appinu á meðan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="7.5" width="13" height="13" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/></svg>Nýr gluggi</button></div>`;
+const projLink=p=>p?`<a class="plink" ${tapAttr("verk",p.id)}><span class="nr">${esc(p.nr)}</span> ${esc(p.stutt)}</a>`:"";
+const timeList=(match,title="Tímaskráning")=>{const es=faerslur().filter(match).sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
+  const tot=es.reduce((s,e)=>s+(+e.timar||0),0);
+  return es.length?`<div class="viewtitle">${title} · ${hrs(tot)}</div><div class="list">${es.map(timeCard).join("")}</div>`:"";};
+const meetList=(fs,title)=>fs.length?`<div class="viewtitle">${title}</div><div class="list">${fs.map(f=>`<div class="card tap" ${tapAttr("fund",f.id)}><div class="row">${dateBlock(f.date)}<div class="grow"><div class="t">${esc(f.name)}</div><div class="meta">${hhmm(f.date)?`<span>kl. ${hhmm(f.date)}</span>`:""}${f.stadsetning?`<span>${esc(f.stadsetning)}</span>`:""}${daysTo(f.date)>=0?relPill(daysTo(f.date)):""}${f.fundargerd?`<span>Fundargerð</span>`:""}</div></div>${CHEV}</div></div>`).join("")}</div>`:"";
+// Loka verkefni / Opna aftur (2.15.4) – aðeins þar sem falin lokastaða er skilgreind (ORG.stodur eða Stillingar)
+const lokaBtn=p=>{const L=LOKA(); if(!L||isTmp(p.id)) return ""; if(p.stada===L.n){const back=STVAL().filter(x=>!x.lokid).pop()?.n||STVAL()[0]?.n;
+  return `<div class="lokabox"><span>Verkefninu er lokað.</span><button type="button" class="btn" data-act="status:verk:${esc(p.id)}:${esc(back)}">Opna aftur</button></div>`;}
+  return `<button type="button" class="btn lokabtn" data-act="status:verk:${esc(p.id)}:${esc(L.n)}">✓ Loka verkefni</button>`;};
+// Staða sem fellivalmynd í pakkavali (2.19.4); núverandi staða sýnd þótt hún sé ekki valkostur (t.d. Lokið)
+const statSel=(pre,opts,cur,labels,lbl)=>{const o=opts.map(s=>[pre+s,(labels||{})[s]||s,s===cur]); if(cur&&!opts.includes(cur)) o.unshift(["",(labels||{})[cur]||cur,true]); return `<div class="fsels">${fsel(o,lbl||"Staða")}</div>`;};
+const statRow=(type,id,opts,cur,labels)=>MCP&&!isTmp(id)&&FSEL()?statSel(`status:${type}:${id}:`,opts,cur,labels):MCP&&!isTmp(id)?`<div class="stat-row">${opts.map(s=>`<button type="button" class="chipbtn" data-act="status:${type}:${esc(id)}:${esc(s)}" aria-pressed="${s===cur}">${esc((labels||{})[s]||s)}</button>`).join("")}</div>`:"";
+const addRow=(btns)=>MCP?`<div class="links">${btns.map(([k,l])=>`<button type="button" class="btn" data-act="add:${k}">${l}</button>`).join("")}</div>`:"";
+/* ---------- Undirsíður (flipar) á verkefni og undirverki ---------- */
+let DTAB="yfirlit";
+const dtabs=(tabs)=>`<nav class="dtabs" role="tablist" aria-label="Síður">${tabs.map(([k,l,c])=>`<button type="button" role="tab" aria-selected="${k===DTAB}" data-act="dtab:${k}">${l}${c?` <span class="dc">${c}</span>`:""}</button>`).join("")}</nav>`;
+const fixTab=tabs=>{if(!tabs.some(t=>t[0]===DTAB)) DTAB=tabs[0][0];};
+const subRowL=u=>lrow("sub:"+u.id,{title:`<span class="nr">${esc(u.nr)}</span>&nbsp; ${esc(subName(u))}`,sub:esc([STL[u.stada]||u.stada,u.timar?hrs(u.timar):""].filter(Boolean).join(" · ")),right:u.stada!=="Done"&&u.skiladagur?relPill(daysTo(u.skiladagur)):""});
+const meetRowL=f=>{const x=d(f.date); return lrow("fund:"+f.id,{lead:x?`<b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small>`:"–",title:esc(f.name),sub:esc([hhmm(f.date)?"kl. "+hhmm(f.date):"",f.stadsetning,f.fundargerd?"Fundargerð":""].filter(Boolean).join(" · ")),right:daysTo(f.date)>=0&&daysTo(f.date)<=14?relPill(daysTo(f.date)):""});};
+const kostnRowL=k=>{const x=d(k.date), p=findProj(k.verkefniId); return lrow("kostn:"+k.id,{lead:x?`<b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small>`:"–",title:esc(k.lysing||"Kostnaður"),sub:esc([p?.nr,k.kvittun?"🧾 Kvittun":"",window.rkTag?rkTag(k):""].filter(Boolean).join(" · ")),right:`<span class="lc">${esc(kr(k.upphaed))}</span>`});};
+function kostnSection(ks,title){return `<div class="viewtitle" style="display:flex;align-items:center;gap:8px">${title||"Útlagður kostnaður"}${ks.length?" · "+esc(kr(sumK(ks))):""}${MCP?`<a class="plink" data-act="add:kostn" style="margin-left:auto">+ Kostnaður</a>`:""}</div>${ks.length?llist(ks.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(kostnRowL)):`<div class="empty">Enginn útlagður kostnaður skráður.</div>`}`;}
+const timeRowL=e=>{const x=d(e.date); if(e.live) return `<div class="lrow tap" data-act="kedit" role="button" tabindex="0"><div class="ll">${x?`<b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small>`:"–"}</div><div class="lm"><div class="lt">${esc(cleanLys(e.lysing))} <span class="tag">klukka í gangi</span></div><div class="ls">${esc(e.fra+"–nú"+(e.verkefniId?" · "+e.nr:" · Almennt"))}</div></div><div class="lr"><span class="lc">${esc(hrs(e.timar))}</span></div></div>`; return lrow("time:"+e.id,{lead:x?`<b>${x.getDate()}</b><small>${MON[x.getMonth()]}</small>`:"–",title:esc(cleanLys(e.lysing)),sub:esc([e.fra?e.fra+(e.til?"–"+e.til:""):"",e.verkefniId?e.nr:"Almennt",entrySvc(e),window.rkTag?rkTag(e):""].filter(Boolean).join(" · ")),right:`<span class="lc">${esc(hrs(e.timar))}</span>`});};
+const sumT=es=>es.reduce((a,e)=>a+(+e.timar||0),0);
+function timesPage(es,startAct){
+  const pid=DETAIL&&DETAIL.startsWith("verk:")?DETAIL.slice(5):null, sidR=DETAIL&&DETAIL.startsWith("sub:")?DETAIL.slice(4):null;
+  const groups={}; es.forEach(e=>{const k=tPer(e); (groups[k]=groups[k]||[]).push(e);});
+  return `<div class="kpis"><div class="card"><b>${num(sumT(es))}</b><span>klst. alls</span></div><div class="card"><b>${num(sumT(es.filter(e=>tPer(e)===curPeriod())))}</b><span>klst. á tímabili</span></div></div>
+  ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="${startAct}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button><button type="button" class="btn" data-act="add:kostn">+ Kostnaður</button>${pid&&(es.length||kostn().some(k=>k.verkefniId===pid))?`<button type="button" class="btn" data-act="prep:${esc(pid)}">Tímaskýrsla</button>`:""}${sidR&&es.length?`<button type="button" class="btn" data-act="srep:${esc(sidR)}">Tímaskýrsla undirverks</button>`:""}</div>`:""}
+  ${pid&&window.rkProjSection&&ON("reikningar")?rkProjSection(pid):""}
+  ${es.length?Object.entries(groups).map(([k,g])=>`<div class="viewtitle">${esc(k)} · ${hrs(sumT(g))}</div>${llist(g.map(timeRowL))}`).join(""):`<div class="empty" style="margin-top:16px">Engar tímaskráningar ennþá.</div>`}
+  ${(()=>{const ks=kostn().filter(k=>DETAIL?.startsWith("verk:")?k.verkefniId===DETAIL.slice(5):DETAIL?.startsWith("sub:")?k.undirverkId===DETAIL.slice(4):false); return kostnSection(ks);})()}`;
+}
+function settingsCard(rows,btns){return `<div class="card" style="margin-top:16px"><dl class="kv" style="margin:0">${kvRows(rows)}</dl></div>${btns}`;}
+function dVerk(p){
+  const subs=p.undirverk||[], openS=subs.filter(u=>u.stada!=="Done"), doneS=subs.filter(u=>u.stada==="Done");
+  const fs=(S?.fundir||[]).filter(f=>fundProj(f)?.id===p.id).sort((a,b)=>d(a.date)-d(b.date));
+  const upF=fs.filter(f=>daysTo(f.date)>=0), pastF=fs.filter(f=>daysTo(f.date)<0).reverse();
+  const tl=faerslur().filter(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr)).sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
+  const pending=(S?.odBidrod||[]).some(b=>b.verkefniId===p.id), fold=projFolder(p);
+  const nFiles=fold?(fold.atridi||[]).filter(x=>x.s>0).length:0;
+  const tabs=[["yfirlit","Yfirlit"],["undir","Undirverk",openS.length||""],["fundir","Fundir",upF.length||""],["skrar","Skrár",nFiles||""],["timar","Tímar",Math.round(sumT(tl))?num(Math.round(sumT(tl))):""],["tilbod","Tilboð",window.tbCountFor?tbCountFor(p.id)||"":""],["pantanir","Pantanir",window.pnCountFor?pnCountFor(p.id)||"":""],["stillingar","Stillingar"]]
+    .filter(t=>t[0]==="pantanir"?!!window.pnProjTab&&!!window.pnCountFor&&ON("pantanir"):t[0]==="tilbod"?!!window.tbProjTab&&!!window.tbOK&&tbOK():({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]?ON(({undir:"undirverk",fundir:"fundir",timar:"timar"})[t[0]]):t[0]!=="skrar"||ON("skjol")||ON("onedrive"));
+  fixTab(tabs);
+  const head=backBar()+`<div class="kicker"><span class="nr">${esc(p.nr)}</span>${statusPill(p.stada)}${p.skiladagur&&!isDone(p)?relPill(daysTo(p.skiladagur)):""}${svcTags(p)}${taxtiTxt(p)?`<span class="pill ptaxti" title="Þjónusta og tímagjald úr verðskrá">${esc(taxtiTxt(p))}</span>`:""}</div>
+  <h2 class="big" style="margin-top:6px">${esc(p.stutt||p.nafn)}</h2>
+  <p class="sub" style="margin-bottom:0">${projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")||"Verkefni"}</p>${window.rlRowHTML?rlRowHTML("verk",p):""}`+dtabs(tabs);
+  let body="";
+  if(DTAB==="yfirlit"){
+    const soon=[...openS.filter(u=>u.skiladagur).map(u=>({w:u.skiladagur,h:subRowL(u)})),...upF.map(f=>({w:f.date,h:meetRowL(f)}))].sort((a,b)=>String(a.w).localeCompare(String(b.w))).slice(0,5);
+    body=`${klukkaBanner(p)}
+    ${MCP?`<div class="viewtitle" style="margin-top:14px">Staða verkefnis</div>${FSEL()?statSel(`status:verk:${p.id}:`,STVAL().map(x=>x.n),p.stada,null,"Staða verkefnis"):`<div class="stat-row pstada" role="group" aria-label="Staða verkefnis">${STVAL().map(x=>`<button type="button" class="chipbtn" data-act="status:verk:${esc(p.id)}:${esc(x.n)}" aria-pressed="${x.n===p.stada}">${esc(x.n)}</button>`).join("")}</div>`}${lokaBtn(p)}`:""}
+    <div class="kpis" style="margin-top:16px"><div class="card"><b>${num(Math.round(((+p.timar||0)+liveProjH(p.id))*10)/10)}</b><span>klst. skráðar${liveProjH(p.id)?" · klukka í gangi":""}</span></div><div class="card"><b>${openS.length}</b><span>opin undirverk</span></div>${(()=>{ // samþykkt tilboð verkefnisins (2.18.10)
+      if(!window.tbTotals) return ""; const ts=(S?.tilbod||[]).filter(T=>T.stada==="Samþykkt"&&(T.verkefniId===p.id||(p.tilbodId&&T.id===p.tilbodId))), v=ts.reduce((a,T)=>a+(+tbTotals(T).net||0),0);
+      return v>0?`<div class="card tap" ${ts.length===1?`data-open="tb:${esc(ts[0].id)}" role="button" tabindex="0"`:'data-act="dtab:tilbod"'}><b>${esc(kr(v))}</b><span>samþykkt tilboð${ts.length>1?" ("+ts.length+")":" "+esc(ts[0].nr||"")} · án VSK</span></div>`:"";})()}${can("fjarmal")&&window.rkUnbilled&&window.rateOf?(()=>{const v=window.rkUnbilledKr?rkUnbilledKr(p.id):0; return v?`<div class="card tap" data-act="tab:trk"><b>${esc(kr(v))}</b><span>óreikningsfært · ${esc(num(rateOf(p)))} kr./klst.</span></div>`:"";})():""}</div>
+    ${MCP?`<div class="links">${ON("timar")?`${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button>`:""}${ON("undirverk")?`<button type="button" class="btn" data-act="add:undir">+ Undirverk</button>`:""}${ON("fundir")?`<button type="button" class="btn" data-act="add:fund">+ Fundur</button>`:""}</div>`:""}
+    <div class="viewtitle" style="display:flex;align-items:center;gap:8px">Starfsfólk á verkefni · ${projStaff(p).length}${MCP?`<a class="plink" data-act="pstaff:${esc(p.id)}" style="margin-left:auto">+ Skrá starfsmann</a>`:""}</div>
+    <div class="staffrow">${projStaff(p).map(sk=>`<span class="staff">${staffAv(sk)}<span>${esc(starfName(sk))}${sk===ME()?" (þú)":""}</span></span>`).join("")}</div>
+    ${(()=>{const b=budgetOf(p); return b?`<div class="budget"><div class="bt"><span>Áætlun</span><b>${num(Math.round(((+p.timar||0)+liveProjH(p.id))*10)/10)} af ${num(b.a)} klst. · ${Math.round(b.pct*100)}%</b></div><div class="pbar ${b.cls}"><i style="width:${Math.min(100,Math.round(b.pct*100))}%"></i></div>${b.cls?`<p class="hint" style="margin:8px 0 0">${b.cls==="over"?"Komið fram yfir áætlaða tíma.":"Yfir 80% af áætluðum tímum notað."}</p>`:""}${p.tilbod?`<p class="hint" style="margin:6px 0 0">Tilboð: ${esc(Number(p.tilbod).toLocaleString("is-IS"))} kr.</p>`:""}</div>`:"";})()}
+    ${p.yfirlit||p.naest||p.athuga?`<div class="viewtitle">Staðan</div><div class="card" style="font-size:14.5px">${esc(p.yfirlit||"")}${p.naest?`<div style="margin-top:8px"><b>Næst:</b> ${esc(p.naest)}</div>`:""}${p.athuga?`<div style="margin-top:8px"><b>Athuga:</b> ${esc(p.athuga)}</div>`:""}</div>`:""}
+    ${soon.length?`<div class="viewtitle">Framundan í verkefninu</div>${llist(soon.map(x=>x.h))}`:""}
+    ${textCard("Lýsing",p.lysing)}
+    ${window.poProjSection?poProjSection(p):""}
+    <div class="viewtitle">Athugasemdir</div>
+    ${MCP?`<div class="cmbox"><textarea id="cm-new" placeholder="Skrifaðu athugasemd…"></textarea><button type="button" class="btn primary" data-act="cmadd:${esc(p.id)}" style="align-self:flex-end">Vista athugasemd</button></div>`:""}
+    ${(p.athugasemdir||[]).slice().sort((a,b)=>String(b.d).localeCompare(String(a.d))).map(c=>`<div class="cm"><div class="cmh"><span>${esc(starfName(c.sk))} · ${esc(fmtDate(c.d))}${hhmm(c.d)?" kl. "+hhmm(c.d):""}</span>${MCP?`<button type="button" class="x" data-act="cmdel:${esc(p.id)}:${esc(c.id)}" aria-label="Eyða athugasemd">✕</button>`:""}</div><div class="cmt">${esc(c.t)}</div></div>`).join("")}`;
+  }
+  if(DTAB==="undir") body=`${MCP?`<div class="links"><button type="button" class="btn primary" data-act="add:undir">+ Undirverk</button></div>`:""}
+    ${openS.length?`<div class="viewtitle">Opin · ${openS.length}</div>${llist(openS.map(subRowL))}`:""}${doneS.length?`<div class="viewtitle">Lokið · ${doneS.length}</div>${llist(doneS.map(subRowL))}`:""}
+    ${subs.length?"":`<div class="empty" style="margin-top:16px">Engin undirverk.</div>`}`;
+  if(DTAB==="fundir") body=`${MCP?`<div class="links"><button type="button" class="btn primary" data-act="add:fund">+ Fundur</button></div>`:""}
+    ${upF.length?`<div class="viewtitle">Framundan · ${upF.length}</div>${llist(upF.map(meetRowL))}`:""}${pastF.length?`<div class="viewtitle">Liðnir · ${pastF.length}</div>${llist(pastF.map(meetRowL))}`:""}
+    ${fs.length?"":`<div class="empty" style="margin-top:16px">Engir fundir.</div>`}`;
+  if(DTAB==="skrar") body=(window.skDocsFor?skDocsFor(p.id):"")+(pending&&!fold&&!(window.MS&&MS.on())?`<div class="empty" style="margin-top:16px">Mappa í OneDrive bíður stofnunar. Hún stofnast sjálfkrafa þegar appið er tengt Microsoft.${window.msMissing?msMissing():""}</div>`:skrarHTML(p));
+  if(DTAB==="timar") body=timesPage(tl,"kstart:"+esc(p.id));
+  if(DTAB==="pantanir") body=window.pnProjTab?pnProjTab(p):""; // 2.128.0: pantanir verkefnis
+  if(DTAB==="tilbod") body=window.tbProjTab?tbProjTab(p):""; // tilboð verkefnis (Leiga/Sala, 2.12.0)
+  if(DTAB==="stillingar") body=`<div class="viewtitle">Staða</div>${statRow("verk",p.id,STVAL().map(x=>x.n),p.stada)}${MCP?lokaBtn(p):""}
+    <div class="viewtitle" style="margin-top:6px">Upplýsingar</div>${settingsCard([
+      ["Verknúmer",`<span class="nr">${esc(p.nr)}</span>`],["Heiti",esc(p.stutt||"")],["Viðskiptavinur",projVsk(p)?vskLink(projVsk(p)):projVk(p)?vskLink(projVk(p)):esc(p.vidskiptavinur||p.verkkaupi||"")],
+      [VFL(),window.vflOn()&&p.thjonusta?.length?p.thjonusta.map(esc).join(", "):""],
+      ["Skiladagur",p.skiladagur?fmtDT(p.skiladagur)+(!isDone(p)?` <span style="color:var(--muted)">· ${rel(daysTo(p.skiladagur))}</span>`:""):""],
+      ["Viðburður",p.vidburdur?fmtDT(p.vidburdur):""],["Tímabil verks",timabilTxt(p)],["Tímagjald",window.rateOf&&rateOf(p)?esc(num(rateOf(p))+" kr./klst. · "+(p.timagjald?"eigið tímagjald":taxtiOf(p)?.heiti||"")):""],["Teikningar frá",esc(p.teikningarFra||"")],
+      ["Mappa",p.mappa?`<a class="plink" href="${esc(p.mappa)}" target="_blank" rel="noopener">Opna í OneDrive</a>`:""]],linkBtns(p,{edit:"verk"}))}
+    <div class="viewtitle">Starfsmenn á verkefni</div><div class="stat-row">${STARFS().map(x=>`<button type="button" class="chipbtn" data-act="pstarf:${esc(p.id)}:${esc(x.sk)}" aria-pressed="${(p.starfsmenn?.length?p.starfsmenn:[ME()]).includes(x.sk)}">${esc(x.nafn)}</button>`).join("")}</div>
+    <p class="hint" style="margin-top:10px">✎ Breyta nær líka yfir Staðan (yfirlit, næst, athuga) og Lýsingu. Stöður, þjónustu og starfsmenn má breyta undir Stillingar í valmyndinni.</p>`;
+  return head+`<div class="dbody">${body}</div>`;
+}
+let showAllTimes=false;
+function dSub(u,p){
+  // 2.133.0: undirverk með sama vægi og verkefni – áætlun, ábyrgð, skjöl og tilboð (reikningur fer áfram á verkefnið)
+  const m=u.serMappa||u.mappa||p.mappa, tl=faerslur().filter(e=>e.undirverkId?e.undirverkId===u.id:e.nr===u.nr).sort((a,b)=>String(b.date+(b.fra||"")).localeCompare(String(a.date+(a.fra||""))));
+  const others=(p.undirverk||[]).filter(x=>x.id!==u.id), h=sumT(tl), ak=+u.aklst||0, ab=u.abyrgd?(STARFS().find(x=>x.sk===u.abyrgd)?.nafn||u.abyrgd):"";
+  const tbs=window.tbUndir?tbUndir(u.id):[], nDoc=(S?.skjol||[]).filter(x=>x.undirverkId===u.id&&x.snid).length, tbSum=tbs.reduce((a,T)=>a+(window.salaAPI?.netOf?salaAPI.netOf(T):0),0);
+  const tabs=[["yfirlit","Yfirlit"],["timar","Tímar",tl.length?num(h):""],["skrar","Skjöl",nDoc||""],["tilbod","Tilboð",tbs.length||""],["stillingar","Stillingar"]]
+    .filter(t=>t[0]==="timar"?ON("timar"):t[0]==="tilbod"?!!window.tbUndirTab&&!!window.tbOK&&tbOK():t[0]==="skrar"?ON("skjol")||!!m:true); fixTab(tabs);
+  const head=backBar()+`<div class="kicker"><span class="nr">${esc(u.nr)}</span>${statusPill(u.stada)}${u.skiladagur&&u.stada!=="Done"?relPill(daysTo(u.skiladagur)):""}</div>
+  <h2 class="big" style="margin-top:6px">${esc(subName(u))}</h2><p class="sub" style="margin-bottom:0">Undirverk í ${projLink(p)}${ab?" · ábyrgð: "+esc(ab):""}${window.atrAv&&(u.abyrgd||(u.starfsmenn||[]).length)?` <span class="atavs">${[...new Set([u.abyrgd,...(u.starfsmenn||[])].filter(Boolean))].map(sk=>atrAv(sk,sk===u.abyrgd?"ábyrgð":"á undirverkinu")).join("")}</span>`:""}</p>`+dtabs(tabs);
+  let body="";
+  if(DTAB==="yfirlit"){const pc=ak?Math.round(h/ak*100):0;
+    body=`${klukkaBanner(p)}
+    <div class="kpis" style="margin-top:16px"><div class="card"><b>${ak?num(h)+" af "+num(ak):num(h)}</b><span>klst.${ak?" · "+pc+" % af áætlun":" skráðar"}</span>${ak?`<i class="ubar" style="display:block;height:6px;border-radius:3px;margin-top:8px;background:var(--line)"><i style="display:block;height:6px;border-radius:3px;width:${Math.min(100,pc)}%;background:${pc>100?"var(--t-red,#B13E36)":"var(--kacc,#2B63A6)"}"></i></i>`:""}</div>
+      <div class="card"><b>${u.skiladagur?fmtDate(u.skiladagur):"–"}</b><span>${u.skiladagur&&u.stada!=="Done"&&Math.abs(daysTo(u.skiladagur))<=14?"Skil · "+esc(rel(daysTo(u.skiladagur))):"Skil"}</span></div>
+      ${tbs.length?`<div class="card tap" data-act="dtab:tilbod"><b>${esc(kr(tbSum))}</b><span>${tbs.length} ${tbs.length===1?"tilboð":"tilboð"} á undirverkinu</span></div>`:""}</div>
+    ${ak&&h>ak?`<div class="msg err" style="margin-top:12px">Komið fram úr áætlun undirverksins: ${num(h)} af ${num(ak)} klst.</div>`:""}
+    ${MCP?`<div class="links">${klukka()?"":`<button type="button" class="btn primary" data-act="kstart:${esc(p.id)}">▶ Byrja klukku</button>`}<button type="button" class="btn" data-act="add:tima">+ Tími</button>${m?`<a class="btn" href="${esc(m)}" target="_blank" rel="noopener">Mappa</a>`:""}<button type="button" class="btn" data-act="edit:sub:${esc(u.id)}">Breyta</button></div>`:""}
+    ${u.yfirlit?`<div class="viewtitle">Staðan</div><div class="card" style="font-size:14.5px">${esc(u.yfirlit)}</div>`:""}
+    ${textCard("Lýsing",u.lysing)}
+    ${others.length?`<div class="viewtitle">Önnur undirverk í verkefninu</div>${llist(others.map(subRowL))}`:""}`;}
+  if(DTAB==="timar") body=timesPage(tl,"kstart:"+esc(p.id));
+  if(DTAB==="skrar") body=(m?`<div class="links"><a class="btn" href="${esc(m)}" target="_blank" rel="noopener">Opna ${u.serMappa?"möppu undirverksins":"möppu verkefnisins"} ↗</a></div>`:"")+(window.skDocsFor?skDocsFor(p.id,u.id):"")+`<p class="hint" style="margin-top:10px">Skjöl sem eru búin til hér tengjast undirverkinu. Öll skjöl verkefnisins eru á síðu verkefnisins.</p>`;
+  if(DTAB==="tilbod") body=window.tbUndirTab?tbUndirTab(p,u):"";
+  if(DTAB==="stillingar") body=`<div class="viewtitle">Staða</div>${statRow("sub",u.id,USTAT,u.stada,STL)}
+    <div class="viewtitle" style="margin-top:6px">Upplýsingar</div>${settingsCard([
+      ["Verknúmer",`<span class="nr">${esc(u.nr)}</span>`],["Heiti",esc(subName(u))],["Skiladagur",u.skiladagur?fmtDate(u.skiladagur):""],["Áætlun",ak?num(ak)+" klst.":""],["Ábyrgð",esc(ab)],["Verkefni",projLink(p)],
+      ["Mappa",m?`<a class="plink" href="${esc(m)}" target="_blank" rel="noopener">${u.serMappa?"Sérmappa":"Mappa verkefnis"}</a>`:""]],linkBtns({...u,mappa:null},{edit:"sub"}))}`;
+  return head+`<div class="dbody">${body}</div>`;
+}
+function dFund(f){
+  const p=fundProj(f), x=d(f.date), n=daysTo(f.date);
+  const others=p?(S?.fundir||[]).filter(g=>g.id!==f.id&&fundProj(g)?.id===p.id&&daysTo(g.date)>=0).sort((a,b)=>d(a.date)-d(b.date)):[];
+  return backBar()+`<div class="kicker"><span class="kind">Fundur</span>${n!==null?relPill(n):""}</div>
+  <h2 class="big" style="margin-top:6px">${esc(window.fundNafn?fundNafn(f):f.name)}</h2>${window.fbRespHTML?fbRespHTML(f):""}
+  <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([
+    ["Tími",(x?DAY[x.getDay()]+" "+fmtDate(f.date):"–")+(hhmm(f.date)?" · kl. "+hhmm(f.date)+(hhmm(f.dateEnd)?"–"+hhmm(f.dateEnd):""):"")],
+    ["Staður",f.stadsetning&&window.mapLink?mapLink(f.stadsetning):esc(f.stadsetning||"")],["Verkefni",p?projLink(p):(f.verknr?`<span class="nr">${esc(f.verknr)}</span>`:"")],
+    ["Fundarmenn",window.fbAttHTML&&(f.attendees?.length||f.stofnandi)?fbAttHTML(f,1):f.attendees?.length?f.attendees.map(esc).join(", "):""],
+    ["Fundargerð",f.fundargerd?`<a class="plink" href="${esc(f.fundargerd)}" target="_blank" rel="noopener">${esc(FGLABEL(f))}</a>${window.MS&&MS.on()&&(f.fgId||window.msCanPrevUrl?.(f.fundargerd))?` · <a class="plink" data-act="${esc(f.fgId?"msprev:"+f.fgId:msPrevUrl(f.fundargerd))}">Forskoða</a>`:""}`:""],
+    ["Fundarhlekkur",f.fundarhlekkur?`<a class="plink" href="${esc(f.fundarhlekkur)}" target="_blank" rel="noopener">Tengjast fundi</a>`:""]])}</dl>
+    ${MCP?`<div class="links"><button type="button" class="btn primary" data-act="fundtime:${esc(f.id)}">Skrá tíma fyrir fundinn</button><button type="button" class="btn" data-act="ics:${esc(f.id)}">Setja í dagatalið mitt</button>${f.attendees?.length?`<button type="button" class="btn" data-act="fbsend:${esc(f.id)}">${f.msEventId?"Senda uppfært boð í Outlook":"Senda boð í Outlook"}</button>`:""}${!f.fundargerd&&window.MS&&MS.on()?`<button type="button" class="btn" data-act="msfg:${esc(f.id)}">Búa til fundargerð</button>`:""}</div>`:""}
+    ${linkBtns({...f,mappa:f.mappa||p?.mappa},{edit:"fund"})}</div>
+  ${textCard("Á síðu fundarins",f.lysing)}
+  ${p&&(p.undirverk||[]).some(u=>u.stada!=="Done")?`<div class="viewtitle">Opin undirverk í verkefninu</div><div class="card"><div class="list" style="gap:2px">${p.undirverk.filter(u=>u.stada!=="Done").map(subRow).join("")}</div></div>`:""}
+  ${meetList(others,"Aðrir fundir framundan í verkefninu")}`;
+}
+function dTime(e){
+  const p=findProj(e.verkefniId)||projByNr(e.nr), r=e.undirverkId?findSub(e.undirverkId):null;
+  return backBar()+`<div class="kicker"><span class="kind">Tímaskráning</span></div>
+  <h2 class="big" style="margin-top:6px">${esc(cleanLys(e.lysing))}</h2>
+  <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([
+    ["Dagur",fmtDate(e.date)],["Tími",e.fra?esc(e.fra+(e.til?"–"+e.til:"")):""],["Klst.",hrs(e.timar)],["Verkefni",p?projLink(p):esc(e.nr||"")],
+    ["Undirverk",r?`<a class="plink" ${tapAttr("sub",r.u.id)}><span class="nr">${esc(r.u.nr)}</span> ${esc(subName(r.u))}</a>`:""],
+    ["Þjónusta",window.svcOf?(()=>{const l=svcOf(e), pr=window.entryRate?entryRate(e,rateOf(p)):0; return esc((l?l.heiti:"")+(pr?" · "+num(pr)+" kr./klst.":"")+(e.taxti?"":" (eins og verkefnið)"));})():""],
+    ["Starfsmaður",esc(e.starfsmadur?starfName(e.starfsmadur):"")],["Tímabil",esc(tPer(e))],["Lýsing",esc(e.lysing||"")]])}</dl>
+    ${linkBtns({id:e.id},{edit:"time"})}</div>`;
+}
+function dKostn(k){
+  const p=findProj(k.verkefniId), r=k.undirverkId?findSub(k.undirverkId):null;
+  return backBar()+`<div class="kicker"><span class="kind">Útlagður kostnaður</span></div>
+  <h2 class="big" style="margin-top:6px">${esc(k.lysing||"Kostnaður")}</h2>
+  <div class="card" style="margin-top:14px"><dl class="kv" style="margin:0">${kvRows([
+    ["Upphæð",`<b>${esc(kr(k.upphaed))}</b>`],["Dagur",fmtDate(k.date)],["Verkefni",p?projLink(p):""],
+    ["Undirverk",r?`<a class="plink" ${tapAttr("sub",r.u.id)}><span class="nr">${esc(r.u.nr)}</span> ${esc(subName(r.u))}</a>`:""],
+    ["Starfsmaður",esc(starfName(k.starfsmadur||ME()))],["Tímabil",esc(timabilOf(k.date))],
+    ["Kvittun",k.kvittun?`${window.MS&&MS.on()&&(k.kvittunId||window.msCanPrevUrl?.(k.kvittun))?`<a class="plink" data-act="${esc(k.kvittunId?"msprev:"+k.kvittunId:msPrevUrl(k.kvittun))}">Forskoða kvittun</a> · `:""}<a class="plink" href="${esc(k.kvittun)}" target="_blank" rel="noopener">Opna í OneDrive</a>`:""]])}</dl>
+    ${linkBtns({id:k.id},{edit:"kostn"})}</div>`;
+}
+function dSkjal(x){
+  const p=skjalProj(x);
+  return backBar()+`<div class="kicker"><span class="kind">Skjal</span>${typePill(x.tegund)}</div>
+  <h2 class="big" style="margin-top:6px">${esc(x.name||"Án titils")}</h2>
+  <p class="sub">${p?"Skjal í "+projLink(p):"Skjal í "+esc(ORG.nafn)}</p>
+  ${statRow("skjal",x.id,DSTAT,x.stada||"Not started",STL)}
+  <div class="viewtitle">Upplýsingar</div><div class="card"><dl class="kv" style="margin:0">${kvRows([
+    ["Staða",esc(STL[x.stada]||x.stada||"Ekki hafið")],["Tegund",esc(DTL[x.tegund]||x.tegund||"")],["Verkefni",p?projLink(p):""],
+    ["Stofnað",x.stofnad?fmtDate(x.stofnad):""],["Síðast breytt",x.breytt?fmtDate(x.breytt):""]])}</dl>
+    ${linkBtns({id:x.id,mappa:x.mappa},{edit:"skjal"})}</div>
+  ${textCard("Efni skjalsins",x.lysing)}`;
+}
+function detailHTML(){
+  const i=DETAIL.indexOf(":"), t=DETAIL.slice(0,i), id=DETAIL.slice(i+1);
+  if(t==="skjal"){const x=findSkjal(id); return x&&(x.snid&&window.dSkjalNy?dSkjalNy(x):dSkjal(x));}
+  if(t==="vsk"){const c=findVsk(id); return c&&dVsk(c);}
+  if(t==="verdskra") return window.dVerdskra&&(!window.vsSja||vsSja())?dVerdskra():null;
+  if(t==="verk"){const p=findProj(id); return p&&dVerk(p);}
+  if(t==="sub"){const r=findSub(id); return r&&dSub(r.u,r.p);}
+  if(t==="fund"){const f=findFund(id); return f&&dFund(f);}
+  if(t==="time"){const e=findTime(id); return e&&dTime(e);}
+  if(t==="kostn"){const k=findKostn(id); return k&&dKostn(k);}
+  if(t==="post"){return window.dPost?dPost(id):null;}
+  if(t==="reikn"){const R=window.rkFind&&rkFind(id); return R&&rkDetail(R);}
+  if(window.DETAIL_EXT?.[t]) return DETAIL_EXT[t](id); // einingar í eigin skrám (t.d. sala.js)
+  return null;
+}
+function openDetail(key){
+  if(!key||key===DETAIL) return;
+  if(!DETAIL) listScroll=window.scrollY;
+  DETAIL=key; DTAB="yfirlit"; try{history.pushState({aera:key,dtab:DTAB},"");}catch(e){}
+  if(key.startsWith("verk:")){try{const id=key.slice(5); let rec=JSON.parse(localStorage.getItem("aera-recent")||"[]"); rec=[id,...rec.filter(x=>x!==id)].slice(0,6); localStorage.setItem("aera-recent",JSON.stringify(rec));}catch(e){}}
+  render(); window.scrollTo({top:0});
+}
+function goBack(){
+  let st=null; try{st=history.state;}catch(e){}
+  if(st&&st.aera){history.back();return;}
+  DETAIL=null; render(); window.scrollTo({top:listScroll});
+}
+window.addEventListener("popstate",e=>{DETAIL=(e.state&&e.state.aera)||null; DTAB=(e.state&&e.state.dtab)||"yfirlit"; render(); window.scrollTo({top:DETAIL?0:listScroll});});
+const viewEl=document.getElementById("view");
+/* Haldið fingri á röð í lista í hálfa sekúndu → eyða */
+let lpT=null, lpFired=false;
+viewEl.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse"||!MCP) return; const r=e.target.closest("[data-open]"); if(!r||e.target.closest("a,button")) return; lpFired=false;
+  lpT=setTimeout(()=>{lpFired=true; navigator.vibrate?.(15); deleteItem(...(k=>[k.split(":")[0],k.slice(k.indexOf(":")+1)])(r.dataset.open));},550);});
+["pointerup","pointercancel","pointermove"].forEach(t=>viewEl.addEventListener(t,e=>{if(t==="pointermove"&&Math.abs(e.movementX)+Math.abs(e.movementY)<4) return; clearTimeout(lpT);}));
+viewEl.addEventListener("contextmenu",e=>{if(e.target.closest("[data-open]")) e.preventDefault();});
+viewEl.addEventListener("click",e=>{if(lpFired){lpFired=false; e.preventDefault(); e.stopPropagation(); return;}const a=e.target.closest("[data-act]"); if(a){e.preventDefault(); doAct(a.dataset.act,a); return;}
+  const t=e.target.closest("a[href],button,[data-open]"); if(t&&t.dataset.open){e.preventDefault();openDetail(t.dataset.open);}});
+viewEl.addEventListener("change",e=>{if(e.target.id==="timfilter"){timFilter=e.target.value;render();}
+  if(e.target.id==="undirfilter"){undirFilter=e.target.value;render();} if(e.target.id==="skjalfilter"){skjalFilter=e.target.value;render();}});
+function doAct(act,el){const [k,...r]=act.split(":");
+  {const x=window.ACT_EXT&&Object.keys(ACT_EXT).find(p=>k.startsWith(p)); if(x){ACT_EXT[x](k,r,el); return;}} // einingar í eigin skrám
+  if(k.startsWith("ms")&&window.msAct){msAct(k,r,el); return;}
+  if(k==="odmode"&&window.msAct){msAct(k,r,el); return;}
+  if(k==="odlocal"&&window.odCopyLocal){odCopyLocal(decodeURIComponent(r.join(":"))); return;}
+  if(k.startsWith("rk")&&window.rkAct){rkAct(k,r,el); return;}
+  if(k.startsWith("sp")&&window.spAct&&spAct(k,r)) return;
+  if(k==="hw"&&window.heimAct){heimAct(r); return;}
+  if(k==="vs"&&window.vsAct){vsAct(r); return;}
+  if(k==="viewas"&&window.viewAsAct){viewAsAct(r); return;}
+  if(/^od(cd|in|ref|mk)$/.test(k)&&window.odAct){odAct(k,r); return;}
+  if(k==="odrec"&&window.odRecReset){odRecReset(); render(); return;}
+  if(k.startsWith("sk")&&window.skAct){skAct(k,r,el); return;}
+  if(k.startsWith("po")&&window.poAct){poAct(k,r,el); return;}
+  if(k.startsWith("nu")&&window.nuAct){nuAct(k,r,el); return;}
+  if(k==="later"){showLater=true; render(); return;}
+  if(k==="fabnew"){window.FAB_ONE=!!r[0]; /* 2.73.0: „+ Viðskiptavinur“ o.s.frv. opnar aðeins þá tegund */ if(r[0]&&!DETAIL){const t0=tab; tab=r[0]; try{openFab();}finally{if(tab===r[0]) tab=t0;}} else openFab(); return;}
+  if(k==="vskf"){vskFilter=r.join(":"); render(); return;}
+  if(k==="cal"){calSel=r[0]; const x=d(calSel); if(x.getMonth()!==calMonth.getMonth()) calMonth=new Date(x.getFullYear(),x.getMonth(),1); render(); return;}
+  if(k==="calmode"){calMode=r[0]; try{localStorage.setItem("aera-calmode",calMode);}catch(e){} render(); return;}
+  if(k==="calday"){calSel=r[0]; calMode="d"; try{localStorage.setItem("aera-calmode","d");}catch(e){} render(); return;}
+  if(k==="calnav"&&calMode!=="m"){const n=+r[0]; if(!n) calSel=isoDay(today); else {const x=d(calSel); x.setDate(x.getDate()+n*(calMode==="v"?7:1)); calSel=isoDay(x);} calMonth=new Date(d(calSel).getFullYear(),d(calSel).getMonth(),1); render(); return;}
+  if(k==="calnav"){const n=+r[0]; if(!n){calMonth=new Date(today.getFullYear(),today.getMonth(),1); calSel=isoDay(today);} else {calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+n,1); const s=d(calSel); if(s.getMonth()!==calMonth.getMonth()||s.getFullYear()!==calMonth.getFullYear()) calSel=isoDay(calMonth);} render(); return;}
+  if(k==="caladd"){kind=r[0]; PREFILL={date:calSel}; openSheet(); return;}
+  if(k==="add"){kind=r[0]; openSheet(); return;}
+  if(k==="edit"){openEdit(r[0],r.slice(1).join(":")); return;}
+  if(k==="del"){deleteItem(r[0],r.slice(1).join(":")); return;}
+  if(k==="theme"){setTheme(r[0]); return;}
+  if(k==="litur"){setLitur(r[0]); return;} if(k==="stika"){setStika(r[0]); return;}
+  if(k==="variant"){setVariant(r[0],r[1]); return;}
+  if(k==="ics"){downloadIcs(r.join(":")); return;}
+  if(k==="notif"){enableNotifs(); return;}
+  if(k==="cmadd"){const t=document.getElementById("cm-new")?.value.trim(); if(!t) return toast("Skrifaðu athugasemd fyrst."); const pid=r[0];
+    saveSnapshot(s=>{const p=sFindP(s,pid); if(p)(p.athugasemdir=p.athugasemdir||[]).push({id:newId(),t,d:new Date().toISOString(),sk:ME()});}).then(()=>toast("Athugasemd vistuð")); return;}
+  if(k==="cmdel"){const [pid,cid]=r; atrJa("Eyða athugasemdinni?").then(j=>{if(j) saveSnapshot(s=>{const p=sFindP(s,pid); if(p) p.athugasemdir=(p.athugasemdir||[]).filter(c=>c.id!==cid);});}); return;}
+  if(k==="cfg"){cfgAct(r[0],r[1]); return;}
+  if(k==="tstarf"){timStarf=r[0]||""; wDay=null; render(); return;}
+  if(k==="prep"){const p=findProj(r[0]); if(p) openReport(e=>e.verkefniId===p.id||nrMatch(e.nr,p.nr),{bil:"Allt tímabil verkefnis",verkefni:p.nafn,starf:"",flokka:(p.undirverk||[]).length>0}); return;}
+  if(k==="srep"){const x=findSub(r[0]); if(x) openReport(e=>e.undirverkId===x.u.id||(!e.undirverkId&&e.nr===x.u.nr),{bil:"Allt tímabil",verkefni:x.p.nafn+" › "+x.u.nr+" "+subName(x.u),starf:"",flokka:true}); return;}
+  if(k==="pstaff"){staffSheet(r[0]); return;}
+  if(k==="pstarf"){const [pid,sk]=r; saveSnapshot(s=>{const p=sFindP(s,pid); if(!p) return; const cur=p.starfsmenn?.length?p.starfsmenn:[ME()]; p.starfsmenn=cur.includes(sk)?cur.filter(x=>x!==sk):cur.concat(sk); if(!p.starfsmenn.length) p.starfsmenn=[ME()];}); return;}
+  if(k==="week"){weekOff=Math.min(0,weekOff+(+r[0])); wDay=null; render(); return;}
+  if(k==="wday"){wDay=wDay===r[0]?null:r[0]; render(); return;}
+  if(k==="wadd"){kind="tima"; PREFILL={date:r[0]}; openSheet(); return;}
+  if(k==="report"){reportClick(); return;}
+  if(k==="leitf"){leitF=leitF===r[0]?"":r[0]; document.getElementById("leitres").innerHTML=leitResults(leitQ); document.getElementById("leitchips").innerHTML=leitChips(leitQ); return;}
+  if(k==="alltimes"){showAllTimes=true; render(); return;}
+  if(k==="dtab"){setDtab(r[0]); return;}
+  if(k==="kstart"){kind="tima"; PREFILL={pid:r[0],timer:true}; openSheet(); return;}
+  if(k==="kstop"){stopKlukka(); return;}
+  if(k==="kedit"){if(klukka()) openEdit("klukka",""); return;}
+  if(k==="kcancel"){atrJa("Hætta við klukkuna án þess að skrá tímann?").then(j=>{if(j) saveSnapshot(s=>{s.klukka=null;}).then(()=>toast("Hætt við klukku – enginn tími skráður"));}); return;}
+  if(k==="fundtime"){const f=findFund(r.join(":")); if(!f) return; const p=fundProj(f), st=hhmm(f.date)||"", en=hhmm(f.dateEnd)||(st?pad((+st.slice(0,2)+1)%24)+st.slice(2):"");
+    kind="tima"; PREFILL={pid:p?.id,date:String(f.date).slice(0,10),fra:st,til:en,desc:f.name}; openSheet(); return;}
+  if(k==="tab"){tab=TABS.includes(r[0])?r[0]:"yfirlit"; DETAIL=null; window.STSUB=null; try{localStorage.setItem("aera-tab",tab)}catch(e){} render(); window.scrollTo({top:0}); return;}
+  if(k==="stsub"){window.STSUB=r[0]||null; render(); window.scrollTo({top:0}); return;}
+  if(k==="status"){const [type,id,st]=r; quickStatus(type,id,st,el);}}
+viewEl.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ") return; const t=e.target.closest?.("[data-open]"); if(t&&t===e.target){e.preventDefault();openDetail(t.dataset.open);}});
+const NEWBTN={vvinna:"Þjónusta",pantanir:"Pöntun",vutl:"Pöntun",postur:"Póstur",skjol:"Skjal",verk:"Verkefni",lverk:"Verkefni",sverk:"Verkefni",undir:"Undirverk",fundir:"Fundur",timar:"Skrá tíma",tfaer:"Skrá tíma",vsk:"Viðskiptavinur",lvsk:"Viðskiptavinur",svsk:"Viðskiptavinur",dagatal:"Fundur",ltilbod:"Leigutilboð",lvorur:"Búnaður",stilbod:"Sölutilboð",svorur:"Vara"};
+function pageHead(){if(tab==="yfirlit"||tab==="leit") return "";
+  const sec=secOf(tab), cur=sec.tabs.find(x=>x[0]===tab)||sec.tabs[0], hid=!!cur[2], vis=sec.tabs.filter(x=>!x[2]), nb=NEWBTN[tab]&&MCP?NEWBTN[tab]:"";
+  if(tab==="stillingar"&&window.STSUB&&STPAGES[STSUB]&&(!STPAGES[STSUB].adm||can("stillingar"))) return `<div class="phead"><a class="pback" data-act="stsub:" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Stillingar</a><div class="phrow"><h2 class="ptitle">${esc(STPAGES[STSUB].l)}</h2></div></div>`;
+  /* 2.145.13: enginn „Til baka“ þegar flett er milli flipa – aðeins í atriðum (spjöldum) */
+  const back=false?`<a class="pback" data-act="tab:${sec.tabs[0][0]}" role="button" tabindex="0" aria-label="Til baka – ${esc(sec.tabs[0][1])}" title="Til baka – ${esc(sec.tabs[0][1])}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span class="sr">${esc(sec.tabs[0][1])}</span></a>`:"";
+  const seg=!hid&&vis.length>1?`<div class="seg" role="tablist" aria-label="${esc(sec.l)}">${vis.map(([k,l])=>`<button type="button" role="tab" data-act="tab:${k}" aria-selected="${k===tab}">${esc(l)}</button>`).join("")}</div>`:"";
+  return `<div class="phead">${back}<div class="phrow"><h2 class="ptitle">${esc(hid?cur[1]:sec.l)}</h2>${nb?`<button type="button" class="btn primary pnew" data-act="fabnew" aria-label="Nýtt: ${esc(nb)}" title="Nýtt: ${esc(nb)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>`:""}</div>${seg}</div>`;}
+/* 2.120.3: Skrunstaða lista helst þegar skjárinn teiknast upp á nýtt (gögn berast, sjálfvirk drög, vistun, klukkan) – áður fór
+   listinn í tölvu (.splist) alltaf efst. Fylgst er með hvaða hlutar innan #view hafa verið skrunaðir; á sama skjá er staðan sett aftur,
+   og listinn (.splist) heldur stöðunni líka þegar spjald er opnað við hliðina eða lokað. */
+const SCROLLED=new Set(); let scPend=null; /* 2.124.1: ástand teikningar geymt hér – ekki á render-fallinu, sem einingar skipta út (þá týndist það) */ window.RSTATE=window.RSTATE||{};
+document.addEventListener("scroll",e=>{const t=e.target; if(t&&t.nodeType===1&&t.closest?.("#view")) SCROLLED.add(t);},true);
+const scKey=(v,el)=>{if(el.id) return "#"+el.id; const sel=el.tagName.toLowerCase()+[...el.classList].filter(c=>!/^(on|anim|slide|in-[lr])$/.test(c)).map(c=>"."+CSS.escape(c)).join(""); return sel+"@"+[...v.querySelectorAll(sel)].indexOf(el);};
+function scSnap(v){if(!v||!RSTATE._k) return null; const out=[];
+  SCROLLED.forEach(el=>{if(!el.isConnected||!v.contains(el)){SCROLLED.delete(el); return;} if(el.scrollTop||el.scrollLeft) out.push([scKey(v,el),el.scrollTop,el.scrollLeft,el.classList.contains("splist")]);});
+  return out.length?{prev:RSTATE._k,out}:null;}
+function scRestore(v,ss){if(!ss) return; const [pt,,ps]=ss.prev.split("|"), now=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""), same=now===ss.prev, sameTab=pt===tab&&ps===(window.STSUB||"");
+  if(!same&&!sameTab) return;
+  ss.out.forEach(([key,t,l,isList])=>{if(!same&&!isList) return; let el=null; if(key[0]==="#") el=document.getElementById(key.slice(1)); else {const i=key.lastIndexOf("@"); el=v.querySelectorAll(key.slice(0,i))[+key.slice(i+1)]||null;}
+    if(el){el.scrollTop=t; el.scrollLeft=l; SCROLLED.add(el);}});}
+function render(){
+  applyEin(); if(!TABS.includes(tab)&&tab!=="leit") tab="yfirlit"; // leit er ekki flipi í valmynd (lagað 2.18.2 – leitin opnaðist ekki frá 2.0.0)
+  drawMenu(); window.deildHdr?.(); clearTimeout(RSTATE._n); RSTATE._n=setTimeout(scheduleNotifs,500);
+  const v=document.getElementById("view");
+  if(!S){v.innerHTML="";return;} /* opnunarskjárinn (app.html) birtist þar til gögnin eru komin */
+  const det=DETAIL?detailHTML():null; if(DETAIL&&!det) DETAIL=null;
+  document.body.classList.toggle("haspnew",!det&&!!NEWBTN[tab]&&!!MCP);
+  document.body.classList.toggle("onchat",!det&&tab==="spjall");
+  if(!scPend){scPend=scSnap(v)||{}; queueMicrotask(()=>{const ss=scPend; scPend=null; if(ss.prev) scRestore(document.getElementById("view"),ss);});} /* eftir allar umbúðir (Útlit I o.fl.) */
+  /* 2.145.15: __u1skip – nýja útlitið teiknar listann sjálft (UI1V), svo gamli listinn er ekki smíðaður til einskis (sparaði 1–1,5 s á Færslum með miklum gögnum) */
+  v.innerHTML=(window.viewAsBanner?viewAsBanner():"")+(det||(window.__u1skip?"<i hidden></i>":0)||pageHead()+(window.deildMob?deildMob(tab):"")+({yfirlit:()=>(window.ORG?.pakkaval&&window.vHeim2?vHeim2():vYfirlit("heim")),hfrag:()=>vYfirlit("frag"),hfram:()=>vYfirlit("fram"),hnyl:()=>vYfirlit("nyl"),verk:vVerk,undir:vUndir,fundir:vFundir,timar:()=>vTimar("vikan"),tfaer:()=>vTimar("faer"),tskyr:()=>vTimar("skyr"),trk:()=>vTimar("rk"),vsk:vVsk,skjol:()=>window.vSkjolFyr?vSkjolFyr():(window.vSkjolNy?vSkjolNy():""),skjolmin:()=>window.vSkjolMin?vSkjolMin():"",skjolnyl:()=>window.vSkjolNyl?vSkjolNyl():"",postur:()=>window.vPostur?vPostur():"",spjall:()=>window.vSpjall?vSpjall():"",teymi:()=>window.vTeymi?vTeymi():"",dagatal:vCal,leit:vLeit,stillingar:vStillingar,meira:vMeira}[tab]||window.VIEWS_EXT?.[tab]||(()=>vYfirlit("heim")))()); drawSync();
+  // Hreyfing aðeins þegar skipt er um síðu – ekki þegar gögn uppfærast
+  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""); if(key!==RSTATE._k){const dv=!!DETAIL&&!String(RSTATE._k||"").includes("|"+DETAIL+"|"); RSTATE._k=key;
+    /* 2.124.0: sama hluta (t.d. Stillingar eða listi með spjaldi við hliðina) – aðeins spjaldið fær stutta hreyfingu, listinn stendur kyrr. Áður hreyfðist allur skjárinn við hvern smell (hikst). */
+    const samiFlipi=RSTATE._t===tab; RSTATE._t=tab; const split=document.body.classList.contains("hassplit");
+    v.classList.remove("anim","slide","anim-det"); void v.offsetWidth;
+    /* 2.142.0: flipar innan sama hluta (t.d. Skjöl: Mín skjöl · Fyrirtækið · Nýlegt) – hausinn stendur kyrr og aðeins efnið dofnar (180 ms), ekkert hopp */
+    const secK=t=>(SECTIONS.find(x=>x.tabs.some(y=>y[0]===t))||{}).k, samiHluti=!samiFlipi&&RSTATE._pt&&secK(RSTATE._pt)===secK(tab); RSTATE._pt=tab;
+    v.classList.remove("anim-tab");
+    if(samiFlipi&&(split||window.STSUB||DETAIL)) v.classList.add("anim-det"); else if(samiHluti&&!DETAIL) v.classList.add("anim-tab"); else {v.classList.add("anim"); if(dv||window.STSUB) v.classList.add("slide");}
+    clearTimeout(RSTATE._a); RSTATE._a=setTimeout(()=>v.classList.remove("anim","slide","anim-det","anim-tab"),240);} /* 2.142.0: 240 ms (var 600) – endurteikning rétt á eftir (t.d. gögn úr SharePoint) dofnar ekki aftur */
+  document.getElementById("foot").textContent=S.uppfaert?"Síðast breytt "+fmtDate(S.uppfaert)+(hhmm(S.uppfaert)?" kl. "+hhmm(S.uppfaert):""):"";
+}
+/* 2.120.0: Gögn sem berast (Firestore, aðrir notendur, sjálfvirk drög) teikna skjáinn aftur án þess að trufla notandann:
+   teikningar sameinaðar í eina (rAF); ekki teiknað meðan skrifað er í reit á skjánum (beðið þar til reiturinn missir fókus);
+   óvistaður texti í reitum og skrunstaða haldast. Staðbundnar aðgerðir nota áfram render(). */
+function renderData(){if(renderData._q) return; renderData._q=1; requestAnimationFrame(()=>{renderData._q=0; renderDataNow();});}
+function renderDataNow(){const v=document.getElementById("view"), a=document.activeElement;
+  const ed=a&&v&&v.contains(a)&&(a.isContentEditable||a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&!/^(button|submit|reset|checkbox|radio|range|color|file|image)$/i.test(a.type)));
+  if(ed){if(renderData._el!==a){renderData._el=a; a.addEventListener("blur",()=>{if(renderData._el===a) renderData._el=null; setTimeout(renderData,0);},{once:true});} try{drawSync();}catch(e){} return;}
+  renderData._el=null; if(!v){render(); return;}
+  const key=tab+"|"+(DETAIL||"")+"|"+(window.STSUB||""), same=key===RSTATE._k, fq='input:not([type=hidden]):not([type=button]):not([type=submit]),textarea,select';
+  const fk=(el,i)=>el.id?"#"+el.id:el.name?"n:"+el.name:"i:"+i, keep=[];
+  if(same) [...v.querySelectorAll(fq)].forEach((el,i)=>{const k=fk(el,i); if(el.type==="checkbox"||el.type==="radio"){if(el.checked!==el.defaultChecked) keep.push([k,"c",el.checked]);}
+    else if(el.tagName==="SELECT"){const d=[...el.options].find(o=>o.defaultSelected); if(d&&el.value!==d.value) keep.push([k,"s",el.value]);}
+    else if(el.value!==el.defaultValue) keep.push([k,"v",el.value,el.defaultValue]);});
+  const y=window.scrollY;
+  render();
+  if(!same) return;
+  if(Math.abs(window.scrollY-y)>1) window.scrollTo(0,y);
+  if(keep.length){const els=[...v.querySelectorAll(fq)]; keep.forEach(([k,t,x,d])=>{const el=els.find((e,i)=>fk(e,i)===k); if(!el) return;
+    if(t==="c") el.checked=x; else if(t==="s") el.value=x; else if(el.defaultValue===d) el.value=x;});}
+}
+function setDtab(k,dir){if(k===DTAB) return; DTAB=k; try{history.replaceState({aera:DETAIL,dtab:DTAB},"");}catch(e){}
+  const y=window.scrollY, nav=document.querySelector(".dtabs"), top=nav?nav.getBoundingClientRect().top+y-70:0; render();
+  window.scrollTo({top:Math.min(y,Math.max(0,top))}); document.querySelector('.dtabs [aria-selected="true"]')?.scrollIntoView({block:"nearest",inline:"center"});
+  const b=document.querySelector(".dbody"); if(b&&dir){b.classList.add(dir>0?"in-r":"in-l");}}
+/* Strjúka til hliðar á milli undirsíðna */
+let swX=null, swY=null;
+viewEl.addEventListener("touchstart",e=>{if(!DETAIL||!document.querySelector(".dtabs")||e.target.closest(".dtabs,input,textarea,select,.wbars")){swX=null;return;} swX=e.touches[0].clientX; swY=e.touches[0].clientY;},{passive:true});
+viewEl.addEventListener("touchend",e=>{if(swX===null) return; const dx=e.changedTouches[0].clientX-swX, dy=e.changedTouches[0].clientY-swY; swX=null;
+  if(Math.abs(dx)<70||Math.abs(dy)>Math.abs(dx)*0.6) return; const ks=[...document.querySelectorAll(".dtabs [data-act]")].map(b=>b.dataset.act.slice(5)); const i=ks.indexOf(DTAB);
+  const n=dx<0?i+1:i-1; if(n>=0&&n<ks.length) setDtab(ks[n],dx<0?1:-1);},{passive:true});
+/* Smellt á merkið → Yfirlit */
+function goHome(){DETAIL=null; DTAB="yfirlit"; tab="yfirlit"; try{history.replaceState(null,"");}catch(e){} try{localStorage.setItem("aera-tab",tab)}catch(e){} closeMenu?.(); render(); window.scrollTo({top:0});
+  if(window.AERA_DEMO) return; // sýniútgáfa: ekki endurhlaða (þá hyrfu breytingar)
+  window.atrEndurhlada?.(); }
+/* 2.163.0: Endurhlaða = fljótleg endurnýjun á sama stað – ekki endurhleðsla síðunnar (opnunarskjárinn birtist ekki).
+   Gögn: Firestore-tengingin rofin og opnuð (söfnin í beinni samstillast), póstur og möppur sótt aftur, skjárinn teiknaður á sama stað.
+   Ný útgáfa: aðeins þá er síðan endurhlaðin – staðurinn (flipi, opið atriði, undirflipi, skrun) geymdur og opnunarskjárinn styttur. */
+const STADUR_K="atr-stadur";
+function saveStadur(){try{const L=document.querySelector("#view .splist, #view .llist"); sessionStorage.setItem(STADUR_K,JSON.stringify({tab,DETAIL,DTAB,y:window.scrollY||0,vy:document.getElementById("view")?.scrollTop||0,ly:L?.scrollTop||0,t:Date.now()}));}catch(e){}}
+/* 2.168.0: ný útgáfa = APP_VERSION í index.html uppsetningarinnar (af netinu) er önnur en sú sem keyrir. Hver uppsetning ber sig saman
+   við sína eigin útgáfu (dev: nýjasta; aera/sonik/party/demo: fest útgáfa í utgafa.json), ekki við sw.js sem fylgir alltaf nýjasta kóðanum. */
+window.atrNyUtgafa=async function(){ try{ const u=new URL("index.html",location.href); u.search="?v="+Date.now(); const t=await (await fetch(u.href,{cache:"no-store"})).text(); const m=t.match(/APP_VERSION="([\d.]+)"/); const nyrri=(x,y)=>{const A=x.split(".").map(Number),B=y.split(".").map(Number);for(let i=0;i<3;i++){if((A[i]||0)!==(B[i]||0))return (A[i]||0)>(B[i]||0);}return false;}; return m&&typeof APP_VERSION!=="undefined"&&nyrri(m[1],APP_VERSION)?m[1]:null; /* 2.168.0: aðeins nýrri útgáfa (ekki eldri síða úr skyndiminni án nets) */ }catch(e){ return null; } };
+window.atrEndurhlada=async function(){
+  if(window.__atrRel) return; window.__atrRel=true;
+  const btns=[...document.querySelectorAll(".srefbtn,[data-atrrel]")]; btns.forEach(b=>b.classList.add("atrspin"));
+  const done=(msg)=>{window.__atrRel=false; btns.forEach(b=>b.classList.remove("atrspin")); if(msg) toast?.(msg);};
+  // 1) Ný útgáfa? Þá þarf að hlaða síðunni – á sama stað.
+  //    2.167.1: borið saman við VERSION í sw.js af netinu – áður sást ný útgáfa ekki ef nýja sw.js var þegar orðin virk
+  //    (installing/waiting tóm) og appið sat þá áfram á gömlu útgáfunni þótt ýtt væri á Endurhlaða.
+  try{ const r=await navigator.serviceWorker?.getRegistration(); await r?.update().catch(()=>{});
+    const nv=await window.atrNyUtgafa();
+    const w=r?.installing||r?.waiting;
+    if(nv||(w&&navigator.serviceWorker.controller)){ saveStadur(); window.__swWantReload=true; toast?.("Sæki nýja útgáfu"+(nv?" ("+nv+")":"")+"…");
+      try{w?.postMessage?.({type:"SKIP_WAITING"});}catch(e){}
+      // bíða eftir að nýja útgáfan sé virk (sett í skyndiminni), annars endurhlaða strax
+      const ready=()=>!r||(!r.installing&&!r.waiting); const t0=Date.now(); const go=()=>{ if(ready()||Date.now()-t0>12000) location.reload(); else setTimeout(go,300); }; setTimeout(go,300); return; } }catch(e){}
+  // 2) Nýjustu gögn án endurhleðslu – skrun allra skrunsvæða (síða, listi, spjald) geymt og sett aftur eftir teiknun
+  const y=window.scrollY, sel=e=>e.id?"#"+CSS.escape(e.id):e.classList.length?"."+[...e.classList].map(c=>CSS.escape(c)).join("."):null;
+  const SC=[...document.querySelectorAll("#view, #view *, .side *")].filter(e=>e.scrollTop>0||e.scrollLeft>0).map(e=>[sel(e),e.scrollTop,e.scrollLeft]).filter(x=>x[0]);
+  if(!window.AERA_DEMO){
+    try{ window.msReset?.(); window.poReload?.(); window.msTick?.(); }catch(e){}
+    try{ await Promise.race([DB?.reconnect?.(), new Promise(r=>setTimeout(r,6000))]); }catch(e){ console.warn("Endurhlaða",e); } }
+  try{ render(); requestAnimationFrame(()=>{ window.scrollTo(0,y); SC.forEach(([q,t,l])=>{ const el=document.querySelector(q); if(el){ el.scrollTop=t; el.scrollLeft=l; } }); }); }catch(e){}
+  done(navigator.onLine===false?"Án nettengingar – sýni vistuð gögn":"Uppfært");
+};
+/* Eftir endurhleðslu vegna nýrrar útgáfu: sami staður aftur */
+(function(){let o=null; try{o=JSON.parse(sessionStorage.getItem(STADUR_K)||"null"); sessionStorage.removeItem(STADUR_K);}catch(e){}
+  if(!o||Date.now()-o.t>120000) return;
+  if(TABS.includes(o.tab)) tab=o.tab; if(o.DTAB) DTAB=o.DTAB;
+  const t0=Date.now(), go=()=>{ if(Date.now()-t0>20000) return; if(typeof S==="undefined"||!S) return setTimeout(go,100);
+    try{ if(o.DETAIL&&!DETAIL){ DETAIL=o.DETAIL; render(); } requestAnimationFrame(()=>{ window.scrollTo(0,o.y||0); const v=document.getElementById("view"); if(v) v.scrollTop=o.vy||0; const L=document.querySelector("#view .splist, #view .llist"); if(L&&o.ly) L.scrollTop=o.ly; }); }catch(e){} };
+  go(); })();
+document.querySelectorAll("header .brand h1, .side .logo").forEach(el=>{el.setAttribute("role","link"); el.setAttribute("tabindex","0"); el.setAttribute("title","Yfirlit"); el.style.cursor="pointer";
+  el.addEventListener("click",goHome); el.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault(); goHome();}});});
+/* ---------- Dagatalsskrá (.ics) og tilkynningar ---------- */
+function icsText(items){const z=n=>String(n).padStart(2,"0"), stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const loc=iso=>{const x=new Date(iso); return x.getFullYear()+z(x.getMonth()+1)+z(x.getDate())+"T"+z(x.getHours())+z(x.getMinutes())+"00";}, dOnly=iso=>String(iso).slice(0,10).replace(/-/g,"");
+  const tx=t=>String(t||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+  const ev=items.map(i=>{const timed=!!hhmm(i.when), end=timed?(i.o?.dateEnd&&hhmm(i.o.dateEnd)?i.o.dateEnd:new Date(new Date(i.when).getTime()+36e5).toISOString()):null;
+    const nx=new Date(String(i.when).slice(0,10)); nx.setDate(nx.getDate()+1);
+    return ["BEGIN:VEVENT","UID:"+(i.open||"").replace(/[^\w-]/g,"")+"-"+dOnly(i.when)+"@aera-app","DTSTAMP:"+stamp,
+      timed?"DTSTART:"+loc(i.when):"DTSTART;VALUE=DATE:"+dOnly(i.when), timed?"DTEND:"+loc(end):"DTEND;VALUE=DATE:"+isoDay(nx).replace(/-/g,""),
+      "SUMMARY:"+tx((i.t==="fund"?"":i.kind+": ")+i.title+(i.nr?" ("+i.nr+")":"")), i.o?.stadsetning?"LOCATION:"+tx(i.o.stadsetning):null, i.o?.fundarhlekkur?"URL:"+i.o.fundarhlekkur:null,
+      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+tx(i.title), timed?"TRIGGER:-PT15M":"TRIGGER:-PT15H","END:VALARM","END:VEVENT"].filter(Boolean).join("\r\n");});
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//"+ORG.nafn+"//app//IS","CALSCALE:GREGORIAN","X-WR-CALNAME:"+ORG.nafn,...ev,"END:VCALENDAR"].join("\r\n");}
+function downloadIcs(arg){let items=[];
+  if(arg==="all"){calItems().forEach((l,k)=>{if(k>=isoDay(today)) l.filter(i=>!i.span&&!i.done).forEach(i=>items.push(i));});}
+  else {const f=findFund(arg); if(f) items=[{t:"fund",when:f.date,kind:"Fundur",title:f.name,nr:fundProj(f)?.nr||"",open:"fund:"+f.id,o:f}];}
+  if(!items.length) return toast("Ekkert framundan til að setja í dagatal");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([icsText(items)],{type:"text/calendar;charset=utf-8"})); a.download=arg==="all"?ORG.nafn+" dagatal.ics":ORG.nafn+" fundur.ics";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); toast(items.length>1?`${items.length} atriði í dagatalsskrá`:"Opnaðu skrána til að bæta í dagatalið");}
+let notifT=[];
+function scheduleNotifs(){notifT.forEach(clearTimeout); notifT=[]; if(!("Notification" in window)||Notification.permission!=="granted"||!S) return;
+  const now=Date.now(), show=(title,body)=>navigator.serviceWorker?.ready.then(r=>r.showNotification(title,{body,icon:"icons/atrium-icon-192.png",tag:title+body})).catch(()=>{try{new Notification(title,{body});}catch(e){}});
+  calItems().forEach(l=>l.filter(i=>!i.span&&!i.done).forEach(i=>{const at=hhmm(i.when)?new Date(i.when).getTime()-15*6e4:new Date(String(i.when).slice(0,10)+"T09:00").getTime(); const ms=at-now;
+    if(ms>0&&ms<24*36e5) notifT.push(setTimeout(()=>show(i.kind+(hhmm(i.when)?" kl. "+hhmm(i.when):" í dag"),i.title+(i.nr?" · "+i.nr:"")),ms));}));}
+async function enableNotifs(){if(!("Notification" in window)) return atrSegja("Þetta tæki styður ekki tilkynningar úr vafra. Notaðu „Setja í dagatalið mitt“ í staðinn.");
+  const p=await Notification.requestPermission(); if(p==="granted"){toast("Tilkynningar virkar"); scheduleNotifs();} else toast("Tilkynningar voru ekki leyfðar"); render();}

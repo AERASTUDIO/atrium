@@ -355,6 +355,9 @@ function goHome(){DETAIL=null; DTAB="yfirlit"; tab="yfirlit"; try{history.replac
    Ný útgáfa: aðeins þá er síðan endurhlaðin – staðurinn (flipi, opið atriði, undirflipi, skrun) geymdur og opnunarskjárinn styttur. */
 const STADUR_K="atr-stadur";
 function saveStadur(){try{const L=document.querySelector("#view .splist, #view .llist"); sessionStorage.setItem(STADUR_K,JSON.stringify({tab,DETAIL,DTAB,y:window.scrollY||0,vy:document.getElementById("view")?.scrollTop||0,ly:L?.scrollTop||0,t:Date.now()}));}catch(e){}}
+/* 2.168.0: ný útgáfa = APP_VERSION í index.html uppsetningarinnar (af netinu) er önnur en sú sem keyrir. Hver uppsetning ber sig saman
+   við sína eigin útgáfu (dev: nýjasta; aera/sonik/party/demo: fest útgáfa í utgafa.json), ekki við sw.js sem fylgir alltaf nýjasta kóðanum. */
+window.atrNyUtgafa=async function(){ try{ const u=new URL("index.html",location.href); u.search="?v="+Date.now(); const t=await (await fetch(u.href,{cache:"no-store"})).text(); const m=t.match(/APP_VERSION="([\d.]+)"/); const nyrri=(x,y)=>{const A=x.split(".").map(Number),B=y.split(".").map(Number);for(let i=0;i<3;i++){if((A[i]||0)!==(B[i]||0))return (A[i]||0)>(B[i]||0);}return false;}; return m&&typeof APP_VERSION!=="undefined"&&nyrri(m[1],APP_VERSION)?m[1]:null; /* 2.168.0: aðeins nýrri útgáfa (ekki eldri síða úr skyndiminni án nets) */ }catch(e){ return null; } };
 window.atrEndurhlada=async function(){
   if(window.__atrRel) return; window.__atrRel=true;
   const btns=[...document.querySelectorAll(".srefbtn,[data-atrrel]")]; btns.forEach(b=>b.classList.add("atrspin"));
@@ -363,7 +366,7 @@ window.atrEndurhlada=async function(){
   //    2.167.1: borið saman við VERSION í sw.js af netinu – áður sást ný útgáfa ekki ef nýja sw.js var þegar orðin virk
   //    (installing/waiting tóm) og appið sat þá áfram á gömlu útgáfunni þótt ýtt væri á Endurhlaða.
   try{ const r=await navigator.serviceWorker?.getRegistration(); await r?.update().catch(()=>{});
-    let nv=null; try{ const t=await (await fetch(new URL("sw.js",document.baseURI).href+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/VERSION\s*=\s*"atrium-([\d.]+)"/); if(m&&typeof APP_VERSION!=="undefined"&&m[1]!==APP_VERSION) nv=m[1]; }catch(e){}
+    const nv=await window.atrNyUtgafa();
     const w=r?.installing||r?.waiting;
     if(nv||(w&&navigator.serviceWorker.controller)){ saveStadur(); window.__swWantReload=true; toast?.("Sæki nýja útgáfu"+(nv?" ("+nv+")":"")+"…");
       try{w?.postMessage?.({type:"SKIP_WAITING"});}catch(e){}

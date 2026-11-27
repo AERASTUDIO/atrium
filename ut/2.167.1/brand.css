@@ -1,0 +1,464 @@
+/* Letur hýst í appinu sjálfu (2.44.0, persónuvernd): ekkert sótt frá Google Fonts – IP-tala notanda fer ekki til þriðja aðila. Poppins, SIL OFL (fonts/OFL.txt). */
+@font-face{font-family:"Poppins";font-style:normal;font-weight:300;font-display:swap;src:url(fonts/web/Poppins-Light.woff) format("woff")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/web/Poppins-Regular.woff) format("woff")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/web/Poppins-Medium.woff) format("woff")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/web/Poppins-SemiBold.woff) format("woff")}
+/* AERA Studio – útlit eftir merkjahandbók (v1.2, október 2026).
+   Litir: Nótt #121416 · Grafít #2F3742 · Stál #7C8896 · Þoka #C9D1D9 · Pappír #F6F7F8.
+   Á dökkum grunni eru tónar merkisins lýstir: #DFE5EA · #93A0AD · #4B5664.
+   Letur: Poppins – fyrirsagnir Light (300), meginmál Regular (400).
+   Þetta lag kemur á eftir eldri reglum í index.html og gengur framar þeim. */
+
+:root, :root[data-theme="dark"], :root[data-theme="dark"][data-variant]{
+  color-scheme:dark;
+  --bg:#121416; --surface:#1A1D21; --ink:#DFE5EA; --muted:#93A0AD; --line:#262B31;
+  --accent:#DFE5EA; --accent-soft:#2A3038; --on-accent:#121416; --hi:#DFE5EA; --on-hi:#121416;
+  --b0:#1E2227; --b1:#2A3038; --b2:#4B5664; --b3:#93A0AD; --b4:#DFE5EA;
+  --t0:#C9D1D9; --t1:#DFE5EA; --t2:#F6F7F8; --t3:#121416; --t4:#121416;
+  --ok:#93A0AD; --warn:#C9D1D9; --crit:#E2A593;
+  --ok-soft:#1E2227; --warn-soft:#2A3038; --crit-soft:#3A2622; --gray-soft:#22262B; --scrim:rgba(8,9,10,.62);
+  --raise:#1E2227; --raise2:#23282E; --hover:#191C20; --sheet:#181B1F; --field:#15181B; --border2:#2F3742; --bar0:#2A3038; --shadow:rgba(0,0,0,.5);
+  --late:#E2A593; --late-soft:#3A2622;
+  --f-display:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-label:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:18px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+:root[data-theme="light"], :root[data-theme="light"][data-variant]{
+  color-scheme:light;
+  --bg:#F6F7F8; --surface:#FFFFFF; --ink:#121416; --muted:#5E6A77; --line:#E3E8EC;
+  --accent:#2F3742; --accent-soft:#E3E8EC; --on-accent:#F6F7F8; --hi:#2F3742; --on-hi:#F6F7F8;
+  --b0:#EEF1F4; --b1:#E3E8EC; --b2:#C9D1D9; --b3:#7C8896; --b4:#2F3742;
+  --t0:#2F3742; --t1:#2F3742; --t2:#121416; --t3:#F6F7F8; --t4:#F6F7F8;
+  --ok:#7C8896; --warn:#2F3742; --crit:#8A3524;
+  --ok-soft:#EEF1F4; --warn-soft:#E3E8EC; --crit-soft:#F5E6E2; --gray-soft:#E9EDF0; --scrim:rgba(18,20,22,.32);
+  --raise:#EEF1F4; --raise2:#FFFFFF; --hover:#F1F4F6; --sheet:#FFFFFF; --field:#FFFFFF; --border2:#C9D1D9; --bar0:#E3E8EC; --shadow:rgba(18,20,22,.14);
+  --late:#8A3524; --late-soft:#F5E6E2;
+}
+
+body{font-family:var(--f-display);font-weight:400;letter-spacing:0;font-feature-settings:normal}
+h1,h2,h3,.hello,h2.big,.ptitle,.cal-head h2{font-weight:500!important;letter-spacing:-.01em}
+.t,.lt{font-weight:400}
+.viewtitle{font-weight:500;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.btn{font-weight:500;border-radius:12px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.nr{color:var(--muted);font-weight:400;letter-spacing:.02em}
+.card,.lrow,.agenda,.ring,.pcard,.klukka{border-radius:var(--r)}
+.kpis .card b,.date b,.ring b{font-weight:500}
+
+/* Lógó – litaútgáfa eftir þema (ekki breyta litum merkisins) */
+.logo{-webkit-mask:none!important;mask:none!important;background:url(icons/atrium-haus-dokk.svg) no-repeat left center/contain!important;aspect-ratio:368.59/108!important;height:30px}
+:root[data-theme="light"] .logo{background-image:url(icons/atrium-haus-ljos.svg)!important}
+.side .logo{height:44px;margin:4px 6px 8px}
+.login-in .logo{height:0;display:none}
+
+/* Stöður: tónar af stáli í stað margra lita; aðeins „komið fram yfir“ fær áherslulit */
+.pill{font-weight:500;border-radius:999px}
+.pill.pc-slate,.pill.pc-gray{background:var(--b0)!important;color:var(--muted)!important;box-shadow:inset 0 0 0 1px var(--line)}
+.pill.pc-violet{background:var(--b1)!important;color:var(--t0)!important}
+.pill.pc-blue{background:var(--b4)!important;color:var(--t3)!important}
+.pill.pc-amber{background:var(--b1)!important;color:var(--ink)!important;box-shadow:inset 0 0 0 1px var(--b2)}
+.pill.pc-teal{background:var(--b2)!important;color:var(--ink)!important}
+.pill.pc-green{background:transparent!important;color:var(--muted)!important;box-shadow:inset 0 0 0 1px var(--b2)}
+.pill.pc-red{background:var(--late-soft)!important;color:var(--late)!important}
+:root[data-theme="dark"] .pill.pc-teal{background:#4B5664!important;color:#F6F7F8!important}
+.cdot.pc-slate,.cdot.pc-gray{background:#C9D1D9}.cdot.pc-violet{background:#93A0AD}.cdot.pc-blue{background:#2F3742}
+.cdot.pc-amber{background:#7C8896}.cdot.pc-teal{background:#4B5664}.cdot.pc-green{background:#C9D1D9}.cdot.pc-red{background:#B4532A}
+:root[data-theme="dark"] .cdot.pc-blue{background:#DFE5EA}
+.pill.over,.pill.late,:root[data-theme="light"] .pill.over{background:var(--late-soft)!important;color:var(--late)!important}
+.pill.warn,:root[data-theme="light"] .pill.warn{background:var(--b1)!important;color:var(--ink)!important}
+
+/* ---------- Valmynd: fimm hlutar ---------- */
+nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+.tbar .tab{flex-direction:column;gap:3px;padding:6px 2px 4px;justify-content:center;font-size:11px;font-weight:400;color:var(--muted);border-radius:12px;min-height:52px;position:relative}
+.tbar .tab svg{width:23px;height:23px;color:currentColor;transition:transform .25s var(--ease)}
+.tbar .tab .tl{flex:none}
+.tbar .tab .tc{display:none}
+.tbar .tab[aria-current="page"]{background:none;color:var(--ink);font-weight:500}
+.tbar .tab[aria-current="page"] svg{color:var(--ink);transform:translateY(-1px)}
+.tbar .tab[aria-current="page"]::after{content:"";position:absolute;bottom:1px;width:4px;height:4px;border-radius:50%;background:var(--ink)}
+.tbar .tab .tdot{position:absolute;top:6px;left:calc(50% + 8px);min-width:8px;height:8px;border-radius:99px;background:var(--late)}
+@media (min-width:1024px){nav.mbar.tbar{display:none}}
+.side .tab{border-radius:12px;font-weight:400}
+.side .tab[aria-current="page"]{background:var(--raise);color:var(--ink);font-weight:500}
+.side .tab[aria-current="page"] svg{color:var(--ink)}
+.fab{background:var(--ink)!important;color:var(--bg)!important;border-radius:18px!important;box-shadow:0 10px 26px var(--shadow)!important;transition:transform .2s var(--ease)}
+.fab:active{transform:scale(.94)}
+
+/* Síðuhaus með undirflipum */
+.phead{flex-direction:column;align-items:stretch!important;gap:10px}
+.phrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.ptitle{font-size:30px!important;font-weight:500!important;letter-spacing:-.015em}
+.pback{display:inline-flex;align-items:center;gap:2px;min-height:36px;color:var(--muted);font-size:14px;text-decoration:none;cursor:pointer;align-self:flex-start;margin-left:-4px}
+.pback svg{width:18px;height:18px}
+.seg{display:flex;gap:2px;background:var(--raise);border-radius:12px;padding:3px;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1 0 auto;appearance:none;border:0;background:none;color:var(--muted);font:400 13px var(--f-label);min-height:38px;padding:0 12px;border-radius:10px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px var(--shadow)}
+
+/* Heim: spjöld sem leiða á undirsíður */
+.htiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+@media (min-width:1024px){.htiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.htile{appearance:none;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-height:104px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;cursor:pointer;color:var(--ink);font:inherit;transition:transform .2s var(--ease),border-color .2s}
+.htile:hover{border-color:var(--b2)}.htile:active{transform:scale(.98)}
+.htile b{font-size:30px;font-weight:500;line-height:1}
+.htile span{font-size:13px;color:var(--muted)}
+.htile .hx{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.htile .hl{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--late-soft);color:var(--late);white-space:nowrap}
+
+/* Stillingar og Meira: listi af undirsíðum */
+.mgroup{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:22px 4px 8px}
+.mlist{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.mrow{appearance:none;width:100%;display:flex;align-items:center;gap:14px;min-height:56px;padding:8px 16px;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);font:inherit;text-align:left;cursor:pointer;text-decoration:none}
+.mrow:last-child{border-bottom:0}
+.mrow:hover{background:var(--hover)}
+.mrow .mi{width:22px;height:22px;color:var(--muted);flex:none}
+.mrow .mt{flex:1;min-width:0}.mrow .mt small{display:block;font-size:12px;color:var(--muted)}
+.mrow .mv{font-size:12.5px;color:var(--muted)}
+.mrow .mc{width:16px;height:16px;color:var(--muted);flex:none}
+.mprof{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-top:6px}
+.mav{width:48px;height:48px;border-radius:50%;background:var(--b4);color:var(--t4);display:grid;place-items:center;font-weight:500;font-size:15px;flex:none}
+.mfoot{display:flex;flex-direction:column;align-items:center;gap:6px;margin:34px 0 10px;color:var(--muted);font-size:11.5px}
+.mfoot img{width:110px;opacity:.75}
+
+/* Innskráning */
+#login{background:#121416!important;color:#DFE5EA}
+#login .login-in p{color:#93A0AD}
+#login .btn.primary{background:#DFE5EA!important;color:#121416!important;border-color:#DFE5EA!important;min-height:52px;border-radius:14px;width:min(320px,100%)}
+#login #login-btn{background:none!important;border:0!important;color:#93A0AD!important}
+/* Lárétt merki: mynd vinstra megin, texti hægra megin (eins og logo-*.svg) */
+.llogo{display:flex;align-items:center;justify-content:center;gap:18px;margin:0 auto 22px}
+.lmark{width:96px;height:96px;display:block;margin:0;flex:none}
+.lword{width:190px;display:block;margin:0;flex:none}
+
+/* ---------- Hreyfingar (sleppt ef tækið biður um minni hreyfingu) ---------- */
+@keyframes aIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes aSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes aRiss{0%{stroke-dashoffset:260;fill-opacity:0}55%{stroke-dashoffset:0;fill-opacity:0}100%{stroke-dashoffset:0;fill-opacity:1}}
+@keyframes aRing{from{stroke-dashoffset:276.5}} /* 2πr, r=44 */
+@keyframes aBar{from{transform:scaleX(0)}}
+@keyframes aSheet{from{translate:0 40px;opacity:.4}to{translate:0 0;opacity:1}} /* translate (ekki transform) svo miðjun gluggans í tölvu haldist */
+@keyframes aFade{from{opacity:0}}
+@media (prefers-reduced-motion: no-preference){
+  #view.anim>*{animation:aIn .38s var(--ease) both}
+  #view.anim>*:nth-child(2){animation-delay:.03s}#view.anim>*:nth-child(3){animation-delay:.06s}#view.anim>*:nth-child(4){animation-delay:.09s}
+  #view.anim>*:nth-child(5){animation-delay:.12s}#view.anim>*:nth-child(6){animation-delay:.15s}#view.anim>*:nth-child(n+7){animation-delay:.18s}
+  #view.anim.slide>*{animation-name:aSlide}
+  #view.anim .llist>*,#view.anim .list>*,#view.anim .htiles>*,#view.anim .pcards>*,#view.anim .mlist>*{animation:aIn .4s var(--ease) both}
+  #view.anim .llist>*:nth-child(2),#view.anim .list>*:nth-child(2),#view.anim .htiles>*:nth-child(2),#view.anim .pcards>*:nth-child(2),#view.anim .mlist>*:nth-child(2){animation-delay:.06s}
+  #view.anim .llist>*:nth-child(3),#view.anim .list>*:nth-child(3),#view.anim .htiles>*:nth-child(3),#view.anim .pcards>*:nth-child(3),#view.anim .mlist>*:nth-child(3){animation-delay:.12s}
+  #view.anim .llist>*:nth-child(4),#view.anim .list>*:nth-child(4),#view.anim .htiles>*:nth-child(4),#view.anim .pcards>*:nth-child(4),#view.anim .mlist>*:nth-child(4){animation-delay:.18s}
+  #view.anim .llist>*:nth-child(n+5),#view.anim .list>*:nth-child(n+5),#view.anim .pcards>*:nth-child(n+5),#view.anim .mlist>*:nth-child(n+5){animation-delay:.22s}
+  #view.anim .ring circle:last-of-type{animation:aRing 1.1s cubic-bezier(.3,.6,.2,1) .25s both}
+  #view.anim .pbar i,#view.anim .bar i{transform-origin:left;animation:aBar .9s var(--ease) .3s both}
+  .sheet{animation:aSheet .34s var(--ease)}
+  #sheetwrap .scrim{animation:aFade .3s ease-out both}
+  .lmark polygon{stroke:#93A0AD;stroke-width:.6;stroke-dasharray:260;animation:aRiss 2.2s cubic-bezier(.6,.05,.25,1) both}
+  .lmark polygon:nth-child(3n+2){animation-delay:.2s}.lmark polygon:nth-child(3n){animation-delay:.4s}
+  .login-in .lword,.login-in p,.login-in .btn{animation:aIn .6s var(--ease) both}
+  .login-in .lword{animation-delay:1.7s}.login-in p{animation-delay:1.85s}.login-in .btn{animation-delay:2s}.login-in #login-btn{animation-delay:2.15s}
+}
+
+/* Reikningur og skýrsla í litum merkisins */
+.inv-s,.inv-t{color:#2F3742!important}
+.rep th{background:#2F3742!important}
+.rep h4{color:var(--ink)!important}
+
+/* Aðgerðir sem fluttu í „Meira“ */
+.foot .syncbtn,.side .sfoot{display:none!important}
+.foot{margin-top:22px;opacity:.8}
+.viewtitle::before{display:none!important}
+.viewtitle{border-left:0!important;padding-left:0!important}
+
+/* Klukka – læsileg í báðum þemum (texti í mótlit við --hi) */
+.klukka,.sx-k{background:var(--hi)!important;color:var(--on-hi)!important}
+.klukka .ls,.sx-k .sx-h,.sx-k .sx-t{color:var(--on-hi)!important;opacity:.75}
+.klukka .lt,.klukka .kt,.sx-k .kt{color:var(--on-hi)!important}
+.sx-k .kt{display:block;font-size:28px;font-weight:500;letter-spacing:.01em}
+.klukka .btn,.sx-k .btn{background:transparent!important;border:1px solid color-mix(in srgb,var(--on-hi) 35%,transparent)!important;color:var(--on-hi)!important}
+.klukka .btn.primary,.sx-k .btn.primary{background:var(--on-hi)!important;color:var(--hi)!important;border-color:var(--on-hi)!important}
+.sx-k{margin:0 0 6px}
+
+/* Neðri stika: sex hlutir */
+nav.mbar.tbar{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tbar .tab{font-size:10.5px}
+.pothr+.pothr{border-top:1px solid var(--line)}
+.pothr>.lrow:first-child .lt{font-weight:500}
+.pothr>.lrow.tap{padding-left:22px}
+/* Klukka: upphafstími sem má breyta */
+.klink{appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:3px}
+.sx-k .klink{font-size:12.5px;opacity:.8;text-align:left}
+a.ring{color:inherit;text-decoration:none;cursor:pointer;transition:transform .15s var(--ease,ease)}a.ring:hover{transform:translateY(-1px)}
+a.sx-w{display:block;color:inherit;text-decoration:none;cursor:pointer}
+
+/* ---------- Spjall (1.4.0) ---------- */
+.mav.sm{width:32px;height:32px;font-size:12px;flex:none}
+.spwrap{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+.spchans{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.spch{appearance:none;display:flex;align-items:center;gap:10px;flex:none;max-width:240px;padding:8px 12px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.spch.on{border-color:var(--hi);box-shadow:inset 0 0 0 1px var(--hi)}
+.spcm{display:flex;flex-direction:column;min-width:0}.spcm b{font-weight:500;font-size:13.5px}.spcm small{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.spch .badge{margin-left:auto;background:var(--hi);color:var(--on-hi);border-radius:10px;font-size:11px;padding:1px 7px}
+.spconv{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:18px;min-height:0;height:calc(100dvh - 300px);min-height:360px}
+.sphead{display:flex;flex-direction:column;padding:12px 16px;border-bottom:1px solid var(--line)}.sphead b{font-weight:500}.sphead span{font-size:12px;color:var(--muted)}
+.spmsgs{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.spday{align-self:center;font-size:11.5px;color:var(--muted);margin:10px 0 4px;letter-spacing:.04em}
+.spm{max-width:78%;align-self:flex-start;display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.spm.me{align-self:flex-end;align-items:flex-end}
+.spn{font-size:12px;color:var(--muted);margin-left:2px}
+.spb{background:var(--bar0,rgba(127,127,127,.12));padding:8px 12px;border-radius:14px 14px 14px 4px;line-height:1.45;overflow-wrap:anywhere}
+.spm.me .spb{background:var(--hi);color:var(--on-hi);border-radius:14px 14px 4px 14px}
+.spm.me .spb a{color:inherit}
+.spt{font-size:11px;color:var(--muted);margin:0 4px}
+.spform{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);align-items:flex-end}
+.spform textarea{flex:1;resize:none;min-height:44px;max-height:160px;border-radius:12px}
+@media (min-width:1024px){.spwrap{grid-template-columns:260px minmax(0,1fr)}.spchans{flex-direction:column;overflow:visible}.spch{max-width:none}.spcm small{max-width:170px}.spconv{height:calc(100dvh - 260px)}}
+
+/* ---------- Myndrit á Heim (1.4.0) ---------- */
+.charts{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:760px){.charts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;min-width:0}
+.chh4{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}.chh4 b{font-weight:500}.chh4 span{font-size:12px;color:var(--muted)}
+.chsvg{width:100%;height:auto;display:block;overflow:visible}
+.chb{fill:color-mix(in srgb,var(--hi) 28%,transparent);transform-box:fill-box;transform-origin:bottom}.chb.on{fill:var(--hi)}
+.tap:hover .chb{fill:color-mix(in srgb,var(--hi) 55%,transparent)}.tap:hover .chb.on{fill:var(--hi)}
+.chval{font-size:10.5px;fill:var(--muted);font-family:inherit}.chval.on{fill:var(--ink);font-weight:500}
+.chlbl{font-size:10px;fill:var(--muted);font-family:inherit}
+.chgoal{stroke:var(--muted);stroke-dasharray:3 4;stroke-width:1;opacity:.6}
+.chh{display:flex;flex-direction:column;gap:8px}
+.chr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:center;color:inherit;text-decoration:none;font-size:13px}
+.chrl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chrv{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chrb{height:8px;border-radius:4px;background:var(--bar0);overflow:hidden}.chrb i{display:block;height:100%;border-radius:4px;background:var(--hi);transform-origin:left}
+.chstack{display:flex;height:14px;border-radius:7px;overflow:hidden;gap:2px;margin:6px 0 10px}
+.chstack i,.chleg i{display:block}
+.sh0{background:var(--hi)}.sh1{background:color-mix(in srgb,var(--hi) 70%,transparent)}.sh2{background:color-mix(in srgb,var(--hi) 48%,transparent)}.sh3{background:color-mix(in srgb,var(--hi) 30%,transparent)}.sh4{background:color-mix(in srgb,var(--hi) 16%,transparent)}
+.chleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px}.chleg a{display:flex;align-items:center;gap:6px;color:inherit;text-decoration:none}.chleg i{width:10px;height:10px;border-radius:3px}.chleg b{font-weight:500}
+.chkpi{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.chkpi a{flex:1;min-width:110px;display:flex;flex-direction:column;padding:8px 10px;border-radius:12px;background:var(--bar0);color:inherit;text-decoration:none}
+.chkpi b{font-weight:500;font-size:14px}.chkpi span{font-size:11.5px;color:var(--muted)}.chkpi .late b{color:var(--late)}
+@media (prefers-reduced-motion:no-preference){
+  #view.anim .chb{animation:aBarY .7s cubic-bezier(.2,.7,.2,1) both}
+  #view.anim .chrb i,#view.anim .chstack i{animation:aBar .7s cubic-bezier(.2,.7,.2,1) both}
+}
+@keyframes aBarY{from{transform:scaleY(0)}}
+.spform textarea{width:auto!important;min-width:0}.spform .btn{flex:none;width:auto}
+.charts{align-items:start}
+body.onchat #fab{display:none!important}
+@media (max-width:1023px){.spconv{height:calc(100dvh - 330px);min-height:300px}}
+.spform{display:flex!important;flex-wrap:nowrap!important;grid-template-columns:none}.spform textarea{flex:1 1 auto}
+.spform{flex-direction:row!important}
+.spwrap{grid-template-columns:minmax(0,1fr)}.spconv,.spchans{min-width:0}
+@media (min-width:1024px){.spwrap{grid-template-columns:260px minmax(0,1fr)}}
+@media (max-width:1023px){.spconv{height:calc(100dvh - 400px)}}
+@media (max-width:640px){.tmrow{flex-wrap:wrap}.tmrow .lr{width:100%;box-sizing:border-box;justify-content:flex-start;padding-left:44px}}
+
+/* ---------- Sérsniðinn Heim (1.5.0) ---------- */
+.hgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;margin-top:6px;align-items:start}
+.hw{grid-column:span 12;min-width:0}
+@media (min-width:760px){.hw-s{grid-column:span 6}.hw-m{grid-column:span 6}}
+@media (min-width:1024px){.hw-s{grid-column:span 4}.hw-m{grid-column:span 6}.hw-l{grid-column:span 12}}
+.hw>.viewtitle:first-child,.hw>.hwt+.viewtitle{margin-top:4px}
+.hw .ring{height:100%}.hw .agenda{height:100%}
+.hw .hello{margin-top:4px}
+.hw.edit{outline:1px dashed var(--border2);outline-offset:4px;border-radius:16px;padding-top:2px}
+.hwt{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:12.5px;color:var(--muted)}
+.hwt b{font-weight:500;color:var(--ink)}
+.hwt button{appearance:none;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;cursor:pointer;margin-left:4px}
+.hwt button:disabled{opacity:.35;cursor:default}
+.hedit{margin-top:18px;padding:16px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.hadd{display:flex;flex-wrap:wrap;gap:8px}
+.hcust{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted)}
+.hscs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.hsc{appearance:none;display:flex;align-items:center;gap:10px;padding:14px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;text-align:left;cursor:pointer;min-height:56px;transition:transform .15s,border-color .15s}
+.hsc:hover{transform:translateY(-1px);border-color:var(--border2)}.hsc svg{width:20px;height:20px;flex:none;color:var(--muted)}
+.hsc .nr{font-size:12px;color:var(--muted)}
+
+/* ---------- Aðgangsstýring (1.5.0) ---------- */
+.viewas{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:10px 14px;border-radius:14px;background:var(--hi);color:var(--on-hi);font-size:13.5px}
+.viewas b{font-weight:600}.viewas .btn{background:var(--on-hi)!important;color:var(--hi)!important;border-color:var(--on-hi)!important;flex:none}
+.kpis .card.warn b{color:var(--late)}
+.achk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;font-size:13.5px}.achk i{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;background:var(--bar0)}
+.achk.no i{background:var(--late);color:#fff}
+.pmx{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)}
+.pmr{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(var(--pmn,3),minmax(0,1fr));gap:8px;padding:9px 14px;border-top:1px solid var(--line);align-items:center;font-size:13px}
+.pmr:first-child{border-top:0}.pmh{background:var(--bar0);font-size:12px;color:var(--muted);font-weight:500}
+.pmr b{font-weight:500;display:block}.pmr small{color:var(--muted);font-size:11px}
+.pp{display:inline-block;font-style:normal;font-size:11.5px;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.pp.pa{background:var(--hi);color:var(--on-hi)}.pp.pr{background:color-mix(in srgb,var(--hi) 35%,transparent)}.pp.po{background:color-mix(in srgb,var(--hi) 18%,transparent);border:1px dashed var(--border2)}.pp.pn{color:var(--muted)}
+@media (max-width:640px){.pmr{grid-template-columns:minmax(0,1fr) repeat(var(--pmn,3),auto);padding:8px 10px;gap:6px}.pp{font-size:10.5px;padding:2px 6px}}
+.aulist{display:flex;flex-direction:column;gap:8px}
+.aurow{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.9fr) minmax(0,1fr) minmax(0,1.2fr) auto;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.aurow.off{opacity:.6}.aurow small{display:block;font-size:12px;color:var(--muted)}
+.aun{display:flex;gap:10px;align-items:center;min-width:0}.aun b{font-weight:500;display:block}.aun small{overflow:hidden;text-overflow:ellipsis}
+.aur select{width:100%}.auc{display:flex;gap:6px}.auc .btn{padding:4px 10px;min-height:34px}
+@media (max-width:900px){.aurow{grid-template-columns:minmax(0,1fr) auto}.aus,.aua{grid-column:1/-1}.auc{grid-column:1/-1}}
+.hw .ring{align-items:center;justify-content:center;text-align:center;min-height:100%}.hw .ring .rv,.hw .ring .rl{text-align:center!important;align-self:center}
+
+/* ---------- Verðskrá (1.6.0) ---------- */
+.vstab{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;font-size:14px}
+.vstab th{text-align:left;font-weight:500;font-size:12px;color:var(--muted);background:var(--bar0);padding:10px 14px}
+.vstab td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:middle}
+.vstab .r{text-align:right;font-variant-numeric:tabular-nums}
+.vstab .ls{font-size:12px;color:var(--muted);margin-top:2px}
+.vstab input{width:100%;min-height:38px}.vsdef{display:flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap;flex-direction:row}
+@media print{.side,.mbar,header,.backrow,.links,#fab,.viewas{display:none!important}}
+
+/* ---------- Gluggi: Sérsníða Heim (1.6.2) ---------- */
+.hcust .btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border-radius:12px;color:var(--muted)}
+.hedsheet{max-width:640px!important}
+.hedh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.hedh h3{margin:0}
+.hedtabs{margin:0 0 14px}
+.hedb{max-height:min(62vh,640px);overflow-y:auto;margin:0 -4px;padding:0 4px}
+.hedl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hed{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);transition:border-color .15s,opacity .15s}
+.hed[draggable]{cursor:grab}.hed.drag{opacity:.45}.hed.over{border-color:var(--hi);box-shadow:inset 0 2px 0 var(--hi)}
+.hed.off{background:transparent;border-style:dashed}.hed.off .hedt b{color:var(--muted)}
+.hgrip{width:14px;color:var(--muted);font-size:13px;letter-spacing:-2px;flex:none;user-select:none}
+.hedt{flex:1;min-width:0;display:flex;flex-direction:column}.hedt b{font-weight:500;font-size:14px}.hedt small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hsz{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.hsz button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:12px;padding:6px 9px;cursor:pointer}
+.hsz button[aria-pressed="true"]{background:var(--hi);color:var(--on-hi)}
+.hmv{display:flex;gap:2px;flex:none}.hmv button{appearance:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
+.hmv button:disabled{opacity:.3;cursor:default}
+.hsw{position:relative;width:42px;height:24px;flex:none;cursor:pointer;display:block!important;margin:0}
+.hsw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.hsw i{position:absolute;inset:0;border-radius:12px;background:var(--bar0);transition:background .15s}
+.hsw i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.hsw input:checked+i{background:var(--hi)}.hsw input:checked+i::after{transform:translateX(18px);background:var(--on-hi)}
+.hsw input:focus-visible+i{outline:2px solid var(--hi);outline-offset:2px}
+.hscp{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.hscpk{appearance:none;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+.hscpk svg{width:18px;height:18px;color:var(--muted);flex:none}.hscpk span:not(.nr){flex:1;min-width:0}.hscpk .nr{font-size:12px;color:var(--muted)}
+.hscpk i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--bar0);font-size:12px;flex:none}
+.hscpk[aria-pressed="true"]{border-color:var(--hi)}.hscpk[aria-pressed="true"] i{background:var(--hi);color:var(--on-hi)}
+@media (max-width:560px){.hed{flex-wrap:wrap}.hedt{flex-basis:calc(100% - 90px)}.hsz{order:3;margin-left:24px}.hmv{order:4;margin-left:auto}.hedt small{white-space:normal}}
+/* Fest verkefni: heiti efst, verknúmer smátt undir (1.6.3) */
+.hscm{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.25}
+.hscm b{font-weight:500;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hscm small{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.hsps{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.hscm b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hscp .hscm b{font-size:13px}
+@media (max-width:560px){.hsps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hscpp{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}@media (max-width:560px){.hscpp{grid-template-columns:1fr}}
+.htile .hl.ok{background:var(--bar0);color:var(--ink)}
+
+/* ---------- Skjöl appsins (1.7.0) ---------- */
+.inv{font-family:Manrope,sans-serif}.inv-logo{height:40px;width:auto;display:block;margin:0 0 10px}
+.stag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;margin-left:2px}
+.pstag{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 2px}.pstag .stag{margin:0}
+.ptaxti{background:var(--bar0)!important;color:var(--ink)!important}
+
+/* ---------- Skjöl og prófílhnappur (1.8.0) ---------- */
+.avbtn{appearance:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--bar0);color:var(--ink);font:inherit;font-size:12.5px;font-weight:500;letter-spacing:.02em;cursor:pointer;display:grid;place-items:center;flex:none}
+.avbtn[aria-current="page"]{background:var(--hi);color:var(--on-hi);border-color:var(--hi)}
+@media (min-width:1024px){.avbtn{display:none!important}}
+.odbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px;flex-wrap:wrap}
+.odbtns{display:flex;align-items:center;gap:12px}
+.crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:2px;min-width:0}
+.crumb{appearance:none;border:0;background:none;font:inherit;font-size:14px;color:var(--muted);padding:4px 6px;border-radius:8px;cursor:pointer}
+.crumb:hover{background:var(--bar0);color:var(--ink)}.crumb[aria-current="true"]{color:var(--ink);font-weight:500}
+.crs{color:var(--muted);font-size:13px}
+/* 1.8.1 – yfirferð */
+.viewtitle .plink{text-transform:none;letter-spacing:0;white-space:nowrap;font-size:13.5px}
+@media (max-width:640px){.lrow .lr:has(.pill + .pill){flex-direction:column;align-items:flex-end;gap:4px}}
+/* Jöfn hæð spjalda í sömu röð á Heim (1.9.0) */
+.hgrid{align-items:stretch}
+.hw>.card:only-child,.hw>.ring:only-child,.hw>.agenda:only-child{height:100%;box-sizing:border-box}
+/* Forskoðun PDF (1.9.2) */
+.bppdf{max-height:72vh;overflow:auto;background:var(--raise);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.bppdf canvas{display:block;background:#fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.12);max-width:100%;height:auto}
+/* „Til baka“ og „Nýr gluggi“ fylgja skrolli undir hausnum (1.9.3) */
+.backrow{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,57px));z-index:4;background:var(--bg);margin-inline:-16px;padding:6px 16px 4px;border-bottom:1px solid transparent;transition:border-color .15s}
+.backrow .back{margin-top:0}
+.backrow.stuck{border-bottom-color:var(--line)}
+@media (min-width:1024px){.backrow{margin-inline:-40px;padding-inline:40px}}
+/* Starfsfólk á verkefni (1.9.3) */
+.sav{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:99px;background:var(--raise);color:var(--ink);font:500 10.5px var(--f-label);letter-spacing:.02em;flex:none}
+.staffrow{display:flex;flex-wrap:wrap;gap:8px}
+.staff{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:99px;border:1px solid var(--line);font-size:14px}
+.savs{display:inline-flex;margin-left:4px;vertical-align:middle}.savs .sav{width:20px;height:20px;font-size:9px;margin-left:-4px;box-shadow:0 0 0 2px var(--bg)}
+.chks{display:flex;flex-wrap:wrap;gap:4px 16px}
+.dtabs{top:calc(env(safe-area-inset-top,0px) + var(--hdr,57px) + var(--bk,54px))}
+.backrow.stuck:has(+ *){border-bottom-color:transparent}
+/* Atrium – heiti lausnarinnar neðst í Meira (2.0.1) */
+.mfoot .atr{display:flex;flex-direction:column;align-items:center;gap:6px}
+.mfoot .atr img.atrlogo{width:auto;height:26px;opacity:.9;flex:none}
+
+/* Tvímerking (frá 2.2.0): merki fyrirtækis (uppsetningar) | Atrium. Án ORG.logo birtist Atrium eitt eins og áður. */
+.cobrand{display:flex;align-items:center;gap:12px;line-height:0}
+.colog,.cosep{display:none}
+.hasco .colog{display:block;height:28px;width:auto;max-width:96px;object-fit:contain}
+.hasco .cosep{display:block;width:1px;height:26px;background:var(--line);flex:none}
+.hasco .cobrand .logo{height:22px}
+.side .cobrand{justify-content:center;margin:2px 0 10px}
+.hasco .side .colog{height:40px;max-width:120px}
+.hasco .side .cobrand .logo{height:24px;margin:0}
+/* í haus símans er aðeins Atrium-táknið við hlið fyrirtækismerkisins */
+.hasco header .cobrand .logo{background-image:url(icons/atrium-merki-dokk.svg)!important;aspect-ratio:1/1!important;height:24px}
+:root.hasco[data-theme="light"] header .cobrand .logo{background-image:url(icons/atrium-merki-ljos.svg)!important}
+/* Innskráning: fyrirtækismerki efst, Atrium-merkið neðst */
+.lco{display:block;max-height:120px;max-width:240px;width:auto;height:auto;margin:0 auto 6px}
+/* Atrium-merkið endar neðst (minnkað); með hreyfingu byrjar það á miðjum skjá, teiknast, færist niður og þá birtist innskráning fyrirtækisins */
+.hasco #login .llogo{position:absolute;left:0;right:0;bottom:max(28px,env(safe-area-inset-bottom));margin:0;transform:scale(.45);transform-origin:50% 100%}
+@keyframes aAtrNidur{0%,74%{bottom:50%;transform:translateY(50%) scale(1)}100%{bottom:max(28px,env(safe-area-inset-bottom));transform:scale(.45)}}
+@media (prefers-reduced-motion: no-preference){
+  .hasco #login .llogo{animation:aAtrNidur 3.6s cubic-bezier(.65,0,.25,1) both}
+  .hasco #login .lco,.hasco #login .login-in p,.hasco #login .login-in .btn{animation:aIn .6s var(--ease) both}
+  .hasco #login .lco{animation-delay:3.4s}.hasco #login .login-in p{animation-delay:3.55s}.hasco #login .login-in .btn{animation-delay:3.7s}.hasco #login #login-btn{animation-delay:3.85s}
+}
+
+/* Tilboð (sala.js, 2.4.0): línur í hlutum, ritill og samtölur */
+.tbgrp{margin:0 0 14px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.tbgh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:var(--b0);font-size:13.5px}
+.tbgh b{font-weight:500;letter-spacing:.02em}.tbgh span{color:var(--muted);font-variant-numeric:tabular-nums}
+.tbgh input.tbhl{flex:1;min-width:0;font-weight:500;background:transparent;border:1px dashed var(--line)}
+.tbl{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;padding:10px 14px;border-top:1px solid var(--line);font-size:14px}
+.tbl>b{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbln{flex:1;min-width:0}.tbln .ls{color:var(--muted);font-size:12.5px;margin-top:2px}
+.tbl.ed{flex-wrap:wrap}.tbl.ed .tbln>input{width:100%;font-weight:500}
+.tbf{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:8px}
+.tbf label{font-size:11.5px;margin:0}.tbf input,.tbf select{min-height:38px;padding:6px 8px;font-size:14px}
+.tblr{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.tblr b{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tblr .btn{min-height:34px;padding:4px 12px}
+@media (max-width:560px){.tbl.ed .tblr{flex-direction:row;width:100%;justify-content:space-between;align-items:center}}
+.kicker .tag,.lt .tag{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 8px;margin-left:4px;vertical-align:middle}
+/* Neðri stika: jafn breiðir dálkar eftir fjölda hluta (fleiri einingar, t.d. Tilboð, frá 2.4.0) */
+nav.mbar.tbar{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+nav.mbar.tbar:has(>:nth-child(7)) .tab{font-size:9.5px;letter-spacing:-.01em}
+nav.mbar.tbar:has(>:nth-child(8)) .tab{font-size:8.8px;letter-spacing:-.02em;padding-left:0;padding-right:0}
+nav.mbar.tbar:has(>:nth-child(8)) .tab svg{width:21px;height:21px}
+/* Deildarval í haus (deildir.js, 2.8.0) */
+header .deildseg{flex:0 0 auto;padding:2px;margin-right:4px;border-radius:10px}
+header .deildseg button{min-height:30px;padding:0 10px;font-size:12.5px;border-radius:8px}
+@media (max-width:600px){header .deildseg button{padding:0 8px;font-size:12px;min-height:28px}}
+.pill.deildpill{background:var(--raise);color:var(--muted)}
+.deildmob{margin:4px 0 14px}
+.deildmob button{min-height:36px}
+/* 2.40.0 – Opnunarskjár: sama Atrium-teikning og á innskráningu */
+#splash{position:fixed;inset:0;z-index:100;background:#121416;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
+#splash.out{opacity:0;pointer-events:none}
+#splash .spl-in{display:flex;align-items:center;justify-content:center;gap:18px}
+#splash .lword{width:190px;height:auto;display:block}
+/* 2.93.0: merki fyrirtækisins við hlið Atrium-merkisins, sama hæð og táknið (96 px) */
+#splash .spl-sep{width:1px;height:96px;background:rgba(255,255,255,.18);margin:0 14px}
+#splash .spl-co{height:96px;width:auto;max-width:220px;display:block;object-fit:contain}
+@media (max-width:600px){#splash.hasco2 .spl-in{flex-wrap:wrap;max-width:320px;row-gap:26px}#splash.hasco2 .spl-sep{display:none}#splash.hasco2 .spl-co{flex-basis:100%;max-width:none;height:96px}}
+@media (prefers-reduced-motion: no-preference){#splash .spl-sep,#splash .spl-co{animation:aIn .6s var(--ease,cubic-bezier(.2,.7,.2,1)) 1.9s both}}
+@media (prefers-reduced-motion: no-preference){#splash .lword{animation:aIn .6s var(--ease,cubic-bezier(.2,.7,.2,1)) 1.7s both}}
+
+/* 2.93.2: innskráning – Atrium-merkið og merki fyrirtækisins hlið við hlið, jafnhá (96 px), fyrir ofan textann */
+.hasco #login .lpair{display:flex;align-items:center;justify-content:center;gap:0;margin:0 auto 26px}
+.hasco #login .lpair .llogo{position:static;transform:none;margin:0;animation:none}
+.hasco #login .lpair .lsep{width:1px;height:96px;background:rgba(255,255,255,.18);margin:0 32px}
+.hasco #login .lpair .lco{height:96px;max-height:96px;width:auto;max-width:220px;margin:0;object-fit:contain}
+@media (max-width:600px){.hasco #login .lpair{flex-direction:column;gap:22px}.hasco #login .lpair .lsep{display:none}}
+@media (prefers-reduced-motion: no-preference){
+  .hasco #login .lpair .lsep,.hasco #login .lpair .lco{animation:aIn .6s var(--ease) 1.9s both}
+  .hasco #login .login-in p{animation-delay:2.05s}.hasco #login .login-in .btn{animation-delay:2.2s}.hasco #login #login-btn{animation-delay:2.35s}
+}
+/* 2.93.4: merkin á innskráningu á nákvæmlega sama stað og á opnunarskjánum (miðja skjásins) – engin hreyfing á milli skjáa; texti og hnappur fyrir neðan */
+.hasco #login .login-in{position:absolute;left:50%;top:calc(50% - 48px);transform:translateX(-50%);width:min(620px,calc(100% - 48px));max-width:none}
+.hasco #login .login-in > :not(.lpair){max-width:320px}
+.hasco #login .lpair{margin:0 auto 30px}
+@media (max-width:600px){.hasco #login .login-in{top:calc(50% - 109px)}.hasco #login .lpair{gap:26px}}

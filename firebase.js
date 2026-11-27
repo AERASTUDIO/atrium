@@ -170,7 +170,8 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (!hadController || reloading) return;
     if (window.__swWantReload) { reloading = true; location.reload(); return; }
-    try { (window.toast || (() => {}))("Ný útgáfa af appinu er komin", () => { reloading = true; location.reload(); }, "Endurhlaða"); } catch (e) {}
+    // 2.168.0: aðeins ef útgáfa ÞESSARAR uppsetningar breyttist (sw.js fylgir nýjasta kóðanum – festar uppsetningar fá annars falska tilkynningu)
+    Promise.resolve(window.atrNyUtgafa ? window.atrNyUtgafa() : "?").then(nv => { if (!nv) return; try { (window.toast || (() => {}))("Ný útgáfa af appinu er komin", () => { reloading = true; location.reload(); }, "Endurhlaða"); } catch (e) {} });
   });
   navigator.serviceWorker.register(new URL("sw.js", document.baseURI).href, { updateViaCache: "none" }).then(reg => {
     const check = () => reg.update().catch(() => {});
