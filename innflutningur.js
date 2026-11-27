@@ -215,7 +215,7 @@
   .ikw .ikdel{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px}
   .ikw .iksum{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 16px;font-size:13px}
   .ikw .iksum div{display:flex;flex-direction:column}.ikw .iksum span{color:var(--muted);font-size:12px}.ikw .iksum b{font-weight:500;font-size:15px}
-  .ikw .iksum .hi b{font-size:18px}.ikw .pos{color:#1d7a4f}.ikw .neg{color:#b4462f}
+  .ikw .iksum .hi b{font-size:18px}.ikw .pos{color:inherit}.ikw .neg{color:#b4462f}
   .ikw .ikf{position:sticky;bottom:0;background:var(--bg,#f5f7f8);border-top:1px solid var(--line,#dce3e8);padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
   .ikw .ikf .sp{flex:1}.ikw .ikhint{font-size:12.5px;color:var(--muted)}
   .ikw .ikrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -249,7 +249,7 @@
   .ikw td.ikact{white-space:nowrap;width:1%;text-align:right}
   .ikw tr.ikdet td{background:var(--bg,#f5f7f8);padding:10px;border-bottom:1px solid var(--line,#eef1f3)}
   .ikw .w-h{min-width:220px}.ikw .w-s{width:70px}.ikw .w-m{width:104px}
-  .ikw .ikf{gap:12px}.ikw .iktot{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.ikw .iktot b{color:var(--ink);font-weight:500;font-size:15px}.ikw .iktot b.pos{color:#1d7a4f}.ikw .iktot b.neg{color:#b4462f}
+  .ikw .ikf{gap:12px}.ikw .iktot{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.ikw .iktot b{color:var(--ink);font-weight:500;font-size:15px}.ikw .iktot b.pos{color:inherit}.ikw .iktot b.neg{color:#b4462f}
   .ikw .sp{flex:1}
   .ikw .ikkg{display:flex;flex-direction:row;align-items:center;gap:4px;font-size:13px;color:var(--muted)}.ikw .ikkg input{width:78px;text-align:right}
   .ikw .ikflm{gap:6px;align-items:flex-end}.ikw .ikflm .ikin{width:110px}
@@ -258,7 +258,7 @@
   .ikcard .ikct small{color:var(--muted);font-weight:400;font-size:12.5px;display:block}
   .ikcard .ikk{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px 14px}
   .ikcard .ikk div{display:flex;flex-direction:column}.ikcard .ikk span{color:var(--muted);font-size:12px}.ikcard .ikk b{font-weight:500;font-size:16px}
-  .ikcard .pos{color:#1d7a4f}.ikcard .neg{color:#b4462f}
+  .ikcard .pos{color:inherit}.ikcard .neg{color:#b4462f}
   .ikcard .ikbs{display:flex;flex-direction:column;gap:8px}
   .ikcard .ikbr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center;border-top:1px solid var(--line,#e3e8ec);padding-top:10px}
   .ikcard .ikbr small{color:var(--muted);display:block;font-size:12px}.ikcard .ikbr .ikbb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
@@ -270,7 +270,7 @@
   .ikfa table{border-collapse:collapse;font-size:13px}.ikfa th{font-weight:500;color:var(--muted);text-align:left;font-size:11.5px;padding:4px;white-space:nowrap}.ikfa td{padding:3px 4px}.ikfa input,.ikfa select{min-height:34px;padding:5px 7px;font-size:13px}.ikfa select{min-width:84px}.ikfa td:first-child input{min-width:150px}
   .iksaga .ls{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
   .ikstrip{border:1px solid var(--line,#dce3e8);border-radius:14px;padding:12px 16px;background:var(--surface,#fff);margin:12px 0;display:flex;gap:18px;flex-wrap:wrap;align-items:center;cursor:pointer}
-  .ikstrip b{font-weight:500}.ikstrip span{color:var(--muted);font-size:12.5px}.ikstrip .neg{color:#b4462f}.ikstrip .pos{color:#1d7a4f}
+  .ikstrip b{font-weight:500}.ikstrip span{color:var(--muted);font-size:12.5px}.ikstrip .neg{color:#b4462f}.ikstrip .pos{color:inherit}
   `;
   document.head.appendChild(css);
 

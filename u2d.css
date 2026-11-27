@@ -706,7 +706,7 @@ html:not(#u2a):not(#u2b) body.kerfi #view .splist > select.u2fold{max-width:calc
 @media (max-width:1023px){html body.kerfi .simbell span{color:var(--on-kacc)!important}}
 html:not(#u2a):not(#u2b)[data-theme="light"] body.kerfi .simbell span{color:#fff!important}
 html:not(#u2a):not(#u2b) body.kerfi #view .smst{border-radius:14px!important;border-left:0!important}
-html:not(#u2a):not(#u2b) body.kerfi #view .smst.st-sent{color:var(--t-amb-tx)!important;background:var(--waitbg)!important}
+html:not(#u2a):not(#u2b) body.kerfi #view .smst.st-sent{color:var(--muted)!important;background:transparent!important} /* U3 2.173.0: skýring, ekki staða – staðan sést í merkinu */
 html:not(#u2a):not(#u2b) body.kerfi #view .smst.st-samth{color:var(--t-grn-tx)!important;background:var(--okbg)!important}
 html:not(#u2a):not(#u2b) body.kerfi #view .smst.st-hafn{color:var(--t-red)!important;background:var(--redbg)!important}
 html:not(#u2a):not(#u2b) body.kerfi #view .smst.st-drog{background:var(--surface)!important}
@@ -1871,4 +1871,27 @@ html body.kerfi #sheet .rkeai small{color:var(--muted);font-size:12px}
 @media (min-width:1024px){
   html:not(#u3a):not(#u3b) body.kerfi.pv.ui1.hassplit .u2bell{width:36px;height:36px;top:34px;right:58px;box-shadow:none!important}
   html:not(#u3a):not(#u3b) body.kerfi.pv.ui1.hassplit .u2bell svg{width:17px;height:17px}
+}
+
+/* ---------- U3 (2.173.0): línutákn í stað tákna úr letri (fagun.js setur <svg class="gly">) ---------- */
+html body.kerfi svg.gly{width:1.05em;height:1.05em;flex:none;vertical-align:-.17em;margin-right:.38em;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+html body.kerfi .gly-solo svg.gly{margin-right:0}
+html body.kerfi svg.gly.gly-aft{margin:0 0 0 .3em}
+/* Táknið skiptir með mýkt þegar notandinn breytti því sjálfur (t.d. Byrja ↔ Stöðva) – ekki við venjuleg flipaskipti */
+@media (prefers-reduced-motion:no-preference){
+  html body.kerfi .u3swap svg{animation:u3swap .22s cubic-bezier(.23,1,.32,1) both}
+  html body.kerfi .u3ok{animation:u3ok .5s cubic-bezier(.23,1,.32,1)}
+}
+@keyframes u3swap{from{opacity:0;filter:blur(3px);transform:scale(.8)}}
+@keyframes u3ok{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--t-grn) 40%,transparent)}100%{box-shadow:0 0 0 8px transparent}}
+/* Staðfesting á staðnum: hnappurinn sem smellt var á segir „Afritað“ o.s.frv. í stutta stund */
+html body.kerfi .u3ok-on{color:var(--t-grn)!important}
+
+/* ---------- U3 (2.173.0): snertifletir minnst 44 px á snertiskjá (lög Fitts) ---------- */
+@media (pointer:coarse){
+  html:not(#u3a):not(#u3b) body.kerfi :is(#view,#sheet,.spurn,.smain) :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range])):not(.smday):not(.smwk):not(.u2bell):not(.upill):not(.idsw){min-height:44px!important}
+  html:not(#u3a):not(#u3b) body.kerfi :is(#view,#sheet,.spurn,.smain) button.upill.svtog{min-height:36px!important}
+  html:not(#u3a):not(#u3b) body.kerfi :is(#view,#sheet,.spurn,.smain) :is(a.vs3a,a.shkw,a.maplnk,a.plink,.uhch a,button.smlnk,.uhch .lnk,.uhch button.ulink,#view a.lnk,#view .lrow a:not(.btn)){position:relative}
+  html:not(#u3a):not(#u3b) body.kerfi :is(#view,#sheet,.spurn,.smain) :is(a.vs3a,a.shkw,a.maplnk,a.plink,.uhch a,button.smlnk,.uhch .lnk,.uhch button.ulink,#view a.lnk,#view .lrow a:not(.btn))::after{content:"";position:absolute;inset:-13px -8px}
+  html:not(#u3a):not(#u3b) body.kerfi :is(#view,#sheet) input[type=checkbox]{width:22px!important;height:22px!important}
 }

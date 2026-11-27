@@ -7,4 +7,34 @@ function deco(){const v=document.querySelector('#view');if(!v)return;
  v.querySelectorAll('.uhch h3:not([data-g])').forEach(h=>{h.dataset.g=1;const m=pick(h.textContent);if(!m)return;h.insertAdjacentHTML('afterbegin',`<span class="gic ${m[2]||''}">${svg(m[1])}</span>`)});
  v.querySelectorAll('.ukps>.ukp:not([data-g]),.ukps>.kp:not([data-g]),.usvc>*:not([data-g])').forEach(k=>{k.dataset.g=1;if(k.clientWidth<230)return;const t=(k.querySelector('small')||k).textContent;const m=pick(t)||[0,'pulse'];k.insertAdjacentHTML('beforeend',`<span class="gic ${m[2]||''}">${svg(m[1])}</span>`)});
  v.querySelectorAll('.uhrow b:not([data-g]),.udsx b:not([data-g])').forEach(b=>{b.dataset.g=1;const m=b.textContent.match(/^([A-ZÁÉÍÓÚÝÞÆÖ]{1,2}-\d{3,5}|\d{4}-\d{2,3}(?:-\d{2})?)\s+(.*)$/);if(m){const g=document.createElement("span");g.className="gnr";g.textContent=m[1];b.replaceChildren(g,document.createTextNode(m[2]));} /* 2.168.1: textContent → texti (ekki innerHTML: annars verður hreinsaður texti að HTML – XSS) */});}
-let q=0;const run=()=>{q=0;try{deco()}catch(e){}};new MutationObserver(()=>{if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true});run();})();
+/* ---------- U3 (2.173.0): línutákn í stað tákna úr letri (✓ ▶ ■ ✎ ⚠ ✉ 📁 ↻ ✕ 🔒 📎 📷 ↵) ----------
+   Fremsta tákn í texta er tekið út og <svg class="gly"> sett í staðinn (DOM-einingar, ekki HTML-strengur). Slóðirnar eru fastar hér. */
+const G={'✓':'<path d="M5 12.5l4.5 4.5L19 7.5"/>','✔':'<path d="M5 12.5l4.5 4.5L19 7.5"/>','▶':'<path d="M8 5.5v13l10.5-6.5z"/>','■':'<rect x="6.5" y="6.5" width="11" height="11" rx="2"/>',
+ '✎':'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>','✏':'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>','⚠':P.alert,'✉':'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/>',
+ '📁':P.folder,'↻':'<path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/>','✕':'<path d="M6 6l12 12M18 6L6 18"/>','✖':'<path d="M6 6l12 12M18 6L6 18"/>',
+ '🔒':'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>','📎':'<path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/>',
+ '📷':'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>','↵':'<path d="M19 5v7H6M10 8l-4 4 4 4"/>'};
+const GEND=/\s+(✎|✏|✓|⚠|🔒)\uFE0F?\s*$/u, GRE=/^(\s*)(✓|✔|▶|■|✎|✏|⚠|✉|📁|↻|✕|✖|🔒|📎|📷|↵)️?(?:\s+|$)/u, SKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT|svg|title)$/i;
+const mkG=k=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('fill','none');s.setAttribute('stroke','currentColor');s.setAttribute('aria-hidden','true');s.setAttribute('class','gly');s.innerHTML=G[k];return s;};
+function glyphs(){const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentNode;if(!p||SKIP.test(p.nodeName)||p.isContentEditable||p.closest?.('svg,[contenteditable],.nogly'))return 2;return GRE.test(n.data)||GEND.test(n.data)?1:2;}});
+ const L=[];for(let n=w.nextNode();n;n=w.nextNode())L.push(n);
+ for(const n of L){const m=n.data.match(GRE);if(!m||!n.parentNode)continue;const rest=n.data.slice(m[0].length);n.data=m[1]+rest;const g=mkG(m[2]);n.parentNode.insertBefore(g,n);
+  if(!rest.trim()&&!n.nextSibling)n.parentNode.classList?.add('gly-solo');}
+ for(const n of L){const m=n.data.match(GEND);if(!m||!n.parentNode)continue;n.data=n.data.slice(0,m.index)+' ';const g=mkG(m[1]);g.classList.add('gly-aft');n.parentNode.insertBefore(g,n.nextSibling);}}
+/* ---------- U3 (2.173.0): viðbrögð þar sem smellt var ----------
+   1) Táknið skiptir með mýkt (blur) þegar hnappurinn sem notandinn ýtti á teiknast upp á nýtt (t.d. Byrja ↔ Stöðva) – ekki við flipaskipti.
+   2) Stutt jákvæð staðfesting („Afritað“, „Vistað“, „Skráð“) birtist á hnappnum sjálfum í stað tilkynningar neðst; annars venjuleg tilkynning. */
+const KORT='.ucard,.card,.spdet,.sheet,#sheet,.smcard,section';let LC=null;document.addEventListener('pointerdown',e=>{const b=e.target.closest?.('button,.btn,[data-act],a');if(!b)return;const r=b.getBoundingClientRect();LC={el:b,t:performance.now(),x:r.left+r.width/2,y:r.top+r.height/2,act:b.getAttribute('data-act'),kort:b.closest(KORT)};LC.ki=LC.kort?[...document.querySelectorAll(KORT)].indexOf(LC.kort):-1;},true);
+const nyr=ms=>LC&&performance.now()-LC.t<ms;
+const finna=()=>{if(!LC)return null;if(LC.el.isConnected)return LC.el;const a=LC.act&&document.querySelector(`[data-act="${CSS.escape(LC.act)}"]`);if(a)return a;const p=document.elementFromPoint(LC.x,LC.y);return p?.closest?.('button,.btn,[data-act]')||null;};
+function swap(){if(!nyr(900)||LC.el.isConnected)return;const merkja=b=>{if(!b||b.dataset.u3s)return;b.dataset.u3s=1;b.classList.add('u3swap');setTimeout(()=>b.classList.remove('u3swap'),400);};
+ merkja(finna());const k=LC.ki>=0?document.querySelectorAll(KORT)[LC.ki]:null;if(k&&k!==LC.kort&&!k.dataset.u3k){k.dataset.u3k=1;k.querySelectorAll('button,.btn').forEach(merkja);}}
+const STUTT=[[/afrit/i,'Afritað'],[/^vistað|vistaðar?$/i,'Vistað'],[/^skráð|skráð$/i,'Skráð'],[/sótt/i,'Sótt']], NEI=/ekki|tókst|villa|aðeins|veldu|skráðu|hætt|vantar|fann/i;
+const t0=window.toast;if(typeof t0==='function'){window.toast=function(t,undo,lbl){try{
+  if(!undo&&typeof t==='string'&&t.length<=48&&!NEI.test(t)&&nyr(1500)){const s=STUTT.find(([r])=>r.test(t));
+   if(s){const go=()=>{const b=finna();if(!b||!b.isConnected||b.closest('#toast')||!b.offsetWidth)return t0.call(this,t,undo,lbl);
+     const was=[...b.childNodes],w=b.getBoundingClientRect().width;b.style.minWidth=w+'px';b.classList.add('u3ok','u3ok-on');b.replaceChildren(mkG('✓'),document.createTextNode(s[1]));b.setAttribute('aria-live','polite');
+     setTimeout(()=>{if(b.isConnected){b.replaceChildren(...was);b.classList.remove('u3ok','u3ok-on');b.style.minWidth='';b.removeAttribute('aria-live');}},1600);};
+    requestAnimationFrame(()=>requestAnimationFrame(go));return;}}
+ }catch(e){}return t0.apply(this,arguments);};}
+let q=0;const run=()=>{q=0;try{deco()}catch(e){}try{glyphs()}catch(e){}try{swap()}catch(e){}};new MutationObserver(()=>{if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});run();})();

@@ -5,7 +5,7 @@
 (function () {
   if (window.ORG?.simi !== "I" || !window.SM) return;
   const { E, tr, ic, N } = SM;
-  const DNS = ["SUN", "MÁN", "ÞRI", "MIÐ", "FIM", "FÖS", "LAU"], DNL = ["Sunnudagur", "Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur"];
+  const DNS = ["Sun", "Mán", "Þri", "Mið", "Fim", "Fös", "Lau"] /* U3: ekki hástafir */, DNL = ["Sunnudagur", "Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur"];
   const MNS = ["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ágú", "sep", "okt", "nóv", "des"], MNL = ["Janúar", "Febrúar", "Mars", "Apríl", "Maí", "Júní", "Júlí", "Ágúst", "September", "Október", "Nóvember", "Desember"];
   const pad = n => String(n).padStart(2, "0"), iso = x => x.getFullYear() + "-" + pad(x.getMonth() + 1) + "-" + pad(x.getDate());
   const dOf = s => { const m = String(s || "").match(/^(\d{4})-(\d\d)-(\d\d)/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(); };

@@ -66,7 +66,7 @@
     return { h, tekjur, kostnadur, vinna, utl, vorur, vorVant, auk, fr, pct, spa, ih, grunnur, noKv, tbVid, tbN: tbs.length };
   }
   window.vpAfkoma = p => (G() && FIN() ? afkoma(p) : null);   // 2.145.0: notað í Framlegð-spjaldi verkefnisyfirlits (verkyfir.js)
-  const tone = pc => pc == null ? "" : pc < 0 ? "t-red" : pc < 0.15 ? "t-amb" : "t-grn";
+  const tone = pc => pc == null ? "" : pc < 0 ? "t-red" : pc < 0.15 ? "t-amb" : ""; /* U3 2.173.0: góð framlegð er ekki staða – venjulegur litur */
   const pctS = pc => pc == null ? "–" : Math.round(pc * 100) + " %";
   function afkHTML(p) {
     if (!G() || !FIN()) return "";
@@ -113,7 +113,7 @@
       uti.length && [`Búnaður enn úti: ${uti.map(P => E(P.nr)).join(", ")}`, "t-red", ""],
       bid.length && [`${bid.length} aukaverk bíða samþykkis`, "t-amb", ""]].filter(Boolean);
     const { w, close } = modal("Lokauppgjör · " + (p.nr || ""), `
-      <div class="vpk vpk3"><div><small>Áætlun</small><b>${a ? H1(a) + " klst." : "–"}</b></div><div><small>Raun</small><b>${H1(h)} klst.</b></div><div><small>Frávik</small><b class="${a ? (h > a * 1.1 ? "t-red" : h < a * 0.9 ? "t-grn" : "") : ""}">${a ? (h >= a ? "+" : "") + Math.round((h - a) / a * 100) + " %" : "–"}</b></div></div>
+      <div class="vpk vpk3"><div><small>Áætlun</small><b>${a ? H1(a) + " klst." : "–"}</b></div><div><small>Raun</small><b>${H1(h)} klst.</b></div><div><small>Frávik</small><b class="${a ? (h > a * 1.1 ? "t-red" : h < a * 0.9 ? "" : "") : ""}">${a ? (h >= a ? "+" : "") + Math.round((h - a) / a * 100) + " %" : "–"}</b></div></div>
       ${sh.length ? `<div class="pfsh2">Eftir undirverkum</div><div class="pfml">${sh.map(s => `<div class="pfmlr"><span style="flex:1">${E(s.heiti)}${s.opin ? ' <small class="t-amb">opið</small>' : ""}</span><b style="margin-left:10px;white-space:nowrap">${H1(s.timar)} klst.</b><small style="margin-left:6px;min-width:34px;text-align:right">${h ? Math.round(s.timar / h * 100) + " %" : ""}</small></div>`).join("")}</div>` : ""}
       ${k ? `<div class="pfsh2">Afkoma</div><div class="vpk vpk3"><div><small>Tekjur</small><b>${KR(k.tekjur)}</b></div><div><small>Kostnaður</small><b>${KR(k.kostnadur)}</b></div><div><small>Framlegð</small><b class="${tone(k.pct)}">${KR(k.fr)} · ${pctS(k.pct)}</b></div></div>` : ""}
       <div class="pfsh2">Áður en lokað er</div>${chk.length ? `<div class="pfml">${chk.map(([t, c, b]) => `<div class="pfmlr"><span class="${c}" style="flex:1;margin-right:10px">⚠ ${t}</span>${b}</div>`).join("")}</div>` : `<p class="vps t-grn">✓ Ekkert óklárað – allt reikningsfært og skilað.</p>`}
