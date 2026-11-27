@@ -49,9 +49,17 @@ service cloud.firestore {
 
     // app/state: stillingar, samtölur, netfangaskrá o.fl. (afgangurinn eftir skiptingu í söfn, frá 1.3.0).
     // Eftir flutning (skipting = 2) má ekki skrifa gömlu fylkin aftur inn – gamlar útgáfur appsins fá villu í stað þess að skrifa yfir.
+    // 2.168.1: viðkvæmar stillingar – reikningsupplýsingar (banki, kt., bókhald), einingar, pakkar, Huginn og sjálfgefinn innheimtuháttur –
+    // breytir aðeins admin. Fjármál (bókari) mega hækka reikningsnúmerið (nastaNr) og sjalfFra; aðrar stillingar (t.d. næsta tilboðsnúmer) allir virkir.
+    function stG() { return resource == null ? {} : resource.data.get("stillingar", {}); }
+    function stN() { return request.resource.data.get("stillingar", {}); }
+    function stK() { return stN().diff(stG()).affectedKeys(); }
+    function rkK() { return stN().get("reikn", {}).diff(stG().get("reikn", {})).affectedKeys(); }
+    function stillingarLeyfi() { return admin() || (!stK().hasAny(["pakkar", "einingar", "claude", "innheimta"])
+      && (!stK().hasAny(["reikn"]) || (fjarmal() && rkK().hasOnly(["nastaNr", "sjalfFra"])))); }
     match /app/state {
       allow read: if active();
-      allow write: if active() && !(resource != null && resource.data.get("skipting", 0) >= 2
+      allow write: if active() && stillingarLeyfi() && !(resource != null && resource.data.get("skipting", 0) >= 2
         && (request.resource.data.keys().hasAny(["verkefni", "vidskiptavinir", "fundir", "skjol", "thraedir", "reikningar", "kostnadur", "klukka", "vorur", "tilbod", "pantanir", "dagsverk"])
             || request.resource.data.get("timar", {}).keys().hasAny(["faerslur", "nyjast"])));
     }
