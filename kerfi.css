@@ -1198,10 +1198,10 @@ body.ui1 #sitems .tab .tbid{margin-left:auto;background:#2B63A6;color:#fff;borde
 }
 
 /* 2.131.0: Í dag – Bíður mín vinstra megin, Vikan og Dagurinn hægra megin */
-body #view .uhtop.uidag{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:start}
-body #view .uidr{display:flex;flex-direction:column;gap:var(--s3,16px)}
-body #view .uidr>section{margin:0!important}
-body #view .uh3.uid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+
+
+
 .ubmc .uhch .m{font-size:12.5px;color:var(--muted)}
 .ubm{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
 .ubmd{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:var(--muted);opacity:.6}.ubmd.d{background:#2B63A6;opacity:1}.ubmd.w{background:#9C6410;opacity:1}
@@ -1210,7 +1210,7 @@ body #view .uh3.uid2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ubmx b{font-weight:400;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ubmx span{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ubm .btn{flex:none;white-space:nowrap}
-@media (max-width:1100px){body #view .uhtop.uidag,body #view .uh3.uid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1100px){}
 /* Stikan: notandinn neðst með stillingahjól til hægri */
 @media (min-width:1024px){
   :root body.pv.ui1 #sfoot2{margin-top:auto!important;flex-direction:row!important;align-items:center!important;gap:4px!important;padding-top:12px!important}

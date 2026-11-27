@@ -126,7 +126,7 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
 #login{background:#121416!important;color:#DFE5EA}
 #login .login-in p{color:#93A0AD}
 #login .btn.primary{background:#DFE5EA!important;color:#121416!important;border-color:#DFE5EA!important;min-height:52px;border-radius:14px;width:min(320px,100%)}
-#login #login-btn{background:none!important;border:0!important;color:#93A0AD!important}
+
 /* Lárétt merki: mynd vinstra megin, texti hægra megin (eins og logo-*.svg) */
 .llogo{display:flex;align-items:center;justify-content:center;gap:18px;margin:0 auto 22px}
 .lmark{width:96px;height:96px;display:block;margin:0;flex:none}
@@ -157,7 +157,7 @@ nav.mbar.tbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding
   .lmark polygon{stroke:#93A0AD;stroke-width:.6;stroke-dasharray:260;animation:aRiss 2.2s cubic-bezier(.6,.05,.25,1) both}
   .lmark polygon:nth-child(3n+2){animation-delay:.2s}.lmark polygon:nth-child(3n){animation-delay:.4s}
   .login-in .lword,.login-in p,.login-in .btn{animation:aIn .6s var(--ease) both}
-  .login-in .lword{animation-delay:1.7s}.login-in p{animation-delay:1.85s}.login-in .btn{animation-delay:2s}.login-in #login-btn{animation-delay:2.15s}
+  .login-in .lword{animation-delay:1.7s}.login-in p{animation-delay:1.85s}.login-in .btn{animation-delay:2s}
 }
 
 /* Reikningur og skýrsla í litum merkisins */
@@ -216,8 +216,8 @@ a.sx-w{display:block;color:inherit;text-decoration:none;cursor:pointer}
 @media (min-width:1024px){.spwrap{grid-template-columns:260px minmax(0,1fr)}.spchans{flex-direction:column;overflow:visible}.spch{max-width:none}.spcm small{max-width:170px}.spconv{height:calc(100dvh - 260px)}}
 
 /* ---------- Myndrit á Heim (1.4.0) ---------- */
-.charts{display:grid;grid-template-columns:1fr;gap:12px}
-@media (min-width:760px){.charts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+@media (min-width:760px){}
 .chart{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;min-width:0}
 .chh4{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}.chh4 b{font-weight:500}.chh4 span{font-size:12px;color:var(--muted)}
 .chsvg{width:100%;height:auto;display:block;overflow:visible}
@@ -242,7 +242,7 @@ a.sx-w{display:block;color:inherit;text-decoration:none;cursor:pointer}
 }
 @keyframes aBarY{from{transform:scaleY(0)}}
 .spform textarea{width:auto!important;min-width:0}.spform .btn{flex:none;width:auto}
-.charts{align-items:start}
+
 body.onchat #fab{display:none!important}
 @media (max-width:1023px){.spconv{height:calc(100dvh - 330px);min-height:300px}}
 .spform{display:flex!important;flex-wrap:nowrap!important;grid-template-columns:none}.spform textarea{flex:1 1 auto}
@@ -257,14 +257,14 @@ body.onchat #fab{display:none!important}
 .hw{grid-column:span 12;min-width:0}
 @media (min-width:760px){.hw-s{grid-column:span 6}.hw-m{grid-column:span 6}}
 @media (min-width:1024px){.hw-s{grid-column:span 4}.hw-m{grid-column:span 6}.hw-l{grid-column:span 12}}
-.hw>.viewtitle:first-child,.hw>.hwt+.viewtitle{margin-top:4px}
+.hw>.viewtitle:first-child{margin-top:4px}
 .hw .ring{height:100%}.hw .agenda{height:100%}
 .hw .hello{margin-top:4px}
 .hw.edit{outline:1px dashed var(--border2);outline-offset:4px;border-radius:16px;padding-top:2px}
-.hwt{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:12.5px;color:var(--muted)}
-.hwt b{font-weight:500;color:var(--ink)}
-.hwt button{appearance:none;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;cursor:pointer;margin-left:4px}
-.hwt button:disabled{opacity:.35;cursor:default}
+
+
+
+
 .hedit{margin-top:18px;padding:16px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .hadd{display:flex;flex-wrap:wrap;gap:8px}
 .hcust{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted)}
@@ -405,7 +405,7 @@ body.onchat #fab{display:none!important}
 @media (prefers-reduced-motion: no-preference){
   .hasco #login .llogo{animation:aAtrNidur 3.6s cubic-bezier(.65,0,.25,1) both}
   .hasco #login .lco,.hasco #login .login-in p,.hasco #login .login-in .btn{animation:aIn .6s var(--ease) both}
-  .hasco #login .lco{animation-delay:3.4s}.hasco #login .login-in p{animation-delay:3.55s}.hasco #login .login-in .btn{animation-delay:3.7s}.hasco #login #login-btn{animation-delay:3.85s}
+  .hasco #login .lco{animation-delay:3.4s}.hasco #login .login-in p{animation-delay:3.55s}.hasco #login .login-in .btn{animation-delay:3.7s}
 }
 
 /* Tilboð (sala.js, 2.4.0): línur í hlutum, ritill og samtölur */
@@ -455,7 +455,7 @@ header .deildseg button{min-height:30px;padding:0 10px;font-size:12.5px;border-r
 @media (max-width:600px){.hasco #login .lpair{flex-direction:column;gap:22px}.hasco #login .lpair .lsep{display:none}}
 @media (prefers-reduced-motion: no-preference){
   .hasco #login .lpair .lsep,.hasco #login .lpair .lco{animation:aIn .6s var(--ease) 1.9s both}
-  .hasco #login .login-in p{animation-delay:2.05s}.hasco #login .login-in .btn{animation-delay:2.2s}.hasco #login #login-btn{animation-delay:2.35s}
+  .hasco #login .login-in p{animation-delay:2.05s}.hasco #login .login-in .btn{animation-delay:2.2s}
 }
 /* 2.93.4: merkin á innskráningu á nákvæmlega sama stað og á opnunarskjánum (miðja skjásins) – engin hreyfing á milli skjáa; texti og hnappur fyrir neðan */
 .hasco #login .login-in{position:absolute;left:50%;top:calc(50% - 48px);transform:translateX(-50%);width:min(620px,calc(100% - 48px));max-width:none}

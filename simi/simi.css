@@ -123,7 +123,7 @@
   /* Yfirlit (UI1V): sömu yfk-lykiltölur og spjöld og á tölvu, einn dálkur */
   html:not(#s1):not(#s2) body.kerfi.sm .smyfb{display:flex;flex-direction:column;gap:14px}
   html:not(#s1):not(#s2) body.kerfi.sm .smyfb > *{margin:0!important}
-  html:not(#s1):not(#s2) body.kerfi.sm .smyfb .udash,html:not(#s1):not(#s2) body.kerfi.sm .smyfb .ydash,html:not(#s1):not(#s2) body.kerfi.sm .smyfb .u2grid,html:not(#s1):not(#s2) body.kerfi.sm .smyfb .ygrid{display:flex!important;flex-direction:column!important;gap:14px!important;grid-template-columns:none!important;margin:0!important}
+  html:not(#s1):not(#s2) body.kerfi.sm .smyfb .udash,html:not(#s1):not(#s2) body.kerfi.sm .smyfb .ydash,html:not(#s1):not(#s2) body.kerfi.sm .smyfb .u2grid{display:flex!important;flex-direction:column!important;gap:14px!important;grid-template-columns:none!important;margin:0!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smyfb .yfk{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:0!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smyfb .yfk > *{min-width:0;border-radius:var(--r-innri)!important;padding:13px 15px!important}
   html:not(#s1):not(#s2) body.kerfi.sm .smyfb .yfk b,html:not(#s1):not(#s2) body.kerfi.sm .smyfb .yfk strong{font-size:22px!important;white-space:nowrap;overflow:hidden;text-overflow:clip}
